@@ -131,4 +131,20 @@ abstract final class AppTextStyles {
     height: 24 / 14,
     color: AppColors.mutedForeground,
   );
+
+  static const tabBarLabelActive = TextStyle(
+    fontFamily: _inter,
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    height: 12 / 10,
+    color: AppColors.accent,
+  );
+
+  static const tabBarLabelInactive = TextStyle(
+    fontFamily: _inter,
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+    height: 12 / 10,
+    color: AppColors.mutedForeground,
+  );
 }

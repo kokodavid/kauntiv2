@@ -16,8 +16,17 @@ class AppColors {
   static const iconButtonBackground = Color(0xFFE1E1E2);
   static const cardBorder = Color(0xFFE5E7EB);
   static const listDivider = Color(0xFFE5E7EB);
+  static const pageBackground = Color(0xFFF5F5F5);
+  static const lockedFill = Color(0xFFF1F5F9);
+  static const lockedStroke = Color(0xFFCBD5E1);
+  static const legendVisited = Color(0xFF0A84FF);
+  static const legendPassed = Color(0xFFEAB308);
+  static const pendingFill = Color(0xFFF59E0B);
+  static const justUnlockedFill = Color(0xFFEF4444);
   static const legendHome = Color(0xFF22C55E);
   static const trackInactive = Color(0xFFE2E8F0);
+  static const tabBarShell = Color(0xCCFFFFFF);
+  static const tabPillBackground = Colors.white;
   static const permissionHeaderGradientEnd = Color(0xFF0A5FD4);
   static const heroSubheadingText = Color(0xFFCBD5E1);
   static const factTitleText = Color(0xFF0F172B);

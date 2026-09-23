@@ -3,15 +3,15 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import '../../../design/app_colors.dart';
 import '../application/county_camera_fit.dart';
 
-/// Where the Pro map looks: the user's own surroundings by default, their
+/// Where the real map looks: the user's own surroundings by default, their
 /// home county when location isn't available, and the whole of Kenya only
 /// as the starting frame the camera flies in from.
 ///
 /// Location is read by the Mapbox location component while this screen is
 /// open, never stored (doc 05: precise location is foreground-only).
-abstract final class ProMapFocus {
+abstract final class RealMapFocus {
   /// Close enough to see nearby places as photo markers; zooming out past
-  /// `ProMapLayers.markerMinZoom` turns them back into the Kenya-wide dots.
+  /// `RealMapLayers.markerMinZoom` turns them back into the Kenya-wide dots.
   static const localZoom = 8.5;
 
   static CameraViewportState kenya(double pitch) => CameraViewportState(
@@ -64,6 +64,18 @@ abstract final class ProMapFocus {
       AttributionSettings(marginBottom: bottomInset),
     );
   }
+
+  /// Stops the camera wandering far outside Kenya.
+  static Future<void> keepInKenya(MapboxMap map) => map.setBounds(
+    CameraBoundsOptions(
+      bounds: CoordinateBounds(
+        southwest: Point(coordinates: Position(33.0, -5.5)),
+        northeast: Point(coordinates: Position(42.5, 5.5)),
+        infiniteBounds: false,
+      ),
+      minZoom: 4.3,
+    ),
+  );
 
   /// Shows the pulsing "you are here" dot.
   static Future<void> showUserDot(MapboxMap map) {

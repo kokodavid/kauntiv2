@@ -6,16 +6,16 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_county_map_painter.dart';
-import 'pro_map_place_widgets.dart';
+import 'real_map_place_widgets.dart';
 
-/// Base styles offered in the Pro map spike, so they can be compared on a
-/// device.
-enum ProMapBaseStyle {
+/// Base styles the real map offers (style button). Terrain is the default;
+/// satellite and 3D are candidates for Pro later.
+enum RealMapBaseStyle {
   light('Light', MapboxStyles.LIGHT),
   outdoors('Terrain', MapboxStyles.OUTDOORS),
   satellite('Satellite', MapboxStyles.SATELLITE_STREETS);
 
-  const ProMapBaseStyle(this.label, this.uri);
+  const RealMapBaseStyle(this.label, this.uri);
 
   final String label;
   final String uri;
@@ -23,7 +23,7 @@ enum ProMapBaseStyle {
 
 /// Adds the county source and its layers to the current Mapbox style.
 /// Called on every style load, since switching base style drops them.
-abstract final class ProMapLayers {
+abstract final class RealMapLayers {
   static const sourceId = 'kaunti47-counties';
   static const fillLayerId = 'kaunti47-counties-fill';
   static const outlineLayerId = 'kaunti47-counties-outline';
@@ -88,7 +88,7 @@ abstract final class ProMapLayers {
   static const markerMinZoom = 6.0;
 
   /// Zoomed out: small dots coloured by type. From [markerMinZoom]: photo or
-  /// badge markers (style images from `ProMapPlaceMarkers`) with the name
+  /// badge markers (style images from `RealMapPlaceMarkers`) with the name
   /// underneath; overlapping markers hide, photos win over badges.
   static Future<void> addPlacesTo(StyleManager style, String geoJson) async {
     await style.addSource(GeoJsonSource(id: placesSourceId, data: geoJson));
@@ -100,11 +100,11 @@ abstract final class ProMapLayers {
         circleColorExpression: [
           'match',
           ['get', 'type'],
-          for (final entry in ProMapPlaceTypes.known.entries) ...[
+          for (final entry in RealMapPlaceTypes.known.entries) ...[
             entry.key,
             _hex(entry.value.$2),
           ],
-          _hex(ProMapPlaceTypes.colorFor('')),
+          _hex(RealMapPlaceTypes.colorFor('')),
         ],
         circleRadius: 4,
         circleStrokeColor: Colors.white.toARGB32(),

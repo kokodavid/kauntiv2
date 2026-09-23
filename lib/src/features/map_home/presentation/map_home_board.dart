@@ -1,27 +1,36 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/app_bottom_nav.dart';
+import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'map_home_county_map.dart';
 import 'map_home_for_you_section.dart';
+import 'map_home_map_status.dart';
 import 'map_home_sheet.dart';
 import 'map_home_sheet_cards.dart';
 import 'map_home_skeleton.dart';
 import 'map_home_stat_card.dart';
 import 'map_home_top_bar.dart';
-import 'map_home_map_mode_toggle.dart';
-import 'pro_map_view.dart';
+import 'real_map_view.dart';
 
 class MapHomeBoard extends StatefulWidget {
-  const MapHomeBoard({super.key, required this.data, this.loadMapPlaces});
+  const MapHomeBoard({
+    super.key,
+    required this.data,
+    this.loadMapPlaces,
+    this.mapboxAccessToken = '',
+  });
 
   /// Null while the board is loading: every slot shows a same-sized
   /// placeholder, then crossfades to the real content in place.
   final MapHomeBoardData? data;
 
-  /// SPIKE: place pins for the Pro map preview.
+  /// Place pins for the real map.
   final Future<List<MapPlace>> Function()? loadMapPlaces;
+
+  /// Empty (or web, which Mapbox doesn't support): drawn map only.
+  final String mapboxAccessToken;
 
   @override
   State<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -31,8 +40,13 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
   /// Ephemeral UI state: collapses the stat card while the map is browsed.
   bool _isMapInteracting = false;
 
-  /// SPIKE: Mapbox map in place of the drawn one (ephemeral UI state).
-  bool _showRealMap = false;
+  /// The real (Mapbox) map is Home's default; the drawn map is the
+  /// fallback when it can't load. Once failed, Home stays on the drawn map
+  /// until the user retries, so a patchy signal never flips maps mid-use.
+  _RealMapStatus _realMap = _RealMapStatus.loading;
+  int _realMapAttempt = 0;
+
+  bool get _realMapAllowed => !kIsWeb && widget.mapboxAccessToken.isNotEmpty;
 
   static const _fade = Duration(milliseconds: 400);
 
@@ -52,10 +66,10 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
     setState(() => _headerBottom = bottom);
   }
 
-  /// The drawn map's slot below the header: placeholder while loading,
-  /// then the drawn county map. (The real map sits behind the whole board.)
-  Widget _drawnMapFor(MapHomeBoardData? data) {
-    if (data == null) return const MapHomeLoadingMap();
+  /// The drawn map's slot below the header: the placeholder while the board
+  /// or the real map loads, else the drawn county map (fallback).
+  Widget _drawnMapFor(MapHomeBoardData? data, {required bool realLoading}) {
+    if (data == null || realLoading) return const MapHomeLoadingMap();
     return MapHomeCountyMap(
       badges: data.countyBadges,
       homeCountySlug: data.homeCounty?.slug,
@@ -69,25 +83,40 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-    final showRealMap = data != null && _showRealMap;
+    final mountReal =
+        data != null && _realMapAllowed && _realMap != _RealMapStatus.failed;
+    final realReady = mountReal && _realMap == _RealMapStatus.ready;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _measureHeader();
     });
     return Stack(
       children: [
-        // SPIKE: the real map runs edge to edge; the header floats on it.
-        if (showRealMap) ...[
+        // The real map runs edge to edge; the header floats on it.
+        if (mountReal) ...[
           Positioned.fill(
-            child: ProMapView(
-              key: const ValueKey('real-map'),
-              accessToken: ProMapView.configuredAccessToken,
+            child: RealMapView(
+              key: ValueKey('real-map-$_realMapAttempt'),
+              accessToken: widget.mapboxAccessToken,
               badges: data.countyBadges,
               homeCountySlug: data.homeCounty?.slug,
               loadPlaces: widget.loadMapPlaces,
               topInset: _headerBottom + 20,
+              onReady: () => setState(() => _realMap = _RealMapStatus.ready),
+              onFailed: () => setState(() => _realMap = _RealMapStatus.failed),
             ),
           ),
           const MapHomeHeaderScrim(),
+          // Page background over the map until its style is up, so its
+          // blank canvas never flashes; fades out when ready.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: realReady ? 0 : 1,
+                duration: _fade,
+                child: const ColoredBox(color: AppColors.pageBackground),
+              ),
+            ),
+          ),
         ],
         Positioned.fill(
           child: SafeArea(
@@ -122,22 +151,29 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                 Expanded(
                   child: Stack(
                     children: [
-                      if (!showRealMap)
-                        Positioned.fill(
-                          child: AnimatedSwitcher(
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          ignoring: realReady,
+                          child: AnimatedOpacity(
+                            opacity: realReady ? 0 : 1,
                             duration: _fade,
-                            child: _drawnMapFor(data),
+                            child: AnimatedSwitcher(
+                              duration: _fade,
+                              child: _drawnMapFor(data, realLoading: mountReal),
+                            ),
                           ),
                         ),
-                      // SPIKE: Map / Real switch, only with a Mapbox token.
-                      if (data != null && ProMapView.isAvailable)
+                      ),
+                      if (data != null &&
+                          _realMapAllowed &&
+                          _realMap == _RealMapStatus.failed)
                         Positioned(
                           top: 8,
                           left: 24,
-                          child: MapHomeMapModeToggle(
-                            showRealMap: _showRealMap,
-                            onChanged: (real) => setState(() {
-                              _showRealMap = real;
+                          child: MapHomeOfflineMapChip(
+                            onRetry: () => setState(() {
+                              _realMap = _RealMapStatus.loading;
+                              _realMapAttempt++;
                               _isMapInteracting = false;
                             }),
                           ),
@@ -178,3 +214,5 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
     );
   }
 }
+
+enum _RealMapStatus { loading, ready, failed }

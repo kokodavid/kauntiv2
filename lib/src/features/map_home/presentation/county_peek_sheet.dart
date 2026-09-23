@@ -12,6 +12,19 @@ class CountyPeekSheet extends StatelessWidget {
   final MapHomeCountyBadge badge;
   final bool isHome;
 
+  static Future<void> show(
+    BuildContext context,
+    MapHomeCountyBadge badge, {
+    required bool isHome,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: AppColors.foreground.withValues(alpha: 0.28),
+      builder: (context) => CountyPeekSheet(badge: badge, isHome: isHome),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final style = MapHomeCountyStyle.forState(badge.state, isHome: isHome);

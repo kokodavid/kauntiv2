@@ -40,7 +40,7 @@ class AppLocationPermissionService {
   }
 
   /// Whether the app may read location while in the foreground ("while
-  /// using" or "always"). Used by the Pro map's "you are here" view, which
+  /// using" or "always"). Used by the real map's "you are here" view, which
   /// needs no background access.
   Future<bool> hasForegroundLocation() async {
     if (defaultTargetPlatform == TargetPlatform.iOS) {

@@ -7,9 +7,9 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
 import '../application/county_camera_fit.dart';
 
-/// Camera moves for the Pro map: flying into a county so it's framed above
+/// Camera moves for the real map: flying into a county so it's framed above
 /// the peek sheet, and releasing the sheet padding afterwards.
-abstract final class ProMapCamera {
+abstract final class RealMapCamera {
   static const flightDuration = Duration(milliseconds: 1400);
 
   static Future<void> flyToCounty(

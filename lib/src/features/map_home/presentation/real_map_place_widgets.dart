@@ -7,7 +7,7 @@ import '../domain/map_place.dart';
 
 /// Pin colour and label per place type, shared by the map layer, the
 /// legend and the place sheet.
-abstract final class ProMapPlaceTypes {
+abstract final class RealMapPlaceTypes {
   static const known = <String, (String, Color)>{
     'park': ('Parks', AppColors.placePark),
     'museum': ('Museums', AppColors.placeMuseum),
@@ -30,8 +30,8 @@ abstract final class ProMapPlaceTypes {
 }
 
 /// Compact legend for the place pins.
-class ProMapPlaceLegend extends StatelessWidget {
-  const ProMapPlaceLegend({super.key});
+class RealMapPlaceLegend extends StatelessWidget {
+  const RealMapPlaceLegend({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class ProMapPlaceLegend extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final entry in ProMapPlaceTypes.known.values)
+            for (final entry in RealMapPlaceTypes.known.values)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(
@@ -67,8 +67,8 @@ class ProMapPlaceLegend extends StatelessWidget {
 }
 
 /// Bottom sheet for a tapped place pin.
-class ProMapPlaceSheet extends StatelessWidget {
-  const ProMapPlaceSheet({super.key, required this.place});
+class RealMapPlaceSheet extends StatelessWidget {
+  const RealMapPlaceSheet({super.key, required this.place});
 
   final MapPlace place;
 
@@ -77,14 +77,14 @@ class ProMapPlaceSheet extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.foreground.withValues(alpha: 0.28),
-      builder: (context) => ProMapPlaceSheet(place: place),
+      builder: (context) => RealMapPlaceSheet(place: place),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final county = CountyPaths.byCode[place.countyCode];
-    final typeLabel = ProMapPlaceTypes.known[place.type]?.$1 ?? place.type;
+    final typeLabel = RealMapPlaceTypes.known[place.type]?.$1 ?? place.type;
     final summary = place.summary;
     return SafeArea(
       top: false,
@@ -126,7 +126,7 @@ class ProMapPlaceSheet extends StatelessWidget {
             ],
             Row(
               children: [
-                _Dot(color: ProMapPlaceTypes.colorFor(place.type)),
+                _Dot(color: RealMapPlaceTypes.colorFor(place.type)),
                 const SizedBox(width: 6),
                 Text(
                   [typeLabel, if (county != null) county.name]

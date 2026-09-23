@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import '../domain/map_home_models.dart';
 
-/// Builds the GeoJSON the Pro (Mapbox) map renders: the bundled county
+/// Builds the GeoJSON the real (Mapbox) map renders: the bundled county
 /// boundaries (`assets/geo/kenya_counties.geojson`) with each feature's
 /// `state` property set from the user's badges, so the map can colour
 /// counties with a data-driven style expression.

@@ -1,4 +1,4 @@
-/// A place from the `places` table, as a pin on the Pro (Mapbox) map.
+/// A place from the `places` table, as a pin on the real (Mapbox) map.
 class MapPlace {
   const MapPlace({
     required this.id,

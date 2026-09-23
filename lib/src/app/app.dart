@@ -130,6 +130,7 @@ class _StartupGateState extends State<_StartupGate>
 
     return MapHomeScreen(
       homeCounty: _selectedCounty,
+      mapboxAccessToken: widget.config.mapboxAccessToken,
       loader: AppSupabase.isInitialized
           ? MapHomeBoardLoader(
               repository: SupabaseMapHomeRepository(AppSupabase.client),

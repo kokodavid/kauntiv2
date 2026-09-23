@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../counties/county_paths.dart';
-import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import 'county_peek_sheet.dart';
 import 'map_home_county_map_painter.dart';
@@ -142,14 +141,10 @@ class _MapHomeCountyMapState extends State<MapHomeCountyMap>
   /// Keeps the county highlighted under the sheet; clears it on close.
   Future<void> _openPeek(MapHomeCountyBadge badge) async {
     _setPressedCounty(badge.county.slug);
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: AppColors.foreground.withValues(alpha: 0.28),
-      builder: (context) => CountyPeekSheet(
-        badge: badge,
-        isHome: badge.county.slug == widget.homeCountySlug,
-      ),
+    await CountyPeekSheet.show(
+      context,
+      badge,
+      isHome: badge.county.slug == widget.homeCountySlug,
     );
     if (!mounted) return;
     _setPressedCounty(null);

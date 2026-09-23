@@ -2,17 +2,17 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../application/place_geojson_builder.dart';
 import '../domain/map_place.dart';
-import 'pro_map_layers.dart';
-import 'pro_map_place_markers.dart';
+import 'real_map_layers.dart';
+import 'real_map_place_markers.dart';
 
-/// Owns the Pro map's place pins for one screen: waits for the places to
+/// Owns the real map's place pins for one screen: waits for the places to
 /// load once, then adds their source, layers and marker images to every
 /// style that loads, and resolves tapped pins back to places.
-class ProMapPlacesLayer {
-  ProMapPlacesLayer(this._places);
+class RealMapPlacesLayer {
+  RealMapPlacesLayer(this._places);
 
   final Future<List<MapPlace>>? _places;
-  final _markers = ProMapPlaceMarkers();
+  final _markers = RealMapPlaceMarkers();
   Map<String, MapPlace> _byId = const {};
 
   bool get isEnabled => _places != null;
@@ -30,7 +30,7 @@ class ProMapPlacesLayer {
       return false;
     }
     _byId = {for (final place in places) place.id: place};
-    await ProMapLayers.addPlacesTo(style, PlaceGeoJsonBuilder.build(places));
+    await RealMapLayers.addPlacesTo(style, PlaceGeoJsonBuilder.build(places));
     await _markers.addTo(style, places);
     return true;
   }

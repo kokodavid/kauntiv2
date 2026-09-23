@@ -12,10 +12,14 @@ class MapHomeScreen extends StatefulWidget {
     super.key,
     this.homeCounty,
     this.loader = const MapHomeBoardLoader(),
+    this.mapboxAccessToken = '',
   });
 
   final CountyPath? homeCounty;
   final MapHomeBoardLoader loader;
+
+  /// Empty: Home shows the drawn county map only.
+  final String mapboxAccessToken;
 
   @override
   State<MapHomeScreen> createState() => _MapHomeScreenState();
@@ -51,6 +55,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             return MapHomeBoard(
               data: snapshot.data,
               loadMapPlaces: widget.loader.loadMapPlaces,
+              mapboxAccessToken: widget.mapboxAccessToken,
             );
           },
       ),

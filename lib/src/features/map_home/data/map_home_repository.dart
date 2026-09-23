@@ -5,7 +5,7 @@ import '../domain/map_place.dart';
 abstract interface class MapHomeRepository {
   Future<MapHomeBoardData> loadBoard({CountyPath? homeCounty});
 
-  /// Places with coordinates, for the Pro map spike.
+  /// Places with coordinates, pinned on the real (Mapbox) map.
   Future<List<MapPlace>> loadMapPlaces();
 }
 

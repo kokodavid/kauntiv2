@@ -23,5 +23,10 @@ void main() {
     test('reports missing Supabase config when no defines are passed', () {
       expect(const AppConfig.dev().hasSupabaseConfig, isFalse);
     });
+
+    test('has no Mapbox token without defines, so Home uses the drawn map', () {
+      expect(const AppConfig.dev().hasMapboxConfig, isFalse);
+      expect(const AppConfig.prod().mapboxAccessToken, isEmpty);
+    });
   });
 }

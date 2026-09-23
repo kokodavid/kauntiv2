@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import '../domain/map_place.dart';
 
-/// Places as a GeoJSON point collection for the Pro map's pin layers.
+/// Places as a GeoJSON point collection for the real map's pin layers.
 abstract final class PlaceGeoJsonBuilder {
   /// Style-image id of a place's map marker: its own photo marker, or the
   /// shared badge for its type when it has no photo.

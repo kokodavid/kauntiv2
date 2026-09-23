@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
-import 'pro_map_layers.dart';
+import 'real_map_layers.dart';
 
-/// Compact controls for the embedded Pro map, stacked on the right of the
+/// Compact controls for the embedded real map, stacked on the right of the
 /// map slot: base style, 3D terrain, locate me.
-class ProMapSideControls extends StatelessWidget {
-  const ProMapSideControls({
+class RealMapSideControls extends StatelessWidget {
+  const RealMapSideControls({
     super.key,
     required this.baseStyle,
     required this.onBaseStyleChanged,
@@ -15,8 +15,8 @@ class ProMapSideControls extends StatelessWidget {
     required this.onLocate,
   });
 
-  final ProMapBaseStyle baseStyle;
-  final ValueChanged<ProMapBaseStyle> onBaseStyleChanged;
+  final RealMapBaseStyle baseStyle;
+  final ValueChanged<RealMapBaseStyle> onBaseStyleChanged;
   final bool terrainEnabled;
   final ValueChanged<bool> onTerrainChanged;
   final VoidCallback onLocate;
@@ -26,12 +26,12 @@ class ProMapSideControls extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        PopupMenuButton<ProMapBaseStyle>(
+        PopupMenuButton<RealMapBaseStyle>(
           tooltip: 'Map style',
           initialValue: baseStyle,
           onSelected: onBaseStyleChanged,
           itemBuilder: (context) => [
-            for (final style in ProMapBaseStyle.values)
+            for (final style in RealMapBaseStyle.values)
               CheckedPopupMenuItem(
                 value: style,
                 checked: style == baseStyle,
@@ -41,14 +41,14 @@ class ProMapSideControls extends StatelessWidget {
           child: const _RoundIcon(icon: Icons.layers_outlined),
         ),
         const SizedBox(height: 8),
-        ProMapRoundButton(
+        RealMapRoundButton(
           icon: Icons.terrain,
           tooltip: terrainEnabled ? '3D on' : '3D off',
           active: terrainEnabled,
           onPressed: () => onTerrainChanged(!terrainEnabled),
         ),
         const SizedBox(height: 8),
-        ProMapRoundButton(
+        RealMapRoundButton(
           icon: Icons.my_location,
           tooltip: 'Show where I am',
           onPressed: onLocate,
@@ -59,8 +59,8 @@ class ProMapSideControls extends StatelessWidget {
 }
 
 /// Dark round map button; [active] fills it with the accent colour.
-class ProMapRoundButton extends StatelessWidget {
-  const ProMapRoundButton({
+class RealMapRoundButton extends StatelessWidget {
+  const RealMapRoundButton({
     super.key,
     required this.icon,
     required this.onPressed,

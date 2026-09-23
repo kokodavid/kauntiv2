@@ -7,16 +7,16 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../application/place_geojson_builder.dart';
 import '../domain/map_place.dart';
-import 'pro_map_place_widgets.dart';
+import 'real_map_place_widgets.dart';
 
-/// Renders the Pro map's place markers as style images: a round photo in a
+/// Renders the real map's place markers as style images: a round photo in a
 /// ring of the place-type colour with a pointer underneath, or a type badge
 /// (colour + icon) when a place has no photo or its photo fails to load.
 ///
 /// Rendered PNGs ([MbxImage.data] is PNG-encoded) are cached for the
 /// screen's lifetime so a base-style switch, which drops every style image,
 /// re-adds them instantly.
-class ProMapPlaceMarkers {
+class RealMapPlaceMarkers {
   static const _logicalSize = 46.0;
   static const _pixelRatio = 3.0;
   static const _pointer = 7.0;
@@ -29,7 +29,7 @@ class ProMapPlaceMarkers {
   /// them as they arrive.
   Future<void> addTo(StyleManager style, List<MapPlace> places) async {
     final types = {
-      ...ProMapPlaceTypes.known.keys,
+      ...RealMapPlaceTypes.known.keys,
       ...places.map((place) => place.type),
     };
     for (final type in types) {
@@ -64,8 +64,8 @@ class ProMapPlaceMarkers {
     final cached = _rendered[key];
     if (cached != null) return cached;
     return _draw(type, (canvas, rect) {
-      canvas.drawOval(rect, Paint()..color = ProMapPlaceTypes.colorFor(type));
-      final icon = ProMapPlaceTypes.iconFor(type);
+      canvas.drawOval(rect, Paint()..color = RealMapPlaceTypes.colorFor(type));
+      final icon = RealMapPlaceTypes.iconFor(type);
       final painter = TextPainter(
         textDirection: TextDirection.ltr,
         text: TextSpan(
@@ -122,7 +122,7 @@ class ProMapPlaceMarkers {
     final canvas = Canvas(recorder);
     final center = Offset(width / 2, pad + size / 2);
     final outer = Rect.fromCircle(center: center, radius: size / 2);
-    final ringColor = ProMapPlaceTypes.colorFor(type);
+    final ringColor = RealMapPlaceTypes.colorFor(type);
 
     final tip = Path()
       ..moveTo(center.dx - pointer, center.dy + size / 2 - pointer * 0.6)

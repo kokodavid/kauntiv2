@@ -9,7 +9,7 @@ typedef CountyBounds = ({
   double maxLat,
 });
 
-/// Camera maths for flying the Pro map to a county: bounding boxes from
+/// Camera maths for flying the real map to a county: bounding boxes from
 /// the bundled boundaries GeoJSON, and a zoom that fits a box into the
 /// visible part of the screen.
 abstract final class CountyCameraFit {

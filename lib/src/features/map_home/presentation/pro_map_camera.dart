@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+// Mapbox exports its own `Size`; this file means Flutter's.
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
 import '../application/county_camera_fit.dart';
 

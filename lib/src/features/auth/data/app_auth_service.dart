@@ -33,8 +33,9 @@ class AppAuthService {
 
   bool get isAvailable => client != null || AppSupabase.isInitialized;
 
-  User? get currentUser =>
-      (client != null || AppSupabase.isInitialized) ? _client.auth.currentUser : null;
+  User? get currentUser => (client != null || AppSupabase.isInitialized)
+      ? _client.auth.currentUser
+      : null;
 
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
@@ -111,7 +112,11 @@ class AppAuthService {
     try {
       await GoogleSignIn.instance.signOut();
     } catch (error, stackTrace) {
-      _logger.debug('Google sign out skipped.', error: error, stackTrace: stackTrace);
+      _logger.debug(
+        'Google sign out skipped.',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
     await _client.auth.signOut();
   }

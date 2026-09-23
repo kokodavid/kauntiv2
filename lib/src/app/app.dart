@@ -129,9 +129,9 @@ class _StartupGateState extends State<_StartupGate>
   }
 
   Future<void> _preloadSignInAssets(BuildContext context) async {
-    await const SvgAssetLoader('assets/images/onboarding.svg').loadBytes(
-      context,
-    );
+    await const SvgAssetLoader(
+      'assets/images/onboarding.svg',
+    ).loadBytes(context);
   }
 
   Future<void> _saveHomeCounty() async {
@@ -146,9 +146,9 @@ class _StartupGateState extends State<_StartupGate>
     });
 
     try {
-      await SupabaseProfileSetupRepository(AppSupabase.client).saveHomeCounty(
-        county,
-      );
+      await SupabaseProfileSetupRepository(
+        AppSupabase.client,
+      ).saveHomeCounty(county);
       await _continueAfterHomeCounty();
     } catch (_) {
       if (!mounted) {
@@ -267,7 +267,8 @@ class _StartupGateState extends State<_StartupGate>
     } catch (_) {
       if (mounted) {
         setState(() {
-          _permissionError = 'Could not request location permission. Try again.';
+          _permissionError =
+              'Could not request location permission. Try again.';
         });
       }
     } finally {

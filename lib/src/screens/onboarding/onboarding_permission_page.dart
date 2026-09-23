@@ -315,10 +315,7 @@ class _PermissionFact extends StatelessWidget {
                 if (!isLast) ...[
                   const SizedBox(height: 4),
                   Expanded(
-                    child: Container(
-                      width: 1,
-                      color: AppColors.trackInactive,
-                    ),
+                    child: Container(width: 1, color: AppColors.trackInactive),
                   ),
                 ],
               ],

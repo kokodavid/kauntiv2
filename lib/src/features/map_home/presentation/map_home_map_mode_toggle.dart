@@ -93,3 +93,34 @@ class _Segment extends StatelessWidget {
     );
   }
 }
+
+/// Soft fade behind the status bar and top bar when the real map runs
+/// edge to edge, so "Kaunti47" and the tier chip stay readable on terrain
+/// and satellite imagery. Must sit directly in the board's Stack.
+class MapHomeHeaderScrim extends StatelessWidget {
+  const MapHomeHeaderScrim({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      height: MediaQuery.paddingOf(context).top + 96,
+      child: IgnorePointer(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.pageBackground.withValues(alpha: 0.95),
+                AppColors.pageBackground.withValues(alpha: 0),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

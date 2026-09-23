@@ -34,15 +34,17 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
-      body: SafeArea(
-        bottom: false,
-        child: FutureBuilder<MapHomeBoardData>(
+      // The board handles safe areas itself so the real map can run
+      // edge to edge under the status bar.
+      body: FutureBuilder<MapHomeBoardData>(
           future: _board,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return const _MapHomeLoadMessage(
+              return const SafeArea(
+                child: _MapHomeLoadMessage(
                 title: "Couldn't load your map.",
-                body: 'Check your connection and try again.',
+                  body: 'Check your connection and try again.',
+                ),
               );
             }
             // Null while loading: the board renders its own placeholders.
@@ -51,7 +53,6 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               loadMapPlaces: widget.loader.loadMapPlaces,
             );
           },
-        ),
       ),
     );
   }

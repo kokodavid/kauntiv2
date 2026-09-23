@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 // Mapbox exports its own `Size`; this file means Flutter's.
@@ -18,13 +19,16 @@ abstract final class ProMapCamera {
     required double pitch,
     // Share of [screen] the peek sheet covers, kept clear when framing.
     double sheetShare = 0.45,
+    // Height covered from the top (Home's header over the map).
+    double topPadding = 0,
   }) async {
     final bottomPadding = screen.height * sheetShare;
     final center = CountyCameraFit.centerOf(bounds);
     final zoom = CountyCameraFit.zoomToFit(
       bounds,
       width: screen.width,
-      height: screen.height - bottomPadding,
+      // Header above and sheet below can leave a thin band; keep a floor.
+      height: math.max(screen.height - bottomPadding - topPadding, 160),
       // Tilted views foreshorten the far side; leave extra room.
       fill: pitch > 0 ? 0.7 : 0.8,
     );
@@ -35,7 +39,7 @@ abstract final class ProMapCamera {
         pitch: pitch,
         bearing: 0,
         padding: MbxEdgeInsets(
-          top: 0,
+          top: topPadding,
           left: 0,
           bottom: bottomPadding,
           right: 0,

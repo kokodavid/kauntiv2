@@ -31,6 +31,7 @@ class ProMapView extends StatefulWidget {
     required this.badges,
     required this.homeCountySlug,
     this.loadPlaces,
+    this.topInset = 0,
   });
 
   /// Public Mapbox token (`MAPBOX_ACCESS_TOKEN` dart-define).
@@ -47,6 +48,10 @@ class ProMapView extends StatefulWidget {
 
   /// Loads the pins for `places`; null shows counties only.
   final Future<List<MapPlace>> Function()? loadPlaces;
+
+  /// How far down Home's header covers the map; controls and county
+  /// framing stay below it.
+  final double topInset;
 
   @override
   State<ProMapView> createState() => _ProMapViewState();
@@ -227,8 +232,8 @@ class _ProMapViewState extends State<ProMapView> {
         map,
         bounds,
         screen: _mapSize,
-        // The peek sheet covers most of Home's map slot.
-        sheetShare: 0.6,
+        sheetShare: 0.45,
+        topPadding: widget.topInset,
         pitch: _pitch,
       ),
     );
@@ -267,7 +272,7 @@ class _ProMapViewState extends State<ProMapView> {
               onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
             ),
             Positioned(
-              top: 56,
+              top: widget.topInset + 8,
               right: 16,
               child: ProMapSideControls(
                 baseStyle: _baseStyle,
@@ -279,7 +284,7 @@ class _ProMapViewState extends State<ProMapView> {
             ),
             if (selected != null)
               Positioned(
-                top: 56,
+                top: widget.topInset + 52,
                 left: 24,
                 child: IgnorePointer(child: MapHomeCountyLabel(badge: selected)),
               ),

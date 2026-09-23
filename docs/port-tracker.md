@@ -83,9 +83,11 @@ map kept for everyone?
 
 - County outlines bundled as `assets/geo/kenya_counties.geojson` (from v1's
   geoBoundaries seed geometry, 47 features, ~170 KB); no database change.
-- `ProMapView`: embedded in Home's map slot and swapped with the drawn map
-  by a "MAP | REAL · PRO" switch (top-left of the map); top bar, stat card,
-  For You sheet and nav stay put. Counties coloured by badge state over a
+- `ProMapView`: swapped in for the drawn map by a "MAP | REAL · PRO" switch
+  on Home. The real map runs edge to edge behind the whole board (under the
+  status bar); top bar and stat card float on it with a soft top scrim, and
+  For You sheet and nav stay put. Controls and county framing sit below
+  the measured header. Counties coloured by badge state over a
   Light / Terrain / Satellite base (style, 3D and locate-me buttons on the
   right), kept inside Kenya; Mapbox logo/attribution lifted above the sheet.
 - Place pins from `places` (lat/lng): type-coloured dots when zoomed out;

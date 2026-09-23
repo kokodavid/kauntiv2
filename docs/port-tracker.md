@@ -80,6 +80,8 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-23 | `c421cdd` | 4 | Map-first loading skeleton replaces the loading message |
+| 2026-09-23 | `d987c15` | — | Port tracker: Map Home notes, progress log, maintenance rule |
 | 2026-09-23 | `64976a8` | 4 | Port v1 county map interactions (zoom, press label, halo, compact stat card, v1 colours) |
 | 2026-09-23 | `71652b0` | 3, 4 | Supabase-backed board, v1 For You section, v1 sheet sizing, startup session restore |
 | 2026-09-23 | `42b32ae` | — | AGENTS.md: project direction, no screen flashes, command discipline |

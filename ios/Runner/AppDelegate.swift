@@ -10,6 +10,7 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    applyMapboxTelemetryDefault()
     let didLaunch = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     if let registrar = self.registrar(forPlugin: "Kaunti47LocationPlugin") {
       FlutterMethodChannel(
@@ -28,6 +29,18 @@ import UIKit
     }
 
     return didLaunch
+  }
+
+  /// Turns Mapbox location telemetry off once, before any map exists (doc 05:
+  /// precise location stays on the device). MapboxMaps' EventsManager and its
+  /// (i) attribution menu both read this key, so a user who opts back in from
+  /// that menu keeps their choice on later launches.
+  private func applyMapboxTelemetryDefault() {
+    let defaults = UserDefaults.standard
+    let appliedKey = "kaunti47.mapboxTelemetryDefaultApplied"
+    guard !defaults.bool(forKey: appliedKey) else { return }
+    defaults.set(false, forKey: "MGLMapboxMetricsEnabled")
+    defaults.set(true, forKey: appliedKey)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {

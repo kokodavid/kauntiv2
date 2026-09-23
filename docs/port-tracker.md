@@ -97,9 +97,15 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - No tests for `SupabaseMapHomeRepository` or the board.
 - `AppColors.pendingFill` and `justUnlockedFill` are unused since the v1
   colour port; remove or reuse.
-- Real map: Mapbox telemetry not yet disabled (doc 05; the map reads
-  location) and Mapbox / OpenStreetMap attribution not yet in Credits —
-  both required before release. Doc 05 and doc 06 ("one projection
+- Real map: Mapbox location telemetry is off by default (iOS: AppDelegate
+  sets `MGLMapboxMetricsEnabled` = false once at launch; Android:
+  MainActivity calls Mapbox Common `TelemetryUtils.setEventsCollectionState
+  (false)` once, via the `com.giglab.kaunti47/mapbox` channel after the
+  first map is created). Users can opt back in from the map's (i) menu,
+  which must stay visible. Needs a device check on both platforms (Android
+  uses reflection, so a Mapbox Common rename would only log a warning).
+  Billing (MAU) events still run and can't be disabled. Mapbox /
+  OpenStreetMap attribution not yet in Credits — required before release. Doc 05 and doc 06 ("one projection
   everywhere") need updating for the real map.
 - Real map status and map choice live in widget state
   (`MapHomeBoard`), not a Riverpod provider — move with the board to

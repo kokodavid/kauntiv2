@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 // Mapbox exports its own `Size`; this file means Flutter's.
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
+import '../../../core/services/app_mapbox_telemetry.dart';
 import '../../../services/app_location_permission_service.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
@@ -133,6 +134,7 @@ class _RealMapViewState extends State<RealMapView> {
 
   void _onMapCreated(MapboxMap map) {
     _map = map;
+    unawaited(AppMapboxTelemetry.applyPrivacyDefault());
     if (_hasLocation) unawaited(RealMapFocus.showUserDot(map));
     unawaited(
       RealMapFocus.placeOrnaments(

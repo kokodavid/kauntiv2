@@ -9,6 +9,8 @@ import 'map_home_sheet_cards.dart';
 import 'map_home_skeleton.dart';
 import 'map_home_stat_card.dart';
 import 'map_home_top_bar.dart';
+import 'pro_map_entry_chip.dart';
+import 'pro_map_screen.dart';
 
 class MapHomeBoard extends StatefulWidget {
   const MapHomeBoard({super.key, required this.data});
@@ -60,18 +62,33 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: _fade,
-                  child: data == null
-                      ? const MapHomeLoadingMap()
-                      : MapHomeCountyMap(
-                          badges: data.countyBadges,
-                          homeCountySlug: data.homeCounty?.slug,
-                          onInteractingChanged: (interacting) {
-                            if (interacting == _isMapInteracting) return;
-                            setState(() => _isMapInteracting = interacting);
-                          },
-                        ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: AnimatedSwitcher(
+                        duration: _fade,
+                        child: data == null
+                            ? const MapHomeLoadingMap()
+                            : MapHomeCountyMap(
+                                badges: data.countyBadges,
+                                homeCountySlug: data.homeCounty?.slug,
+                                onInteractingChanged: (interacting) {
+                                  if (interacting == _isMapInteracting) return;
+                                  setState(
+                                    () => _isMapInteracting = interacting,
+                                  );
+                                },
+                              ),
+                      ),
+                    ),
+                    // SPIKE: dev-only entry to the Mapbox Pro map preview.
+                    if (data != null && ProMapScreen.isAvailable)
+                      Positioned(
+                        top: 8,
+                        left: 24,
+                        child: ProMapEntryChip(data: data),
+                      ),
+                  ],
                 ),
               ),
             ],

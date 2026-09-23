@@ -74,6 +74,24 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - `AppColors.pendingFill` and `justUnlockedFill` are unused since the v1
   colour port; remove or reuse.
 
+## Spikes (not for main)
+
+### Mapbox Pro map — `codex/mapbox-spike`
+
+Question: is a Mapbox "real map" worth offering as a Pro view, with the drawn
+map kept for everyone?
+
+- County outlines bundled as `assets/geo/kenya_counties.geojson` (from v1's
+  geoBoundaries seed geometry, 47 features, ~170 KB); no database change.
+- `ProMapScreen`: counties coloured by badge state over a Light / Terrain /
+  Satellite base, kept inside Kenya, tap outlines a county and opens the peek.
+- Entry: "REAL MAP · PRO" chip on the Home map, shown only when
+  `MAPBOX_ACCESS_TOKEN` is set (stand-in for a Pro entitlement).
+- To evaluate on a device: look, start-up time, tap accuracy, gesture
+  conflicts with the sheet, app-size increase, offline behaviour.
+- Open before any real build: telemetry opt-out (doc 05), attribution in
+  Credits, Pro entitlement + paywall (#12), decision record.
+
 ## Progress log
 
 Newest first. One line per commit that moves a feature or changes tracking.

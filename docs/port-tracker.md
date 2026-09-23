@@ -91,6 +91,8 @@ map kept for everyone?
   collisions hidden with photos preferred. Tap opens a sheet with the photo.
 - 3D terrain (Mapbox Terrain-DEM, 1.5x exaggeration, atmosphere sky), on by
   default with a 50° tilt; "3D" toggle flattens it and levels the camera.
+- Tapping a county flies the camera into it (framed above the peek sheet,
+  tilted when 3D is on); the sheet opens as the flight settles.
 - Entry: "REAL MAP · PRO" chip on the Home map, shown only when
   `MAPBOX_ACCESS_TOKEN` is set (stand-in for a Pro entitlement).
 - To evaluate on a device: look, start-up time, tap accuracy, gesture

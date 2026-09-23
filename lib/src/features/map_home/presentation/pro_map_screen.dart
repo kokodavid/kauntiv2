@@ -5,15 +5,16 @@ import 'package:flutter/services.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../../design/app_colors.dart';
+import '../application/county_camera_fit.dart';
 import '../application/county_geojson_builder.dart';
-import '../application/place_geojson_builder.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'county_peek_sheet.dart';
 import 'map_home_map_overlays.dart';
+import 'pro_map_camera.dart';
 import 'pro_map_controls.dart';
 import 'pro_map_layers.dart';
-import 'pro_map_place_markers.dart';
+import 'pro_map_places_layer.dart';
 import 'pro_map_place_widgets.dart';
 
 /// SPIKE (codex/mapbox-spike): the county map on a real Mapbox base map,
@@ -62,23 +63,23 @@ class _ProMapScreenState extends State<ProMapScreen> {
 
   MapboxMap? _map;
   String? _countyGeoJson;
+  Map<int, CountyBounds> _countyBounds = const {};
   ProMapBaseStyle _baseStyle = ProMapBaseStyle.outdoors;
   MapHomeCountyBadge? _selected;
-  Future<List<MapPlace>>? _places;
-  Map<String, MapPlace> _placesById = const {};
-  final _markers = ProMapPlaceMarkers();
+  late final ProMapPlacesLayer _placesLayer;
 
   @override
   void initState() {
     super.initState();
     MapboxOptions.setAccessToken(widget.accessToken);
-    _places = widget.loadPlaces?.call();
+    _placesLayer = ProMapPlacesLayer(widget.loadPlaces?.call());
   }
 
   Future<String> _geoJson() async {
     final cached = _countyGeoJson;
     if (cached != null) return cached;
     final raw = await rootBundle.loadString(_geoJsonAsset);
+    _countyBounds = CountyCameraFit.boundsByCode(raw);
     return _countyGeoJson = CountyGeoJsonBuilder.withBadgeStates(
       boundariesGeoJson: raw,
       badges: widget.badges,
@@ -134,29 +135,15 @@ class _ProMapScreenState extends State<ProMapScreen> {
   }
 
   Future<void> _addPlaces(MapboxMap map) async {
-    final pending = _places;
-    if (pending == null) return;
-    final List<MapPlace> places;
-    try {
-      places = await pending;
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Couldn't load places.")));
-      return;
-    }
-    if (!mounted) return;
-    _placesById = {for (final place in places) place.id: place};
-    await ProMapLayers.addPlacesTo(
-      map.style,
-      PlaceGeoJsonBuilder.build(places),
-    );
-    await _markers.addTo(map.style, places);
+    final loaded = await _placesLayer.addTo(map.style);
+    if (loaded || !mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Couldn't load places.")));
   }
 
   void _onPlaceTapped(Object? id) {
-    final place = _placesById[id];
+    final place = _placesLayer.placeFor(id);
     if (place == null) return;
     unawaited(
       showModalBottomSheet<void>(
@@ -190,6 +177,8 @@ class _ProMapScreenState extends State<ProMapScreen> {
   Future<void> _openPeek(MapHomeCountyBadge badge) async {
     setState(() => _selected = badge);
     unawaited(_applyHighlight());
+    await _flyTo(badge);
+    if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -202,6 +191,25 @@ class _ProMapScreenState extends State<ProMapScreen> {
     if (!mounted) return;
     setState(() => _selected = null);
     unawaited(_applyHighlight());
+    final map = _map;
+    if (map != null) ProMapCamera.releaseSheetPadding(map);
+  }
+
+  /// Flies into the county, then gives the flight most of its run before
+  /// the sheet slides up, so the two motions overlap rather than queue.
+  Future<void> _flyTo(MapHomeCountyBadge badge) async {
+    final map = _map;
+    final bounds = _countyBounds[badge.county.code];
+    if (map == null || bounds == null) return;
+    unawaited(
+      ProMapCamera.flyToCounty(
+        map,
+        bounds,
+        screen: MediaQuery.sizeOf(context),
+        pitch: _terrainEnabled ? _tiltedPitch : 0,
+      ),
+    );
+    await Future<void>.delayed(ProMapCamera.flightDuration * 0.6);
   }
 
   void _setTerrainEnabled(bool enabled) {

@@ -141,7 +141,11 @@ class SignInController extends ChangeNotifier {
         );
       });
     } catch (error, stackTrace) {
-      _logger.error('Sign in failed unexpectedly.', error: error, stackTrace: stackTrace);
+      _logger.error(
+        'Sign in failed unexpectedly.',
+        error: error,
+        stackTrace: stackTrace,
+      );
       _update(() {
         failure = const AuthFailure(
           AuthFailureKind.unexpected,

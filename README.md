@@ -1,17 +1,29 @@
-# kaunti47_v2
+# Kaunti47 v2
 
-A new Flutter project.
+This is a Flutter + Supabase app that badges you for each of Kenya's 47
+counties you physically enter. v2 is a clean rebuild of v1
+(`kokodavid/kaunti47`) with enforced architecture.
 
-## Getting Started
+- **Rules:** [`AGENTS.md`](AGENTS.md), [`docs/architecture.md`](docs/architecture.md)
+- **Review checklist:** [`docs/code-review.md`](docs/code-review.md)
+- **Port progress:** [`docs/port-tracker.md`](docs/port-tracker.md)
+- **Environments / running:** [`docs/app-environments.md`](docs/app-environments.md)
 
-This project is a starting point for a Flutter application.
+## Run
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+cp dart_defines/dev.example.json dart_defines/dev.json   # fill in values
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter run --flavor dev -t lib/main_dev.dart --dart-define-from-file=dart_defines/dev.json
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Checks (the same ones CI runs)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+dart format lib test
+flutter analyze --fatal-infos
+dart run custom_lint
+python3 tools/check_architecture.py
+flutter test
+```

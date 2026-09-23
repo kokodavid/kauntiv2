@@ -98,7 +98,7 @@ class _CountyPickerSheetState extends State<CountyPickerSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Search for your county',
                       style: AppTextStyles.headingForeground,
                     ),
@@ -112,8 +112,8 @@ class _CountyPickerSheetState extends State<CountyPickerSheet> {
               ),
               Flexible(
                 child: results.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 24,
                         ),

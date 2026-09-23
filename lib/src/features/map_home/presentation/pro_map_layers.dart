@@ -60,15 +60,21 @@ abstract final class ProMapLayers {
 
   static const placesSourceId = 'kaunti47-places';
   static const placeDotLayerId = 'kaunti47-places-dot';
-  static const placeLabelLayerId = 'kaunti47-places-label';
+  static const placeMarkerLayerId = 'kaunti47-places-marker';
 
-  /// Place pins coloured by type, growing with zoom; names from zoom 7.
+  /// Zoom at which dots hand over to photo/badge markers.
+  static const markerMinZoom = 6.0;
+
+  /// Zoomed out: small dots coloured by type. From [markerMinZoom]: photo or
+  /// badge markers (style images from `ProMapPlaceMarkers`) with the name
+  /// underneath; overlapping markers hide, photos win over badges.
   static Future<void> addPlacesTo(StyleManager style, String geoJson) async {
     await style.addSource(GeoJsonSource(id: placesSourceId, data: geoJson));
     await style.addLayer(
       CircleLayer(
         id: placeDotLayerId,
         sourceId: placesSourceId,
+        maxZoom: markerMinZoom,
         circleColorExpression: [
           'match',
           ['get', 'type'],
@@ -78,30 +84,37 @@ abstract final class ProMapLayers {
           ],
           _hex(ProMapPlaceTypes.colorFor('')),
         ],
-        circleRadiusExpression: [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          5,
-          3.5,
-          9,
-          7,
-          12,
-          9,
-        ],
+        circleRadius: 4,
         circleStrokeColor: Colors.white.toARGB32(),
         circleStrokeWidth: 1.5,
       ),
     );
     await style.addLayer(
       SymbolLayer(
-        id: placeLabelLayerId,
+        id: placeMarkerLayerId,
         sourceId: placesSourceId,
-        minZoom: 7,
+        minZoom: markerMinZoom,
+        iconImageExpression: ['get', 'marker'],
+        iconAnchor: IconAnchor.BOTTOM,
+        iconSizeExpression: [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          markerMinZoom,
+          0.75,
+          10,
+          1.0,
+        ],
+        symbolSortKeyExpression: [
+          'case',
+          ['get', 'hasPhoto'],
+          0,
+          1,
+        ],
         textFieldExpression: ['get', 'name'],
         textSize: 11,
-        textOffset: [0, 1.1],
         textAnchor: TextAnchor.TOP,
+        textOffset: [0, 0.2],
         textOptional: true,
         textColor: const Color(0xFF22291F).toARGB32(),
         textHaloColor: Colors.white.toARGB32(),

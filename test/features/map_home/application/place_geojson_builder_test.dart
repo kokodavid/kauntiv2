@@ -5,6 +5,19 @@ import 'package:kaunti47_v2/src/features/map_home/application/place_geojson_buil
 import 'package:kaunti47_v2/src/features/map_home/domain/map_place.dart';
 
 void main() {
+  test('a place with a thumbnail gets its own photo marker id', () {
+    const place = MapPlace(
+      id: 'p1',
+      name: 'Lake Naivasha',
+      type: 'shore',
+      countyCode: 32,
+      lat: -0.77,
+      lng: 36.35,
+      thumbnailUrl: 'https://example.test/naivasha.jpg',
+    );
+    expect(PlaceGeoJsonBuilder.markerIdFor(place), 'place-photo-p1');
+  });
+
   test('builds one point feature per place in lng, lat order', () {
     final geoJson = PlaceGeoJsonBuilder.build(const [
       MapPlace(
@@ -25,6 +38,8 @@ void main() {
       'id': 'fort-jesus',
       'name': 'Fort Jesus Museum',
       'type': 'museum',
+      'marker': 'place-type-museum',
+      'hasPhoto': false,
     });
     expect((feature['geometry']! as Map<String, Object?>)['coordinates'], [
       39.682,

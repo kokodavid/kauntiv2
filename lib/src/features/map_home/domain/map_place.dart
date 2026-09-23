@@ -8,6 +8,7 @@ class MapPlace {
     required this.lat,
     required this.lng,
     this.summary,
+    this.thumbnailUrl,
   });
 
   final String id;
@@ -19,4 +20,7 @@ class MapPlace {
   final double lat;
   final double lng;
   final String? summary;
+
+  /// First `place_images` thumbnail by sort order, if the place has one.
+  final String? thumbnailUrl;
 }

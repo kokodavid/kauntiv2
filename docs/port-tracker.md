@@ -85,8 +85,10 @@ map kept for everyone?
   geoBoundaries seed geometry, 47 features, ~170 KB); no database change.
 - `ProMapScreen`: counties coloured by badge state over a Light / Terrain /
   Satellite base, kept inside Kenya, tap outlines a county and opens the peek.
-- Place pins from `places` (lat/lng), coloured by type with a legend;
-  names from zoom 7; tap opens a place sheet. Loaded once when the map opens.
+- Place pins from `places` (lat/lng): type-coloured dots when zoomed out;
+  from zoom 6, rendered markers (round `place_images` thumbnail in a type
+  ring with a pointer, or a type badge with icon), names underneath,
+  collisions hidden with photos preferred. Tap opens a sheet with the photo.
 - 3D terrain (Mapbox Terrain-DEM, 1.5x exaggeration, atmosphere sky), on by
   default with a 50° tilt; "3D" toggle flattens it and levels the camera.
 - Entry: "REAL MAP · PRO" chip on the Home map, shown only when

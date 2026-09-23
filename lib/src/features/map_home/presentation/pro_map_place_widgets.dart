@@ -18,6 +18,15 @@ abstract final class ProMapPlaceTypes {
 
   static Color colorFor(String type) =>
       known[type]?.$2 ?? AppColors.placeOther;
+
+  static IconData iconFor(String type) => switch (type) {
+    'park' => Icons.forest,
+    'museum' => Icons.museum,
+    'culture' => Icons.theater_comedy,
+    'heritage' => Icons.account_balance,
+    'shore' => Icons.beach_access,
+    _ => Icons.place,
+  };
 }
 
 /// Compact legend for the place pins.
@@ -92,6 +101,20 @@ class ProMapPlaceSheet extends StatelessWidget {
                 ),
               ),
             ),
+            if (place.thumbnailUrl case final url?) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  url,
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
             Row(
               children: [
                 _Dot(color: ProMapPlaceTypes.colorFor(place.type)),

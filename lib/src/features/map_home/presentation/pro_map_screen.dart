@@ -13,6 +13,7 @@ import 'county_peek_sheet.dart';
 import 'map_home_map_overlays.dart';
 import 'pro_map_controls.dart';
 import 'pro_map_layers.dart';
+import 'pro_map_place_markers.dart';
 import 'pro_map_place_widgets.dart';
 
 /// SPIKE (codex/mapbox-spike): the county map on a real Mapbox base map,
@@ -65,6 +66,7 @@ class _ProMapScreenState extends State<ProMapScreen> {
   MapHomeCountyBadge? _selected;
   Future<List<MapPlace>>? _places;
   Map<String, MapPlace> _placesById = const {};
+  final _markers = ProMapPlaceMarkers();
 
   @override
   void initState() {
@@ -107,13 +109,18 @@ class _ProMapScreenState extends State<ProMapScreen> {
       interactionID: 'kaunti47-county-tap',
     );
     // Added after the county tap so a pin wins over the county under it.
-    map.addInteraction(
-      TapInteraction(
-        FeaturesetDescriptor(layerId: ProMapLayers.placeDotLayerId),
-        (feature, _) => _onPlaceTapped(feature.properties['id']),
-      ),
-      interactionID: 'kaunti47-place-tap',
-    );
+    for (final layerId in [
+      ProMapLayers.placeDotLayerId,
+      ProMapLayers.placeMarkerLayerId,
+    ]) {
+      map.addInteraction(
+        TapInteraction(
+          FeaturesetDescriptor(layerId: layerId),
+          (feature, _) => _onPlaceTapped(feature.properties['id']),
+        ),
+        interactionID: 'kaunti47-place-tap-$layerId',
+      );
+    }
   }
 
   Future<void> _onStyleLoaded() async {
@@ -145,6 +152,7 @@ class _ProMapScreenState extends State<ProMapScreen> {
       map.style,
       PlaceGeoJsonBuilder.build(places),
     );
+    await _markers.addTo(map.style, places);
   }
 
   void _onPlaceTapped(Object? id) {

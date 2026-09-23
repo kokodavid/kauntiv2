@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
+import 'map_home_skeleton.dart';
 
 class MapHomeTopBar extends StatelessWidget {
   const MapHomeTopBar({super.key, required this.tierLabel});
 
-  final String tierLabel;
+  /// Null while the board is loading: the chip shows a placeholder.
+  final String? tierLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +42,19 @@ class MapHomeTopBar extends StatelessWidget {
                     color: AppColors.accent,
                   ),
                   const SizedBox(width: 6),
-                  Text(tierLabel, style: AppTextStyles.chipLabel),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    child: switch (tierLabel) {
+                      final label? => Text(
+                        label,
+                        key: const ValueKey('tier'),
+                        style: AppTextStyles.chipLabel,
+                      ),
+                      null => const MapHomeSkeletonMask(
+                        child: Text('Explorer', style: AppTextStyles.chipLabel),
+                      ),
+                    },
+                  ),
                 ],
               ),
             ),

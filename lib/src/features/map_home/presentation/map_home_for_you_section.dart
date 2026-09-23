@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/map_home_models.dart';
+import 'map_home_skeleton.dart';
 import 'map_home_suggestion_media.dart';
 
 class MapHomeForYouSection extends StatelessWidget {
@@ -22,16 +23,7 @@ class MapHomeForYouSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'FOR YOU - YOUR NEXT BEST MOVE',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.7,
-            color: AppColors.mutedForeground,
-          ),
-        ),
+        const MapHomeForYouHeader(),
         const SizedBox(height: 10),
         _FeaturedSuggestionCard(suggestion: featured),
         if (rest.isNotEmpty) ...[
@@ -48,6 +40,66 @@ class MapHomeForYouSection extends StatelessWidget {
             ),
           ),
         ],
+      ],
+    );
+  }
+}
+
+class MapHomeForYouHeader extends StatelessWidget {
+  const MapHomeForYouHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'FOR YOU - YOUR NEXT BEST MOVE',
+      style: TextStyle(
+        fontFamily: 'Inter',
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.7,
+        color: AppColors.mutedForeground,
+      ),
+    );
+  }
+}
+
+/// Loading placeholder shaped like the featured suggestion card.
+class MapHomeForYouSkeleton extends StatelessWidget {
+  const MapHomeForYouSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const MapHomeForYouHeader(),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: AppColors.cardBorder),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MapHomeSkeletonBlock(height: 158, radius: 0),
+              Padding(
+                padding: EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    MapHomeSkeletonBlock(width: 180, height: 16),
+                    SizedBox(height: 12),
+                    MapHomeSkeletonBlock(width: 220, height: 12),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

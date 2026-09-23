@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
+import 'map_home_skeleton.dart';
 
 class MapHomeStatCard extends StatelessWidget {
   const MapHomeStatCard({
@@ -9,7 +10,15 @@ class MapHomeStatCard extends StatelessWidget {
     required this.exploredCount,
     required this.totalCounties,
     this.compact = false,
-  });
+  }) : loading = false;
+
+  /// Placeholder shown while the board loads: same size as the real card,
+  /// numbers masked and the tick bar pulsing.
+  const MapHomeStatCard.loading({super.key})
+    : exploredCount = 0,
+      totalCounties = 47,
+      compact = false,
+      loading = true;
 
   final int exploredCount;
   final int totalCounties;
@@ -17,23 +26,30 @@ class MapHomeStatCard extends StatelessWidget {
   /// Collapsed form shown while the map is being browsed (v1 parity): the
   /// numeral moves inline beside the tick bar and the caption drops out.
   final bool compact;
+  final bool loading;
+
+  Widget _maskIfLoading(Widget child) =>
+      loading ? MapHomeSkeletonMask(child: child) : child;
 
   @override
   Widget build(BuildContext context) {
     final safeTotal = totalCounties <= 0 ? 1 : totalCounties;
     final percent = ((exploredCount / safeTotal) * 100).round();
     final left = (totalCounties - exploredCount).clamp(0, totalCounties);
-    final tickBar = _CountyTickBar(
+    final ticks = _CountyTickBar(
       exploredCount: exploredCount,
       total: totalCounties,
     );
+    final tickBar = loading ? MapHomeSkeletonPulse(child: ticks) : ticks;
     final footer = [
       const SizedBox(height: 8),
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('$percent% OF KENYA', style: AppTextStyles.bodySmall),
-          Text('$left LEFT', style: AppTextStyles.bodySmall),
+          _maskIfLoading(
+            Text('$percent% OF KENYA', style: AppTextStyles.bodySmall),
+          ),
+          _maskIfLoading(Text('$left LEFT', style: AppTextStyles.bodySmall)),
         ],
       ),
       const SizedBox(height: 10),
@@ -73,7 +89,7 @@ class MapHomeStatCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: compact
+          children: compact && !loading
               ? [
                   Row(
                     children: [
@@ -92,14 +108,18 @@ class MapHomeStatCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text(
-                        '$exploredCount',
-                        style: AppTextStyles.statNumeralCard,
+                      _maskIfLoading(
+                        Text(
+                          loading ? '00' : '$exploredCount',
+                          style: AppTextStyles.statNumeralCard,
+                        ),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        'of $totalCounties counties claimed',
-                        style: AppTextStyles.chipLabel,
+                      _maskIfLoading(
+                        Text(
+                          'of $totalCounties counties claimed',
+                          style: AppTextStyles.chipLabel,
+                        ),
                       ),
                     ],
                   ),

@@ -39,18 +39,14 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         child: FutureBuilder<MapHomeBoardData>(
           future: _board,
           builder: (context, snapshot) {
-            final data = snapshot.data;
-            if (data != null) return MapHomeBoard(data: data);
             if (snapshot.hasError) {
               return const _MapHomeLoadMessage(
                 title: "Couldn't load your map.",
                 body: 'Check your connection and try again.',
               );
             }
-            return const _MapHomeLoadMessage(
-              title: 'Loading your map...',
-              body: 'Syncing your counties and suggestions.',
-            );
+            // Null while loading: the board renders its own placeholders.
+            return MapHomeBoard(data: snapshot.data);
           },
         ),
       ),

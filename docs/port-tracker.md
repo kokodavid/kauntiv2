@@ -41,6 +41,10 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   animated RESET, small-county tap halo, v1 state colours (shared with the
   peek sheet), zoom-independent strokes, just-unlocked 3-letter label.
 - Stat card compact state while the map is browsed.
+- Loading state (v2 addition, v1 shows a spinner): the board renders at
+  once with same-sized placeholders (masked top-bar chip and stat numbers,
+  pulsing tick bar, uncoloured pulsing county outlines, For You card
+  skeleton), then each slot crossfades to real data in place.
 - Supabase-backed visits, counties and recommendations
   (`SupabaseMapHomeRepository`).
 
@@ -64,7 +68,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   and board notifier with `AsyncValue`.
 - `app.dart` falls back to `MockMapHomeRepository` when Supabase isn't
   initialised, which can flash mock data (AGENTS.md rule 9).
-- Error state has no retry.
+- Error state is still a full-page message with no retry (planned: keep the
+  outline map and show a small retry card).
 - No tests for `SupabaseMapHomeRepository` or the board.
 - `AppColors.pendingFill` and `justUnlockedFill` are unused since the v1
   colour port; remove or reuse.

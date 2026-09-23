@@ -145,11 +145,7 @@ class _SearchIconButton extends StatelessWidget {
           shape: const CircleBorder(),
           padding: EdgeInsets.zero,
         ),
-        child: const Icon(
-          Icons.search,
-          size: 16,
-          color: AppColors.foreground,
-        ),
+        child: const Icon(Icons.search, size: 16, color: AppColors.foreground),
       ),
     );
   }
@@ -232,4 +228,3 @@ class _PrimaryPillButton extends StatelessWidget {
     );
   }
 }
-

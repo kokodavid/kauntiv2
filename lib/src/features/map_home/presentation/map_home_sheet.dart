@@ -26,9 +26,11 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
         const chromeHeight = 10.0 + 4.0 + 14.0 + 110.0;
         var expandedSize = _maxSize;
         if (_contentHeight != null && constraints.maxHeight > 0) {
-          expandedSize = ((_contentHeight! + chromeHeight) /
-                  constraints.maxHeight)
-              .clamp(_peekSize, _maxSize);
+          expandedSize =
+              ((_contentHeight! + chromeHeight) / constraints.maxHeight).clamp(
+                _peekSize,
+                _maxSize,
+              );
         }
         final collapsedSize = math.min(_peekSize, expandedSize);
 

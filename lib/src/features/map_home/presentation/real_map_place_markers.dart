@@ -38,16 +38,11 @@ class RealMapPlaceMarkers {
     }
     await Future.wait([
       for (final place in places)
-        if (place.thumbnailUrl case final url?)
-          _addPhoto(style, place, url),
+        if (place.thumbnailUrl case final url?) _addPhoto(style, place, url),
     ]);
   }
 
-  Future<void> _addPhoto(
-    StyleManager style,
-    MapPlace place,
-    String url,
-  ) async {
+  Future<void> _addPhoto(StyleManager style, MapPlace place, String url) async {
     final id = PlaceGeoJsonBuilder.markerIdFor(place);
     await _add(style, id, _rendered[id] ?? await _badge(place.type));
     final photo = await (_photos[id] ??= _renderPhoto(url, place.type));
@@ -135,10 +130,7 @@ class RealMapPlaceMarkers {
     canvas.drawOval(outer.shift(const Offset(0, _pixelRatio)), shadow);
     canvas.drawPath(tip, Paint()..color = Colors.white);
     canvas.drawOval(outer, Paint()..color = Colors.white);
-    canvas.drawOval(
-      outer.deflate(2 * _pixelRatio),
-      Paint()..color = ringColor,
-    );
+    canvas.drawOval(outer.deflate(2 * _pixelRatio), Paint()..color = ringColor);
     paintInner(canvas, outer.deflate(4.5 * _pixelRatio));
 
     final image = await recorder.endRecording().toImage(width, height);

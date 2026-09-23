@@ -180,8 +180,8 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
             placeName: raw['place_name'] as String?,
             areaKm2: (raw['area_km2'] as num?)?.toDouble(),
             elevationM: (raw['elevation_m'] as num?)?.toInt(),
-            visitDurationMinutes:
-                (raw['visit_duration_minutes'] as num?)?.toInt(),
+            visitDurationMinutes: (raw['visit_duration_minutes'] as num?)
+                ?.toInt(),
             highlightImageUrl:
                 countyFacts[raw['county_id'] as int]?.highlightImageUrl,
           ),
@@ -189,29 +189,23 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
   }
 
   Future<List<dynamic>> _suggestionRows() async {
-    final currentShape = await _readOptional<List<dynamic>>(
-      () async {
-        final rows = await client
-            .rpc(
-              'for_you_candidates',
-              params: const {'p_latitude': null, 'p_longitude': null},
-            )
-            .timeout(const Duration(seconds: 8));
-        return rows as List<dynamic>;
-      },
-      label: 'for_you_candidates current shape',
-    );
+    final currentShape = await _readOptional<List<dynamic>>(() async {
+      final rows = await client
+          .rpc(
+            'for_you_candidates',
+            params: const {'p_latitude': null, 'p_longitude': null},
+          )
+          .timeout(const Duration(seconds: 8));
+      return rows as List<dynamic>;
+    }, label: 'for_you_candidates current shape');
     if (currentShape != null) return currentShape;
 
-    final legacyShape = await _readOptional<List<dynamic>>(
-      () async {
-        final rows = await client
-            .rpc('for_you_candidates')
-            .timeout(const Duration(seconds: 8));
-        return rows as List<dynamic>;
-      },
-      label: 'for_you_candidates legacy shape',
-    );
+    final legacyShape = await _readOptional<List<dynamic>>(() async {
+      final rows = await client
+          .rpc('for_you_candidates')
+          .timeout(const Duration(seconds: 8));
+      return rows as List<dynamic>;
+    }, label: 'for_you_candidates legacy shape');
     return legacyShape ?? const [];
   }
 

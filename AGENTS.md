@@ -102,4 +102,7 @@ description. Don't claim it passed.
 - Keep v2 project files clean. Do not copy v1 folders wholesale or bring over
   generated artifacts that are unrelated to the Flutter app.
 - Update `docs/port-tracker.md` every time a feature or meaningful sub-feature
-  moves from v1 to v2.
+  moves from v1 to v2, in the same commit: the table row, the feature's notes
+  section (ported / differences from v1 / pending / known debt) and a
+  progress-log line. Add a baseline burn-down row whenever the baseline
+  count changes.

@@ -1,7 +1,8 @@
 # V1 → V2 port tracker
 
 One row per feature. Source: `kokodavid/kaunti47`, branch `redesign/figma-v2`
-(about 40k lines). Update this file in every PR that moves a feature.
+(about 40k lines). Update this file in the same commit/PR that moves a feature: the table row,
+the feature's section below (if it has one) and the progress log.
 
 Status: `Not started` · `In progress` · `In review` · `Done`
 
@@ -9,9 +10,9 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 |---|---|---|---|---|---|
 | 0 | Guardrails (rules, CI, review) | n/a | In review | setup/guardrails | Riverpod deps, strict analysis, architecture guard + baseline, CI, Claude review, docs |
 | 1 | Foundations re-homed to `core/` (config, design, widgets, counties, services) | `lib/src/{config,design,widgets,counties,services}` | Not started | | Move plus a Supabase client provider. Clears most `layout` baseline entries |
-| 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | Not started | | Split `app.dart` (418 lines, 16 setState calls) into router redirects and notifiers. V2 currently lacks v1's 3 how-it-works intro screens |
-| 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/home-migration | Floating bottom nav ported for Map Home; broader shell/router still pending |
-| 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Home map, sheet, county peek, v1-style For You section, and Supabase-backed visits/counties/recommendations are ported. Map interactions match v1 (press highlight + label, pinch-zoom 1x-4x with reset, small-county tap halo, compact stat card while browsing, v1 state colours); tap opens the peek until County Detail (#6) lands, then switches to v1's tap→detail. Empty/dimmed map modes and location pin wait on Detection (#5). Detection overlays, variants, quests, friends, and offline cache still pending |
+| 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | Not started | | Split `app.dart` (414 lines, 16 setState calls) into router redirects and notifiers. V2 currently lacks v1's 3 how-it-works intro screens |
+| 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/home-migration | Floating bottom nav on Map Home; other tabs show "coming next". Shell/router waits on #2 |
+| 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | Not started | | Needs a real-device test |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | Not started | | v1 Supabase repository is 924 lines |
 | 7 | Badges + tiers | `features/badges` | Not started | | |
@@ -26,3 +27,58 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | Date | Baselined violations | Note |
 |---|---|---|
 | 2026-09-23 | 49 | Guard introduced over the imported v2 onboarding code |
+
+## Feature notes
+
+### Map Home (#4)
+
+**Ported (matches v1)**
+
+- Board layout: top bar and stat card above a top-aligned full-bleed map,
+  pull-up sheet over it (0.14 peek, 0.88 max, sized to content, 16px gaps).
+- For You section with suggestion media, quest preview card.
+- County map: press highlight + name/status label, pinch-zoom 1x–4x with
+  animated RESET, small-county tap halo, v1 state colours (shared with the
+  peek sheet), zoom-independent strokes, just-unlocked 3-letter label.
+- Stat card compact state while the map is browsed.
+- Supabase-backed visits, counties and recommendations
+  (`SupabaseMapHomeRepository`).
+
+**Deliberate differences from v1 (temporary)**
+
+- Tap opens the county peek sheet; v1 opens County Detail. Switch to v1's
+  tap → detail (long-press stays peek) when #6 lands. The peek's
+  "Open County" button only closes the sheet until then.
+- Map overlay labels use Inter semibold, not IBM Plex Mono bold (not bundled).
+
+**Pending**
+
+- Empty (1a) and dimmed (1d) map modes, "you are here" pin: need #5.
+- Board variants 1a–1e, milestone / season-live / manual-mode / tip cards,
+  quests row, friends strip, offline cache, arrival nudge sheet.
+
+**Known debt (fix before marking Done)**
+
+- Board loading isn't on Riverpod: `MapHomeBoardLoader` is a plain class and
+  the screen uses `FutureBuilder`. Move to a `@riverpod` repository provider
+  and board notifier with `AsyncValue`.
+- `app.dart` falls back to `MockMapHomeRepository` when Supabase isn't
+  initialised, which can flash mock data (AGENTS.md rule 9).
+- Error state has no retry.
+- No tests for `SupabaseMapHomeRepository` or the board.
+- `AppColors.pendingFill` and `justUnlockedFill` are unused since the v1
+  colour port; remove or reuse.
+
+## Progress log
+
+Newest first. One line per commit that moves a feature or changes tracking.
+
+| Date | Commit | Rows | Change |
+|---|---|---|---|
+| 2026-09-23 | `64976a8` | 4 | Port v1 county map interactions (zoom, press label, halo, compact stat card, v1 colours) |
+| 2026-09-23 | `71652b0` | 3, 4 | Supabase-backed board, v1 For You section, v1 sheet sizing, startup session restore |
+| 2026-09-23 | `42b32ae` | — | AGENTS.md: project direction, no screen flashes, command discipline |
+| 2026-09-23 | `03a3fe3` | 3, 4 | Map Home shell and floating bottom nav |
+| 2026-09-23 | `489b83d` | 0 | Architecture guardrails, CI, review checklist |
+| 2026-09-23 | `e7824d5` | — | Import v2 baseline (onboarding + auth) |
+

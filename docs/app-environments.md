@@ -29,7 +29,7 @@ Supabase environments should be handled as two separate Supabase projects:
 
 Apply database migrations to the dev project first. After review, apply the
 same migrations to production. Do not let dev and prod drift intentionally; if
-they differ, document the reason in `docs/implementation-tracker.md`.
+they differ, document the reason in `docs/port-tracker.md`.
 
 ## Auth Redirect URLs
 

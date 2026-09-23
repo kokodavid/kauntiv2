@@ -1,0 +1,6 @@
+#include "Release.xcconfig"
+
+APP_DISPLAY_NAME=Kaunti47
+APP_BUNDLE_IDENTIFIER=com.giglab.kaunti47.app
+APP_AUTH_REDIRECT_SCHEME=kaunti47-prod
+GOOGLE_IOS_REVERSED_CLIENT_ID=com.googleusercontent.apps.1091902209798-tqaas9r4hrmghqq751fmekbfj74kadne

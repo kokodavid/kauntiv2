@@ -1,0 +1,6 @@
+{
+  "SUPABASE_URL": "https://your-prod-project-ref.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "your-prod-publishable-key",
+  "GOOGLE_WEB_CLIENT_ID": "your-prod-google-web-client-id.apps.googleusercontent.com",
+  "GOOGLE_IOS_CLIENT_ID": "your-prod-google-ios-client-id.apps.googleusercontent.com"
+}

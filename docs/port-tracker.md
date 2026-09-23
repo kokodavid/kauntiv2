@@ -83,8 +83,11 @@ map kept for everyone?
 
 - County outlines bundled as `assets/geo/kenya_counties.geojson` (from v1's
   geoBoundaries seed geometry, 47 features, ~170 KB); no database change.
-- `ProMapScreen`: counties coloured by badge state over a Light / Terrain /
-  Satellite base, kept inside Kenya, tap outlines a county and opens the peek.
+- `ProMapView`: embedded in Home's map slot and swapped with the drawn map
+  by a "MAP | REAL · PRO" switch (top-left of the map); top bar, stat card,
+  For You sheet and nav stay put. Counties coloured by badge state over a
+  Light / Terrain / Satellite base (style, 3D and locate-me buttons on the
+  right), kept inside Kenya; Mapbox logo/attribution lifted above the sheet.
 - Place pins from `places` (lat/lng): type-coloured dots when zoomed out;
   from zoom 6, rendered markers (round `place_images` thumbnail in a type
   ring with a pointer, or a type badge with icon), names underneath,
@@ -97,8 +100,8 @@ map kept for everyone?
   Locate-me button refocuses. Location is read by Mapbox, never stored.
 - Tapping a county flies the camera into it (framed above the peek sheet,
   tilted when 3D is on); the sheet opens as the flight settles.
-- Entry: "REAL MAP · PRO" chip on the Home map, shown only when
-  `MAPBOX_ACCESS_TOKEN` is set (stand-in for a Pro entitlement).
+- The switch shows only when `MAPBOX_ACCESS_TOKEN` is set (stand-in for a
+  Pro entitlement).
 - To evaluate on a device: look, start-up time, tap accuracy, gesture
   conflicts with the sheet, app-size increase, offline behaviour.
 - Open before any real build: telemetry opt-out (doc 05; matters more now

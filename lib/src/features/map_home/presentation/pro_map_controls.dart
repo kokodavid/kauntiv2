@@ -3,58 +3,105 @@ import 'package:flutter/material.dart';
 import '../../../design/app_colors.dart';
 import 'pro_map_layers.dart';
 
-/// Bottom controls of the Pro map: base style picker and the 3D toggle.
-class ProMapControls extends StatelessWidget {
-  const ProMapControls({
+/// Compact controls for the embedded Pro map, stacked on the right of the
+/// map slot: base style, 3D terrain, locate me.
+class ProMapSideControls extends StatelessWidget {
+  const ProMapSideControls({
     super.key,
     required this.baseStyle,
     required this.onBaseStyleChanged,
     required this.terrainEnabled,
     required this.onTerrainChanged,
+    required this.onLocate,
   });
 
   final ProMapBaseStyle baseStyle;
   final ValueChanged<ProMapBaseStyle> onBaseStyleChanged;
   final bool terrainEnabled;
   final ValueChanged<bool> onTerrainChanged;
+  final VoidCallback onLocate;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SegmentedButton<ProMapBaseStyle>(
-          segments: [
+        PopupMenuButton<ProMapBaseStyle>(
+          tooltip: 'Map style',
+          initialValue: baseStyle,
+          onSelected: onBaseStyleChanged,
+          itemBuilder: (context) => [
             for (final style in ProMapBaseStyle.values)
-              ButtonSegment(value: style, label: Text(style.label)),
+              CheckedPopupMenuItem(
+                value: style,
+                checked: style == baseStyle,
+                child: Text(style.label),
+              ),
           ],
-          selected: {baseStyle},
-          showSelectedIcon: false,
-          style: _segmentStyle,
-          onSelectionChanged: (value) => onBaseStyleChanged(value.first),
+          child: const _RoundIcon(icon: Icons.layers_outlined),
         ),
-        const SizedBox(width: 8),
-        SegmentedButton<bool>(
-          segments: const [
-            ButtonSegment(
-              value: true,
-              label: Text('3D'),
-              icon: Icon(Icons.terrain, size: 16),
-            ),
-          ],
-          selected: {if (terrainEnabled) true},
-          emptySelectionAllowed: true,
-          showSelectedIcon: false,
-          style: _segmentStyle,
-          onSelectionChanged: (value) => onTerrainChanged(value.contains(true)),
+        const SizedBox(height: 8),
+        ProMapRoundButton(
+          icon: Icons.terrain,
+          tooltip: terrainEnabled ? '3D on' : '3D off',
+          active: terrainEnabled,
+          onPressed: () => onTerrainChanged(!terrainEnabled),
+        ),
+        const SizedBox(height: 8),
+        ProMapRoundButton(
+          icon: Icons.my_location,
+          tooltip: 'Show where I am',
+          onPressed: onLocate,
         ),
       ],
     );
   }
+}
 
-  static final _segmentStyle = SegmentedButton.styleFrom(
-    backgroundColor: Colors.white,
-    selectedBackgroundColor: AppColors.accent,
-    selectedForegroundColor: Colors.white,
-  );
+/// Dark round map button; [active] fills it with the accent colour.
+class ProMapRoundButton extends StatelessWidget {
+  const ProMapRoundButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+    this.tooltip,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String? tooltip;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip ?? '',
+      child: InkResponse(
+        onTap: onPressed,
+        radius: 24,
+        child: _RoundIcon(icon: icon, active: active),
+      ),
+    );
+  }
+}
+
+class _RoundIcon extends StatelessWidget {
+  const _RoundIcon({required this.icon, this.active = false});
+
+  final IconData icon;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: active ? AppColors.accent : AppColors.mapOverlayBackground,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 20, color: AppColors.mapOverlayForeground),
+    );
+  }
 }

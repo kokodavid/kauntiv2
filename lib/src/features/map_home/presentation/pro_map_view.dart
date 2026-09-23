@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+// Mapbox exports its own `Size`; this file means Flutter's.
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
 import '../../../design/app_colors.dart';
 import '../../../services/app_location_permission_service.dart';
@@ -11,19 +12,20 @@ import '../application/county_geojson_builder.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'county_peek_sheet.dart';
+import 'map_home_map_overlays.dart';
 import 'pro_map_camera.dart';
 import 'pro_map_controls.dart';
 import 'pro_map_focus.dart';
 import 'pro_map_layers.dart';
-import 'pro_map_overlays.dart';
 import 'pro_map_place_widgets.dart';
 import 'pro_map_places_layer.dart';
 
 /// SPIKE (codex/mapbox-spike): the county map on a real Mapbox base map,
-/// evaluated as a possible Pro feature. Same badge data and colours as the
-/// drawn map; tapping a county outlines it and opens the peek sheet.
-class ProMapScreen extends StatefulWidget {
-  const ProMapScreen({
+/// evaluated as a possible Pro feature. Swapped in for the drawn map inside
+/// Map Home's map slot (the rest of Home stays put). Same badge data and
+/// colours as the drawn map; tapping a county flies to it and opens the peek.
+class ProMapView extends StatefulWidget {
+  const ProMapView({
     super.key,
     required this.accessToken,
     required this.badges,
@@ -36,7 +38,7 @@ class ProMapScreen extends StatefulWidget {
     'MAPBOX_ACCESS_TOKEN',
   );
 
-  /// Dev toggle for the spike: the entry point only shows with a token.
+  /// Dev toggle for the spike: the Map / Real switch only shows with a token.
   static bool get isAvailable => configuredAccessToken.isNotEmpty;
 
   final String accessToken;
@@ -47,10 +49,10 @@ class ProMapScreen extends StatefulWidget {
   final Future<List<MapPlace>> Function()? loadPlaces;
 
   @override
-  State<ProMapScreen> createState() => _ProMapScreenState();
+  State<ProMapView> createState() => _ProMapViewState();
 }
 
-class _ProMapScreenState extends State<ProMapScreen> {
+class _ProMapViewState extends State<ProMapView> {
   static const _geoJsonAsset = 'assets/geo/kenya_counties.geojson';
 
   static const _tiltedPitch = 50.0;
@@ -66,6 +68,7 @@ class _ProMapScreenState extends State<ProMapScreen> {
   Map<int, CountyBounds> _countyBounds = const {};
   ProMapBaseStyle _baseStyle = ProMapBaseStyle.outdoors;
   MapHomeCountyBadge? _selected;
+  Size _mapSize = Size.zero;
   late final ProMapPlacesLayer _placesLayer;
 
   @override
@@ -121,6 +124,12 @@ class _ProMapScreenState extends State<ProMapScreen> {
   void _onMapCreated(MapboxMap map) {
     _map = map;
     if (_hasLocation) unawaited(ProMapFocus.showUserDot(map));
+    unawaited(
+      ProMapFocus.placeOrnaments(
+        map,
+        bottomInset: MediaQuery.sizeOf(context).height * 0.16,
+      ),
+    );
     // Keep the camera on Kenya.
     unawaited(
       map.setBounds(
@@ -134,26 +143,11 @@ class _ProMapScreenState extends State<ProMapScreen> {
         ),
       ),
     );
-    map.addInteraction(
-      TapInteraction(
-        FeaturesetDescriptor(layerId: ProMapLayers.fillLayerId),
-        (feature, _) => _onCountyTapped(feature.properties['code']),
-      ),
-      interactionID: 'kaunti47-county-tap',
+    ProMapLayers.addTapHandlers(
+      map,
+      onCounty: _onCountyTapped,
+      onPlace: _onPlaceTapped,
     );
-    // Added after the county tap so a pin wins over the county under it.
-    for (final layerId in [
-      ProMapLayers.placeDotLayerId,
-      ProMapLayers.placeMarkerLayerId,
-    ]) {
-      map.addInteraction(
-        TapInteraction(
-          FeaturesetDescriptor(layerId: layerId),
-          (feature, _) => _onPlaceTapped(feature.properties['id']),
-        ),
-        interactionID: 'kaunti47-place-tap-$layerId',
-      );
-    }
   }
 
   Future<void> _onStyleLoaded() async {
@@ -232,7 +226,9 @@ class _ProMapScreenState extends State<ProMapScreen> {
       ProMapCamera.flyToCounty(
         map,
         bounds,
-        screen: MediaQuery.sizeOf(context),
+        screen: _mapSize,
+        // The peek sheet covers most of Home's map slot.
+        sheetShare: 0.6,
         pitch: _pitch,
       ),
     );
@@ -257,43 +253,39 @@ class _ProMapScreenState extends State<ProMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          MapWidget(
-            key: const ValueKey('kaunti47-pro-map'),
-            styleUri: _baseStyle.uri,
-            viewport: _viewport,
-            onMapCreated: _onMapCreated,
-            onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
-          ),
-          ProMapTopOverlay(
-            showLegend: widget.loadPlaces != null,
-            selected: _selected,
-          ),
-          Positioned(
-            right: 12,
-            bottom: 96,
-            child: ProMapRoundButton(
-              icon: Icons.my_location,
-              onPressed: _focusOnUser,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _mapSize = constraints.biggest;
+        final selected = _selected;
+        return Stack(
+          children: [
+            MapWidget(
+              key: const ValueKey('kaunti47-pro-map'),
+              styleUri: _baseStyle.uri,
+              viewport: _viewport,
+              onMapCreated: _onMapCreated,
+              onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
             ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 32,
-            child: Center(
-              child: ProMapControls(
+            Positioned(
+              top: 56,
+              right: 16,
+              child: ProMapSideControls(
                 baseStyle: _baseStyle,
                 onBaseStyleChanged: _setBaseStyle,
                 terrainEnabled: _terrainEnabled,
                 onTerrainChanged: _setTerrainEnabled,
+                onLocate: _focusOnUser,
               ),
             ),
-          ),
-        ],
-      ),
+            if (selected != null)
+              Positioned(
+                top: 56,
+                left: 24,
+                child: IgnorePointer(child: MapHomeCountyLabel(badge: selected)),
+              ),
+          ],
+        );
+      },
     );
   }
 }

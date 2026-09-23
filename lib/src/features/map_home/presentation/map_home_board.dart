@@ -10,8 +10,8 @@ import 'map_home_sheet_cards.dart';
 import 'map_home_skeleton.dart';
 import 'map_home_stat_card.dart';
 import 'map_home_top_bar.dart';
-import 'pro_map_entry_chip.dart';
-import 'pro_map_screen.dart';
+import 'map_home_map_mode_toggle.dart';
+import 'pro_map_view.dart';
 
 class MapHomeBoard extends StatefulWidget {
   const MapHomeBoard({super.key, required this.data, this.loadMapPlaces});
@@ -31,7 +31,33 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
   /// Ephemeral UI state: collapses the stat card while the map is browsed.
   bool _isMapInteracting = false;
 
+  /// SPIKE: Mapbox map in place of the drawn one (ephemeral UI state).
+  bool _showRealMap = false;
+
   static const _fade = Duration(milliseconds: 400);
+
+  /// The map slot: placeholder while loading, then the drawn county map
+  /// or (spike) the Mapbox map. Everything else on Home stays in place.
+  Widget _mapFor(MapHomeBoardData? data) {
+    if (data == null) return const MapHomeLoadingMap();
+    if (_showRealMap) {
+      return ProMapView(
+        key: const ValueKey('real-map'),
+        accessToken: ProMapView.configuredAccessToken,
+        badges: data.countyBadges,
+        homeCountySlug: data.homeCounty?.slug,
+        loadPlaces: widget.loadMapPlaces,
+      );
+    }
+    return MapHomeCountyMap(
+      badges: data.countyBadges,
+      homeCountySlug: data.homeCounty?.slug,
+      onInteractingChanged: (interacting) {
+        if (interacting == _isMapInteracting) return;
+        setState(() => _isMapInteracting = interacting);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,28 +97,20 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                     Positioned.fill(
                       child: AnimatedSwitcher(
                         duration: _fade,
-                        child: data == null
-                            ? const MapHomeLoadingMap()
-                            : MapHomeCountyMap(
-                                badges: data.countyBadges,
-                                homeCountySlug: data.homeCounty?.slug,
-                                onInteractingChanged: (interacting) {
-                                  if (interacting == _isMapInteracting) return;
-                                  setState(
-                                    () => _isMapInteracting = interacting,
-                                  );
-                                },
-                              ),
+                        child: _mapFor(data),
                       ),
                     ),
-                    // SPIKE: dev-only entry to the Mapbox Pro map preview.
-                    if (data != null && ProMapScreen.isAvailable)
+                    // SPIKE: Map / Real switch, only with a Mapbox token.
+                    if (data != null && ProMapView.isAvailable)
                       Positioned(
                         top: 8,
                         left: 24,
-                        child: ProMapEntryChip(
-                          data: data,
-                          loadPlaces: widget.loadMapPlaces,
+                        child: MapHomeMapModeToggle(
+                          showRealMap: _showRealMap,
+                          onChanged: (real) => setState(() {
+                            _showRealMap = real;
+                            _isMapInteracting = false;
+                          }),
                         ),
                       ),
                   ],

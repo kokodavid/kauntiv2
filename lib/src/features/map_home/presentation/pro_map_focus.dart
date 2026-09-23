@@ -50,6 +50,21 @@ abstract final class ProMapFocus {
     return camera.zoom >= localZoom - 1;
   }
 
+  /// Embedded under Home's sheet, the Mapbox logo and attribution (both
+  /// required by Mapbox's terms) would be hidden: lift them above the
+  /// sheet's peek, and drop the scale bar, which clashes with the Map / Real
+  /// switch.
+  static Future<void> placeOrnaments(
+    MapboxMap map, {
+    required double bottomInset,
+  }) async {
+    await map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    await map.logo.updateSettings(LogoSettings(marginBottom: bottomInset));
+    await map.attribution.updateSettings(
+      AttributionSettings(marginBottom: bottomInset),
+    );
+  }
+
   /// Shows the pulsing "you are here" dot.
   static Future<void> showUserDot(MapboxMap map) {
     return map.location.updateSettings(

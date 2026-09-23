@@ -11,17 +11,15 @@ import '../application/county_camera_fit.dart';
 abstract final class ProMapCamera {
   static const flightDuration = Duration(milliseconds: 1400);
 
-  /// Share of the screen height the peek sheet covers, kept clear when
-  /// framing a county.
-  static const _sheetShare = 0.45;
-
   static Future<void> flyToCounty(
     MapboxMap map,
     CountyBounds bounds, {
     required Size screen,
     required double pitch,
+    // Share of [screen] the peek sheet covers, kept clear when framing.
+    double sheetShare = 0.45,
   }) async {
-    final bottomPadding = screen.height * _sheetShare;
+    final bottomPadding = screen.height * sheetShare;
     final center = CountyCameraFit.centerOf(bounds);
     final zoom = CountyCameraFit.zoomToFit(
       bounds,

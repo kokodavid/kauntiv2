@@ -168,6 +168,31 @@ abstract final class ProMapLayers {
         enabled ? terrainExaggeration : 0,
       );
 
+  /// Taps on counties report their `code`, taps on pins their place `id`.
+  static void addTapHandlers(
+    MapboxMap map, {
+    required void Function(Object? code) onCounty,
+    required void Function(Object? id) onPlace,
+  }) {
+    map.addInteraction(
+      TapInteraction(
+        FeaturesetDescriptor(layerId: fillLayerId),
+        (feature, _) => onCounty(feature.properties['code']),
+      ),
+      interactionID: 'kaunti47-county-tap',
+    );
+    // Added after the county tap so a pin wins over the county under it.
+    for (final layerId in [placeDotLayerId, placeMarkerLayerId]) {
+      map.addInteraction(
+        TapInteraction(
+          FeaturesetDescriptor(layerId: layerId),
+          (feature, _) => onPlace(feature.properties['id']),
+        ),
+        interactionID: 'kaunti47-place-tap-$layerId',
+      );
+    }
+  }
+
   /// Outline only the county with [code]; null outlines nothing.
   static List<Object> highlightFilter(int? code) => [
     '==',

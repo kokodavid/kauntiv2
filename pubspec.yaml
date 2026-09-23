@@ -1,5 +1,5 @@
 name: kaunti47_v2
-description: "A new Flutter project."
+description: "Kaunti47 v2 - Kenya county-badging travel app."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -41,6 +41,12 @@ dependencies:
   flutter_svg: ^2.2.4
   permission_handler: ^13.0.1
 
+  # State management: Riverpod ONLY, providers declared with @riverpod
+  # codegen (see docs/architecture.md). Enforced by
+  # tools/check_architecture.py and riverpod_lint.
+  flutter_riverpod: ^3.0.0
+  riverpod_annotation: ^3.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -51,6 +57,12 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Riverpod codegen + lints.
+  build_runner: ^2.4.0
+  riverpod_generator: ^3.0.0
+  custom_lint: ^0.8.0
+  riverpod_lint: ^3.0.0
 
 dependency_overrides:
   permission_handler_android: 13.0.1

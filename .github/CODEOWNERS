@@ -1,0 +1,10 @@
+# Every change needs the owner's review (enable "Require review from Code
+# Owners" in branch protection). Rule files are listed explicitly so they
+# stay owner-gated even if the catch-all is ever widened.
+*                                   @kokodavid
+/AGENTS.md                          @kokodavid
+/CLAUDE.md                          @kokodavid
+/analysis_options.yaml              @kokodavid
+/docs/architecture.md               @kokodavid
+/tools/                             @kokodavid
+/.github/                           @kokodavid

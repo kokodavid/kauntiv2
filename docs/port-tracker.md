@@ -111,6 +111,8 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-23 | `3930ab9` | 4 | Merge `codex/mapbox-spike`: real (Mapbox) map is Home's default (`0dc58ab`), drawn map is the fallback |
+| 2026-09-23 | `d8c9959` | — | Port tracker: log skeleton and docs commits |
 | 2026-09-23 | `c421cdd` | 4 | Map-first loading skeleton replaces the loading message |
 | 2026-09-23 | `d987c15` | — | Port tracker: Map Home notes, progress log, maintenance rule |
 | 2026-09-23 | `64976a8` | 4 | Port v1 county map interactions (zoom, press label, halo, compact stat card, v1 colours) |

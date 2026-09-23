@@ -39,6 +39,26 @@ class AppLocationPermissionService {
     return _mapStatus(alwaysStatus);
   }
 
+  /// Whether the app may read location while in the foreground ("while
+  /// using" or "always"). Used by the Pro map's "you are here" view, which
+  /// needs no background access.
+  Future<bool> hasForegroundLocation() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      try {
+        final status = await _iosLocationChannel.invokeMethod<String>(
+          'locationAuthorizationStatus',
+        );
+        return status == 'authorizedAlways' || status == 'authorizedWhenInUse';
+      } on PlatformException {
+        return false;
+      } on MissingPluginException {
+        return false;
+      }
+    }
+    final status = await Permission.locationWhenInUse.status;
+    return status.isGranted || status.isLimited;
+  }
+
   /// Opens the OS app-settings screen. Android/iOS never re-show the
   /// permission dialog once it has been permanently denied, so this is the
   /// only way for the user to recover without reinstalling the app.

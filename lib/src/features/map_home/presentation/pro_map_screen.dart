@@ -5,17 +5,19 @@ import 'package:flutter/services.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../../design/app_colors.dart';
+import '../../../services/app_location_permission_service.dart';
 import '../application/county_camera_fit.dart';
 import '../application/county_geojson_builder.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'county_peek_sheet.dart';
-import 'map_home_map_overlays.dart';
 import 'pro_map_camera.dart';
 import 'pro_map_controls.dart';
+import 'pro_map_focus.dart';
 import 'pro_map_layers.dart';
-import 'pro_map_places_layer.dart';
+import 'pro_map_overlays.dart';
 import 'pro_map_place_widgets.dart';
+import 'pro_map_places_layer.dart';
 
 /// SPIKE (codex/mapbox-spike): the county map on a real Mapbox base map,
 /// evaluated as a possible Pro feature. Same badge data and colours as the
@@ -53,11 +55,9 @@ class _ProMapScreenState extends State<ProMapScreen> {
 
   static const _tiltedPitch = 50.0;
 
-  final _initialViewport = CameraViewportState(
-    center: Point(coordinates: Position(37.9, 0.3)),
-    zoom: 5.1,
-    pitch: _tiltedPitch,
-  );
+  // Starts on all of Kenya, then flies in to the user (or home county).
+  ViewportState _viewport = ProMapFocus.kenya(_tiltedPitch);
+  bool _hasLocation = false;
 
   bool _terrainEnabled = true;
 
@@ -73,6 +73,33 @@ class _ProMapScreenState extends State<ProMapScreen> {
     super.initState();
     MapboxOptions.setAccessToken(widget.accessToken);
     _placesLayer = ProMapPlacesLayer(widget.loadPlaces?.call());
+    unawaited(_focusOnStart());
+  }
+
+  double get _pitch => _terrainEnabled ? _tiltedPitch : 0;
+
+  Future<void> _focusOnStart() async {
+    _hasLocation = await const AppLocationPermissionService()
+        .hasForegroundLocation();
+    if (!mounted) return;
+    final map = _map;
+    if (_hasLocation && map != null) unawaited(ProMapFocus.showUserDot(map));
+    await _focusOnUser();
+  }
+
+  /// "Locate me": follow the user's dot, or frame the home county.
+  Future<void> _focusOnUser() async {
+    if (_hasLocation) {
+      setState(() => _viewport = ProMapFocus.aroundUser(_pitch));
+      return;
+    }
+    await _geoJson();
+    final home = widget.badges
+        .where((badge) => badge.county.slug == widget.homeCountySlug)
+        .firstOrNull;
+    final bounds = _countyBounds[home?.county.code];
+    if (!mounted || bounds == null) return;
+    setState(() => _viewport = ProMapFocus.aroundHomeCounty(bounds, _pitch));
   }
 
   Future<String> _geoJson() async {
@@ -89,6 +116,7 @@ class _ProMapScreenState extends State<ProMapScreen> {
 
   void _onMapCreated(MapboxMap map) {
     _map = map;
+    if (_hasLocation) unawaited(ProMapFocus.showUserDot(map));
     // Keep the camera on Kenya.
     unawaited(
       map.setBounds(
@@ -145,14 +173,7 @@ class _ProMapScreenState extends State<ProMapScreen> {
   void _onPlaceTapped(Object? id) {
     final place = _placesLayer.placeFor(id);
     if (place == null) return;
-    unawaited(
-      showModalBottomSheet<void>(
-        context: context,
-        backgroundColor: Colors.transparent,
-        barrierColor: AppColors.foreground.withValues(alpha: 0.28),
-        builder: (context) => ProMapPlaceSheet(place: place),
-      ),
-    );
+    unawaited(ProMapPlaceSheet.show(context, place));
   }
 
   Future<void> _applyHighlight() async {
@@ -201,12 +222,14 @@ class _ProMapScreenState extends State<ProMapScreen> {
     final map = _map;
     final bounds = _countyBounds[badge.county.code];
     if (map == null || bounds == null) return;
+    // Stop following the user's dot so it doesn't pull the camera back.
+    setState(() => _viewport = const IdleViewportState());
     unawaited(
       ProMapCamera.flyToCounty(
         map,
         bounds,
         screen: MediaQuery.sizeOf(context),
-        pitch: _terrainEnabled ? _tiltedPitch : 0,
+        pitch: _pitch,
       ),
     );
     await Future<void>.delayed(ProMapCamera.flightDuration * 0.6);
@@ -235,46 +258,26 @@ class _ProMapScreenState extends State<ProMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selected = _selected;
     return Scaffold(
       body: Stack(
         children: [
           MapWidget(
             key: const ValueKey('kaunti47-pro-map'),
             styleUri: _baseStyle.uri,
-            viewport: _initialViewport,
+            viewport: _viewport,
             onMapCreated: _onMapCreated,
             onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
           ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      IconButton.filled(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: IconButton.styleFrom(
-                          backgroundColor: AppColors.mapOverlayBackground,
-                        ),
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: AppColors.mapOverlayForeground,
-                        ),
-                      ),
-                      if (widget.loadPlaces != null) ...[
-                        const SizedBox(height: 8),
-                        const ProMapPlaceLegend(),
-                      ],
-                    ],
-                  ),
-                  const Spacer(),
-                  if (selected != null) MapHomeCountyLabel(badge: selected),
-                ],
-              ),
+          ProMapTopOverlay(
+            showLegend: widget.loadPlaces != null,
+            selected: _selected,
+          ),
+          Positioned(
+            right: 12,
+            bottom: 96,
+            child: ProMapRoundButton(
+              icon: Icons.my_location,
+              onPressed: _focusOnUser,
             ),
           ),
           Positioned(

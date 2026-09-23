@@ -91,13 +91,18 @@ map kept for everyone?
   collisions hidden with photos preferred. Tap opens a sheet with the photo.
 - 3D terrain (Mapbox Terrain-DEM, 1.5x exaggeration, atmosphere sky), on by
   default with a 50° tilt; "3D" toggle flattens it and levels the camera.
+- Opens on the user's surroundings: flies from Kenya to a pulsing "you are
+  here" dot at zoom 8.5 (photo markers visible) when foreground location is
+  allowed, else to the home county; zooming out gives the Kenya-wide dots.
+  Locate-me button refocuses. Location is read by Mapbox, never stored.
 - Tapping a county flies the camera into it (framed above the peek sheet,
   tilted when 3D is on); the sheet opens as the flight settles.
 - Entry: "REAL MAP · PRO" chip on the Home map, shown only when
   `MAPBOX_ACCESS_TOKEN` is set (stand-in for a Pro entitlement).
 - To evaluate on a device: look, start-up time, tap accuracy, gesture
   conflicts with the sheet, app-size increase, offline behaviour.
-- Open before any real build: telemetry opt-out (doc 05), attribution in
+- Open before any real build: telemetry opt-out (doc 05; matters more now
+  the map reads location), attribution in
   Credits, Pro entitlement + paywall (#12), decision record.
 
 ## Progress log

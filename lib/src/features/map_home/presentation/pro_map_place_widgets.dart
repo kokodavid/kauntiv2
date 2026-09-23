@@ -72,6 +72,15 @@ class ProMapPlaceSheet extends StatelessWidget {
 
   final MapPlace place;
 
+  static Future<void> show(BuildContext context, MapPlace place) {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: AppColors.foreground.withValues(alpha: 0.28),
+      builder: (context) => ProMapPlaceSheet(place: place),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final county = CountyPaths.byCode[place.countyCode];

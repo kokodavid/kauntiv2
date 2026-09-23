@@ -12,10 +12,14 @@ class MapHomeScreen extends StatefulWidget {
     super.key,
     this.homeCounty,
     this.loader = const MapHomeBoardLoader(),
+    this.mapboxAccessToken = '',
   });
 
   final CountyPath? homeCounty;
   final MapHomeBoardLoader loader;
+
+  /// Empty: Home shows the drawn county map only.
+  final String mapboxAccessToken;
 
   @override
   State<MapHomeScreen> createState() => _MapHomeScreenState();
@@ -34,21 +38,26 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
-      body: SafeArea(
-        bottom: false,
-        child: FutureBuilder<MapHomeBoardData>(
+      // The board handles safe areas itself so the real map can run
+      // edge to edge under the status bar.
+      body: FutureBuilder<MapHomeBoardData>(
           future: _board,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return const _MapHomeLoadMessage(
+              return const SafeArea(
+                child: _MapHomeLoadMessage(
                 title: "Couldn't load your map.",
-                body: 'Check your connection and try again.',
+                  body: 'Check your connection and try again.',
+                ),
               );
             }
             // Null while loading: the board renders its own placeholders.
-            return MapHomeBoard(data: snapshot.data);
+            return MapHomeBoard(
+              data: snapshot.data,
+              loadMapPlaces: widget.loader.loadMapPlaces,
+              mapboxAccessToken: widget.mapboxAccessToken,
+            );
           },
-        ),
       ),
     );
   }

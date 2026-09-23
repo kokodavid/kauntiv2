@@ -41,6 +41,10 @@ dependencies:
   flutter_svg: ^2.2.4
   permission_handler: ^13.0.1
 
+  # Home's default map (real map); the drawn county map is the fallback
+  # when Mapbox can't load. Token: MAPBOX_ACCESS_TOKEN dart-define.
+  mapbox_maps_flutter: ^2.31.0
+
   # State management: Riverpod ONLY, providers declared with @riverpod
   # codegen (see docs/architecture.md). Enforced by
   # tools/check_architecture.py and riverpod_lint.
@@ -80,6 +84,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/geo/
 
   fonts:
     - family: Inter

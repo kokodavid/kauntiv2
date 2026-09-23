@@ -32,6 +32,15 @@ class AppColors {
   static const mapOverlayForeground = Color(0xFFF5F4EE);
   static const mapOverlayMuted = Color(0xFFC9C7BA);
   static const mapHighlightStroke = Color(0xFF22291F);
+  // Real map "fog" over counties not yet claimed.
+  static const mapFog = Color(0xFF5F6368);
+  // Real map place pins, by place type.
+  static const placePark = Color(0xFF2E7D32);
+  static const placeMuseum = Color(0xFFA87B24);
+  static const placeCulture = Color(0xFF7C3AED);
+  static const placeHeritage = Color(0xFF8D5524);
+  static const placeShore = Color(0xFF0891B2);
+  static const placeOther = Color(0xFF475569);
   static const tabBarShell = Color(0xCCFFFFFF);
   static const tabPillBackground = Colors.white;
   static const permissionHeaderGradientEnd = Color(0xFF0A5FD4);

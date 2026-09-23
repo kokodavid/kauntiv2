@@ -61,6 +61,30 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Board variants 1a–1e, milestone / season-live / manual-mode / tip cards,
   quests row, friends strip, offline cache, arrival nudge sheet.
 
+**Real map (Mapbox) — Home's default, decided 2026-09-23**
+
+- Home renders the Mapbox map edge to edge behind the header, sheet and
+  nav; top bar and stat card float on it. Built on `codex/mapbox-spike`,
+  merged into `codex/home-migration`.
+- Fallback: the drawn county map shows when there's no token, on web, or
+  when the Mapbox style fails to load / doesn't load within 12 s (e.g. no
+  signal on a cold start). Home stays on the drawn map until the user taps
+  the "OFFLINE MAP ↻" chip; it never flips maps mid-session by itself.
+  A pulsing county-outline skeleton covers the real map until it's ready.
+- Real map content: counties from bundled `assets/geo/kenya_counties.geojson`
+  (v1 seed geometry), "fog of war" styling (unclaimed hazed grey, claimed
+  clear with a state-colour border); place pins from `places` — dots when
+  zoomed out, photo/type markers from zoom 6; 3D terrain on by default;
+  Light / Terrain / Satellite; opens on the user's location (else home
+  county); tapping a county flies to it and opens the peek.
+- The drawn map and `CountyPaths` stay: fallback Home map, county artwork
+  (peek, cards, badges, share cards, onboarding picker), arrival moments.
+  Crossing detection (#5) is independent of both maps.
+- Candidate follow-ups: offline Mapbox with an in-app minimal style (would
+  let the drawn Home map retire, needs a real-device test); compact stat
+  card by default on the real map; Pro split (3D, satellite, offline packs,
+  journey recording).
+
 **Known debt (fix before marking Done)**
 
 - Board loading isn't on Riverpod: `MapHomeBoardLoader` is a plain class and
@@ -73,6 +97,13 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - No tests for `SupabaseMapHomeRepository` or the board.
 - `AppColors.pendingFill` and `justUnlockedFill` are unused since the v1
   colour port; remove or reuse.
+- Real map: Mapbox telemetry not yet disabled (doc 05; the map reads
+  location) and Mapbox / OpenStreetMap attribution not yet in Credits —
+  both required before release. Doc 05 and doc 06 ("one projection
+  everywhere") need updating for the real map.
+- Real map status and map choice live in widget state
+  (`MapHomeBoard`), not a Riverpod provider — move with the board to
+  Riverpod (#2). No widget tests for the real map yet.
 
 ## Progress log
 

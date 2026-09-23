@@ -41,6 +41,18 @@ PODS:
   - GTMSessionFetcher/Core (3.5.0)
   - GTMSessionFetcher/Full (3.5.0):
     - GTMSessionFetcher/Core
+  - mapbox_maps_flutter (2.31.0):
+    - Flutter
+    - MapboxMaps (= 11.31.0)
+    - Turf (= 4.0.0)
+  - MapboxCommon (24.31.0):
+    - Turf (= 4.0.0)
+  - MapboxCoreMaps (11.31.0):
+    - MapboxCommon (= 24.31.0)
+  - MapboxMaps (11.31.0):
+    - MapboxCommon (= 24.31.0)
+    - MapboxCoreMaps (= 11.31.0)
+    - Turf (= 4.0.0)
   - permission_handler_apple (9.4.8):
     - Flutter
   - PromisesObjC (2.4.1)
@@ -52,6 +64,7 @@ PODS:
     - FlutterMacOS
   - sign_in_with_apple (0.0.1):
     - Flutter
+  - Turf (4.0.0)
   - url_launcher_ios (0.0.1):
     - Flutter
 
@@ -59,6 +72,7 @@ DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - Flutter (from `Flutter`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
+  - mapbox_maps_flutter (from `.symlinks/plugins/mapbox_maps_flutter/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
@@ -72,9 +86,13 @@ SPEC REPOS:
     - GoogleUtilities
     - GTMAppAuth
     - GTMSessionFetcher
+    - MapboxCommon
+    - MapboxCoreMaps
+    - MapboxMaps
     - PromisesObjC
     - PromisesSwift
     - RecaptchaInterop
+    - Turf
 
 EXTERNAL SOURCES:
   app_links:
@@ -83,6 +101,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   google_sign_in_ios:
     :path: ".symlinks/plugins/google_sign_in_ios/darwin"
+  mapbox_maps_flutter:
+    :path: ".symlinks/plugins/mapbox_maps_flutter/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   shared_preferences_foundation:
@@ -102,12 +122,17 @@ SPEC CHECKSUMS:
   GoogleUtilities: 766ace00c6b10d8148408f329d10c4f051931850
   GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  mapbox_maps_flutter: 2a19d197b2f06d55857af92f04d0a0a5a3bb0576
+  MapboxCommon: cc28b41df14f1de999550bc5040b4c33756f31ca
+  MapboxCoreMaps: bc2056387df6ba1d85bf2cd26d53a5c04f611461
+  MapboxMaps: ab7e1d900ee0f76f9e4ec70f02cb664412576ef9
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
+  Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
 PODFILE CHECKSUM: bea97ee89602a914053db34d49157e7f649529d6

@@ -4,6 +4,7 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/map_home_models.dart';
+import 'map_home_county_map_painter.dart';
 
 class CountyPeekSheet extends StatelessWidget {
   const CountyPeekSheet({super.key, required this.badge, required this.isHome});
@@ -13,6 +14,7 @@ class CountyPeekSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = MapHomeCountyStyle.forState(badge.state, isHome: isHome);
     return SafeArea(
       top: false,
       child: Container(
@@ -58,8 +60,8 @@ class CountyPeekSheet extends StatelessWidget {
                   height: 150,
                   child: AppCountyShape(
                     county: badge.county,
-                    fill: _peekFillFor(badge.state, isHome: isHome),
-                    stroke: Colors.white,
+                    fill: style.fill,
+                    stroke: style.stroke,
                     strokeWidth: 1.2,
                   ),
                 ),
@@ -90,17 +92,6 @@ class CountyPeekSheet extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _peekFillFor(MapHomeCountyBadgeState state, {required bool isHome}) {
-    if (isHome) return AppColors.legendHome;
-    return switch (state) {
-      MapHomeCountyBadgeState.earned => AppColors.legendVisited,
-      MapHomeCountyBadgeState.locked => AppColors.lockedFill,
-      MapHomeCountyBadgeState.passedThrough => AppColors.legendPassed,
-      MapHomeCountyBadgeState.pending => AppColors.pendingFill,
-      MapHomeCountyBadgeState.justUnlocked => AppColors.justUnlockedFill,
-    };
   }
 }
 

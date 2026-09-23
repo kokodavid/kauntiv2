@@ -1,167 +1,246 @@
-import 'dart:math' as math;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/app_svg_path.dart';
 import '../domain/map_home_models.dart';
 import 'county_peek_sheet.dart';
+import 'map_home_county_map_painter.dart';
+import 'map_home_map_overlays.dart';
 
-class MapHomeCountyMap extends StatelessWidget {
+/// Map Home's full-bleed county map, ported from v1's
+/// `MapHomeCountyMapCard`: press highlights a county and shows its label,
+/// pinch-zoom (1x-4x) with an animated reset, and a touch halo for tiny
+/// counties.
+///
+/// Until County Detail is ported, both tap and long-press open the peek
+/// sheet (v1: tap opens County Detail, long-press opens the peek).
+class MapHomeCountyMap extends StatefulWidget {
   const MapHomeCountyMap({
     super.key,
     required this.badges,
     required this.homeCountySlug,
+    this.onInteractingChanged,
   });
 
   final List<MapHomeCountyBadge> badges;
   final String? homeCountySlug;
 
+  /// Fires when the map flips between idle and being browsed (a gesture in
+  /// progress, zoomed in, or a county held). Drives the compact stat card.
+  final ValueChanged<bool>? onInteractingChanged;
+
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapUp: (details) {
-        final box = context.findRenderObject() as RenderBox?;
-        if (box == null) return;
-        final badge = _MapHomeCountiesPainter.badgeAt(
-          badges,
-          details.localPosition,
-          box.size,
+  State<MapHomeCountyMap> createState() => _MapHomeCountyMapState();
+}
+
+class _MapHomeCountyMapState extends State<MapHomeCountyMap>
+    with SingleTickerProviderStateMixin {
+  static const _minZoom = 1.0;
+  static const _maxZoom = 4.0;
+
+  final _transformationController = TransformationController();
+  late final AnimationController _resetController;
+  Animation<Matrix4>? _resetAnimation;
+
+  String? _hoveredCountySlug;
+  String? _pressedCountySlug;
+  double _zoom = _minZoom;
+  bool _gestureActive = false;
+  bool _lastReportedInteracting = false;
+
+  String? get _highlightedCountySlug =>
+      _pressedCountySlug ?? _hoveredCountySlug;
+
+  MapHomeCountyBadge? get _highlightedBadge {
+    final slug = _highlightedCountySlug;
+    if (slug == null) return null;
+    for (final badge in widget.badges) {
+      if (badge.county.slug == slug) return badge;
+    }
+    return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _resetController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+    )..addListener(_applyResetFrame);
+    _transformationController.addListener(_handleTransformChanged);
+  }
+
+  @override
+  void dispose() {
+    _transformationController.removeListener(_handleTransformChanged);
+    _transformationController.dispose();
+    _resetController.dispose();
+    super.dispose();
+  }
+
+  void _handleTransformChanged() {
+    final zoom = _transformationController.value.getMaxScaleOnAxis();
+    if ((zoom - _zoom).abs() < 0.001) return;
+    setState(() => _zoom = zoom);
+    _reportInteractingIfChanged();
+  }
+
+  void _reportInteractingIfChanged() {
+    final callback = widget.onInteractingChanged;
+    if (callback == null) return;
+    final interacting =
+        _gestureActive || _zoom > _minZoom + 0.01 || _pressedCountySlug != null;
+    if (interacting == _lastReportedInteracting) return;
+    _lastReportedInteracting = interacting;
+    callback(interacting);
+  }
+
+  void _setGestureActive(bool active) {
+    _gestureActive = active;
+    _reportInteractingIfChanged();
+  }
+
+  void _applyResetFrame() {
+    final animation = _resetAnimation;
+    if (animation != null) _transformationController.value = animation.value;
+  }
+
+  void _resetZoom() {
+    _resetAnimation =
+        Matrix4Tween(
+          begin: _transformationController.value,
+          end: Matrix4.identity(),
+        ).animate(
+          CurvedAnimation(parent: _resetController, curve: Curves.easeOutCubic),
         );
-        if (badge != null) _showCountyPeek(context, badge);
-      },
-      child: CustomPaint(
-        painter: _MapHomeCountiesPainter(
-          badges: badges,
-          homeCountySlug: homeCountySlug,
-        ),
-        child: const SizedBox.expand(),
-      ),
+    unawaited(_resetController.forward(from: 0));
+  }
+
+  MapHomeCountyBadge? _badgeAt(Offset position, Size size) {
+    return MapHomeCountiesPainter.badgeAt(
+      widget.badges,
+      position,
+      size,
+      zoom: _zoom,
     );
   }
 
-  Future<void> _showCountyPeek(
-    BuildContext context,
-    MapHomeCountyBadge badge,
-  ) async {
+  void _setPressedCounty(String? slug) {
+    if (slug == _pressedCountySlug) return;
+    setState(() => _pressedCountySlug = slug);
+    _reportInteractingIfChanged();
+  }
+
+  void _setHoveredCounty(String? slug) {
+    if (slug == _hoveredCountySlug) return;
+    setState(() => _hoveredCountySlug = slug);
+  }
+
+  /// Keeps the county highlighted under the sheet; clears it on close.
+  Future<void> _openPeek(MapHomeCountyBadge badge) async {
+    _setPressedCounty(badge.county.slug);
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.foreground.withValues(alpha: 0.28),
       builder: (context) => CountyPeekSheet(
         badge: badge,
-        isHome: badge.county.slug == homeCountySlug,
+        isHome: badge.county.slug == widget.homeCountySlug,
       ),
     );
-  }
-}
-
-class _MapHomeCountiesPainter extends CustomPainter {
-  _MapHomeCountiesPainter({
-    required this.badges,
-    required this.homeCountySlug,
-  });
-
-  final List<MapHomeCountyBadge> badges;
-  final String? homeCountySlug;
-
-  static final _paths = {
-    for (final county in CountyPaths.all)
-      county.slug: AppSvgPath.parse(county.pathData),
-  };
-
-  static MapHomeCountyBadge? badgeAt(
-    List<MapHomeCountyBadge> badges,
-    Offset position,
-    Size size,
-  ) {
-    final transform = _CountyMapTransform.forSize(size);
-    final mapPosition = transform.toMapPosition(position);
-    for (final badge in badges.reversed) {
-      if (_paths[badge.county.slug]!.contains(mapPosition)) return badge;
-    }
-    return null;
+    if (!mounted) return;
+    _setPressedCounty(null);
   }
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final transform = _CountyMapTransform.forSize(size);
-    canvas.save();
-    canvas.translate(transform.offset.dx, transform.offset.dy);
-    canvas.scale(transform.scale);
-
-    for (final badge in badges) {
-      final isHome = badge.county.slug == homeCountySlug;
-      final path = _paths[badge.county.slug]!;
-      canvas.drawPath(
-        path,
-        Paint()..color = _fillFor(badge.state, isHome: isHome),
-      );
-      canvas.drawPath(
-        path,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.8
-          ..color = _strokeFor(badge.state, isHome: isHome),
-      );
-    }
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _MapHomeCountiesPainter oldDelegate) {
-    return oldDelegate.badges != badges ||
-        oldDelegate.homeCountySlug != homeCountySlug;
-  }
-
-  Color _fillFor(MapHomeCountyBadgeState state, {required bool isHome}) {
-    if (isHome) return AppColors.legendHome;
-    return switch (state) {
-      MapHomeCountyBadgeState.earned => AppColors.legendVisited,
-      MapHomeCountyBadgeState.locked => AppColors.lockedFill,
-      MapHomeCountyBadgeState.passedThrough => AppColors.legendPassed,
-      MapHomeCountyBadgeState.pending => AppColors.pendingFill,
-      MapHomeCountyBadgeState.justUnlocked => AppColors.justUnlockedFill,
-    };
-  }
-
-  Color _strokeFor(MapHomeCountyBadgeState state, {required bool isHome}) {
-    if (isHome || state != MapHomeCountyBadgeState.locked) {
-      return Colors.white;
-    }
-    return AppColors.lockedStroke;
-  }
-}
-
-class _CountyMapTransform {
-  const _CountyMapTransform({required this.scale, required this.offset});
-
-  final double scale;
-  final Offset offset;
-
-  Offset toMapPosition(Offset screenPosition) {
-    return Offset(
-      (screenPosition.dx - offset.dx) / scale,
-      (screenPosition.dy - offset.dy) / scale,
+  Widget build(BuildContext context) {
+    final map = Semantics(
+      label:
+          "Interactive map of Kenya's 47 counties, shaded by badge status. "
+          'Tap or press and hold a county to preview it.',
+      button: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final size = constraints.biggest;
+          return MouseRegion(
+            cursor: SystemMouseCursors.click,
+            onHover: (event) => _setHoveredCounty(
+              _badgeAt(event.localPosition, size)?.county.slug,
+            ),
+            onExit: (_) => _setHoveredCounty(null),
+            child: GestureDetector(
+              key: const ValueKey('map-home-interactive-map'),
+              behavior: HitTestBehavior.opaque,
+              onTapDown: (details) => _setPressedCounty(
+                _badgeAt(details.localPosition, size)?.county.slug,
+              ),
+              onTapCancel: () => _setPressedCounty(null),
+              onTapUp: (details) {
+                final badge = _badgeAt(details.localPosition, size);
+                if (badge == null) {
+                  _setPressedCounty(null);
+                  return;
+                }
+                unawaited(_openPeek(badge));
+              },
+              onLongPressStart: (details) {
+                final badge = _badgeAt(details.localPosition, size);
+                if (badge == null) return;
+                unawaited(HapticFeedback.selectionClick());
+                unawaited(_openPeek(badge));
+              },
+              child: CustomPaint(
+                painter: MapHomeCountiesPainter(
+                  badges: widget.badges,
+                  highlightedCountySlug: _highlightedCountySlug,
+                  homeCountySlug: widget.homeCountySlug,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
-  }
 
-  static _CountyMapTransform forSize(Size size) {
-    final scale = math.min(
-      size.width / CountyPaths.viewBoxWidth,
-      size.height / CountyPaths.viewBoxHeight,
+    // The gesture detector sits inside the InteractiveViewer's child, so
+    // pointer positions arrive in unzoomed coordinates; only the halo in
+    // badgeAt needs the live zoom.
+    final highlighted = _highlightedBadge;
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AspectRatio(
+            aspectRatio: CountyPaths.viewBoxWidth / CountyPaths.viewBoxHeight,
+            child: InteractiveViewer(
+              transformationController: _transformationController,
+              minScale: _minZoom,
+              maxScale: _maxZoom,
+              onInteractionStart: (_) => _setGestureActive(true),
+              onInteractionEnd: (_) => _setGestureActive(false),
+              child: map,
+            ),
+          ),
+          if (highlighted != null)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IgnorePointer(
+                child: MapHomeCountyLabel(badge: highlighted),
+              ),
+            ),
+          if (_zoom > _minZoom + 0.01)
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: MapHomeMapResetChip(onTap: _resetZoom),
+            ),
+        ],
+      ),
     );
-    final drawnSize = Size(
-      CountyPaths.viewBoxWidth * scale,
-      CountyPaths.viewBoxHeight * scale,
-    );
-    final offset = Offset(
-      (size.width - drawnSize.width) / 2,
-      math.max(0, (size.height - drawnSize.height) * 0.08),
-    );
-    return _CountyMapTransform(scale: scale, offset: offset);
   }
 }

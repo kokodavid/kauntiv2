@@ -9,10 +9,20 @@ import 'map_home_sheet_cards.dart';
 import 'map_home_stat_card.dart';
 import 'map_home_top_bar.dart';
 
-class MapHomeBoard extends StatelessWidget {
+class MapHomeBoard extends StatefulWidget {
   const MapHomeBoard({super.key, required this.data});
 
   final MapHomeBoardData data;
+
+  @override
+  State<MapHomeBoard> createState() => _MapHomeBoardState();
+}
+
+class _MapHomeBoardState extends State<MapHomeBoard> {
+  /// Ephemeral UI state: collapses the stat card while the map is browsed.
+  bool _isMapInteracting = false;
+
+  MapHomeBoardData get data => widget.data;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +43,7 @@ class MapHomeBoard extends StatelessWidget {
                     MapHomeStatCard(
                       exploredCount: data.exploredCount,
                       totalCounties: data.totalCounties,
+                      compact: _isMapInteracting,
                     ),
                   ],
                 ),
@@ -42,6 +53,10 @@ class MapHomeBoard extends StatelessWidget {
                 child: MapHomeCountyMap(
                   badges: data.countyBadges,
                   homeCountySlug: data.homeCounty?.slug,
+                  onInteractingChanged: (interacting) {
+                    if (interacting == _isMapInteracting) return;
+                    setState(() => _isMapInteracting = interacting);
+                  },
                 ),
               ),
             ],

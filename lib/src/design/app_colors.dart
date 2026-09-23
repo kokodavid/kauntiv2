@@ -25,6 +25,13 @@ class AppColors {
   static const justUnlockedFill = Color(0xFFEF4444);
   static const legendHome = Color(0xFF22C55E);
   static const trackInactive = Color(0xFFE2E8F0);
+  // Map Home county map (v1 parity): the newest badge's fill, and the dark
+  // pill used by the map's county label and reset control.
+  static const mapJustUnlocked = Color(0xFFC0342B);
+  static const mapOverlayBackground = Color(0xF022291F);
+  static const mapOverlayForeground = Color(0xFFF5F4EE);
+  static const mapOverlayMuted = Color(0xFFC9C7BA);
+  static const mapHighlightStroke = Color(0xFF22291F);
   static const tabBarShell = Color(0xCCFFFFFF);
   static const tabPillBackground = Colors.white;
   static const permissionHeaderGradientEnd = Color(0xFF0A5FD4);

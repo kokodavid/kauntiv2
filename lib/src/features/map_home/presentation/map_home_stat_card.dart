@@ -8,16 +8,37 @@ class MapHomeStatCard extends StatelessWidget {
     super.key,
     required this.exploredCount,
     required this.totalCounties,
+    this.compact = false,
   });
 
   final int exploredCount;
   final int totalCounties;
+
+  /// Collapsed form shown while the map is being browsed (v1 parity): the
+  /// numeral moves inline beside the tick bar and the caption drops out.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final safeTotal = totalCounties <= 0 ? 1 : totalCounties;
     final percent = ((exploredCount / safeTotal) * 100).round();
     final left = (totalCounties - exploredCount).clamp(0, totalCounties);
+    final tickBar = _CountyTickBar(
+      exploredCount: exploredCount,
+      total: totalCounties,
+    );
+    final footer = [
+      const SizedBox(height: 8),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('$percent% OF KENYA', style: AppTextStyles.bodySmall),
+          Text('$left LEFT', style: AppTextStyles.bodySmall),
+        ],
+      ),
+      const SizedBox(height: 10),
+      const _LegendRow(),
+    ];
 
     return Container(
       width: double.infinity,
@@ -45,51 +66,66 @@ class MapHomeStatCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '$exploredCount',
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 34,
-                  fontWeight: FontWeight.w300,
-                  color: AppColors.accent,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'of $totalCounties counties claimed',
-                style: AppTextStyles.chipLabel,
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          _CountyTickBar(exploredCount: exploredCount, total: totalCounties),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('$percent% OF KENYA', style: AppTextStyles.bodySmall),
-              Text('$left LEFT', style: AppTextStyles.bodySmall),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Row(
-            children: [
-              _LegendItem(color: AppColors.legendHome, label: 'Home'),
-              SizedBox(width: 12),
-              _LegendItem(color: AppColors.legendVisited, label: 'Visited'),
-              SizedBox(width: 12),
-              _LegendItem(color: AppColors.legendPassed, label: 'Passed'),
-            ],
-          ),
-        ],
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: compact
+              ? [
+                  Row(
+                    children: [
+                      Text(
+                        '$exploredCount',
+                        style: AppTextStyles.statNumeralCompact,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(child: tickBar),
+                    ],
+                  ),
+                  ...footer,
+                ]
+              : [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '$exploredCount',
+                        style: AppTextStyles.statNumeralCard,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'of $totalCounties counties claimed',
+                        style: AppTextStyles.chipLabel,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  tickBar,
+                  ...footer,
+                ],
+        ),
       ),
+    );
+  }
+}
+
+class _LegendRow extends StatelessWidget {
+  const _LegendRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        _LegendItem(color: AppColors.legendHome, label: 'Home'),
+        SizedBox(width: 12),
+        _LegendItem(color: AppColors.legendVisited, label: 'Visited'),
+        SizedBox(width: 12),
+        _LegendItem(color: AppColors.legendPassed, label: 'Passed'),
+      ],
     );
   }
 }

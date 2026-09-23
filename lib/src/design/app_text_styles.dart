@@ -147,4 +147,48 @@ abstract final class AppTextStyles {
     height: 12 / 10,
     color: AppColors.mutedForeground,
   );
+
+  static const statNumeralCard = TextStyle(
+    fontFamily: _inter,
+    fontSize: 34,
+    fontWeight: FontWeight.w300,
+    color: AppColors.accent,
+  );
+
+  static const statNumeralCompact = TextStyle(
+    fontFamily: _inter,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.accent,
+  );
+
+  static const mapOverlayTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    color: AppColors.mapOverlayForeground,
+  );
+
+  static const mapOverlayMeta = TextStyle(
+    fontFamily: _inter,
+    fontSize: 7.5,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.4,
+    color: AppColors.mapOverlayMuted,
+  );
+
+  static const mapOverlayChip = TextStyle(
+    fontFamily: _inter,
+    fontSize: 8.5,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.45,
+    color: AppColors.mapOverlayForeground,
+  );
+
+  static const mapCountyLabel = TextStyle(
+    fontFamily: _inter,
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    color: AppColors.mapOverlayForeground,
+  );
 }

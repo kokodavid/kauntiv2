@@ -54,12 +54,12 @@ class OnboardingPermissionPage extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          Column(
+          const Column(
             children: [
-              const _PermissionHeader(),
+              _PermissionHeader(),
               Expanded(
                 child: DecoratedBox(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(30),
@@ -74,10 +74,10 @@ class OnboardingPermissionPage extends StatelessWidget {
                     ],
                   ),
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                    padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         _PermissionFact(
                           icon: Icons.location_on_outlined,
                           title: 'Wakes only at boundaries.',
@@ -98,7 +98,7 @@ class OnboardingPermissionPage extends StatelessWidget {
                           title: 'Works offline.',
                           body:
                               'Deep in Marsabit with no bars? The badge '
-                              "lands on your phone and confirms when "
+                              'lands on your phone and confirms when '
                               "you're back in coverage.",
                         ),
                         _PermissionFact(
@@ -160,7 +160,7 @@ class _PermissionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -197,7 +197,7 @@ class _PermissionHeader extends StatelessWidget {
                   children: [
                     const _PermissionChip(),
                     const SizedBox(height: 10),
-                    Text(
+                    const Text(
                       'We watch for county lines, not your route',
                       style: AppTextStyles.heroHeading,
                     ),
@@ -294,7 +294,7 @@ class _PermissionFact extends StatelessWidget {
     // in the Figma file, one size up from the other three (14px) -- a
     // design mistake, not an intentional emphasis, per product
     // feedback. All four rows now share the same factBody style.
-    final bodyStyle = AppTextStyles.factBody;
+    const bodyStyle = AppTextStyles.factBody;
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
       child: IntrinsicHeight(
@@ -314,8 +314,8 @@ class _PermissionFact extends StatelessWidget {
                 ),
                 if (!isLast) ...[
                   const SizedBox(height: 4),
-                  Expanded(
-                    child: Container(width: 1, color: AppColors.trackInactive),
+                  const Expanded(
+                    child: ColoredBox(color: AppColors.trackInactive),
                   ),
                 ],
               ],
@@ -356,26 +356,26 @@ class _PermissionNote extends StatelessWidget {
         border: Border.all(color: AppColors.trackInactive),
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Row(
+      child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 2),
+            padding: EdgeInsets.only(top: 2),
             child: Icon(
               Icons.info_outline,
               size: 15,
               color: AppColors.noteMutedText,
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10),
           Expanded(
             child: Text.rich(
               TextSpan(
                 style: AppTextStyles.noteText,
-                children: const [
+                children: [
                   TextSpan(text: 'The system prompt comes next choose '),
                   TextSpan(
-                    text: '"Allow all the time."',
+                    text: "'Allow all the time.'",
                     style: TextStyle(color: AppColors.noteStrongText),
                   ),
                 ],

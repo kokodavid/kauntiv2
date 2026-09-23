@@ -44,22 +44,22 @@ class OnboardingAuthPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const AppIconBadge(size: 60),
-                  const SizedBox(height: 20),
+                  AppIconBadge(size: 60),
+                  SizedBox(height: 20),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text('Lots of Love for', style: AppTextStyles.kickerText),
-                      const SizedBox(width: 8),
-                      const _KenyaPill(),
+                      SizedBox(width: 8),
+                      _KenyaPill(),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     'Begin your journey. Fill in the map of Kenya.',
                     style: AppTextStyles.heading,

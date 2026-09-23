@@ -18,9 +18,6 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "build/**"
-  plugins:
-    - custom_lint
-
 linter:
   rules:
     # Correctness

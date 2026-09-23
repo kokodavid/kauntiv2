@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
       _minimumDurationComplete = true;
       _completeIfReady();
     });
-    _runPreload();
+    unawaited(_runPreload());
   }
 
   @override

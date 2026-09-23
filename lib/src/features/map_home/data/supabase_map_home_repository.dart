@@ -108,26 +108,45 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
     return fallback;
   }
 
+  /// Photos and facts are read separately: they come from different
+  /// migrations, and a dev database missing one fact column shouldn't also
+  /// drop every county photo from the For You cards.
   Future<Map<int, _CountyFactRow>> _countyFacts() async {
-    final rows = await _readOptional<List<dynamic>>(
-      () => client
-        .from('counties')
-          .select('id, area_km2, elevation_m, duration_minutes, highlight_image_url')
-          .timeout(const Duration(seconds: 8)),
-      label: 'county facts',
-    );
-
-    if (rows == null) return const {};
+    final results = await Future.wait([
+      _readCountyColumns('id, highlight_image_url', label: 'county photos'),
+      _readCountyColumns(
+        'id, area_km2, elevation_m, duration_minutes',
+        label: 'county facts',
+      ),
+    ]);
+    final photos = results[0];
+    final facts = results[1];
 
     return {
-      for (final raw in rows)
-        if ((raw as Map)['id'] != null)
-          raw['id'] as int: _CountyFactRow(
-            areaKm2: raw['area_km2'] as num?,
-            elevationM: raw['elevation_m'] as num?,
-            durationMinutes: (raw['duration_minutes'] as num?)?.toInt(),
-            highlightImageUrl: raw['highlight_image_url'] as String?,
-          ),
+      for (final id in {...photos.keys, ...facts.keys})
+        id: _CountyFactRow(
+          areaKm2: facts[id]?['area_km2'] as num?,
+          elevationM: facts[id]?['elevation_m'] as num?,
+          durationMinutes: (facts[id]?['duration_minutes'] as num?)?.toInt(),
+          highlightImageUrl: photos[id]?['highlight_image_url'] as String?,
+        ),
+    };
+  }
+
+  Future<Map<int, Map<dynamic, dynamic>>> _readCountyColumns(
+    String columns, {
+    required String label,
+  }) async {
+    final rows = await _readOptional<List<dynamic>>(
+      () => client
+          .from('counties')
+          .select(columns)
+          .timeout(const Duration(seconds: 8)),
+      label: label,
+    );
+    return {
+      for (final raw in rows ?? const <dynamic>[])
+        if (raw is Map && raw['id'] is num) (raw['id'] as num).toInt(): raw,
     };
   }
 

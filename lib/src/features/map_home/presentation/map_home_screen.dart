@@ -46,7 +46,10 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               );
             }
             // Null while loading: the board renders its own placeholders.
-            return MapHomeBoard(data: snapshot.data);
+            return MapHomeBoard(
+              data: snapshot.data,
+              loadMapPlaces: widget.loader.loadMapPlaces,
+            );
           },
         ),
       ),

@@ -1,8 +1,12 @@
 import '../../../counties/county_paths.dart';
 import '../domain/map_home_models.dart';
+import '../domain/map_place.dart';
 
 abstract interface class MapHomeRepository {
   Future<MapHomeBoardData> loadBoard({CountyPath? homeCounty});
+
+  /// Places with coordinates, for the Pro map spike.
+  Future<List<MapPlace>> loadMapPlaces();
 }
 
 class MockMapHomeRepository implements MapHomeRepository {
@@ -74,6 +78,26 @@ class MockMapHomeRepository implements MapHomeRepository {
       ],
     );
   }
+
+  @override
+  Future<List<MapPlace>> loadMapPlaces() async => const [
+    MapPlace(
+      id: 'mock-hells-gate',
+      name: "Hell's Gate National Park",
+      type: 'park',
+      countyCode: 32,
+      lat: -0.875,
+      lng: 36.319,
+    ),
+    MapPlace(
+      id: 'mock-fort-jesus',
+      name: 'Fort Jesus Museum',
+      type: 'museum',
+      countyCode: 1,
+      lat: -4.071,
+      lng: 39.682,
+    ),
+  ];
 
   static MapHomeCountyBadgeState _stateFor(String slug) {
     if (_justUnlockedSlugs.contains(slug)) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../domain/map_home_models.dart';
+import '../domain/map_place.dart';
 import 'map_home_county_map.dart';
 import 'map_home_for_you_section.dart';
 import 'map_home_sheet.dart';
@@ -13,11 +14,14 @@ import 'pro_map_entry_chip.dart';
 import 'pro_map_screen.dart';
 
 class MapHomeBoard extends StatefulWidget {
-  const MapHomeBoard({super.key, required this.data});
+  const MapHomeBoard({super.key, required this.data, this.loadMapPlaces});
 
   /// Null while the board is loading: every slot shows a same-sized
   /// placeholder, then crossfades to the real content in place.
   final MapHomeBoardData? data;
+
+  /// SPIKE: place pins for the Pro map preview.
+  final Future<List<MapPlace>> Function()? loadMapPlaces;
 
   @override
   State<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -86,7 +90,10 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                       Positioned(
                         top: 8,
                         left: 24,
-                        child: ProMapEntryChip(data: data),
+                        child: ProMapEntryChip(
+                          data: data,
+                          loadPlaces: widget.loadMapPlaces,
+                        ),
                       ),
                   ],
                 ),

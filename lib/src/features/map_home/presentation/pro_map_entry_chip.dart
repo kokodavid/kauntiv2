@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/map_home_models.dart';
+import '../domain/map_place.dart';
 import 'pro_map_screen.dart';
 
 /// SPIKE: opens [ProMapScreen]. Shown only when a Mapbox token is
 /// configured; a real build would gate this on the Pro entitlement and
 /// send free users to the paywall instead.
 class ProMapEntryChip extends StatelessWidget {
-  const ProMapEntryChip({super.key, required this.data});
+  const ProMapEntryChip({super.key, required this.data, this.loadPlaces});
 
   final MapHomeBoardData data;
+  final Future<List<MapPlace>> Function()? loadPlaces;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +28,7 @@ class ProMapEntryChip extends StatelessWidget {
               accessToken: ProMapScreen.configuredAccessToken,
               badges: data.countyBadges,
               homeCountySlug: data.homeCounty?.slug,
+              loadPlaces: loadPlaces,
             ),
           ),
         ),

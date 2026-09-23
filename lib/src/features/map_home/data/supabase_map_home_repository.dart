@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../counties/county_paths.dart';
 import '../../../services/app_logger.dart';
 import '../domain/map_home_models.dart';
+import '../domain/map_place.dart';
 import 'map_home_repository.dart';
 
 class SupabaseMapHomeRepository implements MapHomeRepository {
@@ -42,6 +43,27 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
       countyBadges: badges,
       suggestions: await _suggestions(countyFacts),
     );
+  }
+
+  @override
+  Future<List<MapPlace>> loadMapPlaces() async {
+    final rows = await client
+        .from('places')
+        .select('id, name, type, summary, county_id, lat, lng')
+        .timeout(const Duration(seconds: 8));
+    return [
+      for (final row in rows)
+        if (row['lat'] is num && row['lng'] is num)
+          MapPlace(
+            id: row['id'] as String,
+            name: row['name'] as String,
+            type: row['type'] as String,
+            countyCode: (row['county_id'] as num).toInt(),
+            lat: (row['lat'] as num).toDouble(),
+            lng: (row['lng'] as num).toDouble(),
+            summary: row['summary'] as String?,
+          ),
+    ];
   }
 
   Future<CountyPath?> _homeCounty(

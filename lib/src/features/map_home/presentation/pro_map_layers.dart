@@ -3,6 +3,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../domain/map_home_models.dart';
 import 'map_home_county_map_painter.dart';
+import 'pro_map_place_widgets.dart';
 
 /// Base styles offered in the Pro map spike, so they can be compared on a
 /// device.
@@ -51,6 +52,58 @@ abstract final class ProMapLayers {
         lineColor: const Color(0xFF22291F).toARGB32(),
         lineWidth: 2.5,
         filter: highlightFilter(null),
+      ),
+    );
+  }
+
+  static const placesSourceId = 'kaunti47-places';
+  static const placeDotLayerId = 'kaunti47-places-dot';
+  static const placeLabelLayerId = 'kaunti47-places-label';
+
+  /// Place pins coloured by type, growing with zoom; names from zoom 7.
+  static Future<void> addPlacesTo(StyleManager style, String geoJson) async {
+    await style.addSource(GeoJsonSource(id: placesSourceId, data: geoJson));
+    await style.addLayer(
+      CircleLayer(
+        id: placeDotLayerId,
+        sourceId: placesSourceId,
+        circleColorExpression: [
+          'match',
+          ['get', 'type'],
+          for (final entry in ProMapPlaceTypes.known.entries) ...[
+            entry.key,
+            _hex(entry.value.$2),
+          ],
+          _hex(ProMapPlaceTypes.colorFor('')),
+        ],
+        circleRadiusExpression: [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          5,
+          3.5,
+          9,
+          7,
+          12,
+          9,
+        ],
+        circleStrokeColor: Colors.white.toARGB32(),
+        circleStrokeWidth: 1.5,
+      ),
+    );
+    await style.addLayer(
+      SymbolLayer(
+        id: placeLabelLayerId,
+        sourceId: placesSourceId,
+        minZoom: 7,
+        textFieldExpression: ['get', 'name'],
+        textSize: 11,
+        textOffset: [0, 1.1],
+        textAnchor: TextAnchor.TOP,
+        textOptional: true,
+        textColor: const Color(0xFF22291F).toARGB32(),
+        textHaloColor: Colors.white.toARGB32(),
+        textHaloWidth: 1.2,
       ),
     );
   }

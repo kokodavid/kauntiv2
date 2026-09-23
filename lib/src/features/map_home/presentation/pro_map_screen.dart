@@ -6,10 +6,13 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../../design/app_colors.dart';
 import '../application/county_geojson_builder.dart';
+import '../application/place_geojson_builder.dart';
 import '../domain/map_home_models.dart';
+import '../domain/map_place.dart';
 import 'county_peek_sheet.dart';
 import 'map_home_map_overlays.dart';
 import 'pro_map_layers.dart';
+import 'pro_map_place_widgets.dart';
 
 /// SPIKE (codex/mapbox-spike): the county map on a real Mapbox base map,
 /// evaluated as a possible Pro feature. Same badge data and colours as the
@@ -20,6 +23,7 @@ class ProMapScreen extends StatefulWidget {
     required this.accessToken,
     required this.badges,
     required this.homeCountySlug,
+    this.loadPlaces,
   });
 
   /// Public Mapbox token (`MAPBOX_ACCESS_TOKEN` dart-define).
@@ -33,6 +37,9 @@ class ProMapScreen extends StatefulWidget {
   final String accessToken;
   final List<MapHomeCountyBadge> badges;
   final String? homeCountySlug;
+
+  /// Loads the pins for `places`; null shows counties only.
+  final Future<List<MapPlace>> Function()? loadPlaces;
 
   @override
   State<ProMapScreen> createState() => _ProMapScreenState();
@@ -50,11 +57,14 @@ class _ProMapScreenState extends State<ProMapScreen> {
   String? _countyGeoJson;
   ProMapBaseStyle _baseStyle = ProMapBaseStyle.outdoors;
   MapHomeCountyBadge? _selected;
+  Future<List<MapPlace>>? _places;
+  Map<String, MapPlace> _placesById = const {};
 
   @override
   void initState() {
     super.initState();
     MapboxOptions.setAccessToken(widget.accessToken);
+    _places = widget.loadPlaces?.call();
   }
 
   Future<String> _geoJson() async {
@@ -90,6 +100,14 @@ class _ProMapScreenState extends State<ProMapScreen> {
       ),
       interactionID: 'kaunti47-county-tap',
     );
+    // Added after the county tap so a pin wins over the county under it.
+    map.addInteraction(
+      TapInteraction(
+        FeaturesetDescriptor(layerId: ProMapLayers.placeDotLayerId),
+        (feature, _) => _onPlaceTapped(feature.properties['id']),
+      ),
+      interactionID: 'kaunti47-place-tap',
+    );
   }
 
   Future<void> _onStyleLoaded() async {
@@ -98,6 +116,41 @@ class _ProMapScreenState extends State<ProMapScreen> {
     final geoJson = await _geoJson();
     await ProMapLayers.addTo(map.style, geoJson);
     await _applyHighlight();
+    await _addPlaces(map);
+  }
+
+  Future<void> _addPlaces(MapboxMap map) async {
+    final pending = _places;
+    if (pending == null) return;
+    final List<MapPlace> places;
+    try {
+      places = await pending;
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Couldn't load places.")));
+      return;
+    }
+    if (!mounted) return;
+    _placesById = {for (final place in places) place.id: place};
+    await ProMapLayers.addPlacesTo(
+      map.style,
+      PlaceGeoJsonBuilder.build(places),
+    );
+  }
+
+  void _onPlaceTapped(Object? id) {
+    final place = _placesById[id];
+    if (place == null) return;
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        barrierColor: AppColors.foreground.withValues(alpha: 0.28),
+        builder: (context) => ProMapPlaceSheet(place: place),
+      ),
+    );
   }
 
   Future<void> _applyHighlight() async {
@@ -162,15 +215,24 @@ class _ProMapScreenState extends State<ProMapScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton.filled(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.mapOverlayBackground,
-                    ),
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: AppColors.mapOverlayForeground,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      IconButton.filled(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppColors.mapOverlayBackground,
+                        ),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: AppColors.mapOverlayForeground,
+                        ),
+                      ),
+                      if (widget.loadPlaces != null) ...[
+                        const SizedBox(height: 8),
+                        const ProMapPlaceLegend(),
+                      ],
+                    ],
                   ),
                   const Spacer(),
                   if (selected != null) MapHomeCountyLabel(badge: selected),

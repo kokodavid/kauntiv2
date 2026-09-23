@@ -149,6 +149,10 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-23 | `7c0bc06` | 6, 4 | County Detail + Place Detail ported; Map Home links to them |
+| 2026-09-23 | `843f9a4` | — | dart format (local run) |
+| 2026-09-23 | `63fd670` | 4 | County photos read separately from county facts |
+| 2026-09-23 | `c8e922d` | 4 | Mapbox location telemetry off by default |
 | 2026-09-23 | `3930ab9` | 4 | Merge `codex/mapbox-spike`: real (Mapbox) map is Home's default (`0dc58ab`), drawn map is the fallback |
 | 2026-09-23 | `d8c9959` | — | Port tracker: log skeleton and docs commits |
 | 2026-09-23 | `c421cdd` | 4 | Map-first loading skeleton replaces the loading message |

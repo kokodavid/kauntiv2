@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
+import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_county_map_painter.dart';
 import 'pro_map_place_widgets.dart';
@@ -42,9 +43,30 @@ abstract final class ProMapLayers {
       LineLayer(
         id: outlineLayerId,
         sourceId: sourceId,
-        lineColor: Colors.white.toARGB32(),
-        lineWidth: 1,
-        lineOpacity: 0.9,
+        // Claimed counties get a bold border in their state colour, drawn
+        // above the thin white edges of unclaimed neighbours.
+        lineColorExpression: _stateColorExpression(),
+        lineWidthExpression: [
+          'match',
+          ['get', 'state'],
+          _locked,
+          1,
+          2.5,
+        ],
+        lineOpacityExpression: [
+          'match',
+          ['get', 'state'],
+          _locked,
+          0.6,
+          0.95,
+        ],
+        lineSortKeyExpression: [
+          'match',
+          ['get', 'state'],
+          _locked,
+          0,
+          1,
+        ],
       ),
     );
     await style.addLayer(
@@ -201,7 +223,33 @@ abstract final class ProMapLayers {
   ];
 
   /// Same state colours as the drawn map ([MapHomeCountyStyle]).
+  static final _locked = MapHomeCountyBadgeState.locked.name;
+
+  /// "Fog of war" on real terrain: unclaimed counties are hazed grey,
+  /// claimed ones stay clear with only a faint tint of their state colour,
+  /// so explored land shows as vivid terrain inside a coloured border. (A
+  /// solid blue fill read as water on the Mapbox base styles.)
   static List<Object> _fillColorExpression() => [
+    'match',
+    ['get', 'state'],
+    _locked,
+    _hex(AppColors.mapFog),
+    _stateColorExpression(),
+  ];
+
+  static List<Object> _fillOpacityExpression() => [
+    'match',
+    ['get', 'state'],
+    _locked,
+    0.38,
+    MapHomeCountyBadgeState.pending.name,
+    0.04,
+    0.08,
+  ];
+
+  /// Same state colours as the drawn map ([MapHomeCountyStyle]); unclaimed
+  /// counties' white edges.
+  static List<Object> _stateColorExpression() => [
     'match',
     ['get', 'state'],
     'home',
@@ -211,23 +259,12 @@ abstract final class ProMapLayers {
         isHome: true,
       ).fill,
     ),
-    for (final state in MapHomeCountyBadgeState.values) ...[
-      state.name,
-      _hex(MapHomeCountyStyle.forState(state).fill),
-    ],
+    for (final state in MapHomeCountyBadgeState.values)
+      if (state != MapHomeCountyBadgeState.locked) ...[
+        state.name,
+        _hex(MapHomeCountyStyle.forState(state).fill),
+      ],
     '#FFFFFF',
-  ];
-
-  /// Unclaimed counties stay nearly clear so the real terrain shows; the
-  /// rest are tinted enough to read over satellite imagery.
-  static List<Object> _fillOpacityExpression() => [
-    'match',
-    ['get', 'state'],
-    MapHomeCountyBadgeState.locked.name,
-    0.08,
-    MapHomeCountyBadgeState.pending.name,
-    0.35,
-    0.55,
   ];
 
   static String _hex(Color color) {

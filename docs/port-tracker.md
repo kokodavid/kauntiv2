@@ -87,7 +87,10 @@ map kept for everyone?
   on Home. The real map runs edge to edge behind the whole board (under the
   status bar); top bar and stat card float on it with a soft top scrim, and
   For You sheet and nav stay put. Controls and county framing sit below
-  the measured header. Counties coloured by badge state over a
+  the measured header.
+- County styling on the real map is "fog of war": unclaimed counties hazed
+  grey, claimed ones clear with a faint tint and a bold state-colour border
+  (a solid blue fill read as water). Counties coloured by badge state over a
   Light / Terrain / Satellite base (style, 3D and locate-me buttons on the
   right), kept inside Kenya; Mapbox logo/attribution lifted above the sheet.
 - Place pins from `places` (lat/lng): type-coloured dots when zoomed out;

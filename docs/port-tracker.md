@@ -87,6 +87,8 @@ map kept for everyone?
   Satellite base, kept inside Kenya, tap outlines a county and opens the peek.
 - Place pins from `places` (lat/lng), coloured by type with a legend;
   names from zoom 7; tap opens a place sheet. Loaded once when the map opens.
+- 3D terrain (Mapbox Terrain-DEM, 1.5x exaggeration, atmosphere sky), on by
+  default with a 50° tilt; "3D" toggle flattens it and levels the camera.
 - Entry: "REAL MAP · PRO" chip on the Home map, shown only when
   `MAPBOX_ACCESS_TOKEN` is set (stand-in for a Pro entitlement).
 - To evaluate on a device: look, start-up time, tap accuracy, gesture

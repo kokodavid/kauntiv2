@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
@@ -107,6 +109,51 @@ abstract final class ProMapLayers {
       ),
     );
   }
+
+  static const demSourceId = 'mapbox-dem';
+  static const skyLayerId = 'kaunti47-sky';
+  static const terrainExaggeration = 1.5;
+
+  /// Mapbox terrain elevation under the whole style, plus an atmosphere
+  /// sky for when the camera is tilted. Fill and line layers drape over it.
+  static Future<void> addTerrainTo(
+    StyleManager style, {
+    required bool enabled,
+  }) async {
+    if (!await style.styleSourceExists(demSourceId)) {
+      await style.addSource(
+        RasterDemSource(
+          id: demSourceId,
+          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          tileSize: 514,
+          maxzoom: 14,
+        ),
+      );
+    }
+    await style.setStyleTerrain(
+      jsonEncode({
+        'source': demSourceId,
+        'exaggeration': enabled ? terrainExaggeration : 0,
+      }),
+    );
+    if (!await style.styleLayerExists(skyLayerId)) {
+      await style.addLayer(
+        SkyLayer(
+          id: skyLayerId,
+          skyType: SkyType.ATMOSPHERE,
+          skyAtmosphereSunIntensity: 15,
+        ),
+      );
+    }
+  }
+
+  /// Flattens or raises the terrain without removing it (the Flutter SDK
+  /// has no clean way to remove terrain once set).
+  static Future<void> setTerrainEnabled(StyleManager style, bool enabled) =>
+      style.setStyleTerrainProperty(
+        'exaggeration',
+        enabled ? terrainExaggeration : 0,
+      );
 
   /// Outline only the county with [code]; null outlines nothing.
   static List<Object> highlightFilter(int? code) => [

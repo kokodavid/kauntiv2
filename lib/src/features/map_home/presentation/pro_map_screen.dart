@@ -11,6 +11,7 @@ import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'county_peek_sheet.dart';
 import 'map_home_map_overlays.dart';
+import 'pro_map_controls.dart';
 import 'pro_map_layers.dart';
 import 'pro_map_place_widgets.dart';
 
@@ -48,10 +49,15 @@ class ProMapScreen extends StatefulWidget {
 class _ProMapScreenState extends State<ProMapScreen> {
   static const _geoJsonAsset = 'assets/geo/kenya_counties.geojson';
 
+  static const _tiltedPitch = 50.0;
+
   final _initialViewport = CameraViewportState(
     center: Point(coordinates: Position(37.9, 0.3)),
     zoom: 5.1,
+    pitch: _tiltedPitch,
   );
+
+  bool _terrainEnabled = true;
 
   MapboxMap? _map;
   String? _countyGeoJson;
@@ -114,6 +120,7 @@ class _ProMapScreenState extends State<ProMapScreen> {
     final map = _map;
     if (map == null) return;
     final geoJson = await _geoJson();
+    await ProMapLayers.addTerrainTo(map.style, enabled: _terrainEnabled);
     await ProMapLayers.addTo(map.style, geoJson);
     await _applyHighlight();
     await _addPlaces(map);
@@ -189,6 +196,20 @@ class _ProMapScreenState extends State<ProMapScreen> {
     unawaited(_applyHighlight());
   }
 
+  void _setTerrainEnabled(bool enabled) {
+    if (enabled == _terrainEnabled) return;
+    setState(() => _terrainEnabled = enabled);
+    final map = _map;
+    if (map == null) return;
+    unawaited(ProMapLayers.setTerrainEnabled(map.style, enabled));
+    unawaited(
+      map.easeTo(
+        CameraOptions(pitch: enabled ? _tiltedPitch : 0),
+        MapAnimationOptions(duration: 800),
+      ),
+    );
+  }
+
   void _setBaseStyle(ProMapBaseStyle style) {
     if (style == _baseStyle) return;
     setState(() => _baseStyle = style);
@@ -245,19 +266,11 @@ class _ProMapScreenState extends State<ProMapScreen> {
             right: 0,
             bottom: 32,
             child: Center(
-              child: SegmentedButton<ProMapBaseStyle>(
-                segments: [
-                  for (final style in ProMapBaseStyle.values)
-                    ButtonSegment(value: style, label: Text(style.label)),
-                ],
-                selected: {_baseStyle},
-                showSelectedIcon: false,
-                style: SegmentedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  selectedBackgroundColor: AppColors.accent,
-                  selectedForegroundColor: Colors.white,
-                ),
-                onSelectionChanged: (value) => _setBaseStyle(value.first),
+              child: ProMapControls(
+                baseStyle: _baseStyle,
+                onBaseStyleChanged: _setBaseStyle,
+                terrainEnabled: _terrainEnabled,
+                onTerrainChanged: _setTerrainEnabled,
               ),
             ),
           ),

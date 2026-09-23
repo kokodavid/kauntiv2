@@ -47,6 +47,16 @@ abstract final class ProMapCamera {
     );
   }
 
+  /// Eases the camera to [pitch] (3D toggle).
+  static void tiltTo(MapboxMap map, double pitch) {
+    unawaited(
+      map.easeTo(
+        CameraOptions(pitch: pitch),
+        MapAnimationOptions(duration: 800),
+      ),
+    );
+  }
+
   /// Drops the sheet padding so the county eases back to screen centre.
   static void releaseSheetPadding(MapboxMap map) {
     unawaited(

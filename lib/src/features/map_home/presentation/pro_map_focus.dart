@@ -39,6 +39,17 @@ abstract final class ProMapFocus {
     );
   }
 
+  /// Waits for the follow-puck camera to arrive; false if the camera is
+  /// still zoomed out after [timeout], i.e. no location fix came in.
+  static Future<bool> reachedUser(
+    MapboxMap map, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    await Future<void>.delayed(timeout);
+    final camera = await map.getCameraState();
+    return camera.zoom >= localZoom - 1;
+  }
+
   /// Shows the pulsing "you are here" dot.
   static Future<void> showUserDot(MapboxMap map) {
     return map.location.updateSettings(

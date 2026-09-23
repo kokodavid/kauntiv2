@@ -87,11 +87,15 @@ class _ProMapScreenState extends State<ProMapScreen> {
     await _focusOnUser();
   }
 
-  /// "Locate me": follow the user's dot, or frame the home county.
+  /// "Locate me": follow the user's dot, or frame the home county when
+  /// there's no permission or no fix arrives (e.g. simulator set to None).
   Future<void> _focusOnUser() async {
     if (_hasLocation) {
-      setState(() => _viewport = ProMapFocus.aroundUser(_pitch));
-      return;
+      final following = ProMapFocus.aroundUser(_pitch);
+      setState(() => _viewport = following);
+      final map = _map;
+      if (map == null || await ProMapFocus.reachedUser(map)) return;
+      if (!mounted || _viewport != following) return;
     }
     await _geoJson();
     final home = widget.badges
@@ -241,12 +245,7 @@ class _ProMapScreenState extends State<ProMapScreen> {
     final map = _map;
     if (map == null) return;
     unawaited(ProMapLayers.setTerrainEnabled(map.style, enabled));
-    unawaited(
-      map.easeTo(
-        CameraOptions(pitch: enabled ? _tiltedPitch : 0),
-        MapAnimationOptions(duration: 800),
-      ),
-    );
+    ProMapCamera.tiltTo(map, _pitch);
   }
 
   void _setBaseStyle(ProMapBaseStyle style) {

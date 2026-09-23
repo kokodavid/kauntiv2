@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_county_map.dart';
+import 'map_home_for_you_section.dart';
 import 'map_home_sheet.dart';
 import 'map_home_sheet_cards.dart';
 import 'map_home_stat_card.dart';
@@ -48,12 +49,7 @@ class MapHomeBoard extends StatelessWidget {
         ),
         MapHomeSheet(
           children: [
-            MapHomeSheetSectionTitle(
-              title: 'For you',
-              action: '${data.suggestions.length} ideas',
-            ),
-            for (final suggestion in data.suggestions)
-              MapHomeSuggestionTile(suggestion: suggestion),
+            MapHomeForYouSection(suggestions: data.suggestions),
             const MapHomeQuestPreviewCard(),
           ],
         ),

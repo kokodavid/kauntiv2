@@ -15,8 +15,8 @@ class MapHomeSheet extends StatefulWidget {
 }
 
 class _MapHomeSheetState extends State<MapHomeSheet> {
-  static const _peekSize = 0.16;
-  static const _maxSize = 0.72;
+  static const _peekSize = 0.14;
+  static const _maxSize = 0.88;
   double? _contentHeight;
 
   @override
@@ -78,7 +78,7 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         for (var i = 0; i < widget.children.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 12),
+                          if (i > 0) const SizedBox(height: 16),
                           widget.children[i],
                         ],
                       ],

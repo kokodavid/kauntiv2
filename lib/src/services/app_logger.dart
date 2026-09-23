@@ -7,6 +7,7 @@ class AppLogger {
 
   const AppLogger.auth() : this._('auth');
   const AppLogger.location() : this._('location');
+  const AppLogger.mapHome() : this._('map_home');
 
   final String _scope;
 

@@ -1,7 +1,11 @@
 import '../../../counties/county_paths.dart';
 import '../domain/map_home_models.dart';
 
-class MockMapHomeRepository {
+abstract interface class MapHomeRepository {
+  Future<MapHomeBoardData> loadBoard({CountyPath? homeCounty});
+}
+
+class MockMapHomeRepository implements MapHomeRepository {
   const MockMapHomeRepository();
 
   static const _lockedSlugs = <String>{
@@ -26,7 +30,8 @@ class MockMapHomeRepository {
   static const _pendingSlugs = <String>{'marsabit'};
   static const _justUnlockedSlugs = <String>{'turkana'};
 
-  MapHomeBoardData loadBoard({CountyPath? homeCounty}) {
+  @override
+  Future<MapHomeBoardData> loadBoard({CountyPath? homeCounty}) async {
     final resolvedHomeCounty = homeCounty ?? CountyPaths.bySlug['nairobi'];
     return MapHomeBoardData(
       tierLabel: 'MZURURAJI',
@@ -45,18 +50,26 @@ class MockMapHomeRepository {
       suggestions: [
         MapHomeSuggestion(
           county: CountyPaths.bySlug['nakuru']!,
-          label: 'Depth rank nearby',
+          reason: MapHomeSuggestionReason.depthRank,
           distanceAway: '40 min away',
+          isNear: true,
         ),
         MapHomeSuggestion(
           county: CountyPaths.bySlug['nyandarua']!,
-          label: 'Unclaimed county',
+          reason: MapHomeSuggestionReason.unclaimed,
           distanceAway: '2h 30m away',
+          isNear: false,
         ),
         MapHomeSuggestion(
           county: CountyPaths.bySlug['turkana']!,
-          label: 'Saved place here',
+          reason: MapHomeSuggestionReason.savedHere,
           distanceAway: '3h 15m away',
+          isNear: false,
+          placeName: 'Central Island National Park',
+          areaKm2: 5,
+          elevationM: 375,
+          visitDurationMinutes: 180,
+          highlightImageUrl: null,
         ),
       ],
     );

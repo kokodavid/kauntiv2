@@ -9,6 +9,8 @@ import '../counties/county_paths.dart';
 import '../design/app_colors.dart';
 import '../features/auth/application/sign_in_controller.dart';
 import '../features/auth/data/app_auth_service.dart';
+import '../features/map_home/application/map_home_board_loader.dart';
+import '../features/map_home/data/supabase_map_home_repository.dart';
 import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/profile/data/profile_setup_repository.dart';
 import '../screens/onboarding/onboarding_auth_page.dart';
@@ -126,13 +128,48 @@ class _StartupGateState extends State<_StartupGate>
       );
     }
 
-    return MapHomeScreen(homeCounty: _selectedCounty);
+    return MapHomeScreen(
+      homeCounty: _selectedCounty,
+      loader: AppSupabase.isInitialized
+          ? MapHomeBoardLoader(
+              repository: SupabaseMapHomeRepository(AppSupabase.client),
+            )
+          : const MapHomeBoardLoader(),
+    );
   }
 
   Future<void> _preloadSignInAssets(BuildContext context) async {
-    await const SvgAssetLoader('assets/images/onboarding.svg').loadBytes(
-      context,
-    );
+    await Future.wait([
+      const SvgAssetLoader('assets/images/onboarding.svg').loadBytes(context),
+      _restoreSessionState(),
+    ]);
+  }
+
+  Future<void> _restoreSessionState() async {
+    if (!AppSupabase.isInitialized ||
+        AppSupabase.client.auth.currentUser == null) {
+      return;
+    }
+
+    try {
+      final homeCounty = await SupabaseProfileSetupRepository(
+        AppSupabase.client,
+      ).fetchHomeCounty();
+      if (!mounted) {
+        return;
+      }
+
+      await _handlePostSignInSetup(homeCounty, null);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      await _handlePostSignInSetup(
+        null,
+        'Could not check your saved home county. Pick it again to continue.',
+      );
+    }
   }
 
   Future<void> _saveHomeCounty() async {

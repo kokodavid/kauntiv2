@@ -22,14 +22,47 @@ class MapHomeCountyBadge {
 class MapHomeSuggestion {
   const MapHomeSuggestion({
     required this.county,
-    required this.label,
+    required this.reason,
     required this.distanceAway,
+    required this.isNear,
+    this.placeName,
+    this.areaKm2,
+    this.elevationM,
+    this.visitDurationMinutes,
+    this.highlightImageUrl,
   });
 
   final CountyPath county;
-  final String label;
+  final MapHomeSuggestionReason reason;
   final String distanceAway;
+  final bool isNear;
+  final String? placeName;
+  final double? areaKm2;
+  final int? elevationM;
+  final int? visitDurationMinutes;
+  final String? highlightImageUrl;
+
+  String get title => placeName ?? county.name;
+
+  String get reasonLabel {
+    return switch (reason) {
+      MapHomeSuggestionReason.depthRank => 'Depth rank nearby',
+      MapHomeSuggestionReason.savedHere => 'Saved place here',
+      MapHomeSuggestionReason.unclaimed => 'Unclaimed county',
+    };
+  }
+
+  Iterable<String> get statLabels sync* {
+    final area = areaKm2;
+    if (area != null) yield '${area.toStringAsFixed(0)} km2';
+    final elevation = elevationM;
+    if (elevation != null) yield '${elevation}m';
+    final duration = visitDurationMinutes;
+    if (duration != null) yield '${duration} min';
+  }
 }
+
+enum MapHomeSuggestionReason { depthRank, savedHere, unclaimed }
 
 class MapHomeBoardData {
   const MapHomeBoardData({

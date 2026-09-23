@@ -5,9 +5,9 @@ import '../domain/map_home_models.dart';
 class MapHomeBoardLoader {
   const MapHomeBoardLoader({this.repository = const MockMapHomeRepository()});
 
-  final MockMapHomeRepository repository;
+  final MapHomeRepository repository;
 
-  MapHomeBoardData loadBoard({CountyPath? homeCounty}) {
+  Future<MapHomeBoardData> loadBoard({CountyPath? homeCounty}) {
     return repository.loadBoard(homeCounty: homeCounty);
   }
 }

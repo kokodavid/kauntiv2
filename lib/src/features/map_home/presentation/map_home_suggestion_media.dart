@@ -5,6 +5,7 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/map_home_models.dart';
+import 'map_home_links.dart';
 
 class MapHomeSuggestionPhotoHeader extends StatelessWidget {
   const MapHomeSuggestionPhotoHeader({
@@ -146,15 +147,19 @@ class MapHomeSuggestionTapTarget extends StatelessWidget {
     super.key,
     required this.suggestion,
     required this.child,
+    this.onOpenCounty,
   });
 
   final MapHomeSuggestion suggestion;
   final Widget child;
+  final OpenCountyDetail? onOpenCounty;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        final open = onOpenCounty;
+        if (open != null) return open(context, suggestion.county.code);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${suggestion.county.name} details are next.'),

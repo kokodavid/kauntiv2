@@ -57,4 +57,15 @@ class AppColors {
   static const splashIconGradientStart = Color(0xFFCAEFF9);
   static const splashIconGradientMid = Color(0xFF639FFD);
   static const splashIconGradientEnd = Color(0xFFB1ACFC);
+
+  // County / Place Detail (v1 parity).
+  static const factCardBorder = trackInactive;
+  static const countyShapeCardBorder = lockedStroke;
+  static const countyStatusChipBackground = Color(0x4D000000);
+  static const backButtonBorder = Color(0xFFDADEEC);
+  static const detailStatLabel = Color(0xFF94A3B8);
+  static const detailStatValue = Color(0xFF475569);
+  static const categoryHeritageDot = Color(0xFF7E22CE);
+  static const categoryDotFallback = mutedForeground;
+  static const detailGlassShadow = Color(0x1A000000);
 }

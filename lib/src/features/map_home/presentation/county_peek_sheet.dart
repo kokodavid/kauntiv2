@@ -7,21 +7,31 @@ import '../domain/map_home_models.dart';
 import 'map_home_county_map_painter.dart';
 
 class CountyPeekSheet extends StatelessWidget {
-  const CountyPeekSheet({super.key, required this.badge, required this.isHome});
+  const CountyPeekSheet({
+    super.key,
+    required this.badge,
+    required this.isHome,
+    this.onOpen,
+  });
 
   final MapHomeCountyBadge badge;
   final bool isHome;
+
+  /// Opens County Detail after the sheet closes; null just closes it.
+  final VoidCallback? onOpen;
 
   static Future<void> show(
     BuildContext context,
     MapHomeCountyBadge badge, {
     required bool isHome,
+    VoidCallback? onOpen,
   }) {
     return showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.foreground.withValues(alpha: 0.28),
-      builder: (context) => CountyPeekSheet(badge: badge, isHome: isHome),
+      builder: (context) =>
+          CountyPeekSheet(badge: badge, isHome: isHome, onOpen: onOpen),
     );
   }
 
@@ -87,7 +97,10 @@ class CountyPeekSheet extends StatelessWidget {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onOpen?.call();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   elevation: 0,

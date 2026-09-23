@@ -10,11 +10,13 @@ import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'county_peek_sheet.dart';
 import 'map_home_map_overlays.dart';
+import 'map_home_links.dart';
 import 'real_map_camera.dart';
 import 'real_map_controls.dart';
 import 'real_map_county_source.dart';
 import 'real_map_focus.dart';
 import 'real_map_layers.dart';
+import 'real_map_load_watch.dart';
 import 'real_map_place_widgets.dart';
 import 'real_map_places_layer.dart';
 
@@ -35,6 +37,8 @@ class RealMapView extends StatefulWidget {
     this.topInset = 0,
     this.onReady,
     this.onFailed,
+    this.onOpenCounty,
+    this.onOpenPlace,
   });
 
   final String accessToken;
@@ -50,14 +54,14 @@ class RealMapView extends StatefulWidget {
 
   final VoidCallback? onReady;
   final VoidCallback? onFailed;
+  final OpenCountyDetail? onOpenCounty;
+  final OpenPlaceDetail? onOpenPlace;
 
   @override
   State<RealMapView> createState() => _RealMapViewState();
 }
 
 class _RealMapViewState extends State<RealMapView> {
-  static const _loadTimeout = Duration(seconds: 12);
-
   static const _tiltedPitch = 50.0;
 
   // Starts on all of Kenya, then flies in to the user (or home county).
@@ -71,9 +75,7 @@ class _RealMapViewState extends State<RealMapView> {
     badges: widget.badges,
     homeCountySlug: widget.homeCountySlug,
   );
-  bool _ready = false;
-  bool _failed = false;
-  Timer? _loadTimer;
+  late final RealMapLoadWatch _load;
   RealMapBaseStyle _baseStyle = RealMapBaseStyle.outdoors;
   MapHomeCountyBadge? _selected;
   Size _mapSize = Size.zero;
@@ -85,21 +87,16 @@ class _RealMapViewState extends State<RealMapView> {
     MapboxOptions.setAccessToken(widget.accessToken);
     _placesLayer = RealMapPlacesLayer(widget.loadPlaces?.call());
     unawaited(_focusOnStart());
-    _loadTimer = Timer(_loadTimeout, _fail);
+    _load = RealMapLoadWatch(
+      onReady: () => widget.onReady?.call(),
+      onFailed: () => widget.onFailed?.call(),
+    );
   }
 
   @override
   void dispose() {
-    _loadTimer?.cancel();
+    _load.dispose();
     super.dispose();
-  }
-
-  /// Only failures before the first successful load send Home back to the
-  /// drawn map; later hiccups (a style switch offline) don't flip maps.
-  void _fail() {
-    if (!mounted || _ready || _failed) return;
-    _failed = true;
-    widget.onFailed?.call();
   }
 
   double get _pitch => _terrainEnabled ? _tiltedPitch : 0;
@@ -157,11 +154,7 @@ class _RealMapViewState extends State<RealMapView> {
     await RealMapLayers.addTerrainTo(map.style, enabled: _terrainEnabled);
     await RealMapLayers.addTo(map.style, geoJson);
     await _applyHighlight();
-    if (!_ready && !_failed && mounted) {
-      _ready = true;
-      _loadTimer?.cancel();
-      widget.onReady?.call();
-    }
+    _load.ready();
     await _addPlaces(map);
   }
 
@@ -176,7 +169,14 @@ class _RealMapViewState extends State<RealMapView> {
   void _onPlaceTapped(Object? id) {
     final place = _placesLayer.placeFor(id);
     if (place == null) return;
-    unawaited(RealMapPlaceSheet.show(context, place));
+    final open = widget.onOpenPlace;
+    unawaited(
+      RealMapPlaceSheet.show(
+        context,
+        place,
+        onOpen: open == null ? null : () => open(context, place.id),
+      ),
+    );
   }
 
   Future<void> _applyHighlight() async {
@@ -190,10 +190,9 @@ class _RealMapViewState extends State<RealMapView> {
   }
 
   void _onCountyTapped(Object? code) {
-    MapHomeCountyBadge? badge;
-    for (final candidate in widget.badges) {
-      if (candidate.county.code == code) badge = candidate;
-    }
+    final badge = widget.badges
+        .where((candidate) => candidate.county.code == code)
+        .firstOrNull;
     if (badge == null) return;
     unawaited(_openPeek(badge));
   }
@@ -207,6 +206,9 @@ class _RealMapViewState extends State<RealMapView> {
       context,
       badge,
       isHome: badge.county.slug == widget.homeCountySlug,
+      onOpen: widget.onOpenCounty == null
+          ? null
+          : () => widget.onOpenCounty!(context, badge.county.code),
     );
     if (!mounted) return;
     setState(() => _selected = null);
@@ -266,10 +268,10 @@ class _RealMapViewState extends State<RealMapView> {
               viewport: _viewport,
               onMapCreated: _onMapCreated,
               onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
-            // Only a style failure is fatal; a missing tile or sprite isn't.
-            onMapLoadErrorListener: (event) {
-              if (event.type == MapLoadErrorType.STYLE) _fail();
-            },
+              // Only a style failure is fatal; a missing tile or sprite isn't.
+              onMapLoadErrorListener: (event) {
+                if (event.type == MapLoadErrorType.STYLE) _load.fail();
+              },
             ),
             Positioned(
               top: widget.topInset + 8,
@@ -286,7 +288,9 @@ class _RealMapViewState extends State<RealMapView> {
               Positioned(
                 top: widget.topInset + 52,
                 left: 24,
-                child: IgnorePointer(child: MapHomeCountyLabel(badge: selected)),
+                child: IgnorePointer(
+                  child: MapHomeCountyLabel(badge: selected),
+                ),
               ),
           ],
         );

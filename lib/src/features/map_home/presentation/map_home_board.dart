@@ -7,6 +7,7 @@ import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'map_home_county_map.dart';
 import 'map_home_for_you_section.dart';
+import 'map_home_links.dart';
 import 'map_home_map_status.dart';
 import 'map_home_sheet.dart';
 import 'map_home_sheet_cards.dart';
@@ -21,6 +22,8 @@ class MapHomeBoard extends StatefulWidget {
     required this.data,
     this.loadMapPlaces,
     this.mapboxAccessToken = '',
+    this.onOpenCounty,
+    this.onOpenPlace,
   });
 
   /// Null while the board is loading: every slot shows a same-sized
@@ -32,6 +35,10 @@ class MapHomeBoard extends StatefulWidget {
 
   /// Empty (or web, which Mapbox doesn't support): drawn map only.
   final String mapboxAccessToken;
+
+  /// County / Place Detail, supplied from `app/`; null keeps the peeks.
+  final OpenCountyDetail? onOpenCounty;
+  final OpenPlaceDetail? onOpenPlace;
 
   @override
   State<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -74,6 +81,7 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
     return MapHomeCountyMap(
       badges: data.countyBadges,
       homeCountySlug: data.homeCounty?.slug,
+      onOpenCounty: widget.onOpenCounty,
       onInteractingChanged: (interacting) {
         if (interacting == _isMapInteracting) return;
         setState(() => _isMapInteracting = interacting);
@@ -104,6 +112,8 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
               topInset: _headerBottom + 20,
               onReady: () => setState(() => _realMap = _RealMapStatus.ready),
               onFailed: () => setState(() => _realMap = _RealMapStatus.failed),
+              onOpenCounty: widget.onOpenCounty,
+              onOpenPlace: widget.onOpenPlace,
             ),
           ),
           const MapHomeHeaderScrim(),
@@ -192,7 +202,10 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
               duration: _fade,
               child: data == null
                   ? const MapHomeForYouSkeleton()
-                  : MapHomeForYouSection(suggestions: data.suggestions),
+                  : MapHomeForYouSection(
+                      suggestions: data.suggestions,
+                      onOpenCounty: widget.onOpenCounty,
+                    ),
             ),
             const MapHomeQuestPreviewCard(),
           ],

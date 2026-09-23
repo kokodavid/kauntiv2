@@ -191,4 +191,54 @@ abstract final class AppTextStyles {
     fontWeight: FontWeight.w600,
     color: AppColors.mapOverlayForeground,
   );
+
+  // County / Place Detail (v1 parity).
+  static const detailTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    height: 32 / 24,
+    color: AppColors.foreground,
+  );
+
+  static const detailNavTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    height: 28 / 20,
+    color: AppColors.foreground,
+  );
+
+  static const detailStatusChip = TextStyle(
+    fontFamily: _inter,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 20 / 12,
+    color: Colors.white,
+  );
+
+  static const detailStatLabel = TextStyle(
+    fontFamily: _inter,
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    height: 20 / 10,
+    color: AppColors.detailStatLabel,
+  );
+
+  static const detailStatValue = TextStyle(
+    fontFamily: _inter,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    height: 24 / 14,
+    color: AppColors.detailStatValue,
+  );
+
+  static const placeCardTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    height: 28 / 20,
+    color: AppColors.detailStatValue,
+  );
 }
+

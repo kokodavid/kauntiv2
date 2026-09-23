@@ -7,6 +7,7 @@ import '../../../counties/county_paths.dart';
 import '../domain/map_home_models.dart';
 import 'county_peek_sheet.dart';
 import 'map_home_county_map_painter.dart';
+import 'map_home_links.dart';
 import 'map_home_map_overlays.dart';
 
 /// Map Home's full-bleed county map, ported from v1's
@@ -22,6 +23,7 @@ class MapHomeCountyMap extends StatefulWidget {
     required this.badges,
     required this.homeCountySlug,
     this.onInteractingChanged,
+    this.onOpenCounty,
   });
 
   final List<MapHomeCountyBadge> badges;
@@ -30,6 +32,10 @@ class MapHomeCountyMap extends StatefulWidget {
   /// Fires when the map flips between idle and being browsed (a gesture in
   /// progress, zoomed in, or a county held). Drives the compact stat card.
   final ValueChanged<bool>? onInteractingChanged;
+
+  /// With County Detail available, tap opens it and long-press peeks
+  /// (v1 parity); without it, both peek.
+  final OpenCountyDetail? onOpenCounty;
 
   @override
   State<MapHomeCountyMap> createState() => _MapHomeCountyMapState();
@@ -139,12 +145,19 @@ class _MapHomeCountyMapState extends State<MapHomeCountyMap>
   }
 
   /// Keeps the county highlighted under the sheet; clears it on close.
+  VoidCallback? _openDetailFor(MapHomeCountyBadge badge) {
+    final open = widget.onOpenCounty;
+    if (open == null) return null;
+    return () => open(context, badge.county.code);
+  }
+
   Future<void> _openPeek(MapHomeCountyBadge badge) async {
     _setPressedCounty(badge.county.slug);
     await CountyPeekSheet.show(
       context,
       badge,
       isHome: badge.county.slug == widget.homeCountySlug,
+      onOpen: _openDetailFor(badge),
     );
     if (!mounted) return;
     _setPressedCounty(null);
@@ -179,7 +192,13 @@ class _MapHomeCountyMapState extends State<MapHomeCountyMap>
                   _setPressedCounty(null);
                   return;
                 }
-                unawaited(_openPeek(badge));
+                final openDetail = _openDetailFor(badge);
+                if (openDetail == null) {
+                  unawaited(_openPeek(badge));
+                } else {
+                  _setPressedCounty(null);
+                  openDetail();
+                }
               },
               onLongPressStart: (details) {
                 final badge = _badgeAt(details.localPosition, size);

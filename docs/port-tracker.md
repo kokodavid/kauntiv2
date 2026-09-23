@@ -14,7 +14,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/home-migration | Floating bottom nav on Map Home; other tabs show "coming next". Shell/router waits on #2 |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | Not started | | Needs a real-device test |
-| 6 | Discover + Wishlist, County/Place Detail | `features/discover` | Not started | | v1 Supabase repository is 924 lines |
+| 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | codex/discover-details | County Detail + Place Detail ported (save to wishlist, Get Route). Discover tabs + Wishlist not started. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | Not started | | |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |
 | 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | |
@@ -110,6 +110,38 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Real map status and map choice live in widget state
   (`MapHomeBoard`), not a Riverpod provider — move with the board to
   Riverpod (#2). No widget tests for the real map yet.
+
+### Discover (#6)
+
+**Ported (matches v1)**
+
+- County Detail (Figma 235:7261): photo carousel (county photo, then place
+  photos) with back button, centred name and status chip ("NOT VISITED
+  YET" / "PASSED THROUGH N TIMES" / "EXPLORED" / "LOCAL EXPERT"); title,
+  Area / Elevation / Population, county shape (solid when explored, dashed
+  when not); blurb; Source / Established / Governor card; "Places to See"
+  photo cards with save toggles.
+- Place Detail (Figma 235:7353): photo carousel with category pill, title,
+  description, Source / Type card, Get Route (Google Maps directions) /
+  share (coming soon) / save bar.
+- Saving writes `wishlist_items` (optimistic, reverts on failure).
+- Links from Map Home via `app/detail_routes.dart` (features don't import
+  each other's screens): drawn map tap opens County Detail and long-press
+  peeks (v1 parity); "Open County" on both maps' peek sheets; For You cards;
+  "Open Place" on the real map's place sheet.
+
+**Differences from v1 (temporary)**
+
+- No distance labels (v1: place cards and Place Detail's Distance fact);
+  v2 has no foreground location read yet.
+- Images use `Image.network` (v1: `cached_network_image`).
+
+**Known debt**
+
+- `DiscoverDetailActions` is a plain class and screens use `FutureBuilder`;
+  move to `@riverpod` providers with #2. No widget tests for the screens.
+- Discover tabs (Mine / Unclaimed / Saved), Wishlist and county save not
+  ported.
 
 ## Progress log
 

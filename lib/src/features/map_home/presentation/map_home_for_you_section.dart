@@ -3,13 +3,19 @@ import 'package:flutter/material.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/map_home_models.dart';
+import 'map_home_links.dart';
 import 'map_home_skeleton.dart';
 import 'map_home_suggestion_media.dart';
 
 class MapHomeForYouSection extends StatelessWidget {
-  const MapHomeForYouSection({super.key, required this.suggestions});
+  const MapHomeForYouSection({
+    super.key,
+    required this.suggestions,
+    this.onOpenCounty,
+  });
 
   final List<MapHomeSuggestion> suggestions;
+  final OpenCountyDetail? onOpenCounty;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +31,10 @@ class MapHomeForYouSection extends StatelessWidget {
       children: [
         const MapHomeForYouHeader(),
         const SizedBox(height: 10),
-        _FeaturedSuggestionCard(suggestion: featured),
+        _FeaturedSuggestionCard(
+          suggestion: featured,
+          onOpenCounty: onOpenCounty,
+        ),
         if (rest.isNotEmpty) ...[
           const SizedBox(height: 12),
           SizedBox(
@@ -36,7 +45,10 @@ class MapHomeForYouSection extends StatelessWidget {
               itemCount: rest.length,
               separatorBuilder: (context, index) => const SizedBox(width: 10),
               itemBuilder: (context, index) =>
-                  _CompactSuggestionCard(suggestion: rest[index]),
+                  _CompactSuggestionCard(
+                suggestion: rest[index],
+                onOpenCounty: onOpenCounty,
+              ),
             ),
           ),
         ],
@@ -106,9 +118,10 @@ class MapHomeForYouSkeleton extends StatelessWidget {
 }
 
 class _FeaturedSuggestionCard extends StatelessWidget {
-  const _FeaturedSuggestionCard({required this.suggestion});
+  const _FeaturedSuggestionCard({required this.suggestion, this.onOpenCounty});
 
   final MapHomeSuggestion suggestion;
+  final OpenCountyDetail? onOpenCounty;
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +129,7 @@ class _FeaturedSuggestionCard extends StatelessWidget {
 
     return MapHomeSuggestionTapTarget(
       suggestion: suggestion,
+      onOpenCounty: onOpenCounty,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -145,7 +159,10 @@ class _FeaturedSuggestionCard extends StatelessWidget {
                         ),
                         if (stats.isNotEmpty) ...[
                           const SizedBox(height: 10),
-                          const Divider(height: 1, color: AppColors.trackInactive),
+                          const Divider(
+                            height: 1,
+                            color: AppColors.trackInactive,
+                          ),
                           const SizedBox(height: 10),
                           MapHomeSuggestionStatsRow(stats: stats),
                         ],
@@ -165,14 +182,16 @@ class _FeaturedSuggestionCard extends StatelessWidget {
 }
 
 class _CompactSuggestionCard extends StatelessWidget {
-  const _CompactSuggestionCard({required this.suggestion});
+  const _CompactSuggestionCard({required this.suggestion, this.onOpenCounty});
 
   final MapHomeSuggestion suggestion;
+  final OpenCountyDetail? onOpenCounty;
 
   @override
   Widget build(BuildContext context) {
     return MapHomeSuggestionTapTarget(
       suggestion: suggestion,
+      onOpenCounty: onOpenCounty,
       child: SizedBox(
         width: 200,
         child: Column(

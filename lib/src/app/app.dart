@@ -19,6 +19,7 @@ import '../screens/onboarding/onboarding_permission_page.dart';
 import '../screens/splash_screen.dart';
 import '../services/app_location_permission_service.dart';
 import '../services/app_supabase.dart';
+import 'detail_routes.dart';
 
 class App extends StatelessWidget {
   const App({super.key, required this.config});
@@ -131,6 +132,8 @@ class _StartupGateState extends State<_StartupGate>
     return MapHomeScreen(
       homeCounty: _selectedCounty,
       mapboxAccessToken: widget.config.mapboxAccessToken,
+      onOpenCounty: DetailRoutes.openCounty,
+      onOpenPlace: DetailRoutes.openPlace,
       loader: AppSupabase.isInitialized
           ? MapHomeBoardLoader(
               repository: SupabaseMapHomeRepository(AppSupabase.client),
@@ -185,9 +188,9 @@ class _StartupGateState extends State<_StartupGate>
     });
 
     try {
-      await SupabaseProfileSetupRepository(AppSupabase.client).saveHomeCounty(
-        county,
-      );
+      await SupabaseProfileSetupRepository(
+        AppSupabase.client,
+      ).saveHomeCounty(county);
       await _continueAfterHomeCounty();
     } catch (_) {
       if (!mounted) {
@@ -306,7 +309,8 @@ class _StartupGateState extends State<_StartupGate>
     } catch (_) {
       if (mounted) {
         setState(() {
-          _permissionError = 'Could not request location permission. Try again.';
+          _permissionError =
+              'Could not request location permission. Try again.';
         });
       }
     } finally {

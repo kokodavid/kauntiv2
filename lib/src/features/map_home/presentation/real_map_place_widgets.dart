@@ -16,8 +16,7 @@ abstract final class RealMapPlaceTypes {
     'shore': ('Shores', AppColors.placeShore),
   };
 
-  static Color colorFor(String type) =>
-      known[type]?.$2 ?? AppColors.placeOther;
+  static Color colorFor(String type) => known[type]?.$2 ?? AppColors.placeOther;
 
   static IconData iconFor(String type) => switch (type) {
     'park' => Icons.forest,
@@ -68,16 +67,23 @@ class RealMapPlaceLegend extends StatelessWidget {
 
 /// Bottom sheet for a tapped place pin.
 class RealMapPlaceSheet extends StatelessWidget {
-  const RealMapPlaceSheet({super.key, required this.place});
+  const RealMapPlaceSheet({super.key, required this.place, this.onOpen});
 
   final MapPlace place;
 
-  static Future<void> show(BuildContext context, MapPlace place) {
+  /// Opens Place Detail after the sheet closes; null hides the button.
+  final VoidCallback? onOpen;
+
+  static Future<void> show(
+    BuildContext context,
+    MapPlace place, {
+    VoidCallback? onOpen,
+  }) {
     return showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.foreground.withValues(alpha: 0.28),
-      builder: (context) => RealMapPlaceSheet(place: place),
+      builder: (context) => RealMapPlaceSheet(place: place, onOpen: onOpen),
     );
   }
 
@@ -129,9 +135,10 @@ class RealMapPlaceSheet extends StatelessWidget {
                 _Dot(color: RealMapPlaceTypes.colorFor(place.type)),
                 const SizedBox(width: 6),
                 Text(
-                  [typeLabel, if (county != null) county.name]
-                      .join(' · ')
-                      .toUpperCase(),
+                  [
+                    typeLabel,
+                    if (county != null) county.name,
+                  ].join(' · ').toUpperCase(),
                   style: AppTextStyles.bodySmall,
                 ),
               ],
@@ -141,6 +148,30 @@ class RealMapPlaceSheet extends StatelessWidget {
             if (summary != null && summary.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(summary, style: AppTextStyles.bodyMuted),
+            ],
+            if (onOpen case final open?) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    open();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    'Open Place',
+                    style: AppTextStyles.buttonLabel,
+                  ),
+                ),
+              ),
             ],
           ],
         ),

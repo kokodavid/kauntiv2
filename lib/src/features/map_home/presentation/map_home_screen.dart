@@ -6,6 +6,7 @@ import '../../../design/app_text_styles.dart';
 import '../application/map_home_board_loader.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_board.dart';
+import 'map_home_links.dart';
 
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({
@@ -13,6 +14,8 @@ class MapHomeScreen extends StatefulWidget {
     this.homeCounty,
     this.loader = const MapHomeBoardLoader(),
     this.mapboxAccessToken = '',
+    this.onOpenCounty,
+    this.onOpenPlace,
   });
 
   final CountyPath? homeCounty;
@@ -20,6 +23,9 @@ class MapHomeScreen extends StatefulWidget {
 
   /// Empty: Home shows the drawn county map only.
   final String mapboxAccessToken;
+
+  final OpenCountyDetail? onOpenCounty;
+  final OpenPlaceDetail? onOpenPlace;
 
   @override
   State<MapHomeScreen> createState() => _MapHomeScreenState();
@@ -41,23 +47,25 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       // The board handles safe areas itself so the real map can run
       // edge to edge under the status bar.
       body: FutureBuilder<MapHomeBoardData>(
-          future: _board,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return const SafeArea(
-                child: _MapHomeLoadMessage(
+        future: _board,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const SafeArea(
+              child: _MapHomeLoadMessage(
                 title: "Couldn't load your map.",
-                  body: 'Check your connection and try again.',
-                ),
-              );
-            }
-            // Null while loading: the board renders its own placeholders.
-            return MapHomeBoard(
-              data: snapshot.data,
-              loadMapPlaces: widget.loader.loadMapPlaces,
-              mapboxAccessToken: widget.mapboxAccessToken,
+                body: 'Check your connection and try again.',
+              ),
             );
-          },
+          }
+          // Null while loading: the board renders its own placeholders.
+          return MapHomeBoard(
+            data: snapshot.data,
+            loadMapPlaces: widget.loader.loadMapPlaces,
+            mapboxAccessToken: widget.mapboxAccessToken,
+            onOpenCounty: widget.onOpenCounty,
+            onOpenPlace: widget.onOpenPlace,
+          );
+        },
       ),
     );
   }
@@ -83,7 +91,11 @@ class _MapHomeLoadMessage extends StatelessWidget {
               style: AppTextStyles.headingForeground,
             ),
             const SizedBox(height: 8),
-            Text(body, textAlign: TextAlign.center, style: AppTextStyles.bodyMuted),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMuted,
+            ),
           ],
         ),
       ),

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
 
-/// Explore's card and row styles (v1 Discover parity, set in Inter like
-/// the rest of v2).
+/// Explore's card and row styles. Layout follows v1 Discover; sizes are
+/// tuned to v2's Inter scale (v1's DM Sans sizes read ~10% larger in
+/// Inter): county names 16, pills 11.5.
 abstract final class ExploreStyles {
   static const _inter = 'Inter';
 
@@ -23,16 +24,16 @@ abstract final class ExploreStyles {
 
   static const sectionTitle = TextStyle(
     fontFamily: _inter,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: FontWeight.w600,
     color: AppColors.exploreText,
   );
 
   static const countyTitle = TextStyle(
     fontFamily: _inter,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: FontWeight.w600,
-    height: 27 / 18,
+    height: 24 / 16,
     color: AppColors.exploreText,
   );
 
@@ -41,7 +42,7 @@ abstract final class ExploreStyles {
     fontSize: 11,
     fontWeight: FontWeight.w400,
     height: 16.6 / 11,
-    letterSpacing: .44,
+    letterSpacing: .3,
     color: AppColors.exploreMutedText,
   );
 
@@ -98,10 +99,10 @@ abstract final class ExploreStyles {
 
   static TextStyle tabChip({required bool selected}) => TextStyle(
     fontFamily: _inter,
-    fontSize: 12.45,
+    fontSize: 11.5,
     fontWeight: FontWeight.w500,
-    height: 18.67 / 12.45,
-    letterSpacing: .62,
+    height: 18 / 11.5,
+    letterSpacing: .3,
     color: selected ? Colors.white : AppColors.exploreMutedText,
   );
 

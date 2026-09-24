@@ -186,7 +186,9 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Images use `Image.network` (v1: `cached_network_image`).
 - Explore's tier pill and avatar are left out: v1 hard-coded "Tier 1" and a
   gradient dot. They return with real tier/profile data.
-- Explore text is Inter (v1: DM Sans), like the rest of v2.
+- Explore text is Inter (v1: DM Sans), like the rest of v2, sized to v2's
+  scale: county names and section title 16 (v1 18), pills 11.5 with 0.3
+  tracking (v1 12.45 / 0.62), status lines 0.3 tracking.
 - SAVED's "SORT ⌄" label is left out: it did nothing in v1.
 - SAVED's small caps use Inter (v1: a mono face v2 doesn't have).
 - UNCLAIMED accordions with no places show the blurb once (v1 repeated "No

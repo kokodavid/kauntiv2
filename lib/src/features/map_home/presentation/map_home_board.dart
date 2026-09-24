@@ -118,6 +118,7 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
               onFailed: () => setState(() => _realMap = _RealMapStatus.failed),
               onOpenCounty: widget.onOpenCounty,
               onOpenPlace: widget.onOpenPlace,
+              onRoute: widget.onRoute,
             ),
           ),
           const MapHomeHeaderScrim(),

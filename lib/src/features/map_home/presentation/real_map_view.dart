@@ -19,16 +19,14 @@ import 'real_map_county_source.dart';
 import 'real_map_focus.dart';
 import 'real_map_layers.dart';
 import 'real_map_load_watch.dart';
-import 'real_map_place_widgets.dart';
+import 'real_map_place_sheet.dart';
 import 'real_map_places_layer.dart';
 
-/// Home's default map: the county map on a real Mapbox base map, running
-/// edge to edge behind Home's header, sheet and nav. Same badge data and
-/// colours as the drawn map; tapping a county flies to it and opens the peek.
-///
-/// Reports [onReady] once the style and county layers are up, or [onFailed]
-/// if they can't load (no signal on a cold start, bad token, timeout), so
-/// Home can fall back to the drawn map.
+/// Home's default map: the county map on a real Mapbox base map, edge to
+/// edge behind Home's header, sheet and nav. Same badges and colours as the
+/// drawn map; tapping a county flies to it and opens the peek. Reports
+/// [onReady] once the style and county layers are up, or [onFailed] if they
+/// can't load (no signal, bad token, timeout), so Home falls back.
 class RealMapView extends StatefulWidget {
   const RealMapView({
     super.key,
@@ -41,6 +39,7 @@ class RealMapView extends StatefulWidget {
     this.onFailed,
     this.onOpenCounty,
     this.onOpenPlace,
+    this.onRoute,
   });
 
   final String accessToken;
@@ -58,6 +57,7 @@ class RealMapView extends StatefulWidget {
   final VoidCallback? onFailed;
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
+  final OpenDirections? onRoute;
 
   @override
   State<RealMapView> createState() => _RealMapViewState();
@@ -168,12 +168,12 @@ class _RealMapViewState extends State<RealMapView> {
   void _onPlaceTapped(Object? id) {
     final place = _placesLayer.placeFor(id);
     if (place == null) return;
-    final open = widget.onOpenPlace;
     unawaited(
       RealMapPlaceSheet.show(
         context,
         place,
-        onOpen: open == null ? null : () => open(context, place.id),
+        onOpenPlace: widget.onOpenPlace,
+        onRoute: widget.onRoute,
       ),
     );
   }

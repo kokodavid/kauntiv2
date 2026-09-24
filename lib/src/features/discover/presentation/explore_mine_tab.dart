@@ -34,13 +34,9 @@ class ExploreMineTab extends StatelessWidget {
               onOpenCounty: onOpenCounty,
               onOpenPlace: onOpenPlace,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
           ],
-          const Text('MINE', style: ExploreStyles.sectionKicker),
-          const SizedBox(height: 4),
-          const Text('Nearby and unclaimed', style: ExploreStyles.sectionTitle),
-          const SizedBox(height: 12),
-          if (mine.isEmpty)
+          if (mine.isEmpty && board.featuredUnlock == null)
             const _EmptyMineCard()
           else
             for (var i = 0; i < mine.length; i++) ...[
@@ -50,10 +46,19 @@ class ExploreMineTab extends StatelessWidget {
                 statusLabel: mine[i].statusLabel,
                 placeCount: mine[i].placeCount,
                 initiallyExpanded: i == 0,
-                child: ExplorePlaceList(
-                  places: mine[i].previewPlaces,
-                  countyCode: mine[i].county.code,
-                  onOpenPlace: onOpenPlace,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ExplorePlaceList(
+                      places: mine[i].previewPlaces,
+                      countyCode: mine[i].county.code,
+                      onOpenPlace: onOpenPlace,
+                    ),
+                    ExploreCountyPageLink(
+                      countyCode: mine[i].county.code,
+                      onOpenCounty: onOpenCounty,
+                    ),
+                  ],
                 ),
               ),
               if (i != mine.length - 1) const SizedBox(height: 10),

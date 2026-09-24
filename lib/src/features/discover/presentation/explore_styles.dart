@@ -14,21 +14,6 @@ abstract final class ExploreStyles {
     borderRadius: BorderRadius.circular(16),
   );
 
-  static const sectionKicker = TextStyle(
-    fontFamily: _inter,
-    fontSize: 10,
-    fontWeight: FontWeight.w500,
-    letterSpacing: .5,
-    color: AppColors.accent,
-  );
-
-  static const sectionTitle = TextStyle(
-    fontFamily: _inter,
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: AppColors.exploreText,
-  );
-
   static const countyTitle = TextStyle(
     fontFamily: _inter,
     fontSize: 16,

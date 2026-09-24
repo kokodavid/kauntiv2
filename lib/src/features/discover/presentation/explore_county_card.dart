@@ -167,3 +167,29 @@ class ExploreCountyShapeTile extends StatelessWidget {
     );
   }
 }
+
+/// "SEE FULL COUNTY PAGE →" at the foot of an expanded county card; just
+/// spacing when County Detail isn't available.
+class ExploreCountyPageLink extends StatelessWidget {
+  const ExploreCountyPageLink({
+    super.key,
+    required this.countyCode,
+    this.onOpenCounty,
+  });
+
+  final int countyCode;
+  final void Function(BuildContext context, int countyCode)? onOpenCounty;
+
+  @override
+  Widget build(BuildContext context) {
+    final open = onOpenCounty;
+    if (open == null) return const SizedBox(height: 12);
+    return InkWell(
+      onTap: () => open(context, countyCode),
+      child: const Padding(
+        padding: EdgeInsets.only(top: 8, bottom: 14),
+        child: Text('SEE FULL COUNTY PAGE  →', style: ExploreStyles.link),
+      ),
+    );
+  }
+}

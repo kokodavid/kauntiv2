@@ -66,7 +66,6 @@ class _CountyBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final openCounty = onOpenCounty;
     final places = entry.previewPlaces;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,16 +81,10 @@ class _CountyBody extends StatelessWidget {
             countyCode: entry.county.code,
             onOpenPlace: onOpenPlace,
           ),
-        if (openCounty != null)
-          InkWell(
-            onTap: () => openCounty(context, entry.county.code),
-            child: const Padding(
-              padding: EdgeInsets.only(top: 8, bottom: 14),
-              child: Text('SEE FULL COUNTY PAGE  →', style: ExploreStyles.link),
-            ),
-          )
-        else
-          const SizedBox(height: 12),
+        ExploreCountyPageLink(
+          countyCode: entry.county.code,
+          onOpenCounty: onOpenCounty,
+        ),
       ],
     );
   }

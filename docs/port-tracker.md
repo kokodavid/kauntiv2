@@ -155,8 +155,10 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   county, v1 parity).
 - MINE: "JUST UNLOCKED" card for the newest explored county (rarity line,
   two places, "ALL N PLACES IN …" opens County Detail), then the other
-  explored counties as accordions (first open, "EXPLORED" or "LOCAL EXPERT ·
-  N VISITS", three places each). Empty card for a new traveller; "Nothing
+  explored counties listed straight below it, newest first, as accordions
+  (first open, "EXPLORED" or "LOCAL EXPERT · N VISITS", three places, "SEE
+  FULL COUNTY PAGE →"). v1's "MINE / Nearby and unclaimed" heading is
+  dropped (it described UNCLAIMED, not MINE). Empty card for a new traveller; "Nothing
   matches" for an empty search.
 - Place rows open Place Detail and save to `wishlist_items` (optimistic,
   reverts with a note on failure).

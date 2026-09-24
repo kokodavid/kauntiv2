@@ -68,4 +68,16 @@ class AppColors {
   static const categoryHeritageDot = Color(0xFF7E22CE);
   static const categoryDotFallback = mutedForeground;
   static const detailGlassShadow = Color(0x1A000000);
+
+  // Explore (v1 Discover parity).
+  static const exploreSurface = Colors.white;
+  static const exploreBorder = Color(0xFFEBEBEB);
+  static const exploreText = Color(0xFF111111);
+  static const exploreMutedText = Color(0xFF999999);
+  static const exploreCategoryFill = Color(0xFFEEF4F1);
+  static const exploreCategoryText = Color(0xFF2D5A3D);
+  static const exploreUnlockFill = Color(0xFFFDF0E8);
+  static const exploreUnlockBorder = Color(0xFFF5D4B4);
+  static const exploreUnlockText = Color(0xFFB05A20);
+  static const explorePhotoPlaceholder = Color(0xFFE8E8E8);
 }

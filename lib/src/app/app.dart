@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../config/app_config.dart';
+import '../core/widgets/app_bottom_nav.dart';
+import '../core/widgets/app_tab_shell.dart';
 import '../counties/county_paths.dart';
 import '../design/app_colors.dart';
 import '../features/auth/application/sign_in_controller.dart';
 import '../features/auth/data/app_auth_service.dart';
+import '../features/discover/presentation/explore_screen.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
 import '../features/map_home/data/supabase_map_home_repository.dart';
 import '../features/map_home/presentation/map_home_screen.dart';
@@ -129,16 +132,24 @@ class _StartupGateState extends State<_StartupGate>
       );
     }
 
-    return MapHomeScreen(
-      homeCounty: _selectedCounty,
-      mapboxAccessToken: widget.config.mapboxAccessToken,
-      onOpenCounty: DetailRoutes.openCounty,
-      onOpenPlace: DetailRoutes.openPlace,
-      loader: AppSupabase.isInitialized
-          ? MapHomeBoardLoader(
-              repository: SupabaseMapHomeRepository(AppSupabase.client),
-            )
-          : const MapHomeBoardLoader(),
+    return AppTabShell(
+      tabs: {
+        AppNavTab.map: (_) => MapHomeScreen(
+          homeCounty: _selectedCounty,
+          mapboxAccessToken: widget.config.mapboxAccessToken,
+          onOpenCounty: DetailRoutes.openCounty,
+          onOpenPlace: DetailRoutes.openPlace,
+          loader: AppSupabase.isInitialized
+              ? MapHomeBoardLoader(
+                  repository: SupabaseMapHomeRepository(AppSupabase.client),
+                )
+              : const MapHomeBoardLoader(),
+        ),
+        AppNavTab.explore: (_) => ExploreScreen(
+          onOpenCounty: DetailRoutes.openCounty,
+          onOpenPlace: DetailRoutes.openPlace,
+        ),
+      },
     );
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
@@ -209,20 +208,6 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
             ),
             const MapHomeQuestPreviewCard(),
           ],
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: AppBottomNav(
-            selected: AppNavTab.map,
-            onSelect: (tab) {
-              if (tab == AppNavTab.map) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('This tab is coming next.')),
-              );
-            },
-          ),
         ),
       ],
     );

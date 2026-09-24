@@ -5,6 +5,7 @@ import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'map_home_county_map.dart';
+import 'map_home_detection_paused_chip.dart';
 import 'map_home_for_you_section.dart';
 import 'map_home_links.dart';
 import 'map_home_map_status.dart';
@@ -178,20 +179,29 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                           ),
                         ),
                       ),
-                      if (data != null &&
-                          _realMapAllowed &&
-                          _realMap == _RealMapStatus.failed)
-                        Positioned(
-                          top: 8,
-                          left: 24,
-                          child: MapHomeOfflineMapChip(
-                            onRetry: () => setState(() {
-                              _realMap = _RealMapStatus.loading;
-                              _realMapAttempt++;
-                              _isMapInteracting = false;
-                            }),
-                          ),
+                      Positioned(
+                        top: 8,
+                        left: 24,
+                        right: 24,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const MapHomeDetectionPausedChip(),
+                            if (data != null &&
+                                _realMapAllowed &&
+                                _realMap == _RealMapStatus.failed) ...[
+                              const SizedBox(height: 6),
+                              MapHomeOfflineMapChip(
+                                onRetry: () => setState(() {
+                                  _realMap = _RealMapStatus.loading;
+                                  _realMapAttempt++;
+                                  _isMapInteracting = false;
+                                }),
+                              ),
+                            ],
+                          ],
                         ),
+                      ),
                     ],
                   ),
                 ),

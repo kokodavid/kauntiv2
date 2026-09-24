@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/supabase_client_provider.dart';
+import '../data/detection_permission.dart';
 import '../data/detection_repository.dart';
 import '../data/geofence_service.dart';
 import '../data/local/detection_database.dart';
@@ -35,3 +36,8 @@ DetectionRepository detectionRepository(Ref ref) => DetectionRepository(
 /// OS geofence registration (the rolling county window).
 @Riverpod(keepAlive: true)
 GeofenceService geofenceService(Ref ref) => GeofenceService();
+
+/// Background location permission for detection. Tests override it.
+@Riverpod(keepAlive: true)
+DetectionPermission detectionPermission(Ref ref) =>
+    const DetectionPermission();

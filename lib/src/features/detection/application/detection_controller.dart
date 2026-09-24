@@ -5,6 +5,7 @@ import '../../../core/services/app_current_location.dart';
 import '../../../services/app_logger.dart';
 import '../../discover/application/explore_providers.dart';
 import '../data/detection_repository.dart';
+import '../data/geofence_service.dart';
 import '../domain/visit_models.dart';
 import 'detection_providers.dart';
 import 'visit_sync.dart';
@@ -24,6 +25,7 @@ class DetectionSnapshot {
     this.activeCandidates = const [],
     this.resolved = const [],
     this.lastRunAt,
+    this.backgroundLocationOff = false,
   });
 
   final int? currentCounty;
@@ -35,6 +37,10 @@ class DetectionSnapshot {
   /// Visits resolved by this cycle's dwell check.
   final List<ResolvedVisit> resolved;
   final DateTime? lastRunAt;
+
+  /// Background location was taken away: geofences are removed and
+  /// automatic detection is paused until it's granted again.
+  final bool backgroundLocationOff;
 }
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
@@ -48,6 +54,10 @@ class DetectionSnapshot {
 /// 3. captures active candidates, then resolves any past the 2 h dwell;
 /// 4. uploads the queue;
 /// 5. re-registers the geofence window around the current county.
+///
+/// Before any of that it checks background location. Without it the
+/// geofences are removed once, the queue still uploads, and the snapshot
+/// says detection is paused (Home shows it) until access comes back.
 ///
 /// The fix only decides the county and is never stored (doc 05). A
 /// failure is logged and the next run retries.
@@ -65,6 +75,10 @@ class DetectionController extends _$DetectionController {
     try {
       final repository = ref.read(detectionRepositoryProvider);
       final geofences = ref.read(geofenceServiceProvider);
+      if (!await ref.read(detectionPermissionProvider).backgroundGranted()) {
+        await _pause(geofences);
+        return;
+      }
       final fix = await ref.read(detectionLocationReaderProvider)();
 
       final bootstrapped = await _bootstrapIfNeeded(
@@ -107,6 +121,27 @@ class DetectionController extends _$DetectionController {
       _running = false;
     }
   }
+
+  /// Background location is off: stop monitoring (once), keep uploading
+  /// what's already queued, and flag it for Home.
+  Future<void> _pause(GeofenceService geofences) async {
+    if (!state.backgroundLocationOff) {
+      await geofences.initialize();
+      await geofences.removeAll();
+      _logger.info('Background location off: detection paused.');
+    }
+    state = DetectionSnapshot(
+      currentCounty: state.currentCounty,
+      lastRunAt: DateTime.now(),
+      backgroundLocationOff: true,
+    );
+    await ref.read(visitSyncProvider.notifier).drain();
+  }
+
+  /// Opens the OS settings so the user can give "Always" back; the next
+  /// resume re-checks it.
+  Future<void> openLocationSettings() =>
+      ref.read(detectionPermissionProvider).openSettings();
 
   /// First run after onboarding: the phone's county comes from the fix
   /// (the home county is a preference, not where the phone is), falling

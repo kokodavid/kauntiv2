@@ -126,11 +126,18 @@ Each slice is one PR-sized commit with tests and a tracker update.
    wraps the signed-in shell in `app.dart` and runs a cycle on start, on
    resume and every 15 s in front. Map Home still reloads on its own
    schedule (plain loader); Explore reloads after a crossing or upload.
-6. **Permissions.** Already in v2: onboarding asks for foreground then
+6. **Permissions.** Done. Onboarding already asks for foreground then
    "Always" (Android `locationAlways` after `locationWhenInUse`, iOS
-   `requestAlwaysLocationAuthorization`) and only continues once granted.
-   Left: re-check on resume if the user later downgrades to "While using",
-   and stop geofencing cleanly when that happens.
+   `requestAlwaysLocationAuthorization`) and only continues once granted;
+   a cold start without it goes back to that page. Mid-session,
+   `DetectionController` checks background location first on every cycle
+   (`DetectionPermission`, a data wrapper over the permission service).
+   When it's gone: geofences are removed once, no fix is read, the queue
+   still uploads, and `DetectionSnapshot.backgroundLocationOff` is set.
+   Home shows v1's "Automatic detection paused" label as a chip on the map
+   that opens the OS settings; the next resume re-checks and re-registers.
+   Not ported: v1's manual-mode board and "Log a visit" (no manual logging
+   in v2 yet).
 7. **Arrival nudge.** Port the arrival sheet onto Map Home with the shared
    type scale, once per crossing, history cleared on sign-out.
 8. **Offline extras.** Offline status strip and legacy visit recovery, or

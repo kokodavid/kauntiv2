@@ -5,6 +5,8 @@ import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../application/discover_detail_actions.dart';
 import '../domain/county_detail.dart';
+import '../domain/place_category.dart';
+import 'county_place_filters.dart';
 import 'county_detail_facts.dart';
 import 'detail_async_body.dart';
 import 'detail_photo_carousel.dart';
@@ -42,14 +44,44 @@ class CountyDetailScreen extends StatelessWidget {
   }
 }
 
-class _CountyDetailBody extends StatelessWidget {
+class _CountyDetailBody extends StatefulWidget {
   const _CountyDetailBody({required this.data, required this.actions});
 
   final CountyDetailData data;
   final DiscoverDetailActions actions;
 
   @override
+  State<_CountyDetailBody> createState() => _CountyDetailBodyState();
+}
+
+class _CountyDetailBodyState extends State<_CountyDetailBody> {
+  /// The place filter; null is All.
+  PlaceCategory? _category;
+
+  /// Saves made here, so a card filtered out and back shows its latest
+  /// state rather than the loaded one.
+  final Map<String, bool> _saved = {};
+
+  CountyDetailPlace _withSaved(CountyDetailPlace place) => CountyDetailPlace(
+    id: place.id,
+    title: place.title,
+    description: place.description,
+    category: place.category,
+    saved: _saved[place.id] ?? place.saved,
+    thumbnailUrl: place.thumbnailUrl,
+  );
+
+  @override
   Widget build(BuildContext context) {
+    final data = widget.data;
+    final actions = widget.actions;
+    final category = _category;
+    final places = category == null
+        ? data.places
+        : [
+            for (final place in data.places)
+              if (place.category == category) place,
+          ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(7, 8, 7, 32),
       children: [
@@ -97,10 +129,17 @@ class _CountyDetailBody extends StatelessWidget {
                   'No places on file yet for ${data.county.name}.',
                   style: AppTextStyles.detailBody,
                 )
-              else
-                for (final place in data.places) ...[
+              else ...[
+                CountyPlaceFilters(
+                  places: data.places,
+                  selected: category,
+                  onSelected: (next) => setState(() => _category = next),
+                ),
+                const SizedBox(height: 12),
+                for (final place in places) ...[
                   PlacePhotoCard(
-                    place: place,
+                    key: ValueKey(place.id),
+                    place: _withSaved(place),
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => PlaceDetailScreen(
@@ -109,14 +148,18 @@ class _CountyDetailBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                    onSavedChanged: (saved) => actions.setPlaceSaved(
-                      countyCode: data.county.code,
-                      placeId: place.id,
-                      saved: saved,
-                    ),
+                    onSavedChanged: (saved) async {
+                      await actions.setPlaceSaved(
+                        countyCode: data.county.code,
+                        placeId: place.id,
+                        saved: saved,
+                      );
+                      _saved[place.id] = saved;
+                    },
                   ),
                   const SizedBox(height: 9),
                 ],
+              ],
             ],
           ),
         ),

@@ -181,6 +181,10 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - The first load shows an account-neutral skeleton; errors show "Try again".
   Explore unmounts on sign-out, so a board never outlives its account.
 
+- County Detail (v2 addition): place filters above the place cards, "ALL ·
+  N" then one pill per category the county's places have, in Explore's
+  pill style.
+
 **Differences from v1 (temporary)**
 
 - No distance labels on the detail pages (v1: place cards and Place Detail's

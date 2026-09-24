@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/explore_board.dart';
+import 'explore_pill.dart';
 import 'explore_styles.dart';
 
 /// Explore's title row (v1 `_DiscoverTopBar`). v1's tier pill and avatar
@@ -111,7 +112,7 @@ class ExploreTabChips extends StatelessWidget {
           if (tab != ExploreTab.values.first) const SizedBox(width: 8),
           Expanded(
             flex: _flex[tab]!,
-            child: _Chip(
+            child: ExplorePill(
               label: switch (counts[tab]) {
                 final count? => '${_labels[tab]} · $count',
                 null => _labels[tab]!,
@@ -122,45 +123,6 @@ class ExploreTabChips extends StatelessWidget {
           ),
         ],
       ],
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected ? AppColors.accent : AppColors.exploreSurface;
-    return Material(
-      color: color,
-      shape: StadiumBorder(
-        side: BorderSide(
-          color: selected ? AppColors.accent : AppColors.exploreBorder,
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const StadiumBorder(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7.25),
-          child: Text(
-            label,
-            maxLines: 1,
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            style: ExploreStyles.tabChip(selected: selected),
-          ),
-        ),
-      ),
     );
   }
 }

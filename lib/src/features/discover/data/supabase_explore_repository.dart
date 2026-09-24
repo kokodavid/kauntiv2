@@ -99,13 +99,14 @@ class SupabaseExploreRepository implements ExploreRepository {
     final photos = results[4]! as Map<int, Object?>;
     final facts = results[5]! as Map<int, ExploreCountyFacts>;
     final headquarters = results[6]! as Map<int, Object?>;
+    const noPlaces = <Map<String, dynamic>>[];
     List<String> placeNames(int code) => [
-      for (final place in placesByCounty[code] ?? const <Map<String, dynamic>>[])
+      for (final place in placesByCounty[code] ?? noPlaces)
         place['name'] as String,
     ];
 
     List<ExplorePlace> preview(int code) {
-      final rows = placesByCounty[code] ?? const <Map<String, dynamic>>[];
+      final rows = placesByCounty[code] ?? noPlaces;
       return [
         for (final row in ExploreRows.previewRows(rows))
           ExploreRows.place(

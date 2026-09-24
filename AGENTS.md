@@ -1,7 +1,27 @@
 # Agent rules (Claude, Codex, Qwen, any AI or human contributor)
 
-Read this before you touch code. The full rules are in
-`docs/architecture.md`, and CI enforces them.
+Read this before you touch code. `docs/architecture.md` is the source of
+truth for how to build in Kaunti47 v2: structure, layers, state management,
+routing, tests, and CI expectations. This file is the working checklist that
+points agents back to that guide and adds migration-specific operating rules.
+
+## Project direction
+
+Kaunti47 v2 is a clean Flutter rebuild of Kaunti47 v1, not a wholesale copy
+of the old project. Keep v2 intentionally small and structured: port behavior
+from v1 in focused slices, then re-home it into the v2 architecture.
+
+Reference locations:
+
+- v2 project: `/Users/davidmochoge/Projects/Kaunti47 v2`
+- v1 reference project: `/Users/davidmochoge/Projects/kaunti47`
+- v1 Supabase migrations: `/Users/davidmochoge/Projects/kaunti47/supabase/migrations`
+- v2 architecture source of truth: `docs/architecture.md`
+- v2 migration tracker: `docs/port-tracker.md`
+
+Use v1 and the design source as product truth. Do not invent behavior to fill
+gaps. If the v1 behavior is unclear, inspect the v1 feature, its repositories,
+and the related Supabase migrations before deciding.
 
 ## Non-negotiables
 
@@ -19,9 +39,9 @@ Read this before you touch code. The full rules are in
    - I/O packages are used only in `data/` (or `core/` infrastructure).
    - Across features, import only `domain/` and `application/`.
 4. **Files stay at or under 300 lines.** Split rather than grow.
-5. **One feature per branch/PR,** named `feature/<name>`, `fix/<name>`,
-   `refactor/<name>` or `setup/<name>`. Unrelated changes stay out of the
-   diff.
+5. **One feature per branch/PR.** Codex work uses `codex/<name>` by default
+   unless the user asks for a different branch. Unrelated changes stay out of
+   the diff.
 6. **Never grow `tools/architecture_baseline.json`.** If you remove debt,
    regenerate it in the same PR.
 7. **Update `docs/port-tracker.md`** in every PR that ports or changes a
@@ -29,10 +49,52 @@ Read this before you touch code. The full rules are in
 8. **Don't invent product behavior.** v1 (`kokodavid/kaunti47`) and the
    design canvas are the source of truth. When something is ambiguous, stop
    and ask.
+9. **Avoid screen flashes.** Do not briefly show the wrong screen, mock data,
+   stale account data, empty/default content, or a previous state while auth,
+   onboarding, permissions, or Supabase data is being resolved. Use intentional
+   loading states and report what was visually verified.
+
+## Command discipline
+
+Do not run Flutter or Dart commands during routine code updates unless the user
+explicitly asks for them. This includes `flutter analyze`, `flutter test`,
+`flutter build`, `flutter run`, `dart format`, `dart analyze`, and
+`build_runner`. Prefer focused inspection and the lightweight architecture
+checker:
+
+```bash
+python3 tools/check_architecture.py
+```
+
+If you do run or skip verification, state that clearly in your final update.
+Avoid broad, high-output commands. Use narrow `rg`, small `sed` ranges, and
+file-scoped diffs.
+
+## Limited or cloud agent environments
+
+Some agents run in a Linux sandbox that cannot use the Mac Flutter SDK at
+`/Users/davidmochoge/development/flutter`. That limitation does not relax the
+rules in this file or `docs/architecture.md`.
+
+If Flutter/Dart are unavailable locally:
+
+- Still inspect the code against `docs/architecture.md` before editing.
+- Run `python3 tools/check_architecture.py` if Python is available.
+- Avoid changes that require generated files unless you can run the matching
+  generator in an equivalent Flutter/Dart environment.
+- Do not claim `dart format`, `flutter analyze --fatal-infos`,
+  `dart run custom_lint`, `build_runner`, or `flutter test` passed unless you
+  actually ran them.
+- Say exactly which checks could not be run and why.
+- Treat GitHub CI as the merge authority. If CI fails, fix the branch until
+  protected `main` checks pass; do not ask to merge around them.
+- When using a separately installed Linux Flutter SDK, match CI's Flutter
+  version as closely as possible and still let GitHub CI be the final source of
+  truth.
 
 ## Before you open a PR
 
-Run these and make sure every one passes:
+When preparing a formal PR, these are the full checks expected by CI:
 
 ```bash
 dart format lib test
@@ -43,8 +105,9 @@ python3 tools/check_architecture.py
 flutter test
 ```
 
-If you couldn't run something, say so explicitly in the PR description.
-Don't claim it passed.
+Only run them when the user asks or when the task explicitly calls for PR-ready
+verification. If you couldn't run something, say so explicitly in the PR
+description. Don't claim it passed.
 
 ## Porting from v1
 
@@ -53,6 +116,15 @@ Don't claim it passed.
 - v1 already follows domain/data/application/presentation for most
   features, but its screens routinely run past 1,000 lines. Split them
   while porting.
-- Supabase migrations are already at v1 parity in `supabase/migrations/`.
-  New schema changes go in new, timestamped migration files. Never edit an
-  applied migration.
+- Supabase migrations from v1 live in
+  `/Users/davidmochoge/Projects/kaunti47/supabase/migrations`. Use them to
+  understand schema, RPCs, return shapes, and environment expectations.
+- New schema changes in v2 go in new, timestamped migration files. Never edit
+  an applied migration.
+- Keep v2 project files clean. Do not copy v1 folders wholesale or bring over
+  generated artifacts that are unrelated to the Flutter app.
+- Update `docs/port-tracker.md` every time a feature or meaningful sub-feature
+  moves from v1 to v2, in the same commit: the table row, the feature's notes
+  section (ported / differences from v1 / pending / known debt) and a
+  progress-log line. Add a baseline burn-down row whenever the baseline
+  count changes.

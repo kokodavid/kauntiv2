@@ -29,7 +29,7 @@ Supabase environments should be handled as two separate Supabase projects:
 
 Apply database migrations to the dev project first. After review, apply the
 same migrations to production. Do not let dev and prod drift intentionally; if
-they differ, document the reason in `docs/implementation-tracker.md`.
+they differ, document the reason in `docs/port-tracker.md`.
 
 ## Auth Redirect URLs
 
@@ -52,6 +52,16 @@ Supabase client values are passed at build/run time:
 --dart-define=SUPABASE_URL=<supabase-project-url>
 --dart-define=SUPABASE_PUBLISHABLE_KEY=<supabase-publishable-key>
 ```
+
+Home's real map needs a public Mapbox token (`pk.…`, from
+console.mapbox.com → Tokens):
+
+```bash
+--dart-define=MAPBOX_ACCESS_TOKEN=<mapbox-public-token>
+```
+
+Without it (or on web), Home shows the drawn county map. Never use a secret
+(`sk.…`) token in the app. Use separate dev and prod tokens.
 
 The Supabase publishable key is designed for client apps, but it should still
 not be hardcoded in source. Keeping it in build configuration avoids mixing

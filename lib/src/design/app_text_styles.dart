@@ -131,4 +131,113 @@ abstract final class AppTextStyles {
     height: 24 / 14,
     color: AppColors.mutedForeground,
   );
+
+  static const tabBarLabelActive = TextStyle(
+    fontFamily: _inter,
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    height: 12 / 10,
+    color: AppColors.accent,
+  );
+
+  static const tabBarLabelInactive = TextStyle(
+    fontFamily: _inter,
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+    height: 12 / 10,
+    color: AppColors.mutedForeground,
+  );
+
+  static const statNumeralCard = TextStyle(
+    fontFamily: _inter,
+    fontSize: 34,
+    fontWeight: FontWeight.w300,
+    color: AppColors.accent,
+  );
+
+  static const statNumeralCompact = TextStyle(
+    fontFamily: _inter,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.accent,
+  );
+
+  static const mapOverlayTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    color: AppColors.mapOverlayForeground,
+  );
+
+  static const mapOverlayMeta = TextStyle(
+    fontFamily: _inter,
+    fontSize: 7.5,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.4,
+    color: AppColors.mapOverlayMuted,
+  );
+
+  static const mapOverlayChip = TextStyle(
+    fontFamily: _inter,
+    fontSize: 8.5,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.45,
+    color: AppColors.mapOverlayForeground,
+  );
+
+  static const mapCountyLabel = TextStyle(
+    fontFamily: _inter,
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    color: AppColors.mapOverlayForeground,
+  );
+
+  // County / Place Detail (v1 parity).
+  static const detailTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    height: 32 / 24,
+    color: AppColors.foreground,
+  );
+
+  static const detailNavTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    height: 28 / 20,
+    color: AppColors.foreground,
+  );
+
+  static const detailStatusChip = TextStyle(
+    fontFamily: _inter,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 20 / 12,
+    color: Colors.white,
+  );
+
+  static const detailStatLabel = TextStyle(
+    fontFamily: _inter,
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    height: 20 / 10,
+    color: AppColors.detailStatLabel,
+  );
+
+  static const detailStatValue = TextStyle(
+    fontFamily: _inter,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    height: 24 / 14,
+    color: AppColors.detailStatValue,
+  );
+
+  static const placeCardTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    height: 28 / 20,
+    color: AppColors.detailStatValue,
+  );
 }

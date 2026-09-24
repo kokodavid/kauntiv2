@@ -9,6 +9,9 @@ import '../counties/county_paths.dart';
 import '../design/app_colors.dart';
 import '../features/auth/application/sign_in_controller.dart';
 import '../features/auth/data/app_auth_service.dart';
+import '../features/map_home/application/map_home_board_loader.dart';
+import '../features/map_home/data/supabase_map_home_repository.dart';
+import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/profile/data/profile_setup_repository.dart';
 import '../screens/onboarding/onboarding_auth_page.dart';
 import '../screens/onboarding/onboarding_home_county_page.dart';
@@ -16,6 +19,7 @@ import '../screens/onboarding/onboarding_permission_page.dart';
 import '../screens/splash_screen.dart';
 import '../services/app_location_permission_service.dart';
 import '../services/app_supabase.dart';
+import 'detail_routes.dart';
 
 class App extends StatelessWidget {
   const App({super.key, required this.config});
@@ -125,13 +129,51 @@ class _StartupGateState extends State<_StartupGate>
       );
     }
 
-    return _SetupStatusScreen(config: widget.config);
+    return MapHomeScreen(
+      homeCounty: _selectedCounty,
+      mapboxAccessToken: widget.config.mapboxAccessToken,
+      onOpenCounty: DetailRoutes.openCounty,
+      onOpenPlace: DetailRoutes.openPlace,
+      loader: AppSupabase.isInitialized
+          ? MapHomeBoardLoader(
+              repository: SupabaseMapHomeRepository(AppSupabase.client),
+            )
+          : const MapHomeBoardLoader(),
+    );
   }
 
   Future<void> _preloadSignInAssets(BuildContext context) async {
-    await const SvgAssetLoader(
-      'assets/images/onboarding.svg',
-    ).loadBytes(context);
+    await Future.wait([
+      const SvgAssetLoader('assets/images/onboarding.svg').loadBytes(context),
+      _restoreSessionState(),
+    ]);
+  }
+
+  Future<void> _restoreSessionState() async {
+    if (!AppSupabase.isInitialized ||
+        AppSupabase.client.auth.currentUser == null) {
+      return;
+    }
+
+    try {
+      final homeCounty = await SupabaseProfileSetupRepository(
+        AppSupabase.client,
+      ).fetchHomeCounty();
+      if (!mounted) {
+        return;
+      }
+
+      await _handlePostSignInSetup(homeCounty, null);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      await _handlePostSignInSetup(
+        null,
+        'Could not check your saved home county. Pick it again to continue.',
+      );
+    }
   }
 
   Future<void> _saveHomeCounty() async {
@@ -372,48 +414,6 @@ class _SignInHostState extends State<_SignInHost> {
           errorMessage: _signIn.errorMessage,
         );
       },
-    );
-  }
-}
-
-class _SetupStatusScreen extends StatelessWidget {
-  const _SetupStatusScreen({required this.config});
-
-  final AppConfig config;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(title: Text(config.appName)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Kaunti47 v2',
-                style: theme.textTheme.headlineMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Environment: ${config.environment.name}',
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                AppSupabase.isInitialized
-                    ? 'Supabase: configured'
-                    : 'Supabase: waiting for dart defines',
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

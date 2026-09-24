@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/widgets/app_bottom_nav.dart';
+import '../core/widgets/app_tab_shell.dart';
 import '../features/discover/application/discover_detail_actions.dart';
+import '../features/discover/application/explore_providers.dart';
+import '../features/discover/data/directions_launcher.dart';
 import '../features/discover/data/supabase_discover_detail_repository.dart';
+import '../features/discover/domain/explore_board.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
 import '../services/app_supabase.dart';
@@ -36,4 +42,17 @@ abstract final class DetailRoutes {
       ),
     );
   }
+
+  /// Home's "All N left": Explore's UNCLAIMED list, in the tab shell.
+  static void openAllUnclaimed(BuildContext context) {
+    ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(exploreTabSelectionProvider.notifier).select(ExploreTab.unclaimed);
+    AppTabShell.select(context, AppNavTab.explore);
+  }
+
+  /// Driving directions to a text destination in the phone's maps app.
+  static Future<bool> openDirections(String destination) =>
+      const DirectionsLauncher().open(query: destination);
 }

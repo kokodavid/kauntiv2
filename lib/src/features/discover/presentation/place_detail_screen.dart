@@ -84,7 +84,7 @@ class _PlaceDetailBody extends StatelessWidget {
                       data.description.isEmpty
                           ? 'No description on file yet for this place.'
                           : data.description,
-                      style: AppTextStyles.listItemSubtitle,
+                      style: AppTextStyles.detailBody,
                     ),
                     const SizedBox(height: 11),
                     DetailFactCard(
@@ -187,7 +187,7 @@ class _PlacePhotoChrome extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 5),
-                  Text(category.label, style: AppTextStyles.listItemSubtitle),
+                  Text(category.label, style: AppTextStyles.detailBody),
                 ],
               ),
             ),

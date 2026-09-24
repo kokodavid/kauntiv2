@@ -1,6 +1,7 @@
 import Flutter
 import CoreLocation
 import UIKit
+import native_geofence
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -12,6 +13,13 @@ import UIKit
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     applyMapboxTelemetryDefault()
+    // Detection (native_geofence): registers plugins on the separate engine
+    // the plugin starts to run the geofence callback when the app isn't
+    // running. The app's own engine is covered by
+    // didInitializeImplicitFlutterEngine below.
+    NativeGeofencePlugin.setPluginRegistrantCallback { registry in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
     let didLaunch = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     if let registrar = self.registrar(forPlugin: "Kaunti47LocationPlugin") {
       FlutterMethodChannel(

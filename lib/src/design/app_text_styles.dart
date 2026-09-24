@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design/app_type_scale.dart';
 import 'app_colors.dart';
 
 abstract final class AppTextStyles {
@@ -192,52 +193,45 @@ abstract final class AppTextStyles {
     color: AppColors.mapOverlayForeground,
   );
 
-  // County / Place Detail (v1 parity).
+  // County / Place Detail. Layout follows v1; sizes follow the shared
+  // content scale (AppTypeScale).
   static const detailTitle = TextStyle(
-    fontFamily: _inter,
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    height: 32 / 24,
-    color: AppColors.foreground,
-  );
-
-  static const detailNavTitle = TextStyle(
     fontFamily: _inter,
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 28 / 20,
+    color: AppColors.foreground,
+  );
+
+  static const detailSectionTitle = AppTypeScale.sectionTitle;
+
+  static const detailBody = AppTypeScale.body;
+
+  static const detailNavTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 17,
+    fontWeight: FontWeight.w600,
+    height: 24 / 17,
     color: AppColors.foreground,
   );
 
   static const detailStatusChip = TextStyle(
     fontFamily: _inter,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: FontWeight.w400,
-    height: 20 / 12,
+    height: 18 / 11,
     color: Colors.white,
   );
 
-  static const detailStatLabel = TextStyle(
-    fontFamily: _inter,
-    fontSize: 10,
-    fontWeight: FontWeight.w400,
-    height: 20 / 10,
-    color: AppColors.detailStatLabel,
-  );
+  static const detailStatLabel = AppTypeScale.statLabel;
 
-  static const detailStatValue = TextStyle(
-    fontFamily: _inter,
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    height: 24 / 14,
-    color: AppColors.detailStatValue,
-  );
+  static const detailStatValue = AppTypeScale.statValue;
 
   static const placeCardTitle = TextStyle(
     fontFamily: _inter,
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: FontWeight.w600,
-    height: 28 / 20,
+    height: 24 / 16,
     color: AppColors.detailStatValue,
   );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/domain/app_stat_format.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
@@ -38,84 +39,87 @@ class CountyPeekSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = MapHomeCountyStyle.forState(badge.state, isHome: isHome);
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.trackInactive,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+    return Container(
+      // The white runs under the home indicator; only the content is inset.
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        16 + MediaQuery.paddingOf(context).bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.trackInactive,
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ),
-            Text('${badge.county.name} County', style: AppTextStyles.heading),
-            const SizedBox(height: 12),
-            Container(
-              height: 190,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFE6F3FF), Color(0x14DBEEFF)],
-                ),
-                border: Border.all(color: AppColors.cardBorder),
-                borderRadius: BorderRadius.circular(25),
+          ),
+          Text('${badge.county.name} County', style: AppTextStyles.heading),
+          const SizedBox(height: 12),
+          Container(
+            height: 190,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFE6F3FF), Color(0x14DBEEFF)],
               ),
-              child: Center(
-                child: SizedBox(
-                  width: 150,
-                  height: 150,
-                  child: AppCountyShape(
-                    county: badge.county,
-                    fill: style.fill,
-                    stroke: style.stroke,
-                    strokeWidth: 1.2,
-                  ),
+              border: Border.all(color: AppColors.cardBorder),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Center(
+              child: SizedBox(
+                width: 150,
+                height: 150,
+                child: AppCountyShape(
+                  county: badge.county,
+                  fill: style.fill,
+                  stroke: style.stroke,
+                  strokeWidth: 1.2,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            _FactRow(badge: badge),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  onOpen?.call();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-                child: const Text(
-                  'Open County',
-                  style: AppTextStyles.buttonLabel,
+          ),
+          const SizedBox(height: 12),
+          _FactRow(badge: badge),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onOpen?.call();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
                 ),
               ),
+              child: const Text(
+                'Open County',
+                style: AppTextStyles.buttonLabel,
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -139,34 +143,14 @@ class _FactRow extends StatelessWidget {
     );
   }
 
-  String _formatArea(num? value) {
-    if (value == null) return 'Not on file';
-    return '${_withThousands(value.round())} KM2';
-  }
+  String _formatArea(num? value) =>
+      value == null ? 'Not on file' : AppStatFormat.area(value);
 
-  String _formatElevation(num? value) {
-    if (value == null) return 'Not on file';
-    return '${_withThousands(value.round())}m';
-  }
+  String _formatElevation(num? value) =>
+      value == null ? 'Not on file' : AppStatFormat.elevation(value);
 
-  String _formatDuration(int? minutes) {
-    if (minutes == null) return 'Not on file';
-    final hours = minutes ~/ 60;
-    final remaining = minutes % 60;
-    if (hours == 0) return '${remaining}m';
-    if (remaining == 0) return '${hours}h';
-    return '${hours}h ${remaining}m';
-  }
-
-  String _withThousands(int value) {
-    final digits = value.toString();
-    final buffer = StringBuffer();
-    for (var i = 0; i < digits.length; i++) {
-      if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(',');
-      buffer.write(digits[i]);
-    }
-    return buffer.toString();
-  }
+  String _formatDuration(int? minutes) =>
+      minutes == null ? 'Not on file' : AppStatFormat.duration(minutes);
 }
 
 class _Fact extends StatelessWidget {

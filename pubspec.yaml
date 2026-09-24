@@ -52,6 +52,23 @@ dependencies:
   flutter_riverpod: ^3.0.0
   riverpod_annotation: ^3.0.0
 
+  # Detection's on-device visit queue (doc 01: a crossing is recorded
+  # locally first and synced when online). drift_flutter brings sqlite in
+  # transitively; don't pin sqlite3_flutter_libs (deprecated, it caused a
+  # solver conflict in v1).
+  # Held on 2.31 with drift_dev (see dev_dependencies).
+  drift: ">=2.31.0 <2.32.0"
+  # 0.2.x: 0.3 needs sqlite3 3.x, which drift_dev 2.31 (see below) rejects.
+  drift_flutter: ^0.2.8
+
+  # The arrival sheet's "already shown" history (one entry per crossing),
+  # under v1's key so an upgraded phone doesn't re-show old crossings.
+  shared_preferences: ^2.5.5
+
+  # Detection: OS-level geofencing (Android GeofencingClient, iOS region
+  # monitoring) -- not continuous GPS (doc 01).
+  native_geofence: ^1.3.1
+
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +83,12 @@ dev_dependencies:
 
   # Riverpod codegen + lints.
   build_runner: ^2.4.0
+  # drift's generated tables (part '*.g.dart'). Held on 2.31: it's the last
+  # drift_dev that accepts analyzer 8, which custom_lint 0.8.1 (riverpod_lint
+  # 3.0) and riverpod_generator 3.x need; drift_dev >=2.32 needs analyzer
+  # 10+. Lift both together when riverpod_lint moves to 3.1+ (analysis
+  # server plugin, no custom_lint) on a Dart SDK that supports it.
+  drift_dev: ">=2.31.0 <2.32.0"
   riverpod_generator: ^3.0.0
   custom_lint: ^0.8.0
   riverpod_lint: ^3.0.0

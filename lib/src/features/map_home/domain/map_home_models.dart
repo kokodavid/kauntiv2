@@ -1,5 +1,7 @@
+import '../../../core/domain/app_stat_format.dart';
 import '../../../counties/county_paths.dart';
 import 'county_badge_state.dart';
+import 'map_home_promotion.dart';
 
 typedef MapHomeCountyBadgeState = CountyBadgeState;
 
@@ -52,14 +54,18 @@ class MapHomeSuggestion {
     };
   }
 
-  Iterable<String> get statLabels sync* {
-    final area = areaKm2;
-    if (area != null) yield '${area.toStringAsFixed(0)} km2';
-    final elevation = elevationM;
-    if (elevation != null) yield '${elevation}m';
-    final duration = visitDurationMinutes;
-    if (duration != null) yield '$duration min';
-  }
+  /// Area / Elevation / Duration that are on file, as (value, label).
+  List<({String value, String label})> get stats => AppStatFormat.stats(
+    areaKm2: areaKm2,
+    elevationM: elevationM,
+    durationMinutes: visitDurationMinutes,
+  );
+
+  /// What to hand a maps app for directions: the place when there is one,
+  /// else the county.
+  String get directionsQuery => placeName == null
+      ? '${county.name} County, Kenya'
+      : '$placeName, ${county.name} County, Kenya';
 }
 
 enum MapHomeSuggestionReason { depthRank, savedHere, unclaimed }
@@ -71,6 +77,9 @@ class MapHomeBoardData {
     required this.countyBadges,
     required this.homeCounty,
     required this.suggestions,
+    this.promotion,
+    this.unclaimed = const [],
+    this.unclaimedCount = 0,
   });
 
   final String tierLabel;
@@ -78,6 +87,41 @@ class MapHomeBoardData {
   final List<MapHomeCountyBadge> countyBadges;
   final CountyPath? homeCounty;
   final List<MapHomeSuggestion> suggestions;
+
+  /// The active For You promotion, if any: it takes the top card.
+  final MapHomePromotedPlace? promotion;
+
+  /// Unclaimed counties, nearest first (only the first few are loaded).
+  final List<MapHomeSuggestion> unclaimed;
+
+  /// How many counties are still unclaimed in total ("All N left").
+  final int unclaimedCount;
+
+  /// The top card when nothing is promoted: a saved place or depth-rank
+  /// pick first, else the nearest unclaimed county.
+  MapHomeSuggestion? get fallbackTop =>
+      suggestions
+          .where((s) => s.reason != MapHomeSuggestionReason.unclaimed)
+          .firstOrNull ??
+      unclaimed.firstOrNull ??
+      suggestions.firstOrNull;
+
+  /// The most counties "Nearby and unclaimed" shows; "All N left" opens
+  /// the rest in Explore.
+  static const maxUnclaimedCards = 6;
+
+  /// "Nearby and unclaimed": up to [maxUnclaimedCards], minus any county
+  /// already on the top card.
+  List<MapHomeSuggestion> get unclaimedRow {
+    final top = promotion == null ? fallbackTop : null;
+    return [
+      for (final entry in unclaimed)
+        if (top == null ||
+            top.reason != MapHomeSuggestionReason.unclaimed ||
+            entry.county.code != top.county.code)
+          entry,
+    ].take(maxUnclaimedCards).toList();
+  }
 
   int get exploredCount => countyBadges
       .where((badge) => badge.state == MapHomeCountyBadgeState.earned)

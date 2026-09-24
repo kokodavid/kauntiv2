@@ -16,6 +16,8 @@ class MapHomeScreen extends StatefulWidget {
     this.mapboxAccessToken = '',
     this.onOpenCounty,
     this.onOpenPlace,
+    this.onRoute,
+    this.onSeeAllUnclaimed,
   });
 
   final CountyPath? homeCounty;
@@ -26,6 +28,8 @@ class MapHomeScreen extends StatefulWidget {
 
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
+  final OpenDirections? onRoute;
+  final OpenAllUnclaimed? onSeeAllUnclaimed;
 
   @override
   State<MapHomeScreen> createState() => _MapHomeScreenState();
@@ -64,6 +68,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             mapboxAccessToken: widget.mapboxAccessToken,
             onOpenCounty: widget.onOpenCounty,
             onOpenPlace: widget.onOpenPlace,
+            onRoute: widget.onRoute,
+            onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
           );
         },
       ),

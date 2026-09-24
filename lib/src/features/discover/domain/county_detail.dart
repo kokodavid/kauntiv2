@@ -5,14 +5,15 @@ import 'place_category.dart';
 /// shown as such, never guessed.
 class CountyQuickFacts {
   const CountyQuickFacts({
-    this.yearEstablished,
+    this.headquarters,
     this.population,
     this.areaKm2,
     this.elevationM,
     this.governorName,
   });
 
-  final int? yearEstablished;
+  /// The county headquarters town (`counties.capital`).
+  final String? headquarters;
   final int? population;
   final num? areaKm2;
   final num? elevationM;

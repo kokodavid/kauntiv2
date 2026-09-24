@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'map_home_county_map.dart';
+import 'map_home_detection_paused_chip.dart';
 import 'map_home_for_you_section.dart';
 import 'map_home_links.dart';
 import 'map_home_map_status.dart';
@@ -24,6 +24,8 @@ class MapHomeBoard extends StatefulWidget {
     this.mapboxAccessToken = '',
     this.onOpenCounty,
     this.onOpenPlace,
+    this.onRoute,
+    this.onSeeAllUnclaimed,
   });
 
   /// Null while the board is loading: every slot shows a same-sized
@@ -39,6 +41,8 @@ class MapHomeBoard extends StatefulWidget {
   /// County / Place Detail, supplied from `app/`; null keeps the peeks.
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
+  final OpenDirections? onRoute;
+  final OpenAllUnclaimed? onSeeAllUnclaimed;
 
   @override
   State<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -114,6 +118,7 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
               onFailed: () => setState(() => _realMap = _RealMapStatus.failed),
               onOpenCounty: widget.onOpenCounty,
               onOpenPlace: widget.onOpenPlace,
+              onRoute: widget.onRoute,
             ),
           ),
           const MapHomeHeaderScrim(),
@@ -175,20 +180,29 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                           ),
                         ),
                       ),
-                      if (data != null &&
-                          _realMapAllowed &&
-                          _realMap == _RealMapStatus.failed)
-                        Positioned(
-                          top: 8,
-                          left: 24,
-                          child: MapHomeOfflineMapChip(
-                            onRetry: () => setState(() {
-                              _realMap = _RealMapStatus.loading;
-                              _realMapAttempt++;
-                              _isMapInteracting = false;
-                            }),
-                          ),
+                      Positioned(
+                        top: 8,
+                        left: 24,
+                        right: 24,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const MapHomeDetectionPausedChip(),
+                            if (data != null &&
+                                _realMapAllowed &&
+                                _realMap == _RealMapStatus.failed) ...[
+                              const SizedBox(height: 6),
+                              MapHomeOfflineMapChip(
+                                onRetry: () => setState(() {
+                                  _realMap = _RealMapStatus.loading;
+                                  _realMapAttempt++;
+                                  _isMapInteracting = false;
+                                }),
+                              ),
+                            ],
+                          ],
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -203,26 +217,15 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
               child: data == null
                   ? const MapHomeForYouSkeleton()
                   : MapHomeForYouSection(
-                      suggestions: data.suggestions,
+                      data: data,
                       onOpenCounty: widget.onOpenCounty,
+                      onOpenPlace: widget.onOpenPlace,
+                      onRoute: widget.onRoute,
+                      onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
                     ),
             ),
             const MapHomeQuestPreviewCard(),
           ],
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: AppBottomNav(
-            selected: AppNavTab.map,
-            onSelect: (tab) {
-              if (tab == AppNavTab.map) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('This tab is coming next.')),
-              );
-            },
-          ),
         ),
       ],
     );

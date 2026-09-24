@@ -1,52 +1,85 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
 import '../domain/map_home_models.dart';
+import 'map_home_featured_suggestion.dart';
 import 'map_home_links.dart';
 import 'map_home_skeleton.dart';
-import 'map_home_suggestion_media.dart';
+import 'map_home_unclaimed_card.dart';
 
+/// Home's For You (Figma "Your next best move"): the promoted place (or,
+/// when nothing is promoted, the best suggestion) as the top card, then a
+/// row of the nearest unclaimed counties with "All N left".
 class MapHomeForYouSection extends StatelessWidget {
   const MapHomeForYouSection({
     super.key,
-    required this.suggestions,
+    required this.data,
     this.onOpenCounty,
+    this.onOpenPlace,
+    this.onRoute,
+    this.onSeeAllUnclaimed,
   });
 
-  final List<MapHomeSuggestion> suggestions;
+  final MapHomeBoardData data;
   final OpenCountyDetail? onOpenCounty;
+  final OpenPlaceDetail? onOpenPlace;
+
+  /// Opens directions for the Route buttons; they're hidden when null.
+  final OpenDirections? onRoute;
+  final OpenAllUnclaimed? onSeeAllUnclaimed;
 
   @override
   Widget build(BuildContext context) {
-    if (suggestions.isEmpty) return const SizedBox.shrink();
-
-    final featured = suggestions.first;
-    final rest = suggestions.length > 1
-        ? suggestions.sublist(1)
-        : const <MapHomeSuggestion>[];
+    final promotion = data.promotion;
+    final fallback = data.fallbackTop;
+    final row = data.unclaimedRow;
+    final seeAll = onSeeAllUnclaimed;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const MapHomeForYouHeader(),
-        const SizedBox(height: 10),
-        _FeaturedSuggestionCard(
-          suggestion: featured,
-          onOpenCounty: onOpenCounty,
-        ),
-        if (rest.isNotEmpty) ...[
-          const SizedBox(height: 12),
+        if (promotion != null || fallback != null) ...[
+          const MapHomeForYouHeader(),
+          const SizedBox(height: 10),
+          if (promotion != null)
+            mapHomePromotionCard(
+              promotion,
+              onOpenPlace: onOpenPlace,
+              onOpenCounty: onOpenCounty,
+              onRoute: onRoute,
+            )
+          else
+            mapHomeSuggestionCard(
+              fallback!,
+              onOpenCounty: onOpenCounty,
+              onRoute: onRoute,
+            ),
+        ],
+        if (row.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _SectionHeading(
+            kicker: 'NEXT FOR YOU',
+            title: 'Nearby and unclaimed',
+            trailing: seeAll == null
+                ? null
+                : _SeeAll(
+                    label: 'All ${data.unclaimedCount} left',
+                    onTap: () => seeAll(context),
+                  ),
+          ),
+          const SizedBox(height: 10),
           SizedBox(
-            height: 188,
+            height: 184,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(bottom: 4),
-              itemCount: rest.length,
+              clipBehavior: Clip.none,
+              itemCount: row.length,
               separatorBuilder: (context, index) => const SizedBox(width: 10),
-              itemBuilder: (context, index) => _CompactSuggestionCard(
-                suggestion: rest[index],
+              itemBuilder: (context, index) => MapHomeUnclaimedCard(
+                suggestion: row[index],
                 onOpenCounty: onOpenCounty,
+                onRoute: onRoute,
               ),
             ),
           ),
@@ -56,25 +89,84 @@ class MapHomeForYouSection extends StatelessWidget {
   }
 }
 
+/// "PRIMARY TARGET / Your next best move".
 class MapHomeForYouHeader extends StatelessWidget {
   const MapHomeForYouHeader({super.key});
 
   @override
+  Widget build(BuildContext context) => const _SectionHeading(
+    kicker: 'PRIMARY TARGET',
+    title: 'Your next best move',
+  );
+}
+
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading({
+    required this.kicker,
+    required this.title,
+    this.trailing,
+  });
+
+  final String kicker;
+  final String title;
+  final Widget? trailing;
+
+  @override
   Widget build(BuildContext context) {
-    return const Text(
-      'FOR YOU - YOUR NEXT BEST MOVE',
-      style: TextStyle(
-        fontFamily: 'Inter',
-        fontSize: 10,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.7,
-        color: AppColors.mutedForeground,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                kicker,
+                style: AppTypeScale.sectionLabel.copyWith(
+                  color: AppColors.accent,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(title, style: AppTypeScale.sectionTitle),
+            ],
+          ),
+        ),
+        ?trailing,
+      ],
+    );
+  }
+}
+
+class _SeeAll extends StatelessWidget {
+  const _SeeAll({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: AppTypeScale.small),
+            const Icon(
+              Icons.chevron_right,
+              size: 16,
+              color: AppColors.mutedForeground,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Loading placeholder shaped like the featured suggestion card.
+/// Loading placeholder shaped like the top card.
 class MapHomeForYouSkeleton extends StatelessWidget {
   const MapHomeForYouSkeleton({super.key});
 
@@ -87,16 +179,16 @@ class MapHomeForYouSkeleton extends StatelessWidget {
         const SizedBox(height: 10),
         Container(
           width: double.infinity,
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(color: AppColors.cardBorder),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
-          clipBehavior: Clip.antiAlias,
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MapHomeSkeletonBlock(height: 158, radius: 0),
+              MapHomeSkeletonBlock(height: 136, radius: 20),
               Padding(
                 padding: EdgeInsets.all(14),
                 child: Column(
@@ -112,119 +204,6 @@ class MapHomeForYouSkeleton extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _FeaturedSuggestionCard extends StatelessWidget {
-  const _FeaturedSuggestionCard({required this.suggestion, this.onOpenCounty});
-
-  final MapHomeSuggestion suggestion;
-  final OpenCountyDetail? onOpenCounty;
-
-  @override
-  Widget build(BuildContext context) {
-    final stats = suggestion.statLabels.toList();
-
-    return MapHomeSuggestionTapTarget(
-      suggestion: suggestion,
-      onOpenCounty: onOpenCounty,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: AppColors.cardBorder),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            MapHomeSuggestionPhotoHeader(suggestion: suggestion, height: 158),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${suggestion.reasonLabel} . ${suggestion.distanceAway}',
-                          style: AppTextStyles.listItemTitle,
-                        ),
-                        if (stats.isNotEmpty) ...[
-                          const SizedBox(height: 10),
-                          const Divider(
-                            height: 1,
-                            color: AppColors.trackInactive,
-                          ),
-                          const SizedBox(height: 10),
-                          MapHomeSuggestionStatsRow(stats: stats),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  MapHomeSuggestionCountySwatch(county: suggestion.county),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CompactSuggestionCard extends StatelessWidget {
-  const _CompactSuggestionCard({required this.suggestion, this.onOpenCounty});
-
-  final MapHomeSuggestion suggestion;
-  final OpenCountyDetail? onOpenCounty;
-
-  @override
-  Widget build(BuildContext context) {
-    return MapHomeSuggestionTapTarget(
-      suggestion: suggestion,
-      onOpenCounty: onOpenCounty,
-      child: SizedBox(
-        width: 200,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: MapHomeSuggestionPhotoHeader(
-                suggestion: suggestion,
-                height: 148,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Route',
-                  style: AppTextStyles.buttonLabel.copyWith(
-                    color: AppColors.accent,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: AppColors.accent,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

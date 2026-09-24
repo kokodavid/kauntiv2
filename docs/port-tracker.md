@@ -205,6 +205,9 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   pill style.
 - County Detail quick facts now have seeded Area, Population, Governor,
   headquarters/capital and headquarters elevation data for all 47 counties.
+- Paid place placements are modelled separately in `place_promotions`, with
+  the dashboard RPC `set_place_promotion_dashboard(...)` creating/updating an
+  active AD row or deactivating it. `places` remains the editorial listing.
 
 **Differences from v1 (temporary)**
 
@@ -244,6 +247,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-24 | uncommitted | 6 | Add promoted-place table and dashboard RPC for AD placements |
 | 2026-09-24 | uncommitted | 4, 6 | Seed county profile facts for Area, Population, Governor, headquarters/capital and headquarters elevation |
 | 2026-09-24 | `b92317a` | 6 | Explore UNCLAIMED and SAVED (Wishlist): county save, ticks, in-place refresh |
 | 2026-09-24 | `0f2b6d4` | — | Generated Riverpod files (local build_runner) |

@@ -70,6 +70,28 @@ If you do run or skip verification, state that clearly in your final update.
 Avoid broad, high-output commands. Use narrow `rg`, small `sed` ranges, and
 file-scoped diffs.
 
+## Limited or cloud agent environments
+
+Some agents run in a Linux sandbox that cannot use the Mac Flutter SDK at
+`/Users/davidmochoge/development/flutter`. That limitation does not relax the
+rules in this file or `docs/architecture.md`.
+
+If Flutter/Dart are unavailable locally:
+
+- Still inspect the code against `docs/architecture.md` before editing.
+- Run `python3 tools/check_architecture.py` if Python is available.
+- Avoid changes that require generated files unless you can run the matching
+  generator in an equivalent Flutter/Dart environment.
+- Do not claim `dart format`, `flutter analyze --fatal-infos`,
+  `dart run custom_lint`, `build_runner`, or `flutter test` passed unless you
+  actually ran them.
+- Say exactly which checks could not be run and why.
+- Treat GitHub CI as the merge authority. If CI fails, fix the branch until
+  protected `main` checks pass; do not ask to merge around them.
+- When using a separately installed Linux Flutter SDK, match CI's Flutter
+  version as closely as possible and still let GitHub CI be the final source of
+  truth.
+
 ## Before you open a PR
 
 When preparing a formal PR, these are the full checks expected by CI:

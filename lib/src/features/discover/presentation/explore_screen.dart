@@ -135,7 +135,6 @@ class _ExploreBoardView extends ConsumerWidget {
                     counties: filtered.unclaimed,
                     onOpenCounty: onOpenCounty,
                     onOpenPlace: onOpenPlace,
-                    onRoute: onRoute,
                   ),
                   ExploreTab.saved => ExploreSavedTab(
                     board: filtered,

@@ -220,8 +220,10 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   DON'T HAVE") use the shared feature card (`core/widgets/
   app_feature_card.dart`, same as Home's For You): county photo, rarity or
   distance, blurb, Area / Elevation / Duration, county shape; Route opens
-  directions to the county, UNCLAIMED keeps a Save / Saved pill; tapping
-  opens County Detail. The MINE card's two place rows and "ALL N PLACES"
+  directions to the county on MINE; tapping opens County Detail. The
+  UNCLAIMED card has no photo buttons: its caption is "HQ · <town>" and
+  distance joins the stats (Area / Elevation / Distance). Saving a whole
+  county has no button in Explore for now. The MINE card's two place rows and "ALL N PLACES"
   link and UNCLAIMED's "See what's there" button are gone (County Detail
   has them).
 - County Detail (v2 addition): place filters above the place cards, "ALL ·

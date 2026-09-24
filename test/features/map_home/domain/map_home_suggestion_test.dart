@@ -27,6 +27,8 @@ void main() {
     expect(AppStatFormat.duration(1200), '20h');
     expect(AppStatFormat.duration(90), '1h 30m');
     expect(AppStatFormat.thousands(1234567), '1,234,567');
+    expect(AppStatFormat.distance(420), '420 m');
+    expect(AppStatFormat.distance(65400), '65 km');
   });
 
   test('stats list only what is on file, in order', () {

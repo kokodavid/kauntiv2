@@ -13,6 +13,11 @@ abstract final class AppStatFormat {
     return '${hours}h ${rest}m';
   }
 
+  /// Straight-line distance: "800 m", "65 km", "1,204 km".
+  static String distance(num metres) => metres < 1000
+      ? '${metres.round()} m'
+      : '${thousands((metres / 1000).round())} km';
+
   static String thousands(int value) {
     final digits = value.abs().toString();
     final buffer = StringBuffer(value < 0 ? '-' : '');

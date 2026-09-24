@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design/app_type_scale.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_links.dart';
@@ -71,7 +71,7 @@ class MapHomeSuggestionPhotoHeader extends StatelessWidget {
                   suggestion.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.heroHeading.copyWith(fontSize: 18),
+                  style: AppTypeScale.photoTitle,
                 ),
                 const SizedBox(height: 3),
                 Row(
@@ -89,9 +89,7 @@ class MapHomeSuggestionPhotoHeader extends StatelessWidget {
                             : '${suggestion.county.name} County',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.heroSubheadingText,
-                        ),
+                        style: AppTypeScale.photoCaption,
                       ),
                     ),
                   ],
@@ -128,7 +126,7 @@ class MapHomeRouteButton extends StatelessWidget {
             children: [
               Text(
                 'Route',
-                style: AppTextStyles.buttonLabel.copyWith(color: Colors.white),
+                style: AppTypeScale.action.copyWith(color: Colors.white),
               ),
               const SizedBox(width: 2),
               const Icon(Icons.chevron_right, size: 18, color: Colors.white),
@@ -205,7 +203,7 @@ class _ReasonPill extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTextStyles.bodySmall.copyWith(color: Colors.white),
+        style: AppTypeScale.photoCaption.copyWith(color: Colors.white),
       ),
     );
   }

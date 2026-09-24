@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 
-/// Explore's card and row styles. Layout follows v1 Discover; sizes are
-/// tuned to v2's Inter scale (v1's DM Sans sizes read ~10% larger in
-/// Inter): county names 16, pills 11.5.
+/// Explore's card and row styles: the shared content scale
+/// ([AppTypeScale]) in Explore's colours. Layout follows v1 Discover.
 abstract final class ExploreStyles {
-  static const _inter = 'Inter';
+  static const _family = AppTypeScale.family;
 
   static final cardDecoration = BoxDecoration(
     color: AppColors.exploreSurface,
@@ -15,105 +15,89 @@ abstract final class ExploreStyles {
   );
 
   static const countyTitle = TextStyle(
-    fontFamily: _inter,
-    fontSize: 16,
+    fontFamily: _family,
+    fontSize: AppTypeScale.cardTitleSize,
     fontWeight: FontWeight.w600,
     height: 24 / 16,
     color: AppColors.exploreText,
   );
 
   static const countyMeta = TextStyle(
-    fontFamily: _inter,
-    fontSize: 11,
-    fontWeight: FontWeight.w400,
+    fontFamily: _family,
+    fontSize: AppTypeScale.metaSize,
     height: 16.6 / 11,
-    letterSpacing: .3,
+    letterSpacing: AppTypeScale.metaTracking,
     color: AppColors.exploreMutedText,
   );
 
   static const placeCount = TextStyle(
-    fontFamily: _inter,
-    fontSize: 11,
+    fontFamily: _family,
+    fontSize: AppTypeScale.metaSize,
     color: AppColors.mutedForeground,
   );
 
   static const placeTitle = TextStyle(
-    fontFamily: _inter,
-    fontSize: 14,
+    fontFamily: _family,
+    fontSize: AppTypeScale.itemTitleSize,
     fontWeight: FontWeight.w500,
     height: 21 / 14,
     color: AppColors.exploreText,
   );
 
   static const placeBody = TextStyle(
-    fontFamily: _inter,
-    fontSize: 12,
+    fontFamily: _family,
+    fontSize: AppTypeScale.smallSize,
     height: 18 / 12,
     color: AppColors.exploreMutedText,
   );
 
   static const categoryChip = TextStyle(
-    fontFamily: _inter,
-    fontSize: 10,
+    fontFamily: _family,
+    fontSize: AppTypeScale.labelSize,
     fontWeight: FontWeight.w500,
-    letterSpacing: .5,
+    letterSpacing: AppTypeScale.labelTracking,
     color: AppColors.exploreCategoryText,
   );
 
   static const placeDistance = TextStyle(
-    fontFamily: _inter,
-    fontSize: 11,
+    fontFamily: _family,
+    fontSize: AppTypeScale.metaSize,
     color: AppColors.exploreMutedText,
   );
 
   static const unlockPill = TextStyle(
-    fontFamily: _inter,
-    fontSize: 10,
+    fontFamily: _family,
+    fontSize: AppTypeScale.labelSize,
     fontWeight: FontWeight.w600,
-    letterSpacing: .6,
+    letterSpacing: AppTypeScale.labelTracking,
     color: AppColors.exploreUnlockText,
   );
 
   static const link = TextStyle(
-    fontFamily: _inter,
-    fontSize: 10,
+    fontFamily: _family,
+    fontSize: AppTypeScale.labelSize,
     fontWeight: FontWeight.w600,
-    letterSpacing: .5,
+    letterSpacing: AppTypeScale.labelTracking,
     color: AppColors.exploreCategoryText,
   );
 
-  static TextStyle tabChip({required bool selected}) => TextStyle(
-    fontFamily: _inter,
-    fontSize: 11.5,
-    fontWeight: FontWeight.w500,
-    height: 18 / 11.5,
-    letterSpacing: .3,
-    color: selected ? Colors.white : AppColors.exploreMutedText,
-  );
+  static TextStyle tabChip({required bool selected}) => AppTypeScale.pill
+      .copyWith(color: selected ? Colors.white : AppColors.exploreMutedText);
 
-  static const emptyBody = TextStyle(
-    fontFamily: _inter,
-    fontSize: 12.5,
-    color: AppColors.mutedForeground,
-  );
+  static const emptyBody = AppTypeScale.body;
 
-  static const photoTitle = TextStyle(
-    fontFamily: _inter,
-    fontSize: 22,
-    fontWeight: FontWeight.w600,
-    color: Colors.white,
-  );
+  static const photoTitle = AppTypeScale.photoTitle;
 
   static const photoBlurb = TextStyle(
-    fontFamily: _inter,
-    fontSize: 13,
+    fontFamily: _family,
+    fontSize: AppTypeScale.bodySize,
     height: 18 / 13,
     color: Colors.white,
   );
 
   static const insightTitle = TextStyle(
-    fontFamily: _inter,
-    fontSize: 14,
+    fontFamily: _family,
+    fontSize: AppTypeScale.itemTitleSize,
     fontWeight: FontWeight.w600,
     color: AppColors.exploreText,
   );
@@ -121,7 +105,7 @@ abstract final class ExploreStyles {
   /// SAVED's small uppercase summary and footer lines (v1 used a mono
   /// face; v2 has none, so Inter with tracking).
   static const savedMeta = TextStyle(
-    fontFamily: _inter,
+    fontFamily: _family,
     fontSize: 9,
     letterSpacing: .4,
     height: 1.5,
@@ -129,7 +113,7 @@ abstract final class ExploreStyles {
   );
 
   static const completeLabel = TextStyle(
-    fontFamily: _inter,
+    fontFamily: _family,
     fontSize: 8,
     fontWeight: FontWeight.w600,
     letterSpacing: .4,
@@ -137,8 +121,8 @@ abstract final class ExploreStyles {
   );
 
   static TextStyle wishlistTitle({required bool seen}) => TextStyle(
-    fontFamily: _inter,
-    fontSize: 13,
+    fontFamily: _family,
+    fontSize: AppTypeScale.bodySize,
     fontWeight: FontWeight.w600,
     color: seen ? AppColors.mutedForeground : AppColors.exploreText,
     decoration: seen ? TextDecoration.lineThrough : TextDecoration.none,

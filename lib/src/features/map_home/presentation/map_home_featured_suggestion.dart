@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_links.dart';
@@ -92,18 +92,14 @@ class _Details extends StatelessWidget {
           '${suggestion.county.name} County',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.detailTitle.copyWith(
-            fontSize: 18,
-            height: 26 / 18,
-            color: AppColors.detailStatValue,
-          ),
+          style: AppTypeScale.cardTitle,
         ),
         const SizedBox(height: 2),
         Text(
           '${suggestion.reasonLabel} · ${suggestion.distanceAway}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.detailBody,
+          style: AppTypeScale.body,
         ),
         if (stats.isNotEmpty) ...[
           const SizedBox(height: 10),
@@ -121,12 +117,9 @@ class _Details extends StatelessWidget {
                         stat.value,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.detailStatValue.copyWith(
-                          fontSize: 15,
-                          height: 22 / 15,
-                        ),
+                        style: AppTypeScale.statValue,
                       ),
-                      Text(stat.label, style: AppTextStyles.detailStatLabel),
+                      Text(stat.label, style: AppTypeScale.statLabel),
                     ],
                   ),
                 ),

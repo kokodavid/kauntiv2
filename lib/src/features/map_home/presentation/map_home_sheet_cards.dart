@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
 
 class MapHomeQuestPreviewCard extends StatelessWidget {
   const MapHomeQuestPreviewCard({super.key});
@@ -33,11 +33,11 @@ class MapHomeQuestPreviewCard extends StatelessWidget {
               children: [
                 Text(
                   'Coast before Christmas',
-                  style: AppTextStyles.listItemTitle,
+                  style: AppTypeScale.cardTitle,
                 ),
                 Text(
                   'Side quests will connect here next.',
-                  style: AppTextStyles.listItemSubtitle,
+                  style: AppTypeScale.body,
                 ),
               ],
             ),

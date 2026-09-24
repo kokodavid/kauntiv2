@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design/app_type_scale.dart';
 import 'app_colors.dart';
 
 abstract final class AppTextStyles {
@@ -192,8 +193,8 @@ abstract final class AppTextStyles {
     color: AppColors.mapOverlayForeground,
   );
 
-  // County / Place Detail. Layout follows v1; sizes are tuned to v2's
-  // Inter scale (v1's DM Sans sizes read ~10% larger in Inter).
+  // County / Place Detail. Layout follows v1; sizes follow the shared
+  // content scale (AppTypeScale).
   static const detailTitle = TextStyle(
     fontFamily: _inter,
     fontSize: 20,
@@ -202,22 +203,9 @@ abstract final class AppTextStyles {
     color: AppColors.foreground,
   );
 
-  static const detailSectionTitle = TextStyle(
-    fontFamily: _inter,
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    height: 26 / 18,
-    color: AppColors.foreground,
-  );
+  static const detailSectionTitle = AppTypeScale.sectionTitle;
 
-  /// Detail pages' running text: blurbs, descriptions, card summaries.
-  static const detailBody = TextStyle(
-    fontFamily: _inter,
-    fontSize: 13,
-    fontWeight: FontWeight.w400,
-    height: 20 / 13,
-    color: AppColors.mutedForeground,
-  );
+  static const detailBody = AppTypeScale.body;
 
   static const detailNavTitle = TextStyle(
     fontFamily: _inter,
@@ -235,21 +223,9 @@ abstract final class AppTextStyles {
     color: Colors.white,
   );
 
-  static const detailStatLabel = TextStyle(
-    fontFamily: _inter,
-    fontSize: 10,
-    fontWeight: FontWeight.w400,
-    height: 20 / 10,
-    color: AppColors.detailStatLabel,
-  );
+  static const detailStatLabel = AppTypeScale.statLabel;
 
-  static const detailStatValue = TextStyle(
-    fontFamily: _inter,
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    height: 22 / 13,
-    color: AppColors.detailStatValue,
-  );
+  static const detailStatValue = AppTypeScale.statValue;
 
   static const placeCardTitle = TextStyle(
     fontFamily: _inter,

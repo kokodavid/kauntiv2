@@ -37,6 +37,11 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Board layout: top bar and stat card above a top-aligned full-bleed map,
   pull-up sheet over it (0.14 peek, 0.88 max, sized to content, 16px gaps).
 - For You section with suggestion media, quest preview card.
+- Shared content type scale: `core/design/app_type_scale.dart`
+  (`AppTypeScale`, Inter tuned ~10% below v1's DM Sans sizes) now drives
+  For You, the quest card, Explore (`ExploreStyles`) and the detail pages'
+  body / section / stat styles. For You: section label 10/w600, photo
+  titles 18, card title 16, body 13, stats 13/10, Route 13.
 - For You featured card redesigned (Figma "Your next best move"): inset
   photo with place/county name and a glass Route button; below, "<County>
   County", reason · distance, Area / Elevation / Duration and the county

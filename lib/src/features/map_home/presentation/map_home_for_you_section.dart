@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_featured_suggestion.dart';
 import 'map_home_links.dart';
@@ -70,13 +70,7 @@ class MapHomeForYouHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Text(
       'FOR YOU - YOUR NEXT BEST MOVE',
-      style: TextStyle(
-        fontFamily: 'Inter',
-        fontSize: 10,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.7,
-        color: AppColors.mutedForeground,
-      ),
+      style: AppTypeScale.sectionLabel,
     );
   }
 }
@@ -162,12 +156,7 @@ class _CompactSuggestionCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'Route',
-                        style: AppTextStyles.buttonLabel.copyWith(
-                          color: AppColors.accent,
-                        ),
-                      ),
+                      const Text('Route', style: AppTypeScale.action),
                       const SizedBox(width: 2),
                       const Icon(
                         Icons.chevron_right,

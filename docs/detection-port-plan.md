@@ -6,7 +6,7 @@ machine, the offline visit queue and the arrival nudge. Source is v1
 lines) plus `counties/county_boundary_resolver.dart` and
 `counties/county_boundaries.dart`.
 
-Status: in progress (slices 1-4 on `codex/detection`; slice 4 needs a device test). Update this file and `port-tracker.md` as
+Status: in progress (slices 1-5 on `codex/detection`; needs a device test). Update this file and `port-tracker.md` as
 slices land.
 
 ## What v1 does
@@ -117,10 +117,15 @@ Each slice is one PR-sized commit with tests and a tracker update.
    couldn't see. Known v1 gap kept: the callback doesn't re-register the
    window, so a second crossing while the app stays closed can be missed
    until the next foreground cycle.
-5. **Foreground cycle.** `DetectionController` (capture candidates →
-   resolve dwells → drain → reconcile current county → re-register), run
-   on start, resume and a 15 s foreground timer; stops when backgrounded.
-   Seed the current county from the first fix after onboarding.
+5. **Foreground cycle.** Done: `DetectionController` (keep-alive notifier)
+   runs fix → first-run bootstrap (county from the fix, else home county;
+   synthetic ENTER only when that's where the phone is) → reconcile →
+   capture candidates → dwell resolution → upload → re-register the window,
+   and keeps a `DetectionSnapshot` for the arrival sheet. The fix reader is
+   a provider so tests can fake it. `DetectionLifecycle` (presentation)
+   wraps the signed-in shell in `app.dart` and runs a cycle on start, on
+   resume and every 15 s in front. Map Home still reloads on its own
+   schedule (plain loader); Explore reloads after a crossing or upload.
 6. **Permissions.** Already in v2: onboarding asks for foreground then
    "Always" (Android `locationAlways` after `locationWhenInUse`, iOS
    `requestAlwaysLocationAuthorization`) and only continues once granted.

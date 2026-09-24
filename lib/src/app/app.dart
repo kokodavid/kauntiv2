@@ -11,6 +11,7 @@ import '../counties/county_paths.dart';
 import '../design/app_colors.dart';
 import '../features/auth/application/sign_in_controller.dart';
 import '../features/auth/data/app_auth_service.dart';
+import '../features/detection/presentation/detection_lifecycle.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
 import '../features/map_home/data/supabase_map_home_repository.dart';
@@ -133,7 +134,9 @@ class _StartupGateState extends State<_StartupGate>
       );
     }
 
-    return AppTabShell(
+    return DetectionLifecycle(
+      homeCountyCode: _selectedCounty?.code,
+      child: AppTabShell(
       tabs: {
         AppNavTab.map: (_) => MapHomeScreen(
           homeCounty: _selectedCounty,
@@ -154,6 +157,7 @@ class _StartupGateState extends State<_StartupGate>
           onRoute: DetailRoutes.openDirections,
         ),
       },
+      ),
     );
   }
 

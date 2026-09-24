@@ -7,15 +7,18 @@ import '../application/explore_providers.dart';
 import '../domain/explore_board.dart';
 import 'explore_header.dart';
 import 'explore_mine_tab.dart';
+import 'explore_place_row.dart';
 import 'explore_resolving_state.dart';
+import 'explore_saved_tab.dart';
 import 'explore_styles.dart';
+import 'explore_unclaimed_tab.dart';
 
 /// The Explore tab (v1 Discover & Wishlist): a title, one search bar and
 /// MINE / UNCLAIMED / SAVED pills over the active tab's list.
 ///
 /// Rendered inside the app's tab shell, which keeps it mounted once
 /// visited, so the selected pill, search text and scroll position survive
-/// switching tabs. MINE is ported; UNCLAIMED and SAVED follow.
+/// switching tabs.
 class ExploreScreen extends ConsumerWidget {
   const ExploreScreen({super.key, this.onOpenCounty, this.onOpenPlace});
 
@@ -29,10 +32,11 @@ class ExploreScreen extends ConsumerWidget {
       color: AppColors.pageBackground,
       child: SafeArea(
         bottom: false,
-        // A reload never shows the previous board (it could belong to a
-        // previous account); the account-neutral skeleton shows instead.
+        // A refresh after a save keeps the current board on screen. The
+        // first load shows an account-neutral skeleton; Explore unmounts
+        // on sign-out, so a board never outlives its account.
         child: switch (board) {
-          AsyncData(:final value) => _ExploreBoardView(
+          AsyncValue(:final value?, hasError: false) => _ExploreBoardView(
             board: value,
             onOpenCounty: onOpenCounty,
             onOpenPlace: onOpenPlace,
@@ -58,18 +62,6 @@ class _ExploreBoardView extends ConsumerWidget {
   final OpenExploreCounty? onOpenCounty;
   final OpenExplorePlace? onOpenPlace;
 
-  void _selectTab(BuildContext context, WidgetRef ref, ExploreTab tab) {
-    if (tab != ExploreTab.mine) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('This list is coming next.')),
-        );
-      return;
-    }
-    ref.read(exploreTabSelectionProvider.notifier).select(tab);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tab = ref.watch(exploreTabSelectionProvider);
@@ -94,8 +86,13 @@ class _ExploreBoardView extends ConsumerWidget {
               const SizedBox(height: 10),
               ExploreTabChips(
                 selected: tab,
-                counts: {ExploreTab.mine: filtered.mineCount},
-                onSelected: (next) => _selectTab(context, ref, next),
+                counts: {
+                  ExploreTab.mine: filtered.mineCount,
+                  ExploreTab.unclaimed: filtered.unclaimedCount,
+                  ExploreTab.saved: filtered.savedCount,
+                },
+                onSelected: (next) =>
+                    ref.read(exploreTabSelectionProvider.notifier).select(next),
               ),
             ],
           ),
@@ -106,11 +103,22 @@ class _ExploreBoardView extends ConsumerWidget {
             sliver: SliverToBoxAdapter(child: _NoSearchResults(query: query)),
           )
         else
-          ExploreMineTab(
-            board: filtered,
-            onOpenCounty: onOpenCounty,
-            onOpenPlace: onOpenPlace,
-          ),
+          switch (tab) {
+            ExploreTab.mine => ExploreMineTab(
+              board: filtered,
+              onOpenCounty: onOpenCounty,
+              onOpenPlace: onOpenPlace,
+            ),
+            ExploreTab.unclaimed => ExploreUnclaimedTab(
+              counties: filtered.unclaimed,
+              onOpenCounty: onOpenCounty,
+              onOpenPlace: onOpenPlace,
+            ),
+            ExploreTab.saved => ExploreSavedTab(
+              board: filtered,
+              onOpenPlace: onOpenPlace,
+            ),
+          },
         // Keeps the last card clear of the floating tab bar.
         const SliverToBoxAdapter(child: SizedBox(height: 112)),
       ],

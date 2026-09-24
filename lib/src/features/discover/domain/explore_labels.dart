@@ -37,6 +37,17 @@ abstract final class ExploreLabels {
     );
   }
 
+  /// UNCLAIMED's one-line county blurb from its first two places.
+  static String blurb(List<String> placeNames) {
+    if (placeNames.isEmpty) return 'No places on file yet for this county.';
+    final count = placeNames.length;
+    final word = count == 1 ? 'place' : 'places';
+    return count == 1
+        ? '1 $word to see, including ${placeNames[0]}.'
+        : '$count $word to see, including ${placeNames[0]} and '
+              '${placeNames[1]}.';
+  }
+
   static const _earthRadiusMeters = 6371000.0;
 
   static double haversineMeters(

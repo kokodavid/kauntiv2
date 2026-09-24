@@ -7,6 +7,49 @@ import '../domain/explore_board.dart';
 import 'explore_save_icon.dart';
 import 'explore_styles.dart';
 
+typedef OpenExploreCounty = void Function(BuildContext context, int countyCode);
+typedef OpenExplorePlace = void Function(BuildContext context, String placeId);
+
+/// Up to a few [ExplorePlaceRow]s with dividers, or a "no places" note.
+class ExplorePlaceList extends StatelessWidget {
+  const ExplorePlaceList({
+    super.key,
+    required this.places,
+    required this.countyCode,
+    this.onOpenPlace,
+  });
+
+  final List<ExplorePlace> places;
+  final int countyCode;
+  final OpenExplorePlace? onOpenPlace;
+
+  @override
+  Widget build(BuildContext context) {
+    if (places.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Text(
+          'No places on file yet for this county.',
+          style: ExploreStyles.emptyBody,
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (var i = 0; i < places.length; i++) ...[
+          ExplorePlaceRow(
+            place: places[i],
+            countyCode: countyCode,
+            onOpen: onOpenPlace,
+          ),
+          if (i != places.length - 1)
+            const Divider(height: 1, color: AppColors.exploreBorder),
+        ],
+      ],
+    );
+  }
+}
+
 /// The 54px-thumbnail place row inside Explore's county cards (v1
 /// `DiscoverPlaceRow`). Tapping opens Place Detail when [onOpen] is set.
 class ExplorePlaceRow extends ConsumerWidget {
@@ -19,7 +62,7 @@ class ExplorePlaceRow extends ConsumerWidget {
 
   final ExplorePlace place;
   final int countyCode;
-  final void Function(BuildContext context, String placeId)? onOpen;
+  final OpenExplorePlace? onOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

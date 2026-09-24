@@ -110,4 +110,51 @@ abstract final class ExploreStyles {
     fontSize: 12.5,
     color: AppColors.mutedForeground,
   );
+
+  static const photoTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
+
+  static const photoBlurb = TextStyle(
+    fontFamily: _inter,
+    fontSize: 13,
+    height: 18 / 13,
+    color: Colors.white,
+  );
+
+  static const insightTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: AppColors.exploreText,
+  );
+
+  /// SAVED's small uppercase summary and footer lines (v1 used a mono
+  /// face; v2 has none, so Inter with tracking).
+  static const savedMeta = TextStyle(
+    fontFamily: _inter,
+    fontSize: 9,
+    letterSpacing: .4,
+    height: 1.5,
+    color: AppColors.mutedForeground,
+  );
+
+  static const completeLabel = TextStyle(
+    fontFamily: _inter,
+    fontSize: 8,
+    fontWeight: FontWeight.w600,
+    letterSpacing: .4,
+    color: AppColors.green,
+  );
+
+  static TextStyle wishlistTitle({required bool seen}) => TextStyle(
+    fontFamily: _inter,
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    color: seen ? AppColors.mutedForeground : AppColors.exploreText,
+    decoration: seen ? TextDecoration.lineThrough : TextDecoration.none,
+  );
 }

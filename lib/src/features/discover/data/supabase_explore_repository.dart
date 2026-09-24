@@ -4,16 +4,17 @@ import '../../../core/services/app_current_location.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/explore_board.dart';
 import '../domain/explore_labels.dart';
-import '../domain/place_category.dart';
+import '../domain/explore_lists.dart';
 import 'explore_repository.dart';
+import 'explore_rows.dart';
 
-/// Explore's MINE board from Supabase (ported from v1's
-/// `SupabaseDiscoverRepository.board`): `discover_mine_counties()` for the
-/// traveller's explored counties, `places` for previews, `counties` for
-/// rarity and `wishlist_items` for saved state.
+/// Explore from Supabase (ported from v1's `SupabaseDiscoverRepository`):
+/// `discover_mine_counties()` and `discover_unclaimed_counties()` for the
+/// county lists, `places` for previews, `counties` for rarity and photos,
+/// `wishlist_items` for SAVED.
 ///
 /// Gaps stay visible rather than faked: rarity is null until a real job
-/// runs, and distances are straight-line from a foreground fix.
+/// runs, and distances are straight-line (no routing step).
 class SupabaseExploreRepository implements ExploreRepository {
   const SupabaseExploreRepository(
     this.client, {
@@ -22,17 +23,22 @@ class SupabaseExploreRepository implements ExploreRepository {
 
   final SupabaseClient client;
 
-  /// One foreground fix for distance labels; null when unavailable.
-  /// Never stored (doc 05).
+  /// One foreground fix for distances and UNCLAIMED's nearest-first
+  /// order; null when unavailable. Never stored (doc 05).
   final Future<AppLocationFix?> Function() readLocation;
 
   static Future<AppLocationFix?> _readForegroundFix() =>
       AppCurrentLocation.read(timeout: const Duration(milliseconds: 1200));
 
+  String _userId() {
+    final id = client.auth.currentUser?.id;
+    if (id == null) throw StateError('Explore requires a signed-in user.');
+    return id;
+  }
+
   @override
   Future<ExploreBoard> loadBoard() async {
-    final userId = client.auth.currentUser?.id;
-    if (userId == null) throw StateError('Explore requires a signed-in user.');
+    final userId = _userId();
 
     // Started first so its budget overlaps the reads below.
     final locationFuture = readLocation();
@@ -45,121 +51,181 @@ class SupabaseExploreRepository implements ExploreRepository {
             'id, county_id, name, type, summary, description, lat, lng, '
             'place_images(thumbnail_url, sort_order)',
           ),
-      client.from('wishlist_items').select('place_id').eq('user_id', userId),
-      _rarityByCounty(),
+      client
+          .from('wishlist_items')
+          .select(
+            'county_id, place_id, ticked_at, saved_at, '
+            'places(name, type, summary, description, lat, lng, '
+            'place_images(thumbnail_url, sort_order))',
+          )
+          .eq('user_id', userId),
+      _countyColumn('rarity_pct'),
+      _countyColumn('highlight_image_url'),
     ]);
+    final location = await locationFuture;
 
-    final mineRows = [
-      for (final row in (results[0]! as List).cast<Map<String, dynamic>>())
-        if (row['state'] == 'explored' &&
-            CountyPaths.byCode.containsKey(row['county_id']))
-          row,
+    // The one read that depends on the fix: the RPC falls back to the
+    // last visited or home county when there's none.
+    final unclaimedRows = await client.rpc<List<dynamic>>(
+      'discover_unclaimed_counties',
+      params: {
+        if (location != null) 'p_latitude': location.latitude,
+        if (location != null) 'p_longitude': location.longitude,
+      },
+    );
+
+    final explored = [
+      for (final row in _rows(results[0]))
+        if (row['state'] == 'explored' && _known(row['county_id'])) row,
     ];
     final placesByCounty = <int, List<Map<String, dynamic>>>{};
-    for (final row in (results[1]! as List).cast<Map<String, dynamic>>()) {
-      final countyId = (row['county_id'] as num).toInt();
-      placesByCounty.putIfAbsent(countyId, () => []).add(row);
+    for (final row in _rows(results[1])) {
+      placesByCounty.putIfAbsent(_code(row), () => []).add(row);
     }
-    final savedIds = {
-      for (final row in (results[2]! as List).cast<Map<String, dynamic>>())
+    final wishlist = _rows(results[2]);
+    final savedPlaceIds = {
+      for (final row in wishlist)
         if (row['place_id'] is String) row['place_id'] as String,
     };
-    final rarity = results[3]! as Map<int, num?>;
-    final location = await locationFuture;
+    final savedAloneCounties = {
+      for (final row in wishlist)
+        if (row['place_id'] == null) _code(row),
+    };
+    final rarity = results[3]! as Map<int, Object?>;
+    final photos = results[4]! as Map<int, Object?>;
 
     List<ExplorePlace> preview(int code) => [
       for (final row in (placesByCounty[code] ?? const []).take(3))
-        _place(row, savedIds, location),
+        ExploreRows.place(
+          row,
+          id: row['id'] as String,
+          saved: savedPlaceIds.contains(row['id']),
+          location: location,
+        ),
     ];
     int placeCount(int code) => placesByCounty[code]?.length ?? 0;
 
     // The RPC orders by entered_at desc: the newest unlock is featured.
-    final featuredCode = mineRows.isEmpty
-        ? null
-        : (mineRows.first['county_id'] as num).toInt();
+    final featuredCode = explored.isEmpty ? null : _code(explored.first);
     return ExploreBoard(
       featuredUnlock: featuredCode == null
           ? null
           : ExploreFeaturedUnlock(
               county: CountyPaths.byCode[featuredCode]!,
-              rarityLabel: ExploreLabels.rarity(rarity[featuredCode]),
+              rarityLabel: ExploreLabels.rarity(rarity[featuredCode] as num?),
               previewPlaces: preview(featuredCode),
               totalPlaceCount: placeCount(featuredCode),
             ),
       mine: [
-        for (final row in mineRows)
-          if ((row['county_id'] as num).toInt() != featuredCode)
-            _mineCounty(
-              row,
-              preview((row['county_id'] as num).toInt()),
-              placeCount((row['county_id'] as num).toInt()),
+        for (final row in explored)
+          if (_code(row) != featuredCode)
+            ExploreMineCounty(
+              county: CountyPaths.byCode[_code(row)]!,
+              statusLabel: ExploreLabels.mineStatus(
+                isLocalExpert: row['rank'] == 'local_expert',
+                visits: (row['pass_count'] as num?)?.toInt() ?? 1,
+              ),
+              placeCount: placeCount(_code(row)),
+              isLocalExpert: row['rank'] == 'local_expert',
+              previewPlaces: preview(_code(row)),
             ),
       ],
-    );
-  }
-
-  ExploreMineCounty _mineCounty(
-    Map<String, dynamic> row,
-    List<ExplorePlace> previewPlaces,
-    int placeCount,
-  ) {
-    final isLocalExpert = row['rank'] == 'local_expert';
-    return ExploreMineCounty(
-      county: CountyPaths.byCode[(row['county_id'] as num).toInt()]!,
-      statusLabel: ExploreLabels.mineStatus(
-        isLocalExpert: isLocalExpert,
-        visits: (row['pass_count'] as num?)?.toInt() ?? 1,
+      unclaimed: ExploreUnclaimedCounty.nearestFirst([
+        for (final row in _rows(unclaimedRows))
+          if (_known(row['county_id']))
+            ExploreUnclaimedCounty(
+              county: CountyPaths.byCode[_code(row)]!,
+              blurb: ExploreLabels.blurb([
+                for (final place in (placesByCounty[_code(row)] ?? const []))
+                  place['name'] as String,
+              ]),
+              percentHaveBeen: (row['rarity_pct'] as num?)?.round(),
+              placeCount: placeCount(_code(row)),
+              distanceLabel: ExploreLabels.distance(row['distance_m'] as num?),
+              distanceMeters: row['distance_m'] as num?,
+              previewPlaces: preview(_code(row)),
+              isSavedAlone: savedAloneCounties.contains(_code(row)),
+              highlightImageUrl: photos[_code(row)] as String?,
+            ),
+      ]),
+      saved: ExploreRows.savedGroups(
+        wishlist,
+        rankByExploredCounty: {
+          for (final row in explored)
+            _code(row): row['rank'] as String? ?? 'visitor',
+        },
+        location: location,
       ),
-      placeCount: placeCount,
-      isLocalExpert: isLocalExpert,
-      previewPlaces: previewPlaces,
     );
   }
 
-  /// Read on its own so a missing column on an older database only drops
-  /// the rarity label instead of failing the whole board.
-  Future<Map<int, num?>> _rarityByCounty() async {
+  @override
+  Future<void> setCountySaved({
+    required int countyCode,
+    required bool saved,
+  }) async {
+    final userId = _userId();
+    // Filtered for "no place" in Dart (v1 parity): a county has a
+    // handful of wishlist rows at most.
+    final rows = await client
+        .from('wishlist_items')
+        .select('id, place_id')
+        .eq('user_id', userId)
+        .eq('county_id', countyCode);
+    final countyRowIds = [
+      for (final row in rows)
+        if (row['place_id'] == null) row['id'] as String,
+    ];
+    if (saved && countyRowIds.isEmpty) {
+      await client.from('wishlist_items').insert({
+        'user_id': userId,
+        'county_id': countyCode,
+        'place_id': null,
+      });
+    } else if (!saved) {
+      for (final id in countyRowIds) {
+        await client.from('wishlist_items').delete().eq('id', id);
+      }
+    }
+  }
+
+  @override
+  Future<void> setPlaceTicked({
+    required String placeId,
+    required bool ticked,
+  }) async {
+    final updated = await client
+        .from('wishlist_items')
+        .update({
+          'ticked_at': ticked ? DateTime.now().toUtc().toIso8601String() : null,
+        })
+        .eq('user_id', _userId())
+        .eq('place_id', placeId)
+        .select('id');
+    // Only a saved place shows a tick, so a missing row is a bug: fail
+    // loudly rather than look like a successful tick.
+    if (updated.isEmpty) {
+      throw StateError('No saved row to tick for place $placeId.');
+    }
+  }
+
+  /// One `counties` column by id, read on its own so a column missing on
+  /// an older database drops that detail instead of failing the board.
+  Future<Map<int, Object?>> _countyColumn(String column) async {
     try {
-      final rows = await client.from('counties').select('id, rarity_pct');
-      return {
-        for (final row in rows)
-          (row['id'] as num).toInt(): row['rarity_pct'] as num?,
-      };
+      final rows = await client.from('counties').select('id, $column');
+      return {for (final row in rows) _code(row, key: 'id'): row[column]};
     } on PostgrestException {
       return const {};
     }
   }
 
-  ExplorePlace _place(
-    Map<String, dynamic> row,
-    Set<String> savedIds,
-    AppLocationFix? location,
-  ) {
-    final id = row['id'] as String;
-    return ExplorePlace(
-      id: id,
-      title: row['name'] as String,
-      description:
-          (row['summary'] as String?) ?? (row['description'] as String?) ?? '',
-      category: PlaceCategory.fromType(row['type'] as String? ?? ''),
-      saved: savedIds.contains(id),
-      thumbnailUrl: _thumbnail(row['place_images']),
-      distanceLabel: ExploreLabels.placeDistance(
-        from: location,
-        latitude: (row['lat'] as num?)?.toDouble(),
-        longitude: (row['lng'] as num?)?.toDouble(),
-      ),
-    );
-  }
+  static List<Map<String, dynamic>> _rows(Object? result) =>
+      (result! as List).cast<Map<String, dynamic>>();
 
-  static String? _thumbnail(Object? images) {
-    if (images is! List || images.isEmpty) return null;
-    final sorted = [...images.cast<Map<String, dynamic>>()]
-      ..sort(
-        (a, b) => ((a['sort_order'] as num?) ?? 0).compareTo(
-          (b['sort_order'] as num?) ?? 0,
-        ),
-      );
-    return sorted.first['thumbnail_url'] as String?;
-  }
+  static int _code(Map<String, dynamic> row, {String key = 'county_id'}) =>
+      (row[key] as num).toInt();
+
+  static bool _known(Object? countyId) =>
+      countyId is num && CountyPaths.byCode.containsKey(countyId.toInt());
 }

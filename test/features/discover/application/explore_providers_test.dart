@@ -9,6 +9,27 @@ import 'package:kaunti47_v2/src/features/discover/domain/place_detail.dart';
 
 class _FakeExploreRepository implements ExploreRepository {
   var loads = 0;
+  bool fail = false;
+  final countySaves = <(int, bool)>[];
+  final ticks = <(String, bool)>[];
+
+  @override
+  Future<void> setCountySaved({
+    required int countyCode,
+    required bool saved,
+  }) async {
+    if (fail) throw StateError('offline');
+    countySaves.add((countyCode, saved));
+  }
+
+  @override
+  Future<void> setPlaceTicked({
+    required String placeId,
+    required bool ticked,
+  }) async {
+    if (fail) throw StateError('offline');
+    ticks.add((placeId, ticked));
+  }
 
   @override
   Future<ExploreBoard> loadBoard() async {
@@ -96,5 +117,53 @@ void main() {
       throwsStateError,
     );
     expect(saved.read(), isEmpty);
+  });
+
+  test('a successful save refreshes the board so SAVED updates', () async {
+    final board = container.listen(exploreBoardProvider, (_, _) {});
+    await container.read(exploreBoardProvider.future);
+    container.listen(exploreSavedPlacesProvider, (_, _) {});
+    await container
+        .read(exploreSavedPlacesProvider.notifier)
+        .setSaved(countyCode: 1, placeId: 'p1', saved: true);
+    await container.read(exploreBoardProvider.future);
+    expect(explore.loads, 2);
+    board.close();
+  });
+
+  test('county saves are optimistic and revert on failure', () async {
+    final saved = container.listen(exploreSavedCountiesProvider, (_, _) {});
+    await container
+        .read(exploreSavedCountiesProvider.notifier)
+        .setSaved(countyCode: 7, saved: true);
+    expect(saved.read(), {7: true});
+    expect(explore.countySaves, [(7, true)]);
+
+    explore.fail = true;
+    await expectLater(
+      container
+          .read(exploreSavedCountiesProvider.notifier)
+          .setSaved(countyCode: 7, saved: false),
+      throwsStateError,
+    );
+    expect(saved.read(), {7: true});
+  });
+
+  test('ticks are optimistic and revert on failure', () async {
+    final ticked = container.listen(exploreTickedPlacesProvider, (_, _) {});
+    await container
+        .read(exploreTickedPlacesProvider.notifier)
+        .setTicked(placeId: 'p1', ticked: true);
+    expect(ticked.read(), {'p1': true});
+    expect(explore.ticks, [('p1', true)]);
+
+    explore.fail = true;
+    await expectLater(
+      container
+          .read(exploreTickedPlacesProvider.notifier)
+          .setTicked(placeId: 'p2', ticked: true),
+      throwsStateError,
+    );
+    expect(ticked.read(), {'p1': true});
   });
 }

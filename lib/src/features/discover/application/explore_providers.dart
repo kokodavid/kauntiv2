@@ -49,16 +49,16 @@ class ExploreSearchQuery extends _$ExploreSearchQuery {
   void update(String query) => state = query;
 }
 
-/// Save / un-save changes made from Explore since the board loaded, by
-/// place id, so rows rebuilt after scrolling show the latest state
-/// without reloading the board.
+/// Place save changes made from Explore since the board loaded, by place
+/// id, so rows rebuilt after scrolling show the latest state.
 @riverpod
 class ExploreSavedPlaces extends _$ExploreSavedPlaces {
   @override
   Map<String, bool> build() => const {};
 
   /// Applies [saved] optimistically, then writes it. On failure the
-  /// previous value is restored and the error rethrown for the UI.
+  /// previous value is restored and the error rethrown for the UI. On
+  /// success the board refreshes in place so SAVED picks the change up.
   Future<void> setSaved({
     required int countyCode,
     required String placeId,
@@ -71,7 +71,52 @@ class ExploreSavedPlaces extends _$ExploreSavedPlaces {
           .read(discoverDetailRepositoryProvider)
           .setPlaceSaved(countyCode: countyCode, placeId: placeId, saved: saved);
     } on Object {
-      state = before;
+      if (ref.mounted) state = before;
+      rethrow;
+    }
+    if (ref.mounted) ref.invalidate(exploreBoardProvider);
+  }
+}
+
+/// County-only saves from UNCLAIMED's Save button, by county code.
+@riverpod
+class ExploreSavedCounties extends _$ExploreSavedCounties {
+  @override
+  Map<int, bool> build() => const {};
+
+  /// Same contract as [ExploreSavedPlaces.setSaved].
+  Future<void> setSaved({required int countyCode, required bool saved}) async {
+    final before = state;
+    state = {...state, countyCode: saved};
+    try {
+      await ref
+          .read(exploreRepositoryProvider)
+          .setCountySaved(countyCode: countyCode, saved: saved);
+    } on Object {
+      if (ref.mounted) state = before;
+      rethrow;
+    }
+    if (ref.mounted) ref.invalidate(exploreBoardProvider);
+  }
+}
+
+/// Hand-ticked SAVED places since the board loaded, by place id.
+@riverpod
+class ExploreTickedPlaces extends _$ExploreTickedPlaces {
+  @override
+  Map<String, bool> build() => const {};
+
+  /// Applies [ticked] optimistically, then writes it; restores and
+  /// rethrows on failure. No board refresh: only the checkbox changes.
+  Future<void> setTicked({required String placeId, required bool ticked}) async {
+    final before = state;
+    state = {...state, placeId: ticked};
+    try {
+      await ref
+          .read(exploreRepositoryProvider)
+          .setPlaceTicked(placeId: placeId, ticked: ticked);
+    } on Object {
+      if (ref.mounted) state = before;
       rethrow;
     }
   }

@@ -76,8 +76,8 @@ class _ExploreSearchFieldState extends State<ExploreSearchField> {
   }
 }
 
-/// MINE / UNCLAIMED / SAVED pills with counts. A null count means that
-/// tab hasn't loaded (or isn't ported yet) and shows the label alone.
+/// MINE / UNCLAIMED / SAVED pills with counts. A missing count shows the
+/// label alone.
 class ExploreTabChips extends StatelessWidget {
   const ExploreTabChips({
     super.key,

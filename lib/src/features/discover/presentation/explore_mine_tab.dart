@@ -6,9 +6,6 @@ import 'explore_county_card.dart';
 import 'explore_place_row.dart';
 import 'explore_styles.dart';
 
-typedef OpenExploreCounty = void Function(BuildContext context, int countyCode);
-typedef OpenExplorePlace = void Function(BuildContext context, String placeId);
-
 /// Explore's MINE feed (v1 `DiscoverMineTab`, Figma 407:4113): the latest
 /// unlock first, then the traveller's other explored counties, the first
 /// one expanded.
@@ -53,7 +50,7 @@ class ExploreMineTab extends StatelessWidget {
                 statusLabel: mine[i].statusLabel,
                 placeCount: mine[i].placeCount,
                 initiallyExpanded: i == 0,
-                child: _PlaceList(
+                child: ExplorePlaceList(
                   places: mine[i].previewPlaces,
                   countyCode: mine[i].county.code,
                   onOpenPlace: onOpenPlace,
@@ -108,7 +105,7 @@ class _FeaturedUnlockCard extends StatelessWidget {
             const Divider(height: 1, color: AppColors.exploreBorder),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _PlaceList(
+              child: ExplorePlaceList(
                 places: unlock.previewPlaces.take(2).toList(),
                 countyCode: unlock.county.code,
                 onOpenPlace: onOpenPlace,
@@ -130,44 +127,6 @@ class _FeaturedUnlockCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _PlaceList extends StatelessWidget {
-  const _PlaceList({
-    required this.places,
-    required this.countyCode,
-    this.onOpenPlace,
-  });
-
-  final List<ExplorePlace> places;
-  final int countyCode;
-  final OpenExplorePlace? onOpenPlace;
-
-  @override
-  Widget build(BuildContext context) {
-    if (places.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Text(
-          'No places on file yet for this county.',
-          style: ExploreStyles.emptyBody,
-        ),
-      );
-    }
-    return Column(
-      children: [
-        for (var i = 0; i < places.length; i++) ...[
-          ExplorePlaceRow(
-            place: places[i],
-            countyCode: countyCode,
-            onOpen: onOpenPlace,
-          ),
-          if (i != places.length - 1)
-            const Divider(height: 1, color: AppColors.exploreBorder),
-        ],
-      ],
     );
   }
 }

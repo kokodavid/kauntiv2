@@ -1,4 +1,5 @@
 import '../../../counties/county_paths.dart';
+import 'explore_lists.dart';
 import 'place_category.dart';
 
 /// Explore's three tabs (v1 Discover: MINE / UNCLAIMED / SAVED).
@@ -12,6 +13,7 @@ class ExplorePlace {
     required this.description,
     required this.category,
     required this.saved,
+    this.seen = false,
     this.thumbnailUrl,
     this.distanceLabel,
   });
@@ -21,6 +23,9 @@ class ExplorePlace {
   final String description;
   final PlaceCategory category;
   final bool saved;
+
+  /// SAVED only: ticked by hand as visited (`wishlist_items.ticked_at`).
+  final bool seen;
   final String? thumbnailUrl;
 
   /// Straight-line "N km away" from the traveller's current fix; null
@@ -67,20 +72,41 @@ class ExploreMineCounty {
 }
 
 /// Everything Explore renders, loaded together so chip counts always
-/// match the lists underneath. UNCLAIMED and SAVED join in later slices.
+/// match the lists underneath.
 class ExploreBoard {
-  const ExploreBoard({required this.featuredUnlock, required this.mine});
+  const ExploreBoard({
+    required this.featuredUnlock,
+    required this.mine,
+    this.unclaimed = const [],
+    this.saved = const [],
+  });
 
   final ExploreFeaturedUnlock? featuredUnlock;
   final List<ExploreMineCounty> mine;
 
+  /// Nearest first; the first entry is the "closest one you don't have".
+  final List<ExploreUnclaimedCounty> unclaimed;
+
+  /// Most recently saved county first.
+  final List<ExploreSavedGroup> saved;
+
   /// v1 parity: the featured county isn't counted in MINE's chip.
   int get mineCount => mine.length;
+  int get unclaimedCount => unclaimed.length;
 
-  bool get isEmpty => featuredUnlock == null && mine.isEmpty;
+  /// SAVED counts places, not counties (v1 parity).
+  int get savedCount =>
+      saved.fold(0, (sum, group) => sum + group.places.length);
 
-  /// Narrows the board to counties whose name, or any preview place,
-  /// matches [query] (case-insensitive). A blank query returns this.
+  bool get isEmpty =>
+      featuredUnlock == null &&
+      mine.isEmpty &&
+      unclaimed.isEmpty &&
+      saved.isEmpty;
+
+  /// Narrows every tab to counties whose name, or any listed place,
+  /// matches [query] (case-insensitive); UNCLAIMED also matches its
+  /// blurb. A blank query returns this.
   ExploreBoard filtered(String query) {
     final needle = query.trim().toLowerCase();
     if (needle.isEmpty) return this;
@@ -98,6 +124,16 @@ class ExploreBoard {
       mine: [
         for (final entry in mine)
           if (countyMatches(entry.county, entry.previewPlaces)) entry,
+      ],
+      unclaimed: [
+        for (final entry in unclaimed)
+          if (countyMatches(entry.county, entry.previewPlaces) ||
+              entry.blurb.toLowerCase().contains(needle))
+            entry,
+      ],
+      saved: [
+        for (final group in saved)
+          if (countyMatches(group.county, group.places)) group,
       ],
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_board.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_labels.dart';
+import 'package:kaunti47_v2/src/features/discover/domain/explore_lists.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/place_category.dart';
 
 ExplorePlace _place(String id, String title) => ExplorePlace(
@@ -96,6 +97,92 @@ void main() {
         longitude: 39.6682,
       );
       expect(label, matches(RegExp(r'^4[34]\d km away$')));
+    });
+  });
+
+  group('UNCLAIMED', () {
+    ExploreUnclaimedCounty entry(int code, {num? meters, int? percent}) =>
+        ExploreUnclaimedCounty(
+          county: CountyPaths.byCode[code]!,
+          blurb: 'blurb $code',
+          percentHaveBeen: percent,
+          placeCount: 0,
+          distanceMeters: meters,
+        );
+
+    test('nearest first, unknown distances last in original order', () {
+      final sorted = ExploreUnclaimedCounty.nearestFirst([
+        entry(1),
+        entry(2, meters: 900),
+        entry(3),
+        entry(4, meters: 100),
+      ]);
+      expect(sorted.map((e) => e.county.code), [4, 2, 1, 3]);
+    });
+
+    test('rarity label', () {
+      expect(entry(1).rarityLabel, 'RARITY NOT TRACKED YET');
+      expect(entry(1, percent: 3).rarityLabel, 'ONLY 3% HAVE BEEN');
+      expect(entry(1, percent: 30).rarityLabel, '30% HAVE BEEN');
+    });
+
+    test('search also matches the blurb', () {
+      final withUnclaimed = ExploreBoard(
+        featuredUnlock: null,
+        mine: const [],
+        unclaimed: [entry(5)],
+      );
+      expect(withUnclaimed.filtered('blurb 5').unclaimedCount, 1);
+      expect(withUnclaimed.filtered('nothing').unclaimedCount, 0);
+    });
+
+    test('blurb names up to two places', () {
+      expect(ExploreLabels.blurb([]), 'No places on file yet for this county.');
+      expect(ExploreLabels.blurb(['A']), '1 place to see, including A.');
+      expect(
+        ExploreLabels.blurb(['A', 'B', 'C']),
+        '3 places to see, including A and B.',
+      );
+    });
+  });
+
+  group('SAVED', () {
+    test('status labels (v1 parity)', () {
+      expect(
+        ExploreSavedGroup.statusFor(
+          rank: 'local_expert',
+          savedPlaces: 3,
+          stillToSee: 1,
+        ),
+        (ExploreSavedStatus.localExpert, 'LOCAL EXPERT · 1 STILL TO SEE'),
+      );
+      expect(
+        ExploreSavedGroup.statusFor(rank: 'visitor', savedPlaces: 0, stillToSee: 0),
+        (ExploreSavedStatus.badgeEarned, 'BADGE EARNED · NOTHING PICKED YET'),
+      );
+      expect(
+        ExploreSavedGroup.statusFor(rank: null, savedPlaces: 2, stillToSee: 2),
+        (ExploreSavedStatus.locked, 'LOCKED · 2 SAVED'),
+      );
+      expect(
+        ExploreSavedGroup.statusFor(rank: null, savedPlaces: 0, stillToSee: 0),
+        (ExploreSavedStatus.savedOnly, 'SAVED COUNTY · NOTHING PICKED YET'),
+      );
+    });
+
+    test('savedCount counts places across groups', () {
+      final group = ExploreSavedGroup(
+        county: CountyPaths.byCode[4]!,
+        status: ExploreSavedStatus.locked,
+        statusLabel: 'LOCKED · 2 SAVED',
+        places: [_place('x', 'X'), _place('y', 'Y')],
+      );
+      final saved = ExploreBoard(
+        featuredUnlock: null,
+        mine: const [],
+        saved: [group],
+      );
+      expect(saved.savedCount, 2);
     });
   });
 }

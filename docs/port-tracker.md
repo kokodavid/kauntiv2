@@ -14,7 +14,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/explore-tab | `AppTabShell`: IndexedStack tabs under the floating nav, lazy first build (v1 parity). Map + Explore live; Badges / Ranks show "coming next". go_router waits on #2 |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | Not started | | Needs a real-device test |
-| 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | codex/explore-tab | County + Place Detail ported. Explore tab: MINE ported on Riverpod; UNCLAIMED, SAVED (Wishlist) next. See [Discover](#discover-6) |
+| 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | codex/explore-tab | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | Not started | | |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |
 | 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | |
@@ -160,8 +160,24 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   `counties.rarity_pct` (read separately; "RARITY NOT TRACKED YET" when null).
   Distances are straight-line from one foreground fix (1.2 s budget, never
   stored).
-- Loading shows an account-neutral skeleton, never a previous board; errors
-  show "Try again".
+- UNCLAIMED: counties with no explored visit, nearest first (live fix, else
+  the RPC's last-visited / home-county anchor). The closest is the featured
+  "CLOSEST ONE YOU DON'T HAVE" card (county photo with name and blurb, or the
+  dashed shape, distance and blurb), with "See what's there" (County Detail)
+  and a county Save / Saved toggle. The rest are accordions: rarity line
+  ("ONLY N% HAVE BEEN" / "RARITY NOT TRACKED YET"), blurb, three places,
+  "SEE FULL COUNTY PAGE →". Then the rarity note card.
+- SAVED (Wishlist): "N PLACES SAVED ACROSS M COUNTIES", county groups (most
+  recently saved first, first open) with status ("LOCAL EXPERT / BADGE
+  EARNED · N STILL TO SEE", "LOCKED · N SAVED", "SAVED COUNTY · NOTHING
+  PICKED YET"), hand-ticked rows (strike-through + "COMPLETE"), the "ticked
+  by hand" footer, and an empty card.
+- Writes: county save (`wishlist_items` row with no place) and ticks
+  (`ticked_at`) are optimistic and revert with a note on failure. A place or
+  county save refreshes the board in place (no skeleton) so SAVED and the
+  counts catch up; ticks don't reload.
+- The first load shows an account-neutral skeleton; errors show "Try again".
+  Explore unmounts on sign-out, so a board never outlives its account.
 
 **Differences from v1 (temporary)**
 
@@ -171,8 +187,12 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Explore's tier pill and avatar are left out: v1 hard-coded "Tier 1" and a
   gradient dot. They return with real tier/profile data.
 - Explore text is Inter (v1: DM Sans), like the rest of v2.
-- UNCLAIMED and SAVED pills show no count yet and tapping them says "coming
-  next".
+- SAVED's "SORT ⌄" label is left out: it did nothing in v1.
+- SAVED's small caps use Inter (v1: a mono face v2 doesn't have).
+- UNCLAIMED accordions with no places show the blurb once (v1 repeated "No
+  places on file yet").
+- v1 flipped the county Save button only after a reload; v2 flips it
+  immediately.
 - Offline board cache and queued wishlist writes (v1
   `offline_discover_repository.dart`) are deferred to the offline work.
 
@@ -181,7 +201,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - `DiscoverDetailActions` is a plain class and the detail screens use
   `FutureBuilder`; move them onto the Explore providers. No widget tests for
   the detail screens.
-- UNCLAIMED, SAVED (Wishlist: tick, county save) not ported.
+- Ticking doesn't refresh SAVED's "N STILL TO SEE" until the next load
+  (v1 parity).
 - Map Home still loads through a plain loader; `AppTabShell` keeps its
   selected tab in widget state until go_router (#2).
 
@@ -191,6 +212,8 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-24 | `b92317a` | 6 | Explore UNCLAIMED and SAVED (Wishlist): county save, ticks, in-place refresh |
+| 2026-09-24 | `0f2b6d4` | — | Generated Riverpod files (local build_runner) |
 | 2026-09-24 | `b5c589c` | 1, 2, 3, 6 | Explore tab (MINE) on Riverpod; `ProviderScope` + Supabase client provider; `AppTabShell` |
 | 2026-09-23 | `7c0bc06` | 6, 4 | County Detail + Place Detail ported; Map Home links to them |
 | 2026-09-23 | `843f9a4` | — | dart format (local run) |

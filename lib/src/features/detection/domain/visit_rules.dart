@@ -40,6 +40,14 @@ class VisitTimings {
     flapGuard: Duration(seconds: 15),
   );
 
+  /// The timings for this build: debug and profile builds (emulator and
+  /// device runs from the IDE) use [dev]; release builds use [production].
+  /// A compile-time constant so the geofence background isolate, which has
+  /// no app bootstrap, picks the same timings as the foreground.
+  static const VisitTimings current = bool.fromEnvironment('dart.vm.product')
+      ? production
+      : dev;
+
   final Duration dwellThreshold;
   final Duration flapGuard;
 }

@@ -1,19 +1,18 @@
-import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/supabase_client_provider.dart';
 import '../data/detection_repository.dart';
+import '../data/geofence_service.dart';
 import '../data/local/detection_database.dart';
 import '../domain/visit_rules.dart';
 
 part 'detection_providers.g.dart';
 
-/// Visit timings. Debug and profile builds use the short dev timings so
-/// crossings can be tested on an emulator; `buildAppRoot` overrides this
-/// from the flavor (dev flavor → dev timings, prod → production).
+/// Visit timings: [VisitTimings.current] (dev timings in debug builds,
+/// production in release), the same rule the background isolate uses.
+/// Tests override it.
 @Riverpod(keepAlive: true)
-VisitTimings visitTimings(Ref ref) =>
-    kReleaseMode ? VisitTimings.production : VisitTimings.dev;
+VisitTimings visitTimings(Ref ref) => VisitTimings.current;
 
 /// The on-device detection database (`detection_queue`), open for the
 /// life of the app.
@@ -32,3 +31,7 @@ DetectionRepository detectionRepository(Ref ref) => DetectionRepository(
   userId: ref.watch(supabaseClientProvider)?.auth.currentUser?.id,
   rules: VisitRules(ref.watch(visitTimingsProvider)),
 );
+
+/// OS geofence registration (the rolling county window).
+@Riverpod(keepAlive: true)
+GeofenceService geofenceService(Ref ref) => GeofenceService();

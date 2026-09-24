@@ -2,6 +2,10 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <!-- Detection (native_geofence): re-register geofences after a reboot,
+         and keep the background callback alive while it records a crossing. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:label="@string/app_name"
@@ -44,6 +48,24 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Detection (native_geofence): receives geofence transitions,
+             re-registers geofences after a reboot, and runs the background
+             callback as a foreground service when the OS requires it. -->
+        <receiver
+            android:name="com.chunkytofustudios.native_geofence.receivers.NativeGeofenceBroadcastReceiver"
+            android:exported="true"/>
+        <receiver
+            android:name="com.chunkytofustudios.native_geofence.receivers.NativeGeofenceRebootBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.chunkytofustudios.native_geofence.NativeGeofenceForegroundService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

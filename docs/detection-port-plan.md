@@ -6,7 +6,7 @@ machine, the offline visit queue and the arrival nudge. Source is v1
 lines) plus `counties/county_boundary_resolver.dart` and
 `counties/county_boundaries.dart`.
 
-Status: in progress (slices 1-3 on `codex/detection`). Update this file and `port-tracker.md` as
+Status: in progress (slices 1-4 on `codex/detection`; slice 4 needs a device test). Update this file and `port-tracker.md` as
 slices land.
 
 ## What v1 does
@@ -105,10 +105,18 @@ Each slice is one PR-sized commit with tests and a tracker update.
    other screens react. v1's confirmed-visits cache (`AppOffline`) is left
    for the offline slice. Map Home still loads through a plain loader, so
    it reloads on its next load until it moves to Riverpod.
-4. **Native geofencing.** Add `native_geofence`; Android manifest
-   receivers/services, boot receiver and permissions; iOS background
-   location mode. `GeofenceService` (rolling window) and the background
-   callback. Device test: register, cross a boundary with a mock route.
+4. **Native geofencing.** Code done, device test pending: `native_geofence`
+   ^1.3.1; Android boot / wake-lock permissions, the plugin's receivers and
+   foreground service; iOS plugin registrant for the background engine (v1
+   needed no background mode: region monitoring relaunches the app).
+   `GeofenceService` (rolling window: county + neighbours, max 9 regions)
+   and `geofenceCallbackDispatcher` (background isolate, local writes only,
+   polygon lookup when the event carries a fix). Timings are now
+   `VisitTimings.current` (dev in debug builds, production in release) in
+   both isolates, instead of v1's flavor switch that the background isolate
+   couldn't see. Known v1 gap kept: the callback doesn't re-register the
+   window, so a second crossing while the app stays closed can be missed
+   until the next foreground cycle.
 5. **Foreground cycle.** `DetectionController` (capture candidates →
    resolve dwells → drain → reconcile current county → re-register), run
    on start, resume and a 15 s foreground timer; stops when backgrounded.

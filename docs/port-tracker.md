@@ -176,6 +176,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   (`ticked_at`) are optimistic and revert with a note on failure. A place or
   county save refreshes the board in place (no skeleton) so SAVED and the
   counts catch up; ticks don't reload.
+- The title, search and pills stay fixed; only the active list scrolls,
+  and each tab keeps its own scroll position (v1 scrolled the header away).
 - The first load shows an account-neutral skeleton; errors show "Try again".
   Explore unmounts on sign-out, so a board never outlives its account.
 

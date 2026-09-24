@@ -69,12 +69,14 @@ class _ExploreBoardView extends ConsumerWidget {
     final filtered = board.filtered(query);
     final noResults = query.trim().isNotEmpty && filtered.isEmpty;
 
-    return CustomScrollView(
-      key: const PageStorageKey('explore-scroll'),
-      slivers: [
-        SliverPadding(
+    // The title, search and pills stay put; only the active list scrolls.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
-          sliver: SliverList.list(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const ExploreTopBar(),
               const SizedBox(height: 12),
@@ -97,30 +99,40 @@ class _ExploreBoardView extends ConsumerWidget {
             ],
           ),
         ),
-        if (noResults)
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverToBoxAdapter(child: _NoSearchResults(query: query)),
-          )
-        else
-          switch (tab) {
-            ExploreTab.mine => ExploreMineTab(
-              board: filtered,
-              onOpenCounty: onOpenCounty,
-              onOpenPlace: onOpenPlace,
-            ),
-            ExploreTab.unclaimed => ExploreUnclaimedTab(
-              counties: filtered.unclaimed,
-              onOpenCounty: onOpenCounty,
-              onOpenPlace: onOpenPlace,
-            ),
-            ExploreTab.saved => ExploreSavedTab(
-              board: filtered,
-              onOpenPlace: onOpenPlace,
-            ),
-          },
-        // Keeps the last card clear of the floating tab bar.
-        const SliverToBoxAdapter(child: SizedBox(height: 112)),
+        Expanded(
+          child: CustomScrollView(
+            // One remembered scroll position per tab.
+            key: PageStorageKey('explore-scroll-${tab.name}'),
+            slivers: [
+              if (noResults)
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverToBoxAdapter(
+                    child: _NoSearchResults(query: query),
+                  ),
+                )
+              else
+                switch (tab) {
+                  ExploreTab.mine => ExploreMineTab(
+                    board: filtered,
+                    onOpenCounty: onOpenCounty,
+                    onOpenPlace: onOpenPlace,
+                  ),
+                  ExploreTab.unclaimed => ExploreUnclaimedTab(
+                    counties: filtered.unclaimed,
+                    onOpenCounty: onOpenCounty,
+                    onOpenPlace: onOpenPlace,
+                  ),
+                  ExploreTab.saved => ExploreSavedTab(
+                    board: filtered,
+                    onOpenPlace: onOpenPlace,
+                  ),
+                },
+              // Keeps the last card clear of the floating tab bar.
+              const SliverToBoxAdapter(child: SizedBox(height: 112)),
+            ],
+          ),
+        ),
       ],
     );
   }

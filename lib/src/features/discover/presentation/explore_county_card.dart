@@ -57,7 +57,9 @@ class _ExploreCountyCardState extends State<ExploreCountyCard> {
                       ),
                     ),
                     Text(
-                      '${widget.placeCount} places',
+                      widget.placeCount == 1
+                          ? '1 place'
+                          : '${widget.placeCount} places',
                       style: ExploreStyles.placeCount,
                     ),
                     const SizedBox(width: 4),

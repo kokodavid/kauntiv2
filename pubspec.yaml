@@ -52,11 +52,6 @@ dependencies:
   flutter_riverpod: ^3.0.0
   riverpod_annotation: ^3.0.0
 
-  # State management: Riverpod ONLY, providers declared with @riverpod
-  # codegen (see docs/architecture.md). Enforced by
-  # tools/check_architecture.py and riverpod_lint.
-  flutter_riverpod: ^3.0.0
-  riverpod_annotation: ^3.0.0
 
 dev_dependencies:
   flutter_test:

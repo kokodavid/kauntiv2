@@ -64,7 +64,7 @@ class CountyDetailData {
 
   /// County photo first, then place photos, without duplicates.
   List<String> get slideshowImages => [
-    if (highlightImageUrl case final url?) url,
+    ?highlightImageUrl,
     for (final place in places)
       if (place.thumbnailUrl case final url?)
         if (url != highlightImageUrl) url,

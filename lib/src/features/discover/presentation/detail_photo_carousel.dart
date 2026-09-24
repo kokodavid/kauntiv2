@@ -54,7 +54,7 @@ class _DetailPhotoCarouselState extends State<DetailPhotoCarousel> {
                     const ColoredBox(color: AppColors.lockedFill),
               ),
             ),
-          if (widget.overlay case final overlay?) overlay,
+          ?widget.overlay,
         ],
       ),
     );

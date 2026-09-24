@@ -58,7 +58,7 @@ class MapHomeSuggestion {
     final elevation = elevationM;
     if (elevation != null) yield '${elevation}m';
     final duration = visitDurationMinutes;
-    if (duration != null) yield '${duration} min';
+    if (duration != null) yield '$duration min';
   }
 }
 

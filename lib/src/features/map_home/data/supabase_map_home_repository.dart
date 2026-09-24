@@ -189,23 +189,23 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
   }
 
   Future<List<dynamic>> _suggestionRows() async {
-    final currentShape = await _readOptional<List<dynamic>>(() async {
-      final rows = await client
-          .rpc(
+    final currentShape = await _readOptional<List<dynamic>>(
+      () => client
+          .rpc<List<dynamic>>(
             'for_you_candidates',
             params: const {'p_latitude': null, 'p_longitude': null},
           )
-          .timeout(const Duration(seconds: 8));
-      return rows as List<dynamic>;
-    }, label: 'for_you_candidates current shape');
+          .timeout(const Duration(seconds: 8)),
+      label: 'for_you_candidates current shape',
+    );
     if (currentShape != null) return currentShape;
 
-    final legacyShape = await _readOptional<List<dynamic>>(() async {
-      final rows = await client
-          .rpc('for_you_candidates')
-          .timeout(const Duration(seconds: 8));
-      return rows as List<dynamic>;
-    }, label: 'for_you_candidates legacy shape');
+    final legacyShape = await _readOptional<List<dynamic>>(
+      () => client
+          .rpc<List<dynamic>>('for_you_candidates')
+          .timeout(const Duration(seconds: 8)),
+      label: 'for_you_candidates legacy shape',
+    );
     return legacyShape ?? const [];
   }
 

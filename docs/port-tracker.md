@@ -9,12 +9,12 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | # | Feature | V1 location | V2 status | PR | Notes |
 |---|---|---|---|---|---|
 | 0 | Guardrails (rules, CI, review) | n/a | Done | #1 (main) | Riverpod deps, strict analysis, architecture guard + baseline, CI, Claude review, docs |
-| 1 | Foundations re-homed to `core/` (config, design, widgets, counties, services) | `lib/src/{config,design,widgets,counties,services}` | Not started | | Move plus a Supabase client provider. Clears most `layout` baseline entries |
-| 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | Not started | | Split `app.dart` (414 lines, 16 setState calls) into router redirects and notifiers. V2 currently lacks v1's 3 how-it-works intro screens |
-| 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/home-migration | Floating bottom nav on Map Home; other tabs show "coming next". Shell/router waits on #2 |
+| 1 | Foundations re-homed to `core/` (config, design, widgets, counties, services) | `lib/src/{config,design,widgets,counties,services}` | Not started | | Move to `core/`. Clears most `layout` baseline entries. `core/services/supabase_client_provider.dart` exists (Explore uses it) |
+| 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | Not started | | `ProviderScope` is wired at the root (`buildAppRoot`); auth/onboarding still setState. Split `app.dart` (414 lines, 16 setState calls) into router redirects and notifiers. V2 currently lacks v1's 3 how-it-works intro screens |
+| 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/explore-tab | `AppTabShell`: IndexedStack tabs under the floating nav, lazy first build (v1 parity). Map + Explore live; Badges / Ranks show "coming next". go_router waits on #2 |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | Not started | | Needs a real-device test |
-| 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | codex/discover-details | County Detail + Place Detail ported (save to wishlist, Get Route). Discover tabs + Wishlist not started. See [Discover](#discover-6) |
+| 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | codex/explore-tab | County + Place Detail ported. Explore tab: MINE ported on Riverpod; UNCLAIMED, SAVED (Wishlist) next. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | Not started | | |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |
 | 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | |
@@ -142,12 +142,48 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   v2 has no foreground location read yet.
 - Images use `Image.network` (v1: `cached_network_image`).
 
+**Explore tab — ported (matches v1)**
+
+- First feature on `@riverpod` codegen (`application/explore_providers.dart`):
+  board, selected tab, search text and saved-place overrides.
+- Header: "Discover" title, search (county name or place text), MINE /
+  UNCLAIMED / SAVED pills with counts (MINE's count excludes the featured
+  county, v1 parity).
+- MINE: "JUST UNLOCKED" card for the newest explored county (rarity line,
+  two places, "ALL N PLACES IN …" opens County Detail), then the other
+  explored counties as accordions (first open, "EXPLORED" or "LOCAL EXPERT ·
+  N VISITS", three places each). Empty card for a new traveller; "Nothing
+  matches" for an empty search.
+- Place rows open Place Detail and save to `wishlist_items` (optimistic,
+  reverts with a note on failure).
+- Data: `discover_mine_counties()`, `places` with first image, `wishlist_items`,
+  `counties.rarity_pct` (read separately; "RARITY NOT TRACKED YET" when null).
+  Distances are straight-line from one foreground fix (1.2 s budget, never
+  stored).
+- Loading shows an account-neutral skeleton, never a previous board; errors
+  show "Try again".
+
+**Differences from v1 (temporary)**
+
+- No distance labels on the detail pages (v1: place cards and Place Detail's
+  Distance fact).
+- Images use `Image.network` (v1: `cached_network_image`).
+- Explore's tier pill and avatar are left out: v1 hard-coded "Tier 1" and a
+  gradient dot. They return with real tier/profile data.
+- Explore text is Inter (v1: DM Sans), like the rest of v2.
+- UNCLAIMED and SAVED pills show no count yet and tapping them says "coming
+  next".
+- Offline board cache and queued wishlist writes (v1
+  `offline_discover_repository.dart`) are deferred to the offline work.
+
 **Known debt**
 
-- `DiscoverDetailActions` is a plain class and screens use `FutureBuilder`;
-  move to `@riverpod` providers with #2. No widget tests for the screens.
-- Discover tabs (Mine / Unclaimed / Saved), Wishlist and county save not
-  ported.
+- `DiscoverDetailActions` is a plain class and the detail screens use
+  `FutureBuilder`; move them onto the Explore providers. No widget tests for
+  the detail screens.
+- UNCLAIMED, SAVED (Wishlist: tick, county save) not ported.
+- Map Home still loads through a plain loader; `AppTabShell` keeps its
+  selected tab in widget state until go_router (#2).
 
 ## Progress log
 
@@ -155,6 +191,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-24 | `b5c589c` | 1, 2, 3, 6 | Explore tab (MINE) on Riverpod; `ProviderScope` + Supabase client provider; `AppTabShell` |
 | 2026-09-23 | `7c0bc06` | 6, 4 | County Detail + Place Detail ported; Map Home links to them |
 | 2026-09-23 | `843f9a4` | — | dart format (local run) |
 | 2026-09-23 | `63fd670` | 4 | County photos read separately from county facts |

@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/services/app_current_location.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_home_promotion.dart';
@@ -26,51 +29,104 @@ class MapHomeForYouReads {
   final ReadOptional readOptional;
 
   static const _timeout = Duration(seconds: 8);
+  static final _random = Random();
 
   /// One more than the row shows, in case the top card takes one.
   static const unclaimedRowLength = MapHomeBoardData.maxUnclaimedCards + 1;
 
-  /// The active `for_you` promotion with the highest priority (RLS only
-  /// returns rows inside their start/end window and not deactivated).
+  /// The one promoted place for the For You slot, picked by the
+  /// `for_you_promotion` RPC: local first (live fix, else last visited or
+  /// home county), then priority, then ties take turns. The fix is only
+  /// sent for that lookup and never stored (doc 05).
   Future<MapHomePromotedPlace?> promotion() async {
+    final fix = await AppCurrentLocation.read(
+      timeout: const Duration(milliseconds: 1200),
+    );
+    final picked = await readOptional<List<dynamic>>(
+      () => client
+          .rpc<List<dynamic>>(
+            'for_you_promotion',
+            params: {
+              'p_latitude': fix?.latitude,
+              'p_longitude': fix?.longitude,
+            },
+          )
+          .timeout(_timeout),
+      label: 'for_you_promotion',
+    );
+    if (picked != null) {
+      final row = picked.whereType<Map<dynamic, dynamic>>().firstOrNull;
+      return row == null ? null : _fromPickerRow(row);
+    }
+    return _promotionFromTable();
+  }
+
+  MapHomePromotedPlace? _fromPickerRow(Map<dynamic, dynamic> row) {
+    final county = CountyPaths.byCode[(row['county_id'] as num?)?.toInt()];
+    if (county == null) return null;
+    return MapHomePromotedPlace(
+      placeId: row['place_id'] as String,
+      placeName: row['place_name'] as String,
+      county: county,
+      disclosureLabel: row['disclosure_label'] as String? ?? 'AD',
+      sponsorName: row['sponsor_name'] as String? ?? '',
+      summary: row['summary'] as String?,
+      photoUrl: row['image_url'] as String?,
+      latitude: (row['lat'] as num?)?.toDouble(),
+      longitude: (row['lng'] as num?)?.toDouble(),
+      areaKm2: (row['area_km2'] as num?)?.toDouble(),
+      elevationM: (row['elevation_m'] as num?)?.toInt(),
+      visitDurationMinutes: (row['visit_duration_minutes'] as num?)?.toInt(),
+    );
+  }
+
+  /// Before the picker RPC is deployed: read active promotions directly
+  /// and rotate among those sharing the top priority (no local ranking).
+  Future<MapHomePromotedPlace?> _promotionFromTable() async {
     final rows = await readOptional<List<dynamic>>(
       () => client
           .from('place_promotions')
           .select(
-            'disclosure_label, sponsor_name, priority, starts_at, '
+            'disclosure_label, sponsor_name, priority, '
             'places(id, name, county_id, summary, lat, lng, area_km2, '
             'elevation_m, visit_duration_minutes, '
             'place_images(image_url, thumbnail_url, sort_order))',
           )
           .eq('placement', 'for_you')
           .order('priority', ascending: false)
-          .order('starts_at', ascending: false)
-          .limit(5)
+          .limit(20)
           .timeout(_timeout),
-      label: 'for_you promotion',
+      label: 'for_you promotions',
     );
-    for (final raw in rows ?? const <dynamic>[]) {
-      final place = raw is Map ? raw['places'] : null;
-      if (place is! Map) continue;
-      final county = CountyPaths.byCode[(place['county_id'] as num?)?.toInt()];
-      if (county == null) continue;
-      return MapHomePromotedPlace(
-        placeId: place['id'] as String,
-        placeName: place['name'] as String,
-        county: county,
-        disclosureLabel: (raw as Map)['disclosure_label'] as String? ?? 'AD',
-        sponsorName: raw['sponsor_name'] as String? ?? '',
-        summary: place['summary'] as String?,
-        photoUrl: _firstImage(place['place_images']),
-        latitude: (place['lat'] as num?)?.toDouble(),
-        longitude: (place['lng'] as num?)?.toDouble(),
-        areaKm2: (place['area_km2'] as num?)?.toDouble(),
-        elevationM: (place['elevation_m'] as num?)?.toInt(),
-        visitDurationMinutes: (place['visit_duration_minutes'] as num?)
-            ?.toInt(),
-      );
-    }
-    return null;
+    final usable = [
+      for (final raw in rows ?? const <dynamic>[])
+        if (raw is Map &&
+            raw['places'] is Map &&
+            CountyPaths.byCode.containsKey((raw['places'] as Map)['county_id']))
+          raw,
+    ];
+    if (usable.isEmpty) return null;
+    final top = usable.first['priority'];
+    final tied = [
+      for (final raw in usable)
+        if (raw['priority'] == top) raw,
+    ];
+    final raw = tied[_random.nextInt(tied.length)];
+    final place = raw['places'] as Map;
+    return MapHomePromotedPlace(
+      placeId: place['id'] as String,
+      placeName: place['name'] as String,
+      county: CountyPaths.byCode[(place['county_id'] as num).toInt()]!,
+      disclosureLabel: raw['disclosure_label'] as String? ?? 'AD',
+      sponsorName: raw['sponsor_name'] as String? ?? '',
+      summary: place['summary'] as String?,
+      photoUrl: _firstImage(place['place_images']),
+      latitude: (place['lat'] as num?)?.toDouble(),
+      longitude: (place['lng'] as num?)?.toDouble(),
+      areaKm2: (place['area_km2'] as num?)?.toDouble(),
+      elevationM: (place['elevation_m'] as num?)?.toInt(),
+      visitDurationMinutes: (place['visit_duration_minutes'] as num?)?.toInt(),
+    );
   }
 
   /// Every unclaimed county, nearest first (the RPC anchors on the last

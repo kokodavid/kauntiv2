@@ -12,10 +12,16 @@ class MapHomeSuggestionPhotoHeader extends StatelessWidget {
     super.key,
     required this.suggestion,
     required this.height,
+    this.showReasonPill = true,
+    this.trailing,
   });
 
   final MapHomeSuggestion suggestion;
   final double height;
+  final bool showReasonPill;
+
+  /// Bottom-right action on the photo (the featured card's Route button).
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -45,14 +51,17 @@ class MapHomeSuggestionPhotoHeader extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            top: 10,
-            right: 10,
-            child: _ReasonPill(label: _shortReasonLabels[suggestion.reason]!),
-          ),
+          if (showReasonPill)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: _ReasonPill(
+                label: _shortReasonLabels[suggestion.reason]!,
+              ),
+            ),
           Positioned(
             left: 12,
-            right: 72,
+            right: trailing == null ? 72 : 120,
             bottom: 12,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,54 +99,64 @@ class MapHomeSuggestionPhotoHeader extends StatelessWidget {
               ],
             ),
           ),
+          if (trailing case final action?)
+            Positioned(right: 12, bottom: 12, child: action),
         ],
       ),
     );
   }
 }
 
-class MapHomeSuggestionStatsRow extends StatelessWidget {
-  const MapHomeSuggestionStatsRow({super.key, required this.stats});
+/// A dark glass "Route ›" pill for photo headers.
+class MapHomeRouteButton extends StatelessWidget {
+  const MapHomeRouteButton({super.key, required this.onPressed});
 
-  final List<String> stats;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (var i = 0; i < stats.length; i++) ...[
-          if (i > 0) const SizedBox(width: 12),
-          Text(stats[i], style: AppTextStyles.bodySmall),
-        ],
-      ],
-    );
-  }
-}
-
-class MapHomeSuggestionCountySwatch extends StatelessWidget {
-  const MapHomeSuggestionCountySwatch({super.key, required this.county});
-
-  final CountyPath county;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 64,
-      height: 64,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: AppColors.cardBorder),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Center(
-          child: SizedBox(
-            width: 44,
-            height: 44,
-            child: AppCountyShape(county: county, fill: AppColors.accent),
+    return Material(
+      color: Colors.black.withValues(alpha: 0.42),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Route',
+                style: AppTextStyles.buttonLabel.copyWith(color: Colors.white),
+              ),
+              const SizedBox(width: 2),
+              const Icon(Icons.chevron_right, size: 18, color: Colors.white),
+            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Opens directions for [suggestion] via [open], with a note when no
+/// maps app could take it.
+Future<void> openSuggestionRoute(
+  BuildContext context,
+  MapHomeSuggestion suggestion,
+  OpenDirections open,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  bool opened;
+  try {
+    opened = await open(suggestion.directionsQuery);
+  } on Object {
+    opened = false;
+  }
+  if (!opened) {
+    messenger.showSnackBar(
+      const SnackBar(content: Text("Couldn't open directions.")),
     );
   }
 }

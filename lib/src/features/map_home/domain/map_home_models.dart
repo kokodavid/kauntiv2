@@ -1,5 +1,6 @@
 import '../../../counties/county_paths.dart';
 import 'county_badge_state.dart';
+import 'map_home_stat_format.dart';
 
 typedef MapHomeCountyBadgeState = CountyBadgeState;
 
@@ -52,14 +53,21 @@ class MapHomeSuggestion {
     };
   }
 
-  Iterable<String> get statLabels sync* {
-    final area = areaKm2;
-    if (area != null) yield '${area.toStringAsFixed(0)} km2';
-    final elevation = elevationM;
-    if (elevation != null) yield '${elevation}m';
-    final duration = visitDurationMinutes;
-    if (duration != null) yield '$duration min';
-  }
+  /// Area / Elevation / Duration that are on file, as (value, label).
+  List<({String value, String label})> get stats => [
+    if (areaKm2 case final area?)
+      (value: MapHomeStatFormat.area(area), label: 'Area'),
+    if (elevationM case final elevation?)
+      (value: MapHomeStatFormat.elevation(elevation), label: 'Elevation'),
+    if (visitDurationMinutes case final minutes?)
+      (value: MapHomeStatFormat.duration(minutes), label: 'Duration'),
+  ];
+
+  /// What to hand a maps app for directions: the place when there is one,
+  /// else the county.
+  String get directionsQuery => placeName == null
+      ? '${county.name} County, Kenya'
+      : '$placeName, ${county.name} County, Kenya';
 }
 
 enum MapHomeSuggestionReason { depthRank, savedHere, unclaimed }

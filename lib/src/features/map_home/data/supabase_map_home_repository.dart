@@ -178,10 +178,17 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
             distanceAway: _distanceLabel(raw['distance_m'] as num?),
             isNear: ((raw['distance_m'] as num?) ?? double.infinity) < 80000,
             placeName: raw['place_name'] as String?,
-            areaKm2: (raw['area_km2'] as num?)?.toDouble(),
-            elevationM: (raw['elevation_m'] as num?)?.toInt(),
-            visitDurationMinutes: (raw['visit_duration_minutes'] as num?)
-                ?.toInt(),
+            // A place suggestion shows the place's own stats; a county
+            // suggestion shows the county's (never a mix of the two).
+            areaKm2: raw['place_name'] == null
+                ? countyFacts[raw['county_id'] as int]?.areaKm2?.toDouble()
+                : (raw['area_km2'] as num?)?.toDouble(),
+            elevationM: raw['place_name'] == null
+                ? countyFacts[raw['county_id'] as int]?.elevationM?.toInt()
+                : (raw['elevation_m'] as num?)?.toInt(),
+            visitDurationMinutes: raw['place_name'] == null
+                ? countyFacts[raw['county_id'] as int]?.durationMinutes
+                : (raw['visit_duration_minutes'] as num?)?.toInt(),
             highlightImageUrl:
                 countyFacts[raw['county_id'] as int]?.highlightImageUrl,
           ),

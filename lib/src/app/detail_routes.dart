@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../features/discover/application/discover_detail_actions.dart';
+import '../features/discover/data/directions_launcher.dart';
 import '../features/discover/data/supabase_discover_detail_repository.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
@@ -36,4 +37,8 @@ abstract final class DetailRoutes {
       ),
     );
   }
+
+  /// Driving directions to a text destination in the phone's maps app.
+  static Future<bool> openDirections(String destination) =>
+      const DirectionsLauncher().open(query: destination);
 }

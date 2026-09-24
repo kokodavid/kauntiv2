@@ -5,6 +5,7 @@ import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_county_map_painter.dart';
+import '../domain/map_home_stat_format.dart';
 
 class CountyPeekSheet extends StatelessWidget {
   const CountyPeekSheet({
@@ -139,34 +140,14 @@ class _FactRow extends StatelessWidget {
     );
   }
 
-  String _formatArea(num? value) {
-    if (value == null) return 'Not on file';
-    return '${_withThousands(value.round())} KM2';
-  }
+  String _formatArea(num? value) =>
+      value == null ? 'Not on file' : MapHomeStatFormat.area(value);
 
-  String _formatElevation(num? value) {
-    if (value == null) return 'Not on file';
-    return '${_withThousands(value.round())}m';
-  }
+  String _formatElevation(num? value) =>
+      value == null ? 'Not on file' : MapHomeStatFormat.elevation(value);
 
-  String _formatDuration(int? minutes) {
-    if (minutes == null) return 'Not on file';
-    final hours = minutes ~/ 60;
-    final remaining = minutes % 60;
-    if (hours == 0) return '${remaining}m';
-    if (remaining == 0) return '${hours}h';
-    return '${hours}h ${remaining}m';
-  }
-
-  String _withThousands(int value) {
-    final digits = value.toString();
-    final buffer = StringBuffer();
-    for (var i = 0; i < digits.length; i++) {
-      if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(',');
-      buffer.write(digits[i]);
-    }
-    return buffer.toString();
-  }
+  String _formatDuration(int? minutes) =>
+      minutes == null ? 'Not on file' : MapHomeStatFormat.duration(minutes);
 }
 
 class _Fact extends StatelessWidget {

@@ -23,6 +23,7 @@ class MapHomeBoard extends StatefulWidget {
     this.mapboxAccessToken = '',
     this.onOpenCounty,
     this.onOpenPlace,
+    this.onRoute,
   });
 
   /// Null while the board is loading: every slot shows a same-sized
@@ -38,6 +39,7 @@ class MapHomeBoard extends StatefulWidget {
   /// County / Place Detail, supplied from `app/`; null keeps the peeks.
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
+  final OpenDirections? onRoute;
 
   @override
   State<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -204,6 +206,7 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                   : MapHomeForYouSection(
                       suggestions: data.suggestions,
                       onOpenCounty: widget.onOpenCounty,
+                      onRoute: widget.onRoute,
                     ),
             ),
             const MapHomeQuestPreviewCard(),

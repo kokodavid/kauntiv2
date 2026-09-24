@@ -37,6 +37,13 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Board layout: top bar and stat card above a top-aligned full-bleed map,
   pull-up sheet over it (0.14 peek, 0.88 max, sized to content, 16px gaps).
 - For You section with suggestion media, quest preview card.
+- For You featured card redesigned (Figma "Your next best move"): inset
+  photo with place/county name and a glass Route button; below, "<County>
+  County", reason · distance, Area / Elevation / Duration and the county
+  shape in a white squircle. Place suggestions show the place's stats,
+  county suggestions the county's (`counties.area_km2 / elevation_m /
+  duration_minutes`). Route (featured and compact cards) opens driving
+  directions in the maps app by place/county name, wired from `app/`.
 - County map: press highlight + name/status label, pinch-zoom 1x–4x with
   animated RESET, small-county tap halo, v1 state colours (shared with the
   peek sheet), zoom-independent strokes, just-unlocked 3-letter label.

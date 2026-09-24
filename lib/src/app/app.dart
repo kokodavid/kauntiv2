@@ -140,6 +140,7 @@ class _StartupGateState extends State<_StartupGate>
           mapboxAccessToken: widget.config.mapboxAccessToken,
           onOpenCounty: DetailRoutes.openCounty,
           onOpenPlace: DetailRoutes.openPlace,
+          onRoute: DetailRoutes.openDirections,
           loader: AppSupabase.isInitialized
               ? MapHomeBoardLoader(
                   repository: SupabaseMapHomeRepository(AppSupabase.client),

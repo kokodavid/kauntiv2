@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/map_home_models.dart';
+import 'map_home_featured_suggestion.dart';
 import 'map_home_links.dart';
 import 'map_home_skeleton.dart';
 import 'map_home_suggestion_media.dart';
@@ -12,10 +13,14 @@ class MapHomeForYouSection extends StatelessWidget {
     super.key,
     required this.suggestions,
     this.onOpenCounty,
+    this.onRoute,
   });
 
   final List<MapHomeSuggestion> suggestions;
   final OpenCountyDetail? onOpenCounty;
+
+  /// Opens directions for the Route buttons; they're hidden when null.
+  final OpenDirections? onRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +36,10 @@ class MapHomeForYouSection extends StatelessWidget {
       children: [
         const MapHomeForYouHeader(),
         const SizedBox(height: 10),
-        _FeaturedSuggestionCard(
+        MapHomeFeaturedSuggestion(
           suggestion: featured,
           onOpenCounty: onOpenCounty,
+          onRoute: onRoute,
         ),
         if (rest.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -47,6 +53,7 @@ class MapHomeForYouSection extends StatelessWidget {
               itemBuilder: (context, index) => _CompactSuggestionCard(
                 suggestion: rest[index],
                 onOpenCounty: onOpenCounty,
+                onRoute: onRoute,
               ),
             ),
           ),
@@ -87,16 +94,16 @@ class MapHomeForYouSkeleton extends StatelessWidget {
         const SizedBox(height: 10),
         Container(
           width: double.infinity,
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(color: AppColors.cardBorder),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
-          clipBehavior: Clip.antiAlias,
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MapHomeSkeletonBlock(height: 158, radius: 0),
+              MapHomeSkeletonBlock(height: 168, radius: 20),
               Padding(
                 padding: EdgeInsets.all(14),
                 child: Column(
@@ -116,75 +123,16 @@ class MapHomeForYouSkeleton extends StatelessWidget {
   }
 }
 
-class _FeaturedSuggestionCard extends StatelessWidget {
-  const _FeaturedSuggestionCard({required this.suggestion, this.onOpenCounty});
-
-  final MapHomeSuggestion suggestion;
-  final OpenCountyDetail? onOpenCounty;
-
-  @override
-  Widget build(BuildContext context) {
-    final stats = suggestion.statLabels.toList();
-
-    return MapHomeSuggestionTapTarget(
-      suggestion: suggestion,
-      onOpenCounty: onOpenCounty,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: AppColors.cardBorder),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            MapHomeSuggestionPhotoHeader(suggestion: suggestion, height: 158),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${suggestion.reasonLabel} . ${suggestion.distanceAway}',
-                          style: AppTextStyles.listItemTitle,
-                        ),
-                        if (stats.isNotEmpty) ...[
-                          const SizedBox(height: 10),
-                          const Divider(
-                            height: 1,
-                            color: AppColors.trackInactive,
-                          ),
-                          const SizedBox(height: 10),
-                          MapHomeSuggestionStatsRow(stats: stats),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  MapHomeSuggestionCountySwatch(county: suggestion.county),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _CompactSuggestionCard extends StatelessWidget {
-  const _CompactSuggestionCard({required this.suggestion, this.onOpenCounty});
+  const _CompactSuggestionCard({
+    required this.suggestion,
+    this.onOpenCounty,
+    this.onRoute,
+  });
 
   final MapHomeSuggestion suggestion;
   final OpenCountyDetail? onOpenCounty;
+  final OpenDirections? onRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -204,24 +152,33 @@ class _CompactSuggestionCard extends StatelessWidget {
                 height: 148,
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Route',
-                  style: AppTextStyles.buttonLabel.copyWith(
-                    color: AppColors.accent,
+            if (onRoute case final route?) ...[
+              const SizedBox(height: 4),
+              InkWell(
+                onTap: () => openSuggestionRoute(context, suggestion, route),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Route',
+                        style: AppTextStyles.buttonLabel.copyWith(
+                          color: AppColors.accent,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: AppColors.accent,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 2),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: AppColors.accent,
-                ),
-              ],
-            ),
+              ),
+            ],
           ],
         ),
       ),

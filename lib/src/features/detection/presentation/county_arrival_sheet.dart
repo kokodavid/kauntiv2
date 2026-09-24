@@ -73,14 +73,6 @@ class _ArrivalContent extends StatelessWidget {
   /// v1's design showed four places.
   static const _maxPlaces = 4;
 
-  static const _greenLabel = TextStyle(
-    fontFamily: AppTypeScale.family,
-    fontSize: AppTypeScale.metaSize,
-    fontWeight: FontWeight.w600,
-    letterSpacing: AppTypeScale.metaTracking,
-    color: AppColors.green,
-  );
-
   final CountyDetailData data;
   final VoidCallback onDismiss;
   final VoidCallback? onOpenCounty;
@@ -107,14 +99,13 @@ class _ArrivalContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("You've crossed into $name", style: _greenLabel),
+              Text('Welcome to $name', style: AppTypeScale.sectionTitle),
               const SizedBox(height: 2),
-              Text(
-                count == 0
-                    ? 'Nothing on file here yet.'
-                    : '$count worth the detour.',
-                style: AppTypeScale.sectionTitle,
-              ),
+              Text(switch (count) {
+                0 => "You've just crossed in. Nothing on file here yet.",
+                1 => "You've just crossed in. 1 place worth the detour.",
+                _ => "You've just crossed in. $count places worth the detour.",
+              }, style: AppTypeScale.body),
             ],
           ),
         ),

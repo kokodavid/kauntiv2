@@ -59,8 +59,11 @@ void main() {
       onOpenCounty: opened.add,
     );
 
-    expect(find.text("You've crossed into Nairobi"), findsOneWidget);
-    expect(find.text('5 worth the detour.'), findsOneWidget);
+    expect(find.text('Welcome to Nairobi'), findsOneWidget);
+    expect(
+      find.text("You've just crossed in. 5 places worth the detour."),
+      findsOneWidget,
+    );
     expect(find.text("YOU'RE HERE"), findsOneWidget);
     expect(find.text('Places to visit'), findsOneWidget);
     expect(find.text('All 5 places in Nairobi →'), findsOneWidget);
@@ -72,16 +75,17 @@ void main() {
     await tester.tap(find.text("YOU'RE HERE"));
     await tester.pumpAndSettle();
     expect(opened, [47]);
-    expect(find.text('5 worth the detour.'), findsNothing);
+    expect(find.text('Welcome to Nairobi'), findsNothing);
   });
 
   testWidgets('an empty county says so and dismisses', (tester) async {
     await _open(tester, _nairobi(const []));
-    expect(find.text('Nothing on file here yet.'), findsOneWidget);
+    const empty = "You've just crossed in. Nothing on file here yet.";
+    expect(find.text(empty), findsOneWidget);
     expect(find.text('Places to visit'), findsNothing);
 
     await tester.tap(find.text('Dismiss'));
     await tester.pumpAndSettle();
-    expect(find.text('Nothing on file here yet.'), findsNothing);
+    expect(find.text(empty), findsNothing);
   });
 }

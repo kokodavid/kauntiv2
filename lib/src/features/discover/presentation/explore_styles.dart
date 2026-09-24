@@ -36,32 +36,10 @@ abstract final class ExploreStyles {
     color: AppColors.mutedForeground,
   );
 
-  static const placeTitle = TextStyle(
-    fontFamily: _family,
-    fontSize: AppTypeScale.itemTitleSize,
-    fontWeight: FontWeight.w500,
-    height: 21 / 14,
-    color: AppColors.exploreText,
-  );
-
   static const placeBody = TextStyle(
     fontFamily: _family,
     fontSize: AppTypeScale.smallSize,
     height: 18 / 12,
-    color: AppColors.exploreMutedText,
-  );
-
-  static const categoryChip = TextStyle(
-    fontFamily: _family,
-    fontSize: AppTypeScale.labelSize,
-    fontWeight: FontWeight.w500,
-    letterSpacing: AppTypeScale.labelTracking,
-    color: AppColors.exploreCategoryText,
-  );
-
-  static const placeDistance = TextStyle(
-    fontFamily: _family,
-    fontSize: AppTypeScale.metaSize,
     color: AppColors.exploreMutedText,
   );
 

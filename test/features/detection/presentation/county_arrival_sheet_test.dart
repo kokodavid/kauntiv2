@@ -49,7 +49,7 @@ Future<void> _open(
 }
 
 void main() {
-  testWidgets('shows the county, four places saved first, and actions', (
+  testWidgets('shows the county card and four places, saved first', (
     tester,
   ) async {
     final opened = <int>[];
@@ -61,12 +61,15 @@ void main() {
 
     expect(find.text("You've crossed into Nairobi"), findsOneWidget);
     expect(find.text('5 worth the detour.'), findsOneWidget);
+    expect(find.text("YOU'RE HERE"), findsOneWidget);
+    expect(find.text('Places to visit'), findsOneWidget);
     expect(find.text('All 5 places in Nairobi →'), findsOneWidget);
     expect(find.textContaining('Place '), findsNWidgets(4));
     expect(find.text('Place 5'), findsOneWidget);
     expect(find.text('Place 4'), findsNothing);
 
-    await tester.tap(find.text('Explore Nairobi'));
+    // The county card opens County Detail and closes the sheet.
+    await tester.tap(find.text("YOU'RE HERE"));
     await tester.pumpAndSettle();
     expect(opened, [47]);
     expect(find.text('5 worth the detour.'), findsNothing);
@@ -75,7 +78,7 @@ void main() {
   testWidgets('an empty county says so and dismisses', (tester) async {
     await _open(tester, _nairobi(const []));
     expect(find.text('Nothing on file here yet.'), findsOneWidget);
-    expect(find.text('Explore Nairobi'), findsNothing);
+    expect(find.text('Places to visit'), findsNothing);
 
     await tester.tap(find.text('Dismiss'));
     await tester.pumpAndSettle();

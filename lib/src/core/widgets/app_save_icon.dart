@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../design/app_colors.dart';
+import '../../design/app_colors.dart';
 
-/// A plain bookmark toggle for list rows (v1 `AppSaveIcon`). Flips
+/// A plain bookmark toggle for list rows (v1 `AppSaveIcon`), shared by
+/// Explore and the arrival sheet. Flips
 /// immediately, then reverts with a note if [onChanged] throws.
-class ExploreSaveIcon extends StatefulWidget {
-  const ExploreSaveIcon({
+class AppSaveIcon extends StatefulWidget {
+  const AppSaveIcon({
     super.key,
     required this.saved,
     required this.onChanged,
@@ -15,15 +16,15 @@ class ExploreSaveIcon extends StatefulWidget {
   final Future<void> Function(bool saved) onChanged;
 
   @override
-  State<ExploreSaveIcon> createState() => _ExploreSaveIconState();
+  State<AppSaveIcon> createState() => _AppSaveIconState();
 }
 
-class _ExploreSaveIconState extends State<ExploreSaveIcon> {
+class _AppSaveIconState extends State<AppSaveIcon> {
   late bool _saved = widget.saved;
   bool _busy = false;
 
   @override
-  void didUpdateWidget(ExploreSaveIcon oldWidget) {
+  void didUpdateWidget(AppSaveIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_busy && oldWidget.saved != widget.saved) _saved = widget.saved;
   }

@@ -147,10 +147,14 @@ Each slice is one PR-sized commit with tests and a tracker update.
    cycle and loads the county first, so the sheet opens complete; a failed
    load is retried next cycle. `DetectionLifecycle` shows the sheet over
    whichever tab is open (v1 listened on Home, which stays mounted) and
-   marks it shown. The sheet is v1's layout on the shared type scale, in
-   sentence case: county shape, "N worth the detour.", four places (saved
-   first, save toggles through Explore's saved places), "All N places in
-   X →", the privacy note, Explore / Dismiss. Left: call
+   marks it shown. The sheet uses the v2 cards: v1's heading
+   ("You've crossed into X", "N worth the detour."), the county as the
+   shared `AppFeatureCard` ("YOU'RE HERE", photo, HQ, blurb, area and
+   elevation; tap for County Detail), then "Places to visit": up to four
+   shared `AppPlaceRow`s (saved first, save toggles through Explore's saved
+   places) and "All N places in X →", the privacy note, Dismiss.
+   `AppPlaceRow` and `AppSaveIcon` moved to `core/widgets` so Explore and
+   the sheet share them. Left: call
    `ArrivalNudgeHistory.clear()` on sign-out, with the rest of that wiring.
 8. **Offline extras.** Offline status strip and legacy visit recovery, or
    fold into the broader offline work if that lands first.

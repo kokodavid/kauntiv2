@@ -131,10 +131,10 @@ abstract final class CountyBoundaryResolver {
     required double endLng,
     required double endLat,
   }) {
-    final latMeters = 111320.0;
+    const latMeters = 111320.0;
     final lngMeters = 111320.0 * math.cos(lat * math.pi / 180);
-    final px = 0.0;
-    final py = 0.0;
+    const px = 0.0;
+    const py = 0.0;
     final ax = (startLng - lng) * lngMeters;
     final ay = (startLat - lat) * latMeters;
     final bx = (endLng - lng) * lngMeters;

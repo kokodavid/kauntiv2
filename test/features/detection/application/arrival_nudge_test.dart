@@ -68,9 +68,9 @@ void main() {
 
   test('the home county never nudges', () async {
     final c = container();
-    await c
-        .read(pendingArrivalNudgeProvider.notifier)
-        .offer([nairobi], homeCountyCode: 47);
+    await c.read(pendingArrivalNudgeProvider.notifier).offer([
+      nairobi,
+    ], homeCountyCode: 47);
     expect(c.read(pendingArrivalNudgeProvider), isNull);
     expect(detail.loaded, isEmpty);
   });

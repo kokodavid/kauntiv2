@@ -40,7 +40,7 @@ Map<String, dynamic> _row(String id, {bool promoted = false}) => {
             'deactivated_at': null,
           },
         ]
-      : const [],
+      : const <Map<String, Object?>>[],
 };
 
 void main() {
@@ -267,8 +267,15 @@ void main() {
   test('featured county stats list what is on file', () {
     expect(exploreCountyStats(noCountyFacts), isEmpty);
     expect(
-      exploreCountyStats((areaKm2: 1205, elevationM: null, durationMinutes: 90)),
-      [(value: '1,205 KM²', label: 'Area'), (value: '1h 30m', label: 'Duration')],
+      exploreCountyStats((
+        areaKm2: 1205,
+        elevationM: null,
+        durationMinutes: 90,
+      )),
+      [
+        (value: '1,205 KM²', label: 'Area'),
+        (value: '1h 30m', label: 'Duration'),
+      ],
     );
   });
 }

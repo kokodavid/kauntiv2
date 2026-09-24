@@ -151,22 +151,25 @@ final class ExploreBoardProvider
 
 String _$exploreBoardHash() => r'e742248429224a11afa45120fd16a6e93b49fb0d';
 
-/// Which Explore tab is showing.
+/// Which Explore tab is showing. Kept alive so another tab (Home's "All N
+/// left") can pick it before Explore is first built.
 
 @ProviderFor(ExploreTabSelection)
 const exploreTabSelectionProvider = ExploreTabSelectionProvider._();
 
-/// Which Explore tab is showing.
+/// Which Explore tab is showing. Kept alive so another tab (Home's "All N
+/// left") can pick it before Explore is first built.
 final class ExploreTabSelectionProvider
     extends $NotifierProvider<ExploreTabSelection, ExploreTab> {
-  /// Which Explore tab is showing.
+  /// Which Explore tab is showing. Kept alive so another tab (Home's "All N
+  /// left") can pick it before Explore is first built.
   const ExploreTabSelectionProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'exploreTabSelectionProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -188,9 +191,10 @@ final class ExploreTabSelectionProvider
 }
 
 String _$exploreTabSelectionHash() =>
-    r'6b7fcb051505d2194b916600633df837228be65a';
+    r'6e8a230ba23e2fd0bd1ac340f967c4b03982ddf0';
 
-/// Which Explore tab is showing.
+/// Which Explore tab is showing. Kept alive so another tab (Home's "All N
+/// left") can pick it before Explore is first built.
 
 abstract class _$ExploreTabSelection extends $Notifier<ExploreTab> {
   ExploreTab build();

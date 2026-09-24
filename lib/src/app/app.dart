@@ -73,7 +73,6 @@ class _StartupGateState extends State<_StartupGate>
     WidgetsBinding.instance.addObserver(this);
   }
 
-
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -139,26 +138,26 @@ class _StartupGateState extends State<_StartupGate>
       onOpenCounty: DetailRoutes.openCounty,
       onOpenPlace: DetailRoutes.openPlace,
       child: AppTabShell(
-      tabs: {
-        AppNavTab.map: (_) => MapHomeScreen(
-          homeCounty: _selectedCounty,
-          mapboxAccessToken: widget.config.mapboxAccessToken,
-          onOpenCounty: DetailRoutes.openCounty,
-          onOpenPlace: DetailRoutes.openPlace,
-          onRoute: DetailRoutes.openDirections,
-          onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
-          loader: AppSupabase.isInitialized
-              ? MapHomeBoardLoader(
-                  repository: SupabaseMapHomeRepository(AppSupabase.client),
-                )
-              : const MapHomeBoardLoader(),
-        ),
-        AppNavTab.explore: (_) => ExploreScreen(
-          onOpenCounty: DetailRoutes.openCounty,
-          onOpenPlace: DetailRoutes.openPlace,
-          onRoute: DetailRoutes.openDirections,
-        ),
-      },
+        tabs: {
+          AppNavTab.map: (_) => MapHomeScreen(
+            homeCounty: _selectedCounty,
+            mapboxAccessToken: widget.config.mapboxAccessToken,
+            onOpenCounty: DetailRoutes.openCounty,
+            onOpenPlace: DetailRoutes.openPlace,
+            onRoute: DetailRoutes.openDirections,
+            onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
+            loader: AppSupabase.isInitialized
+                ? MapHomeBoardLoader(
+                    repository: SupabaseMapHomeRepository(AppSupabase.client),
+                  )
+                : const MapHomeBoardLoader(),
+          ),
+          AppNavTab.explore: (_) => ExploreScreen(
+            onOpenCounty: DetailRoutes.openCounty,
+            onOpenPlace: DetailRoutes.openPlace,
+            onRoute: DetailRoutes.openDirections,
+          ),
+        },
       ),
     );
   }

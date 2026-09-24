@@ -10,7 +10,7 @@ void openCountyOrNote(
   OpenCountyDetail? open,
 ) {
   if (open != null) return open(context, county.code);
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('${county.name} details are next.')),
-  );
+  ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text('${county.name} details are next.')));
 }

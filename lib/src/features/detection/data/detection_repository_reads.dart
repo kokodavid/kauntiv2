@@ -55,13 +55,14 @@ extension _SpeedSanity on DetectionRepository {
                   _ownedBy(p, owner) &
                   p.countyCode.equals(countyCode).not() &
                   p.resolvedAt.isBiggerThanValue(
-                    now.subtract(_speedCheckWindow),
+                    now.subtract(DetectionRepository._speedCheckWindow),
                   ),
             ))
             .get();
     final seenAt = <int, DateTime>{
       for (final c in others)
-        if (now.difference(c.enteredAt) <= _speedCheckWindow)
+        if (now.difference(c.enteredAt) <=
+            DetectionRepository._speedCheckWindow)
           c.countyCode: c.enteredAt,
       for (final p in recentOps) p.countyCode: p.resolvedAt,
     };

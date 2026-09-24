@@ -6,11 +6,7 @@ import '../../design/app_colors.dart';
 /// Explore and the arrival sheet. Flips
 /// immediately, then reverts with a note if [onChanged] throws.
 class AppSaveIcon extends StatefulWidget {
-  const AppSaveIcon({
-    super.key,
-    required this.saved,
-    required this.onChanged,
-  });
+  const AppSaveIcon({super.key, required this.saved, required this.onChanged});
 
   final bool saved;
   final Future<void> Function(bool saved) onChanged;

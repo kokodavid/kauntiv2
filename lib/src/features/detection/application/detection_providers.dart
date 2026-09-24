@@ -39,5 +39,4 @@ GeofenceService geofenceService(Ref ref) => GeofenceService();
 
 /// Background location permission for detection. Tests override it.
 @Riverpod(keepAlive: true)
-DetectionPermission detectionPermission(Ref ref) =>
-    const DetectionPermission();
+DetectionPermission detectionPermission(Ref ref) => const DetectionPermission();

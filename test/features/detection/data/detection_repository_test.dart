@@ -29,7 +29,11 @@ void main() {
       expect(await repo.currentCountyCode(), 1);
       expect(await repo.activeCandidateCountyCodes(), {1});
 
-      final exit = _event(1, CrossingKind.exit, t0.add(const Duration(hours: 3)));
+      final exit = _event(
+        1,
+        CrossingKind.exit,
+        t0.add(const Duration(hours: 3)),
+      );
       final visit = await repo.handleEvent(exit);
       expect(visit?.outcome, VisitOutcome.explored);
       expect(await repo.handleEvent(exit), isNull);

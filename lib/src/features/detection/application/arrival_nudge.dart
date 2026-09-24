@@ -13,8 +13,7 @@ part 'arrival_nudge.g.dart';
 
 /// The arrival sheet's "already shown" history. Tests override it.
 @Riverpod(keepAlive: true)
-ArrivalNudgeHistory arrivalNudgeHistory(Ref ref) =>
-    const ArrivalNudgeHistory();
+ArrivalNudgeHistory arrivalNudgeHistory(Ref ref) => const ArrivalNudgeHistory();
 
 /// A crossing ready for the arrival sheet, with the county already loaded
 /// so the sheet opens complete (no spinner inside it).

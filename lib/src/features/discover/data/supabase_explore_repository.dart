@@ -100,7 +100,7 @@ class SupabaseExploreRepository implements ExploreRepository {
     final facts = results[5]! as Map<int, ExploreCountyFacts>;
     final headquarters = results[6]! as Map<int, Object?>;
     List<String> placeNames(int code) => [
-      for (final place in placesByCounty[code] ?? const [])
+      for (final place in placesByCounty[code] ?? const <Map<String, dynamic>>[])
         place['name'] as String,
     ];
 
@@ -116,6 +116,7 @@ class SupabaseExploreRepository implements ExploreRepository {
           ),
       ];
     }
+
     int placeCount(int code) => placesByCounty[code]?.length ?? 0;
 
     // The RPC orders by entered_at desc: the newest unlock is featured.

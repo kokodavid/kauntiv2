@@ -8,10 +8,8 @@ import '../domain/map_home_models.dart';
 import '../domain/map_home_promotion.dart';
 
 /// Reads a Supabase call that may fail on an older database; null then.
-typedef ReadOptional = Future<T?> Function<T>(
-  Future<T> Function() read, {
-  required String label,
-});
+typedef ReadOptional =
+    Future<T?> Function<T>(Future<T> Function() read, {required String label});
 
 /// County facts For You needs per county code.
 typedef CountyCardFacts = ({
@@ -145,8 +143,7 @@ class MapHomeForYouReads {
     );
     final known = [
       for (final raw in rows ?? const <dynamic>[])
-        if (raw is Map && CountyPaths.byCode.containsKey(raw['county_id']))
-          raw,
+        if (raw is Map && CountyPaths.byCode.containsKey(raw['county_id'])) raw,
     ]..sort((a, b) => _distance(a).compareTo(_distance(b)));
 
     return (

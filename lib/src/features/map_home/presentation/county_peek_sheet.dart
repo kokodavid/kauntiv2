@@ -40,88 +40,88 @@ class CountyPeekSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = MapHomeCountyStyle.forState(badge.state, isHome: isHome);
     return Container(
-        // The white runs under the home indicator; only the content is inset.
-        padding: EdgeInsets.fromLTRB(
-          16,
-          0,
-          16,
-          16 + MediaQuery.paddingOf(context).bottom,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.trackInactive,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+      // The white runs under the home indicator; only the content is inset.
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        16 + MediaQuery.paddingOf(context).bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.trackInactive,
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ),
-            Text('${badge.county.name} County', style: AppTextStyles.heading),
-            const SizedBox(height: 12),
-            Container(
-              height: 190,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFE6F3FF), Color(0x14DBEEFF)],
-                ),
-                border: Border.all(color: AppColors.cardBorder),
-                borderRadius: BorderRadius.circular(25),
+          ),
+          Text('${badge.county.name} County', style: AppTextStyles.heading),
+          const SizedBox(height: 12),
+          Container(
+            height: 190,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFE6F3FF), Color(0x14DBEEFF)],
               ),
-              child: Center(
-                child: SizedBox(
-                  width: 150,
-                  height: 150,
-                  child: AppCountyShape(
-                    county: badge.county,
-                    fill: style.fill,
-                    stroke: style.stroke,
-                    strokeWidth: 1.2,
-                  ),
+              border: Border.all(color: AppColors.cardBorder),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Center(
+              child: SizedBox(
+                width: 150,
+                height: 150,
+                child: AppCountyShape(
+                  county: badge.county,
+                  fill: style.fill,
+                  stroke: style.stroke,
+                  strokeWidth: 1.2,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            _FactRow(badge: badge),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  onOpen?.call();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-                child: const Text(
-                  'Open County',
-                  style: AppTextStyles.buttonLabel,
+          ),
+          const SizedBox(height: 12),
+          _FactRow(badge: badge),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onOpen?.call();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
                 ),
               ),
+              child: const Text(
+                'Open County',
+                style: AppTextStyles.buttonLabel,
+              ),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -44,7 +44,8 @@ class ExploreUnclaimedCounty {
   /// "Only 3% have been", "12% have been" or "Rarity not tracked yet".
   String get rarityLabel => switch (percentHaveBeen) {
     null => 'Rarity not tracked yet',
-    final percent => isRare ? 'Only $percent% have been' : '$percent% have been',
+    final percent =>
+      isRare ? 'Only $percent% have been' : '$percent% have been',
   };
 
   /// The accordion's status line. Rarity when it's tracked; until then
@@ -113,9 +114,6 @@ class ExploreSavedGroup {
     if (savedPlaces > 0) {
       return (ExploreSavedStatus.locked, 'Locked · $savedPlaces saved');
     }
-    return (
-      ExploreSavedStatus.savedOnly,
-      'Saved county · nothing picked yet',
-    );
+    return (ExploreSavedStatus.savedOnly, 'Saved county · nothing picked yet');
   }
 }

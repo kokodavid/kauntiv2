@@ -45,9 +45,10 @@ abstract final class DetailRoutes {
 
   /// Home's "All N left": Explore's UNCLAIMED list, in the tab shell.
   static void openAllUnclaimed(BuildContext context) {
-    ProviderScope.containerOf(context, listen: false)
-        .read(exploreTabSelectionProvider.notifier)
-        .select(ExploreTab.unclaimed);
+    ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(exploreTabSelectionProvider.notifier).select(ExploreTab.unclaimed);
     AppTabShell.select(context, AppNavTab.explore);
   }
 

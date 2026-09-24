@@ -12,28 +12,21 @@ void main() {
   setUp(() => db = DetectionDatabase.forTesting(NativeDatabase.memory()));
   tearDown(() => db.close());
 
-  Future<void> queue(int county, {String owner = 'alice', DateTime? at}) =>
-      db
-          .into(db.pendingSyncOps)
-          .insert(
-            PendingSyncOpsCompanion.insert(
-              userId: Value(owner),
-              countyCode: county,
-              outcome: 'explored',
-              enteredAt: t0,
-              resolvedAt: t0,
-              queuedAt: Value(at ?? t0),
-            ),
-          );
+  Future<void> queue(int county, {String owner = 'alice', DateTime? at}) => db
+      .into(db.pendingSyncOps)
+      .insert(
+        PendingSyncOpsCompanion.insert(
+          userId: Value(owner),
+          countyCode: county,
+          outcome: 'explored',
+          enteredAt: t0,
+          resolvedAt: t0,
+          queuedAt: Value(at ?? t0),
+        ),
+      );
 
-  VisitSyncQueue queueFor(
-    UploadVisit upload, {
-    String? Function()? user,
-  }) => VisitSyncQueue(
-    db,
-    currentUserId: user ?? () => 'alice',
-    upload: upload,
-  );
+  VisitSyncQueue queueFor(UploadVisit upload, {String? Function()? user}) =>
+      VisitSyncQueue(db, currentUserId: user ?? () => 'alice', upload: upload);
 
   test('uploads oldest first and removes synced visits', () async {
     await queue(2, at: t0.add(const Duration(minutes: 1)));
@@ -94,7 +87,7 @@ void main() {
     await queue(2, at: t0.add(const Duration(minutes: 1)));
     final synced = await queueFor((owner, op) async {
       if (op.countyCode == 1) {
-        throw PostgrestException(message: 'no', code: '42501');
+        throw const PostgrestException(message: 'no', code: '42501');
       }
       return const [];
     }).drain(now: t0);

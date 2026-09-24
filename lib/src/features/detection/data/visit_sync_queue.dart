@@ -28,20 +28,22 @@ class VisitSyncQueue {
        _upload = upload;
 
   /// Uploads through [client] as its signed-in user.
-  factory VisitSyncQueue.supabase(DetectionDatabase db, SupabaseClient client) =>
-      VisitSyncQueue(
-        db,
-        currentUserId: () => client.auth.currentUser?.id,
-        upload: (owner, op) => client.rpc<Object?>(
-          'sync_county_visit',
-          params: {
-            'p_user_id': owner,
-            'p_county_id': op.countyCode,
-            'p_outcome': op.outcome,
-            'p_entered_at': op.enteredAt.toUtc().toIso8601String(),
-          },
-        ),
-      );
+  factory VisitSyncQueue.supabase(
+    DetectionDatabase db,
+    SupabaseClient client,
+  ) => VisitSyncQueue(
+    db,
+    currentUserId: () => client.auth.currentUser?.id,
+    upload: (owner, op) => client.rpc<Object?>(
+      'sync_county_visit',
+      params: {
+        'p_user_id': owner,
+        'p_county_id': op.countyCode,
+        'p_outcome': op.outcome,
+        'p_entered_at': op.enteredAt.toUtc().toIso8601String(),
+      },
+    ),
+  );
 
   final DetectionDatabase _db;
   final String? Function() _currentUserId;
@@ -98,8 +100,7 @@ class VisitSyncQueue {
           stackTrace: stackTrace,
         );
         final permanent =
-            error is PostgrestException &&
-            _permanentCodes.contains(error.code);
+            error is PostgrestException && _permanentCodes.contains(error.code);
         await (_db.update(
           _db.pendingSyncOps,
         )..where((o) => o.id.equals(op.id))).write(

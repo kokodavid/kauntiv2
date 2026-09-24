@@ -31,10 +31,7 @@ class MapHomeQuestPreviewCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Coast before Christmas',
-                  style: AppTypeScale.cardTitle,
-                ),
+                Text('Coast before Christmas', style: AppTypeScale.cardTitle),
                 Text(
                   'Side quests will connect here next.',
                   style: AppTypeScale.body,

@@ -53,6 +53,8 @@ PODS:
     - MapboxCommon (= 24.31.0)
     - MapboxCoreMaps (= 11.31.0)
     - Turf (= 4.0.0)
+  - native_geofence (1.0.0):
+    - Flutter
   - permission_handler_apple (9.4.8):
     - Flutter
   - PromisesObjC (2.4.1)
@@ -64,6 +66,31 @@ PODS:
     - FlutterMacOS
   - sign_in_with_apple (0.0.1):
     - Flutter
+  - sqlite3 (3.52.0):
+    - sqlite3/common (= 3.52.0)
+  - sqlite3/common (3.52.0)
+  - sqlite3/dbstatvtab (3.52.0):
+    - sqlite3/common
+  - sqlite3/fts5 (3.52.0):
+    - sqlite3/common
+  - sqlite3/math (3.52.0):
+    - sqlite3/common
+  - sqlite3/perf-threadsafe (3.52.0):
+    - sqlite3/common
+  - sqlite3/rtree (3.52.0):
+    - sqlite3/common
+  - sqlite3/session (3.52.0):
+    - sqlite3/common
+  - sqlite3_flutter_libs (0.0.1):
+    - Flutter
+    - FlutterMacOS
+    - sqlite3 (~> 3.52.0)
+    - sqlite3/dbstatvtab
+    - sqlite3/fts5
+    - sqlite3/math
+    - sqlite3/perf-threadsafe
+    - sqlite3/rtree
+    - sqlite3/session
   - Turf (4.0.0)
   - url_launcher_ios (0.0.1):
     - Flutter
@@ -73,9 +100,11 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - mapbox_maps_flutter (from `.symlinks/plugins/mapbox_maps_flutter/ios`)
+  - native_geofence (from `.symlinks/plugins/native_geofence/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
+  - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
@@ -92,6 +121,7 @@ SPEC REPOS:
     - PromisesObjC
     - PromisesSwift
     - RecaptchaInterop
+    - sqlite3
     - Turf
 
 EXTERNAL SOURCES:
@@ -103,12 +133,16 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/google_sign_in_ios/darwin"
   mapbox_maps_flutter:
     :path: ".symlinks/plugins/mapbox_maps_flutter/ios"
+  native_geofence:
+    :path: ".symlinks/plugins/native_geofence/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sign_in_with_apple:
     :path: ".symlinks/plugins/sign_in_with_apple/ios"
+  sqlite3_flutter_libs:
+    :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
@@ -126,12 +160,15 @@ SPEC CHECKSUMS:
   MapboxCommon: cc28b41df14f1de999550bc5040b4c33756f31ca
   MapboxCoreMaps: bc2056387df6ba1d85bf2cd26d53a5c04f611461
   MapboxMaps: ab7e1d900ee0f76f9e4ec70f02cb664412576ef9
+  native_geofence: 653ba9ea1aa7ff9b9a62a883b00d8df14d2945f6
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
+  sqlite3: a51c07cf16e023d6c48abd5e5791a61a47354921
+  sqlite3_flutter_libs: b3e120efe9a82017e5552a620f696589ed4f62ab
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 

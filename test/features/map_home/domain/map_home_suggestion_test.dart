@@ -33,10 +33,10 @@ void main() {
 
   test('stats list only what is on file, in order', () {
     expect(_suggestion().stats, isEmpty);
-    expect(
-      _suggestion(area: 342, minutes: 1200).stats,
-      [(value: '342 KM²', label: 'Area'), (value: '20h', label: 'Duration')],
-    );
+    expect(_suggestion(area: 342, minutes: 1200).stats, [
+      (value: '342 KM²', label: 'Area'),
+      (value: '20h', label: 'Duration'),
+    ]);
   });
 
   test('directions go to the place when there is one', () {

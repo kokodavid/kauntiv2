@@ -89,8 +89,8 @@ class ExploreFeaturedUnlock {
   final String? headquarters;
 
   /// The photo caption: rarity when tracked, else the headquarters town.
-  String get caption => rarityLabel == ExploreLabels.rarity(null) &&
-          headquarters != null
+  String get caption =>
+      rarityLabel == ExploreLabels.rarity(null) && headquarters != null
       ? 'HQ · $headquarters'
       : rarityLabel;
   final List<ExplorePlace> previewPlaces;

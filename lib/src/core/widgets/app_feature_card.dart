@@ -9,7 +9,7 @@ import 'app_photo_parts.dart';
 /// The featured county / place card shared by Home's For You and
 /// Explore's MINE / UNCLAIMED (Figma "Your next best move"): an inset
 /// photo with a title, a pinned caption, an optional label and actions;
-/// below it "<County> County", one line of context, stats and the county
+/// below it "`<County>` County", one line of context, stats and the county
 /// shape in a white squircle.
 class AppFeatureCard extends StatelessWidget {
   const AppFeatureCard({

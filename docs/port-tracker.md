@@ -280,7 +280,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
-| 2026-09-24 | slice 7 | 5 | Detection: arrival sheet ("You've crossed into X"), once per crossing, never the home county |
+| 2026-09-24 | `40e4f22` | 5 | Detection: arrival sheet ("You've crossed into X"), once per crossing, never the home county |
 | 2026-09-24 | `6115570` | 5 | Detection: pause and remove geofences when background location is lost; Home chip opens settings |
 | 2026-09-24 | `0e8b6a3` | 5 | Detection: foreground cycle (`DetectionController`, `DetectionLifecycle`) |
 | 2026-09-24 | `cfecd06` | 5 | Detection: native geofencing (`native_geofence`, rolling window, background callback) |

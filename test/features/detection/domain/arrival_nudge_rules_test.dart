@@ -17,10 +17,7 @@ void main() {
 
   test('never the home county', () {
     expect(ArrivalNudgeRules.pick([nairobi], suppressed: {47}), isNull);
-    expect(
-      ArrivalNudgeRules.pick([kiambu, nairobi], suppressed: {47}),
-      kiambu,
-    );
+    expect(ArrivalNudgeRules.pick([kiambu, nairobi], suppressed: {47}), kiambu);
   });
 
   test('a crossing that already showed is skipped', () {

@@ -67,86 +67,86 @@ class RealMapPlaceSheet extends StatelessWidget {
     final route = onRoute;
     final open = onOpen;
     return Container(
-        width: double.infinity,
-        // The white runs under the home indicator; only the content is inset.
-        padding: EdgeInsets.fromLTRB(
-          16,
-          10,
-          16,
-          16 + MediaQuery.paddingOf(context).bottom,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const _Handle(),
-            if (county != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: AppPhotoHeader(
-                  county: county,
-                  title: place.name,
-                  caption: '${county.name} County',
-                  imageUrl: place.thumbnailUrl,
-                  height: 180,
-                  topLeft: AppPhotoPill(label: typeLabel(place.type)),
-                  bottomRight: route == null
-                      ? null
-                      : AppPhotoButton(
-                          onPressed: () => openRoute(
-                            context,
-                            '${place.lat},${place.lng}',
-                            route,
-                          ),
+      width: double.infinity,
+      // The white runs under the home indicator; only the content is inset.
+      padding: EdgeInsets.fromLTRB(
+        16,
+        10,
+        16,
+        16 + MediaQuery.paddingOf(context).bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _Handle(),
+          if (county != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: AppPhotoHeader(
+                county: county,
+                title: place.name,
+                caption: '${county.name} County',
+                imageUrl: place.thumbnailUrl,
+                height: 180,
+                topLeft: AppPhotoPill(label: typeLabel(place.type)),
+                bottomRight: route == null
+                    ? null
+                    : AppPhotoButton(
+                        onPressed: () => openRoute(
+                          context,
+                          '${place.lat},${place.lng}',
+                          route,
                         ),
-                ),
-              )
-            else
-              Text(place.name, style: AppTypeScale.sectionTitle),
-            if (summary != null && summary.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  summary,
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypeScale.body,
-                ),
+                      ),
               ),
-            ],
-            if (open != null) ...[
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    open();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.accentForeground,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: const Text(
-                    'View place',
-                    style: AppTextStyles.buttonLabel,
-                  ),
-                ),
+            )
+          else
+            Text(place.name, style: AppTypeScale.sectionTitle),
+          if (summary != null && summary.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                summary,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypeScale.body,
               ),
-            ],
+            ),
           ],
-        ),
-      );
+          if (open != null) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  open();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.accentForeground,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                child: const Text(
+                  'View place',
+                  style: AppTextStyles.buttonLabel,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

@@ -58,11 +58,7 @@ class ExploreUnclaimedTab extends StatelessWidget {
 }
 
 class _CountyBody extends StatelessWidget {
-  const _CountyBody({
-    required this.entry,
-    this.onOpenCounty,
-    this.onOpenPlace,
-  });
+  const _CountyBody({required this.entry, this.onOpenCounty, this.onOpenPlace});
 
   final ExploreUnclaimedCounty entry;
   final OpenExploreCounty? onOpenCounty;

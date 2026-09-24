@@ -87,7 +87,9 @@ class ExploreSavedGroup {
       final expert = rank == 'local_expert';
       final label = expert ? 'LOCAL EXPERT' : 'BADGE EARNED';
       return (
-        expert ? ExploreSavedStatus.localExpert : ExploreSavedStatus.badgeEarned,
+        expert
+            ? ExploreSavedStatus.localExpert
+            : ExploreSavedStatus.badgeEarned,
         savedPlaces == 0
             ? '$label · NOTHING PICKED YET'
             : '$label · $stillToSee STILL TO SEE',

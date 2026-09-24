@@ -13,8 +13,10 @@ abstract final class ExploreLabels {
   }
 
   /// "LOCAL EXPERT · N VISITS" or "EXPLORED".
-  static String mineStatus({required bool isLocalExpert, required int visits}) =>
-      isLocalExpert ? 'LOCAL EXPERT · $visits VISITS' : 'EXPLORED';
+  static String mineStatus({
+    required bool isLocalExpert,
+    required int visits,
+  }) => isLocalExpert ? 'LOCAL EXPERT · $visits VISITS' : 'EXPLORED';
 
   /// Straight-line distance only: there's no routing step, so no
   /// drive-time copy is generated.

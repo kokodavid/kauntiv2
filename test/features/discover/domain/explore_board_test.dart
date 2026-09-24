@@ -157,7 +157,11 @@ void main() {
         (ExploreSavedStatus.localExpert, 'LOCAL EXPERT · 1 STILL TO SEE'),
       );
       expect(
-        ExploreSavedGroup.statusFor(rank: 'visitor', savedPlaces: 0, stillToSee: 0),
+        ExploreSavedGroup.statusFor(
+          rank: 'visitor',
+          savedPlaces: 0,
+          stillToSee: 0,
+        ),
         (ExploreSavedStatus.badgeEarned, 'BADGE EARNED · NOTHING PICKED YET'),
       );
       expect(

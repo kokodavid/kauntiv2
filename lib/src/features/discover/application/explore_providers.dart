@@ -69,7 +69,11 @@ class ExploreSavedPlaces extends _$ExploreSavedPlaces {
     try {
       await ref
           .read(discoverDetailRepositoryProvider)
-          .setPlaceSaved(countyCode: countyCode, placeId: placeId, saved: saved);
+          .setPlaceSaved(
+            countyCode: countyCode,
+            placeId: placeId,
+            saved: saved,
+          );
     } on Object {
       if (ref.mounted) state = before;
       rethrow;
@@ -108,7 +112,10 @@ class ExploreTickedPlaces extends _$ExploreTickedPlaces {
 
   /// Applies [ticked] optimistically, then writes it; restores and
   /// rethrows on failure. No board refresh: only the checkbox changes.
-  Future<void> setTicked({required String placeId, required bool ticked}) async {
+  Future<void> setTicked({
+    required String placeId,
+    required bool ticked,
+  }) async {
     final before = state;
     state = {...state, placeId: ticked};
     try {

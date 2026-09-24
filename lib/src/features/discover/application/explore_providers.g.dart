@@ -271,21 +271,18 @@ abstract class _$ExploreSearchQuery extends $Notifier<String> {
   }
 }
 
-/// Save / un-save changes made from Explore since the board loaded, by
-/// place id, so rows rebuilt after scrolling show the latest state
-/// without reloading the board.
+/// Place save changes made from Explore since the board loaded, by place
+/// id, so rows rebuilt after scrolling show the latest state.
 
 @ProviderFor(ExploreSavedPlaces)
 const exploreSavedPlacesProvider = ExploreSavedPlacesProvider._();
 
-/// Save / un-save changes made from Explore since the board loaded, by
-/// place id, so rows rebuilt after scrolling show the latest state
-/// without reloading the board.
+/// Place save changes made from Explore since the board loaded, by place
+/// id, so rows rebuilt after scrolling show the latest state.
 final class ExploreSavedPlacesProvider
     extends $NotifierProvider<ExploreSavedPlaces, Map<String, bool>> {
-  /// Save / un-save changes made from Explore since the board loaded, by
-  /// place id, so rows rebuilt after scrolling show the latest state
-  /// without reloading the board.
+  /// Place save changes made from Explore since the board loaded, by place
+  /// id, so rows rebuilt after scrolling show the latest state.
   const ExploreSavedPlacesProvider._()
     : super(
         from: null,
@@ -314,13 +311,132 @@ final class ExploreSavedPlacesProvider
 }
 
 String _$exploreSavedPlacesHash() =>
-    r'536d470114016db8e6e41e1b258293d6baea22af';
+    r'c06543a5e4def6643de72abc7ca8437969141dad';
 
-/// Save / un-save changes made from Explore since the board loaded, by
-/// place id, so rows rebuilt after scrolling show the latest state
-/// without reloading the board.
+/// Place save changes made from Explore since the board loaded, by place
+/// id, so rows rebuilt after scrolling show the latest state.
 
 abstract class _$ExploreSavedPlaces extends $Notifier<Map<String, bool>> {
+  Map<String, bool> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Map<String, bool>, Map<String, bool>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Map<String, bool>, Map<String, bool>>,
+              Map<String, bool>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// County-only saves from UNCLAIMED's Save button, by county code.
+
+@ProviderFor(ExploreSavedCounties)
+const exploreSavedCountiesProvider = ExploreSavedCountiesProvider._();
+
+/// County-only saves from UNCLAIMED's Save button, by county code.
+final class ExploreSavedCountiesProvider
+    extends $NotifierProvider<ExploreSavedCounties, Map<int, bool>> {
+  /// County-only saves from UNCLAIMED's Save button, by county code.
+  const ExploreSavedCountiesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'exploreSavedCountiesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$exploreSavedCountiesHash();
+
+  @$internal
+  @override
+  ExploreSavedCounties create() => ExploreSavedCounties();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<int, bool> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<int, bool>>(value),
+    );
+  }
+}
+
+String _$exploreSavedCountiesHash() =>
+    r'b700a45665427a0bd980d38e7e0714d4d5f5bd86';
+
+/// County-only saves from UNCLAIMED's Save button, by county code.
+
+abstract class _$ExploreSavedCounties extends $Notifier<Map<int, bool>> {
+  Map<int, bool> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Map<int, bool>, Map<int, bool>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Map<int, bool>, Map<int, bool>>,
+              Map<int, bool>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// Hand-ticked SAVED places since the board loaded, by place id.
+
+@ProviderFor(ExploreTickedPlaces)
+const exploreTickedPlacesProvider = ExploreTickedPlacesProvider._();
+
+/// Hand-ticked SAVED places since the board loaded, by place id.
+final class ExploreTickedPlacesProvider
+    extends $NotifierProvider<ExploreTickedPlaces, Map<String, bool>> {
+  /// Hand-ticked SAVED places since the board loaded, by place id.
+  const ExploreTickedPlacesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'exploreTickedPlacesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$exploreTickedPlacesHash();
+
+  @$internal
+  @override
+  ExploreTickedPlaces create() => ExploreTickedPlaces();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, bool> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, bool>>(value),
+    );
+  }
+}
+
+String _$exploreTickedPlacesHash() =>
+    r'2f4f39f98dab233362ad92b91132349a7f06c33d';
+
+/// Hand-ticked SAVED places since the board loaded, by place id.
+
+abstract class _$ExploreTickedPlaces extends $Notifier<Map<String, bool>> {
   Map<String, bool> build();
   @$mustCallSuper
   @override

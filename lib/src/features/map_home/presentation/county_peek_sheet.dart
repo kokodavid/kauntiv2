@@ -39,10 +39,14 @@ class CountyPeekSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = MapHomeCountyStyle.forState(badge.state, isHome: isHome);
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    return Container(
+        // The white runs under the home indicator; only the content is inset.
+        padding: EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          16 + MediaQuery.paddingOf(context).bottom,
+        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -117,8 +121,7 @@ class CountyPeekSheet extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

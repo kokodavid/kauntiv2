@@ -4,6 +4,7 @@ import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_photo_parts.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
 import '../domain/map_place.dart';
 import 'map_home_links.dart';
 
@@ -65,11 +66,15 @@ class RealMapPlaceSheet extends StatelessWidget {
     final summary = place.summary?.trim();
     final route = onRoute;
     final open = onOpen;
-    return SafeArea(
-      top: false,
-      child: Container(
+    return Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+        // The white runs under the home indicator; only the content is inset.
+        padding: EdgeInsets.fromLTRB(
+          16,
+          10,
+          16,
+          16 + MediaQuery.paddingOf(context).bottom,
+        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -118,29 +123,30 @@ class RealMapPlaceSheet extends StatelessWidget {
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton(
+                height: 48,
+                child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     open();
                   },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.foreground,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: AppColors.accentForeground,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(24),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'View place',
-                    style: AppTypeScale.action.copyWith(color: Colors.white),
+                    style: AppTextStyles.buttonLabel,
                   ),
                 ),
               ),
             ],
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

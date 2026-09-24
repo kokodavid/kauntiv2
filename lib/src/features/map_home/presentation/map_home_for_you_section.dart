@@ -44,8 +44,7 @@ class MapHomeForYouSection extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 4),
               itemCount: rest.length,
               separatorBuilder: (context, index) => const SizedBox(width: 10),
-              itemBuilder: (context, index) =>
-                  _CompactSuggestionCard(
+              itemBuilder: (context, index) => _CompactSuggestionCard(
                 suggestion: rest[index],
                 onOpenCounty: onOpenCounty,
               ),

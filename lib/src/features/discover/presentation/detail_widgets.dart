@@ -78,7 +78,9 @@ class DetailFactCard extends StatelessWidget {
         children: [
           for (final (label, value) in facts)
             if (value != null)
-              Expanded(child: DetailStatFact(label: label, value: value)),
+              Expanded(
+                child: DetailStatFact(label: label, value: value),
+              ),
         ],
       ),
     );

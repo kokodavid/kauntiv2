@@ -241,4 +241,3 @@ abstract final class AppTextStyles {
     color: AppColors.detailStatValue,
   );
 }
-

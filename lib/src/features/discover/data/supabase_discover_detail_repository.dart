@@ -77,11 +77,9 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
 
     return CountyDetailData(
       county: county,
-      aboutBlurb: _aboutBlurb(
-        county.name,
-        [for (final row in placeRows) row['name'] as String],
-        countyRow['rarity_pct'] as num?,
-      ),
+      aboutBlurb: _aboutBlurb(county.name, [
+        for (final row in placeRows) row['name'] as String,
+      ], countyRow['rarity_pct'] as num?),
       highlightImageUrl: countyRow['highlight_image_url'] as String?,
       quickFacts: CountyQuickFacts(
         yearEstablished: (countyRow['year_established'] as num?)?.toInt(),
@@ -109,7 +107,8 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
       ],
       personalStatusLabel: switch (state) {
         null => 'NOT VISITED YET',
-        'passed_through' => 'PASSED THROUGH $passes TIME${passes == 1 ? '' : 'S'}',
+        'passed_through' =>
+          'PASSED THROUGH $passes TIME${passes == 1 ? '' : 'S'}',
         _ => depth?['rank'] == 'local_expert' ? 'LOCAL EXPERT' : 'EXPLORED',
       },
       isHeld: state == 'explored',
@@ -208,7 +207,9 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
     };
     if (rarity == null) return placesClause;
     final pct = rarity.round();
-    final share = pct <= 5 ? 'Only $pct% have been here' : '$pct% have been here';
+    final share = pct <= 5
+        ? 'Only $pct% have been here'
+        : '$pct% have been here';
     return '$placesClause $share, among travellers tracked so far.';
   }
 }

@@ -52,14 +52,17 @@ void main() {
     expect(repository.saves, [('p1', true)]);
   });
 
-  test('directions without coordinates search by name, county, Kenya', () async {
-    final directions = _FakeDirections();
-    final actions = DiscoverDetailActions(
-      repository: _FakeRepository(),
-      directions: directions,
-    );
-    final place = await actions.placeDetail('p1');
-    await actions.openDirections(place);
-    expect(directions.lastQuery, 'Fort Jesus, Mombasa, Kenya');
-  });
+  test(
+    'directions without coordinates search by name, county, Kenya',
+    () async {
+      final directions = _FakeDirections();
+      final actions = DiscoverDetailActions(
+        repository: _FakeRepository(),
+        directions: directions,
+      );
+      final place = await actions.placeDetail('p1');
+      await actions.openDirections(place);
+      expect(directions.lastQuery, 'Fort Jesus, Mombasa, Kenya');
+    },
+  );
 }

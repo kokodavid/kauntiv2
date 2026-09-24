@@ -29,7 +29,8 @@ class _DetailAsyncBodyState<T> extends State<DetailAsyncBody<T>> {
     return FutureBuilder<T>(
       future: _future,
       builder: (context, snapshot) {
-        if (snapshot.hasData) return widget.builder(context, snapshot.data as T);
+        if (snapshot.hasData)
+          return widget.builder(context, snapshot.data as T);
         if (snapshot.hasError) {
           return Padding(
             padding: const EdgeInsets.all(24),

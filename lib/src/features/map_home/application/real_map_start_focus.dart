@@ -24,7 +24,10 @@ sealed class RealMapStartFocus {
   /// Kenya's bounding box. A fix outside it (a phone abroad, an emulator
   /// left on its default California location) would otherwise be clamped
   /// to the edge of the map's Kenya bounds and open on a random border spot.
-  static bool isInKenya({required double latitude, required double longitude}) =>
+  static bool isInKenya({
+    required double latitude,
+    required double longitude,
+  }) =>
       latitude >= -4.8 &&
       latitude <= 5.1 &&
       longitude >= 33.8 &&

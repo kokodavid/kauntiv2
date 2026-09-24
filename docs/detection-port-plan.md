@@ -6,7 +6,7 @@ machine, the offline visit queue and the arrival nudge. Source is v1
 lines) plus `counties/county_boundary_resolver.dart` and
 `counties/county_boundaries.dart`.
 
-Status: planned, not started. Update this file and `port-tracker.md` as
+Status: in progress (slice 1 on `codex/detection`). Update this file and `port-tracker.md` as
 slices land.
 
 ## What v1 does
@@ -84,11 +84,11 @@ Rules this has to respect:
 
 Each slice is one PR-sized commit with tests and a tracker update.
 
-1. **Pure rules.** `visit_models`, `visit_rules` (dwell, flap guard, still-
-   candidate check, speed sanity), boundary resolver + polygons in
-   `core/counties/`. Unit tests ported from v1 plus resolver edge cases
-   (on a border, inside the hysteresis band, outside Kenya). No device
-   needed.
+1. **Pure rules.** Done: `visit_models`, `visit_rules` (dwell, flap
+   guard, still-candidate check, speed sanity; timings passed in as
+   `VisitTimings` instead of v1's static environment switch), boundary
+   resolver + polygons in `core/counties/`. Tests ported from v1 plus
+   outside-Kenya and hysteresis cases.
 2. **Local store + repository.** Drift database and `DetectionRepository`
    (owner binding, handleEvent, reconcileCurrentLocation, still-candidate
    resolution, queued visits). Keep the database name `detection_queue`
@@ -106,10 +106,11 @@ Each slice is one PR-sized commit with tests and a tracker update.
    resolve dwells → drain → reconcile current county → re-register), run
    on start, resume and a 15 s foreground timer; stops when backgrounded.
    Seed the current county from the first fix after onboarding.
-6. **Permissions.** Background upgrade after foreground is granted
-   (Android 10+ separate "Allow all the time" step, iOS "Always" upgrade),
-   with copy and a manual mode for people who decline. Onboarding page
-   update.
+6. **Permissions.** Already in v2: onboarding asks for foreground then
+   "Always" (Android `locationAlways` after `locationWhenInUse`, iOS
+   `requestAlwaysLocationAuthorization`) and only continues once granted.
+   Left: re-check on resume if the user later downgrades to "While using",
+   and stop geofencing cleanly when that happens.
 7. **Arrival nudge.** Port the arrival sheet onto Map Home with the shared
    type scale, once per crossing, history cleared on sign-out.
 8. **Offline extras.** Offline status strip and legacy visit recovery, or
@@ -118,19 +119,13 @@ Each slice is one PR-sized commit with tests and a tracker update.
 Sign-out must clear candidates, the queue owner and nudge history (v1
 `clearAllLocalState`), wired where v2's sign-out lands.
 
-## Decisions needed before slice 1
+## Decisions (settled 2026-09-24)
 
-1. **Polygon source.** Port the 9,650-line Dart constant (works in the
-   background isolate with no asset loading; needs a long-file exemption)
-   or read `kenya_counties.geojson` in the isolate (smaller code, but asset
-   loading in a headless isolate must be proven on both platforms).
-   Recommendation: the Dart constant, matching v1.
-2. **Timings.** Keep v1's 2 h dwell / 2 min flap guard (dev 2 min / 15 s)?
-3. **When to ask for background location.** Right after foreground in
-   onboarding (v1), or later at the first moment it matters (e.g. first
-   time Home loads)?
-4. **Arrival sheet design.** Port v1's sheet as-is, or restyle to the v2
-   feature card?
+1. **Polygons:** v1's generated Dart constant, in
+   `core/counties/county_boundaries.dart`, with a long-file exemption.
+2. **Timings:** v1's: 2 h dwell / 2 min flap guard; dev 2 min / 15 s.
+3. **Background permission:** already asked in onboarding (see slice 6).
+4. **Arrival sheet:** port v1's design, on the shared type scale.
 
 ## Privacy (doc 05)
 

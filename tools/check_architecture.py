@@ -41,6 +41,7 @@ TOP_LEVEL_DIRS = ("app", "core", "features")
 LONG_FILE_EXEMPTIONS = {
     "lib/src/core/counties/county_paths.dart": "static SVG geometry for 47 counties",
     "lib/src/counties/county_paths.dart": "static SVG geometry (pre-move location)",
+    "lib/src/core/counties/county_boundaries.dart": "generated county polygons for GPS-to-county lookup (from the counties seed)",
 }
 
 GENERATED_SUFFIXES = (".g.dart", ".freezed.dart", ".gr.dart", ".mocks.dart")

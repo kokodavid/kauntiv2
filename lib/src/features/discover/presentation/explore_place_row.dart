@@ -124,11 +124,33 @@ class _PlaceText extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          place.title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: ExploreStyles.placeTitle,
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                place.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: ExploreStyles.placeTitle,
+              ),
+            ),
+            if (place.isPromoted) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.explorePromotionFill,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  place.promotionLabel,
+                  style: ExploreStyles.categoryChip.copyWith(
+                    color: AppColors.explorePromotionText,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         Text(
           place.description,

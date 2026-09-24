@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
+import 'package:kaunti47_v2/src/features/discover/data/explore_rows.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_board.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_labels.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_lists.dart';
@@ -21,6 +22,26 @@ ExploreMineCounty _county(int code, List<ExplorePlace> places) =>
       isLocalExpert: false,
       previewPlaces: places,
     );
+
+Map<String, dynamic> _row(String id, {bool promoted = false}) => {
+  'id': id,
+  'name': 'Place $id',
+  'type': 'park',
+  'summary': 'Summary $id',
+  'place_promotions': promoted
+      ? [
+          {
+            'disclosure_label': 'AD',
+            'starts_at': DateTime.now()
+                .subtract(const Duration(days: 1))
+                .toUtc()
+                .toIso8601String(),
+            'ends_at': null,
+            'deactivated_at': null,
+          },
+        ]
+      : const [],
+};
 
 void main() {
   final mombasa = CountyPaths.byCode[1]!;
@@ -212,6 +233,34 @@ void main() {
         saved: [group],
       );
       expect(saved.savedCount, 2);
+    });
+  });
+
+  group('promoted preview places', () {
+    test('places active AD second when normal places can surround it', () {
+      final rows = ExploreRows.previewRows([
+        _row('normal-a'),
+        _row('normal-b'),
+        _row('ad', promoted: true),
+        _row('normal-c'),
+      ]);
+      expect(rows.map((row) => row['id']), ['normal-a', 'ad', 'normal-b']);
+    });
+
+    test('uses active AD first when it is the county only place', () {
+      final rows = ExploreRows.previewRows([_row('ad', promoted: true)]);
+      expect(rows.map((row) => row['id']), ['ad']);
+    });
+
+    test('maps active AD metadata onto ExplorePlace', () {
+      final place = ExploreRows.place(
+        _row('ad', promoted: true),
+        id: 'ad',
+        saved: false,
+        location: null,
+      );
+      expect(place.isPromoted, isTrue);
+      expect(place.promotionLabel, 'AD');
     });
   });
 

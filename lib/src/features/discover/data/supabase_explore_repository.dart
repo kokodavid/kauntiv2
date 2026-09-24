@@ -49,7 +49,9 @@ class SupabaseExploreRepository implements ExploreRepository {
           .from('places')
           .select(
             'id, county_id, name, type, summary, description, lat, lng, '
-            'place_images(thumbnail_url, sort_order)',
+            'place_images(thumbnail_url, sort_order), '
+            'place_promotions(disclosure_label, placement, starts_at, ends_at, '
+            'deactivated_at)',
           ),
       client
           .from('wishlist_items')
@@ -102,15 +104,18 @@ class SupabaseExploreRepository implements ExploreRepository {
         place['name'] as String,
     ];
 
-    List<ExplorePlace> preview(int code) => [
-      for (final row in (placesByCounty[code] ?? const []).take(3))
-        ExploreRows.place(
-          row,
-          id: row['id'] as String,
-          saved: savedPlaceIds.contains(row['id']),
-          location: location,
-        ),
-    ];
+    List<ExplorePlace> preview(int code) {
+      final rows = placesByCounty[code] ?? const <Map<String, dynamic>>[];
+      return [
+        for (final row in ExploreRows.previewRows(rows))
+          ExploreRows.place(
+            row,
+            id: row['id'] as String,
+            saved: savedPlaceIds.contains(row['id']),
+            location: location,
+          ),
+      ];
+    }
     int placeCount(int code) => placesByCounty[code]?.length ?? 0;
 
     // The RPC orders by entered_at desc: the newest unlock is featured.

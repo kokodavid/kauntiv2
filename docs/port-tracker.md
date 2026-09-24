@@ -13,7 +13,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | Not started | | `ProviderScope` is wired at the root (`buildAppRoot`); auth/onboarding still setState. Split `app.dart` (414 lines, 16 setState calls) into router redirects and notifiers. V2 currently lacks v1's 3 how-it-works intro screens |
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/explore-tab | `AppTabShell`: IndexedStack tabs under the floating nav, lazy first build (v1 parity). Map + Explore live; Badges / Ranks show "coming next". go_router waits on #2 |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
-| 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | Not started | | Plan: [detection-port-plan.md](detection-port-plan.md). Needs a real-device test |
+| 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | codex/detection | Plan: [detection-port-plan.md](detection-port-plan.md). Slice 1 (rules + county polygons) done. Needs a real-device test |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | codex/explore-tab | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | Not started | | |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |

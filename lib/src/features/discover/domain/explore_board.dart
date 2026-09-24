@@ -16,6 +16,8 @@ class ExplorePlace {
     required this.category,
     required this.saved,
     this.seen = false,
+    this.isPromoted = false,
+    this.promotionLabel = 'AD',
     this.thumbnailUrl,
     this.distanceLabel,
   });
@@ -28,6 +30,10 @@ class ExplorePlace {
 
   /// SAVED only: ticked by hand as visited (`wishlist_items.ticked_at`).
   final bool seen;
+
+  /// Paid placement inside Discover previews. Editorial rows stay unmarked.
+  final bool isPromoted;
+  final String promotionLabel;
   final String? thumbnailUrl;
 
   /// Straight-line "N km away" from the traveller's current fix; null

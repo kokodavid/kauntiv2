@@ -2,13 +2,15 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../../design/app_colors.dart';
 import '../application/county_camera_fit.dart';
+import '../application/real_map_start_focus.dart';
 
 /// Where the real map looks: the user's own surroundings by default, their
 /// home county when location isn't available, and the whole of Kenya only
 /// as the starting frame the camera flies in from.
 ///
-/// Location is read by the Mapbox location component while this screen is
-/// open, never stored (doc 05: precise location is foreground-only).
+/// Location is read once per focus (and shown by Mapbox's dot) while this
+/// screen is open, never stored (doc 05: precise location is
+/// foreground-only).
 abstract final class RealMapFocus {
   /// Close enough to see nearby places as photo markers; zooming out past
   /// `RealMapLayers.markerMinZoom` turns them back into the Kenya-wide dots.
@@ -20,35 +22,37 @@ abstract final class RealMapFocus {
     pitch: pitch,
   );
 
-  static FollowPuckViewportState aroundUser(double pitch) =>
-      FollowPuckViewportState(
-        zoom: localZoom,
-        pitch: pitch,
-        bearing: FollowPuckViewportStateBearingConstant(0),
-      );
-
-  static CameraViewportState aroundHomeCounty(
-    CountyBounds bounds,
+  /// The camera for the decided opening focus: the user's own position,
+  /// else their home county, both at local zoom; else all of Kenya.
+  static CameraViewportState viewportFor(
+    RealMapStartFocus focus,
     double pitch,
-  ) {
-    final center = CountyCameraFit.centerOf(bounds);
-    return CameraViewportState(
-      center: Point(coordinates: Position(center.lng, center.lat)),
-      zoom: localZoom - 0.5,
-      pitch: pitch,
-    );
-  }
+  ) => switch (focus) {
+    FocusOnUser(:final latitude, :final longitude) => _at(
+      longitude,
+      latitude,
+      localZoom,
+      pitch,
+    ),
+    FocusOnHomeCounty(:final bounds) => _at(
+      CountyCameraFit.centerOf(bounds).lng,
+      CountyCameraFit.centerOf(bounds).lat,
+      localZoom - 0.5,
+      pitch,
+    ),
+    FocusOnKenya() => kenya(pitch),
+  };
 
-  /// Waits for the follow-puck camera to arrive; false if the camera is
-  /// still zoomed out after [timeout], i.e. no location fix came in.
-  static Future<bool> reachedUser(
-    MapboxMap map, {
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    await Future<void>.delayed(timeout);
-    final camera = await map.getCameraState();
-    return camera.zoom >= localZoom - 1;
-  }
+  static CameraViewportState _at(
+    double lng,
+    double lat,
+    double zoom,
+    double pitch,
+  ) => CameraViewportState(
+    center: Point(coordinates: Position(lng, lat)),
+    zoom: zoom,
+    pitch: pitch,
+  );
 
   /// Embedded under Home's sheet, the Mapbox logo and attribution (both
   /// required by Mapbox's terms) would be hidden: lift them above the

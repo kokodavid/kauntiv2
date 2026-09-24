@@ -62,6 +62,12 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   quests row, friends strip, offline cache, arrival nudge sheet.
 
 **Real map (Mapbox) — Home's default, decided 2026-09-23**
+- Opening camera: one native position read (v1's `currentLocation`
+  channel, ~5 s, never stored), then one flight, 3D (50° tilt): the user
+  at zoom 8.5 when inside Kenya, else the home county, else all of Kenya.
+  No follow-the-dot mode, so nothing pulls the camera later. (Previously a
+  fix outside Kenya, e.g. the emulator's default California location, was
+  clamped to a random border spot.)
 
 - Home renders the Mapbox map edge to edge behind the header, sheet and
   nav; top bar and stat card float on it. Built on `codex/mapbox-spike`,

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 // Mapbox exports its own `Size`; this file means Flutter's.
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
+import '../../../core/services/app_current_location.dart';
 import '../../../core/services/app_mapbox_telemetry.dart';
 import '../../../services/app_location_permission_service.dart';
+import '../application/real_map_start_focus.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
 import 'county_peek_sheet.dart';
@@ -110,23 +112,20 @@ class _RealMapViewState extends State<RealMapView> {
     await _focusOnUser();
   }
 
-  /// "Locate me": follow the user's dot, or frame the home county when
-  /// there's no permission or no fix arrives (e.g. simulator set to None).
+  /// Opening camera and "locate me": one position read, one flight, no
+  /// following afterwards. Outside Kenya or without a fix, the home county.
   Future<void> _focusOnUser() async {
-    if (_hasLocation) {
-      final following = RealMapFocus.aroundUser(_pitch);
-      setState(() => _viewport = following);
-      final map = _map;
-      if (map == null || await RealMapFocus.reachedUser(map)) return;
-      if (!mounted || _viewport != following) return;
-    }
+    final location = _hasLocation ? await AppCurrentLocation.read() : null;
     await _counties.geoJson();
+    if (!mounted) return;
     final home = widget.badges
         .where((badge) => badge.county.slug == widget.homeCountySlug)
         .firstOrNull;
-    final bounds = _counties.boundsFor(home?.county.code);
-    if (!mounted || bounds == null) return;
-    setState(() => _viewport = RealMapFocus.aroundHomeCounty(bounds, _pitch));
+    final focus = RealMapStartFocus.decide(
+      location: location,
+      homeCounty: _counties.boundsFor(home?.county.code),
+    );
+    setState(() => _viewport = RealMapFocus.viewportFor(focus, _pitch));
   }
 
   void _onMapCreated(MapboxMap map) {

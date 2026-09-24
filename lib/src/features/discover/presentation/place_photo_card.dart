@@ -91,7 +91,7 @@ class PlacePhotoCard extends StatelessWidget {
                       place.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.listItemSubtitle,
+                      style: AppTextStyles.detailBody,
                     ),
                   ],
                 ),

@@ -71,7 +71,7 @@ class _CountyDetailBody extends StatelessWidget {
             children: [
               _TitleRow(data: data),
               const SizedBox(height: 20),
-              Text(data.aboutBlurb, style: AppTextStyles.listItemSubtitle),
+              Text(data.aboutBlurb, style: AppTextStyles.detailBody),
               const SizedBox(height: 11),
               DetailFactCard(
                 facts: [
@@ -81,18 +81,21 @@ class _CountyDetailBody extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 15),
-              const Text('Places to See', style: AppTextStyles.detailTitle),
+              const Text(
+                'Places to See',
+                style: AppTextStyles.detailSectionTitle,
+              ),
               const SizedBox(height: 11),
               const Text(
                 'Listings marked AD are paid placements. Places to see are '
                 'never paid -- they come from KWS, UNESCO and OpenStreetMap.',
-                style: AppTextStyles.listItemSubtitle,
+                style: AppTextStyles.detailBody,
               ),
               const SizedBox(height: 9),
               if (data.places.isEmpty)
                 Text(
                   'No places on file yet for ${data.county.name}.',
-                  style: AppTextStyles.listItemSubtitle,
+                  style: AppTextStyles.detailBody,
                 )
               else
                 for (final place in data.places) ...[

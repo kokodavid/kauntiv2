@@ -192,16 +192,9 @@ abstract final class AppTextStyles {
     color: AppColors.mapOverlayForeground,
   );
 
-  // County / Place Detail (v1 parity).
+  // County / Place Detail. Layout follows v1; sizes are tuned to v2's
+  // Inter scale (v1's DM Sans sizes read ~10% larger in Inter).
   static const detailTitle = TextStyle(
-    fontFamily: _inter,
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    height: 32 / 24,
-    color: AppColors.foreground,
-  );
-
-  static const detailNavTitle = TextStyle(
     fontFamily: _inter,
     fontSize: 20,
     fontWeight: FontWeight.w600,
@@ -209,11 +202,36 @@ abstract final class AppTextStyles {
     color: AppColors.foreground,
   );
 
+  static const detailSectionTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    height: 26 / 18,
+    color: AppColors.foreground,
+  );
+
+  /// Detail pages' running text: blurbs, descriptions, card summaries.
+  static const detailBody = TextStyle(
+    fontFamily: _inter,
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    height: 20 / 13,
+    color: AppColors.mutedForeground,
+  );
+
+  static const detailNavTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 17,
+    fontWeight: FontWeight.w600,
+    height: 24 / 17,
+    color: AppColors.foreground,
+  );
+
   static const detailStatusChip = TextStyle(
     fontFamily: _inter,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: FontWeight.w400,
-    height: 20 / 12,
+    height: 18 / 11,
     color: Colors.white,
   );
 
@@ -227,17 +245,17 @@ abstract final class AppTextStyles {
 
   static const detailStatValue = TextStyle(
     fontFamily: _inter,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: FontWeight.w600,
-    height: 24 / 14,
+    height: 22 / 13,
     color: AppColors.detailStatValue,
   );
 
   static const placeCardTitle = TextStyle(
     fontFamily: _inter,
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: FontWeight.w600,
-    height: 28 / 20,
+    height: 24 / 16,
     color: AppColors.detailStatValue,
   );
 }

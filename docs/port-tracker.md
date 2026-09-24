@@ -46,9 +46,10 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - For You split (Figma "Your next best move" / "Nearby and unclaimed"):
   the top card ("PRIMARY TARGET") shows one `for_you` promotion with its
   AD label, picked by `for_you_promotion()` (migration
-  `20260924150000`): local first (county of the live fix, else last
-  visited, else home county; then neighbouring counties), then priority,
-  then ties rotate at random per load. Before that RPC is deployed the app
+  `20260924150000`, reordered by `20260924160000`): the anchor county's
+  ads first (county of the live fix, else last visited, else home county),
+  then nearest county by centroid distance, then priority, then ties
+  rotate at random per load. The app waits up to 2.5 s for the fix. Before that RPC is deployed the app
   reads active rows directly and rotates among the top priority. It shows the place photo, county, summary and place stats; it
   opens Place Detail and Route goes to the place's coordinates. With no
   promotion it falls back to a saved / depth pick, else the nearest

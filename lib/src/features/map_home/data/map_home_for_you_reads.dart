@@ -39,8 +39,10 @@ class MapHomeForYouReads {
   /// home county), then priority, then ties take turns. The fix is only
   /// sent for that lookup and never stored (doc 05).
   Future<MapHomePromotedPlace?> promotion() async {
+    // The emulator's (and a cold phone's) first fix can take a couple of
+    // seconds; without it the picker anchors on the last visited county.
     final fix = await AppCurrentLocation.read(
-      timeout: const Duration(milliseconds: 1200),
+      timeout: const Duration(milliseconds: 2500),
     );
     final picked = await readOptional<List<dynamic>>(
       () => client

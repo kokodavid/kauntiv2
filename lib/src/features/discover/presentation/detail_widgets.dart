@@ -37,10 +37,16 @@ class DetailBackButton extends StatelessWidget {
 
 /// Small label over a bold value ("AREA / 9,462 KM²").
 class DetailStatFact extends StatelessWidget {
-  const DetailStatFact({super.key, required this.label, required this.value});
+  const DetailStatFact({
+    super.key,
+    required this.label,
+    required this.value,
+    this.maxLines = 1,
+  });
 
   final String label;
   final String value;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +56,7 @@ class DetailStatFact extends StatelessWidget {
         Text(label, style: AppTextStyles.detailStatLabel),
         Text(
           value,
-          maxLines: 1,
+          maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.detailStatValue,
         ),
@@ -60,13 +66,27 @@ class DetailStatFact extends StatelessWidget {
 }
 
 /// Bordered card of facts side by side; null values are left out.
+///
+/// Columns share the width by text length (so a long governor name gets
+/// more room than "Kaunti47"), with a gap between them; a value that still
+/// doesn't fit wraps to a second line before it's cut.
 class DetailFactCard extends StatelessWidget {
   const DetailFactCard({super.key, required this.facts});
 
   final List<(String, String?)> facts;
 
+  static const _gap = 12.0;
+
+  /// Width share for one fact: its longer text, within sensible bounds.
+  static int flexFor(String label, String value) =>
+      (label.length > value.length ? label.length : value.length).clamp(8, 24);
+
   @override
   Widget build(BuildContext context) {
+    final shown = [
+      for (final (label, value) in facts)
+        if (value != null) (label, value),
+    ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       decoration: BoxDecoration(
@@ -75,12 +95,15 @@ class DetailFactCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final (label, value) in facts)
-            if (value != null)
-              Expanded(
-                child: DetailStatFact(label: label, value: value),
-              ),
+          for (final (i, (label, value)) in shown.indexed) ...[
+            if (i > 0) const SizedBox(width: _gap),
+            Expanded(
+              flex: flexFor(label, value),
+              child: DetailStatFact(label: label, value: value, maxLines: 2),
+            ),
+          ],
         ],
       ),
     );

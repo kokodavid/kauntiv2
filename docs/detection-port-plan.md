@@ -6,7 +6,7 @@ machine, the offline visit queue and the arrival nudge. Source is v1
 lines) plus `counties/county_boundary_resolver.dart` and
 `counties/county_boundaries.dart`.
 
-Status: in progress (slice 1 on `codex/detection`). Update this file and `port-tracker.md` as
+Status: in progress (slices 1-2 on `codex/detection`). Update this file and `port-tracker.md` as
 slices land.
 
 ## What v1 does
@@ -89,11 +89,14 @@ Each slice is one PR-sized commit with tests and a tracker update.
    `VisitTimings` instead of v1's static environment switch), boundary
    resolver + polygons in `core/counties/`. Tests ported from v1 plus
    outside-Kenya and hysteresis cases.
-2. **Local store + repository.** Drift database and `DetectionRepository`
-   (owner binding, handleEvent, reconcileCurrentLocation, still-candidate
-   resolution, queued visits). Keep the database name `detection_queue`
-   and schema 2 so a phone upgrading from a v1 build keeps its unsynced
-   visits. Tests with an in-memory drift database.
+2. **Local store + repository.** Done: drift database (`detection_queue`,
+   schema 2, unchanged from v1 so upgrading phones keep unsynced visits),
+   `DetectionRepository` (owner binding, handleEvent, reconcile from a fix,
+   still-candidate resolution, speed sanity, sign-out clear) split with a
+   `detection_repository_reads.dart` part, `CountyDistance` in
+   `core/counties/`, and `@riverpod` providers (database, repository,
+   `visitTimings` overridden from the flavor in `buildAppRoot`). Tests with
+   an in-memory drift database, including the v1 schema-1 upgrade.
 3. **Sync queue.** `VisitSyncQueue` against `supabaseClientProvider`,
    backoff and rejection rules, user-change guard. After a successful
    drain, invalidate Explore's board (and reload Map Home) so a new badge

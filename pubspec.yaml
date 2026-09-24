@@ -52,6 +52,13 @@ dependencies:
   flutter_riverpod: ^3.0.0
   riverpod_annotation: ^3.0.0
 
+  # Detection's on-device visit queue (doc 01: a crossing is recorded
+  # locally first and synced when online). drift_flutter brings sqlite in
+  # transitively; don't pin sqlite3_flutter_libs (deprecated, it caused a
+  # solver conflict in v1).
+  drift: ^2.34.3
+  drift_flutter: ^0.3.1
+
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +73,9 @@ dev_dependencies:
 
   # Riverpod codegen + lints.
   build_runner: ^2.4.0
+  # drift's generated tables (part '*.g.dart'). ^2.34.0, not the newest
+  # patch: 2.34.6 needs a newer `meta` than the Flutter SDK pins (v1 note).
+  drift_dev: ^2.34.0
   riverpod_generator: ^3.0.0
   custom_lint: ^0.8.0
   riverpod_lint: ^3.0.0

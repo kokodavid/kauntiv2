@@ -31,7 +31,7 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
       client
           .from('counties')
           .select(
-            'year_established, population, area_km2, elevation_m, '
+            'capital, population, area_km2, elevation_m, '
             'governor_name, rarity_pct, highlight_image_url',
           )
           .eq('id', countyCode)
@@ -82,7 +82,10 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
       ], countyRow['rarity_pct'] as num?),
       highlightImageUrl: countyRow['highlight_image_url'] as String?,
       quickFacts: CountyQuickFacts(
-        yearEstablished: (countyRow['year_established'] as num?)?.toInt(),
+        headquarters: switch ((countyRow['capital'] as String?)?.trim()) {
+          final town? when town.isNotEmpty => town,
+          _ => null,
+        },
         population: (countyRow['population'] as num?)?.toInt(),
         areaKm2: countyRow['area_km2'] as num?,
         elevationM: countyRow['elevation_m'] as num?,

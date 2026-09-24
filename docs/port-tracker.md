@@ -47,6 +47,10 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   skeleton), then each slot crossfades to real data in place.
 - Supabase-backed visits, counties and recommendations
   (`SupabaseMapHomeRepository`).
+- County profile facts seed: `counties.area_km2`, `population`, `capital`
+  (county headquarters) and `governor_name` are seeded for all 47 counties
+  from official sources; `elevation_m` is the elevation at each county
+  headquarters town.
 
 **Deliberate differences from v1 (temporary)**
 
@@ -125,7 +129,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   photos) with back button, centred name and status chip ("NOT VISITED
   YET" / "PASSED THROUGH N TIMES" / "EXPLORED" / "LOCAL EXPERT"); title,
   Area / Elevation / Population, county shape (solid when explored, dashed
-  when not); blurb; Source / Established / Governor card; "Places to See"
+  when not); blurb; Source / Headquarters / Governor card (headquarters from `counties.capital`, replacing v1's "Established"); "Places to See"
   photo cards with save toggles.
 - Place Detail (Figma 235:7353): photo carousel with category pill, title,
   description, Source / Type card, Get Route (Google Maps directions) /
@@ -184,6 +188,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - County Detail (v2 addition): place filters above the place cards, "ALL ·
   N" then one pill per category the county's places have, in Explore's
   pill style.
+- County Detail quick facts now have seeded Area, Population, Governor,
+  headquarters/capital and headquarters elevation data for all 47 counties.
 
 **Differences from v1 (temporary)**
 
@@ -223,6 +229,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-24 | uncommitted | 4, 6 | Seed county profile facts for Area, Population, Governor, headquarters/capital and headquarters elevation |
 | 2026-09-24 | `b92317a` | 6 | Explore UNCLAIMED and SAVED (Wishlist): county save, ticks, in-place refresh |
 | 2026-09-24 | `0f2b6d4` | — | Generated Riverpod files (local build_runner) |
 | 2026-09-24 | `b5c589c` | 1, 2, 3, 6 | Explore tab (MINE) on Riverpod; `ProviderScope` + Supabase client provider; `AppTabShell` |
@@ -240,4 +247,3 @@ Newest first. One line per commit that moves a feature or changes tracking.
 | 2026-09-23 | `03a3fe3` | 3, 4 | Map Home shell and floating bottom nav |
 | 2026-09-23 | `489b83d` | 0 | Architecture guardrails, CI, review checklist |
 | 2026-09-23 | `e7824d5` | — | Import v2 baseline (onboarding + auth) |
-

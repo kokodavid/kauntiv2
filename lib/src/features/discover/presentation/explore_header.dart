@@ -4,7 +4,6 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/explore_board.dart';
 import 'explore_pill.dart';
-import 'explore_styles.dart';
 
 /// Explore's title row (v1 `_DiscoverTopBar`). v1's tier pill and avatar
 /// were hard-coded placeholders ("Tier 1", a gradient dot), so they wait

@@ -72,6 +72,7 @@ class _StartupGateState extends State<_StartupGate>
     WidgetsBinding.instance.addObserver(this);
   }
 
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);

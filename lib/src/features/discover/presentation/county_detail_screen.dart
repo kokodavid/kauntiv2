@@ -17,7 +17,7 @@ import 'place_photo_card.dart';
 /// County Detail (v2 Figma node 235:7261, ported from v1): photo carousel
 /// with back button, centred county name and the traveller's status chip;
 /// title, stats and the county shape; a short blurb; a Source /
-/// Established / Governor card; and "Places to See".
+/// Headquarters / Governor card; and "Places to See".
 class CountyDetailScreen extends StatelessWidget {
   const CountyDetailScreen({
     super.key,
@@ -108,7 +108,7 @@ class _CountyDetailBodyState extends State<_CountyDetailBody> {
               DetailFactCard(
                 facts: [
                   ('Source', 'Kaunti47'),
-                  ('Established', data.quickFacts.yearEstablished?.toString()),
+                  ('Headquarters', data.quickFacts.headquarters),
                   ('Governor', data.quickFacts.governorName),
                 ],
               ),

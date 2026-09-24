@@ -136,6 +136,8 @@ class _StartupGateState extends State<_StartupGate>
 
     return DetectionLifecycle(
       homeCountyCode: _selectedCounty?.code,
+      onOpenCounty: DetailRoutes.openCounty,
+      onOpenPlace: DetailRoutes.openPlace,
       child: AppTabShell(
       tabs: {
         AppNavTab.map: (_) => MapHomeScreen(

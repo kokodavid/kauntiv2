@@ -9,6 +9,7 @@ import 'package:kaunti47_v2/src/features/detection/data/detection_permission.dar
 import 'package:kaunti47_v2/src/features/detection/data/detection_repository.dart';
 import 'package:kaunti47_v2/src/features/detection/data/geofence_service.dart';
 import 'package:kaunti47_v2/src/features/detection/data/local/detection_database.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeGeofences implements GeofenceService {
   final registered = <(int, bool)>[];
@@ -63,6 +64,7 @@ void main() {
   }
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     db = DetectionDatabase.forTesting(NativeDatabase.memory());
     repo = DetectionRepository(db, userId: 'alice');
     geofences = _FakeGeofences();

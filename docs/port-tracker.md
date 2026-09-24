@@ -13,7 +13,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | Not started | | `ProviderScope` is wired at the root (`buildAppRoot`); auth/onboarding still setState. Split `app.dart` (414 lines, 16 setState calls) into router redirects and notifiers. V2 currently lacks v1's 3 how-it-works intro screens |
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/explore-tab | `AppTabShell`: IndexedStack tabs under the floating nav, lazy first build (v1 parity). Map + Explore live; Badges / Ranks show "coming next". go_router waits on #2 |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
-| 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | codex/detection | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-6 (rules, polygons, local store, sync queue, native geofencing, foreground cycle, background-permission pause) coded; needs a device test. Needs a real-device test |
+| 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | codex/detection | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 (rules, polygons, local store, sync queue, native geofencing, foreground cycle, background-permission pause, arrival sheet) coded; needs a device test. Needs a real-device test |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | codex/explore-tab | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | Not started | | |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |
@@ -280,6 +280,14 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-24 | slice 7 | 5 | Detection: arrival sheet ("You've crossed into X"), once per crossing, never the home county |
+| 2026-09-24 | `6115570` | 5 | Detection: pause and remove geofences when background location is lost; Home chip opens settings |
+| 2026-09-24 | `0e8b6a3` | 5 | Detection: foreground cycle (`DetectionController`, `DetectionLifecycle`) |
+| 2026-09-24 | `cfecd06` | 5 | Detection: native geofencing (`native_geofence`, rolling window, background callback) |
+| 2026-09-24 | `999063e` | 5 | Detection: visit sync queue |
+| 2026-09-24 | `9c19db3` | 5 | Detection: local visit store (drift `detection_queue`, schema 2) and repository |
+| 2026-09-24 | `7894964` | 5 | Detection: visit rules and county polygon lookup |
+| 2026-09-24 | `c481986` | 5 | Detection port plan |
 | 2026-09-24 | uncommitted | 6 | Discover previews pin active promoted places to the second slot and label them AD |
 | 2026-09-24 | uncommitted | 6 | Fix promoted-place edits to keep one active AD row per place |
 | 2026-09-24 | uncommitted | 6 | Add promoted-place table and dashboard RPC for AD placements |

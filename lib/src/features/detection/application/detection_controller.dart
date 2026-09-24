@@ -7,6 +7,7 @@ import '../../discover/application/explore_providers.dart';
 import '../data/detection_repository.dart';
 import '../data/geofence_service.dart';
 import '../domain/visit_models.dart';
+import 'arrival_nudge.dart';
 import 'detection_providers.dart';
 import 'visit_sync.dart';
 
@@ -53,7 +54,8 @@ class DetectionSnapshot {
 ///    missed becomes a normal exit / enter);
 /// 3. captures active candidates, then resolves any past the 2 h dwell;
 /// 4. uploads the queue;
-/// 5. re-registers the geofence window around the current county.
+/// 5. re-registers the geofence window around the current county;
+/// 6. offers the newest unseen crossing to the arrival sheet.
 ///
 /// Before any of that it checks background location. Without it the
 /// geofences are removed once, the queue still uploads, and the snapshot
@@ -105,6 +107,9 @@ class DetectionController extends _$DetectionController {
       if (entered != null || resolved.isNotEmpty) {
         ref.invalidate(exploreBoardProvider);
       }
+      await ref
+          .read(pendingArrivalNudgeProvider.notifier)
+          .offer(candidates, homeCountyCode: homeCountyCode);
       state = DetectionSnapshot(
         currentCounty: current,
         activeCandidates: candidates,

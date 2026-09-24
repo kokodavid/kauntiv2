@@ -6,7 +6,7 @@ machine, the offline visit queue and the arrival nudge. Source is v1
 lines) plus `counties/county_boundary_resolver.dart` and
 `counties/county_boundaries.dart`.
 
-Status: in progress (slices 1-5 on `codex/detection`; needs a device test). Update this file and `port-tracker.md` as
+Status: in progress (slices 1-7 on `codex/detection`; needs a device test). Update this file and `port-tracker.md` as
 slices land.
 
 ## What v1 does
@@ -138,8 +138,20 @@ Each slice is one PR-sized commit with tests and a tracker update.
    that opens the OS settings; the next resume re-checks and re-registers.
    Not ported: v1's manual-mode board and "Log a visit" (no manual logging
    in v2 yet).
-7. **Arrival nudge.** Port the arrival sheet onto Map Home with the shared
-   type scale, once per crossing, history cleared on sign-out.
+7. **Arrival nudge.** Done. `ArrivalNudgeRules` (domain) picks the
+   newest active candidate that isn't the home county and hasn't shown
+   the sheet (key `county@enteredAt`, v1's format). `ArrivalNudgeHistory`
+   keeps the shown keys in shared preferences under v1's key (capped at
+   200), so an upgraded phone doesn't re-show old crossings.
+   `PendingArrivalNudge` is offered the candidates at the end of each
+   cycle and loads the county first, so the sheet opens complete; a failed
+   load is retried next cycle. `DetectionLifecycle` shows the sheet over
+   whichever tab is open (v1 listened on Home, which stays mounted) and
+   marks it shown. The sheet is v1's layout on the shared type scale, in
+   sentence case: county shape, "N worth the detour.", four places (saved
+   first, save toggles through Explore's saved places), "All N places in
+   X →", the privacy note, Explore / Dismiss. Left: call
+   `ArrivalNudgeHistory.clear()` on sign-out, with the rest of that wiring.
 8. **Offline extras.** Offline status strip and legacy visit recovery, or
    fold into the broader offline work if that lands first.
 

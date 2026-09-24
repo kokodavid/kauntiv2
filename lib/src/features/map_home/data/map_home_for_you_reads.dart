@@ -27,8 +27,8 @@ class MapHomeForYouReads {
 
   static const _timeout = Duration(seconds: 8);
 
-  /// How many unclaimed counties the row shows.
-  static const unclaimedRowLength = 10;
+  /// One more than the row shows, in case the top card takes one.
+  static const unclaimedRowLength = MapHomeBoardData.maxUnclaimedCards + 1;
 
   /// The active `for_you` promotion with the highest priority (RLS only
   /// returns rows inside their start/end window and not deactivated).

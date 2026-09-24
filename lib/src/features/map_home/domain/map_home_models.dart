@@ -109,7 +109,12 @@ class MapHomeBoardData {
       unclaimed.firstOrNull ??
       suggestions.firstOrNull;
 
-  /// "Nearby and unclaimed", minus any county already on the top card.
+  /// The most counties "Nearby and unclaimed" shows; "All N left" opens
+  /// the rest in Explore.
+  static const maxUnclaimedCards = 6;
+
+  /// "Nearby and unclaimed": up to [maxUnclaimedCards], minus any county
+  /// already on the top card.
   List<MapHomeSuggestion> get unclaimedRow {
     final top = promotion == null ? fallbackTop : null;
     return [
@@ -118,7 +123,7 @@ class MapHomeBoardData {
             top.reason != MapHomeSuggestionReason.unclaimed ||
             entry.county.code != top.county.code)
           entry,
-    ];
+    ].take(maxUnclaimedCards).toList();
   }
 
   int get exploredCount => countyBadges

@@ -49,8 +49,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   with its AD label, the place photo, county, summary and place stats; it
   opens Place Detail and Route goes to the place's coordinates. With no
   promotion it falls back to a saved / depth pick, else the nearest
-  unclaimed county. Below, "NEXT FOR YOU / Nearby and unclaimed" lists the
-  10 nearest unclaimed counties (`discover_unclaimed_counties()`, county
+  unclaimed county. Below, "NEXT FOR YOU / Nearby and unclaimed" lists at
+  most 6 nearest unclaimed counties (`discover_unclaimed_counties()`, county
   photo, distance, Unclaimed pill, Route) and "All N left ›" opens
   Explore's UNCLAIMED tab (`AppTabShell.select`, keep-alive tab provider).
   Promotion impressions/taps aren't reported yet.

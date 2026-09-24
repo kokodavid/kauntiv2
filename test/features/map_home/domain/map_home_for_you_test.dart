@@ -73,4 +73,18 @@ void main() {
     );
     expect(promo.directionsQuery, 'Lodge, ${county.name} County, Kenya');
   });
+
+  test('the row shows at most six counties', () {
+    final board = _board(
+      unclaimed: [for (var code = 1; code <= 7; code++) _s(code, unclaimed)],
+      promotion: MapHomePromotedPlace(
+        placeId: 'p',
+        placeName: 'Lodge',
+        county: CountyPaths.byCode[20]!,
+        disclosureLabel: 'AD',
+        sponsorName: 'Lodge Ltd',
+      ),
+    );
+    expect(board.unclaimedRow, hasLength(MapHomeBoardData.maxUnclaimedCards));
+  });
 }

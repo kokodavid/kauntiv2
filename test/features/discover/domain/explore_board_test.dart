@@ -131,7 +131,7 @@ void main() {
           distanceLabel: '45 km away',
           headquarters: 'Kerugoya',
         ).statusLine,
-        '45 KM AWAY',
+        '45 km away',
       );
       expect(
         ExploreUnclaimedCounty(
@@ -141,7 +141,7 @@ void main() {
           placeCount: 0,
           headquarters: 'Kerugoya',
         ).statusLine,
-        'HQ · KERUGOYA',
+        'HQ · Kerugoya',
       );
     });
 

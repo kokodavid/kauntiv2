@@ -199,7 +199,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   "CLOSEST ONE YOU DON'T HAVE" card (county photo with name and blurb, or the
   dashed shape, distance and blurb), with "See what's there" (County Detail)
   and a county Save / Saved toggle. The rest are accordions: rarity line
-  (rarity once tracked; until then distance, "45 KM AWAY", else "HQ ·
+  (rarity once tracked; until then distance, "45 km away", else "HQ ·
   <town>" from `counties.capital`), blurb, three places,
   "SEE FULL COUNTY PAGE →". Then the rarity note card.
 - SAVED (Wishlist): "N PLACES SAVED ACROSS M COUNTIES", county groups (most

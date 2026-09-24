@@ -48,11 +48,11 @@ class ExploreUnclaimedCounty {
   };
 
   /// The accordion's status line. Rarity when it's tracked; until then
-  /// distance ("45 KM AWAY"), else the headquarters town ("HQ · KERUGOYA").
+  /// distance ("45 km away"), else the headquarters town ("HQ · Kerugoya").
   String get statusLine {
     if (percentHaveBeen != null) return rarityLabel;
-    if (distanceLabel case final distance?) return distance.toUpperCase();
-    if (headquarters case final town?) return 'HQ · ${town.toUpperCase()}';
+    if (distanceLabel case final distance?) return distance;
+    if (headquarters case final town?) return 'HQ · $town';
     return rarityLabel;
   }
 

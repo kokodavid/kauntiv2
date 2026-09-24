@@ -6,7 +6,7 @@ machine, the offline visit queue and the arrival nudge. Source is v1
 lines) plus `counties/county_boundary_resolver.dart` and
 `counties/county_boundaries.dart`.
 
-Status: in progress (slices 1-2 on `codex/detection`). Update this file and `port-tracker.md` as
+Status: in progress (slices 1-3 on `codex/detection`). Update this file and `port-tracker.md` as
 slices land.
 
 ## What v1 does
@@ -97,10 +97,14 @@ Each slice is one PR-sized commit with tests and a tracker update.
    `core/counties/`, and `@riverpod` providers (database, repository,
    `visitTimings` overridden from the flavor in `buildAppRoot`). Tests with
    an in-memory drift database, including the v1 schema-1 upgrade.
-3. **Sync queue.** `VisitSyncQueue` against `supabaseClientProvider`,
-   backoff and rejection rules, user-change guard. After a successful
-   drain, invalidate Explore's board (and reload Map Home) so a new badge
-   shows without a restart. Tests with fakes.
+3. **Sync queue.** Done: `VisitSyncQueue` (oldest first, owner-only,
+   15 s → 15 min backoff that stops the drain, a day's wait for permanent
+   rejections, user-change guard, shared concurrent drains) with an
+   injectable upload and `VisitSyncQueue.supabase` for `sync_county_visit`.
+   `VisitSync` notifier drains and reloads Explore's board; its count lets
+   other screens react. v1's confirmed-visits cache (`AppOffline`) is left
+   for the offline slice. Map Home still loads through a plain loader, so
+   it reloads on its next load until it moves to Riverpod.
 4. **Native geofencing.** Add `native_geofence`; Android manifest
    receivers/services, boot receiver and permissions; iOS background
    location mode. `GeofenceService` (rolling window) and the background

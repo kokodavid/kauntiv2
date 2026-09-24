@@ -61,7 +61,7 @@ class MapHomeSuggestionPhotoHeader extends StatelessWidget {
             ),
           Positioned(
             left: 12,
-            right: trailing == null ? 72 : 120,
+            right: trailing == null ? 72 : 100,
             bottom: 12,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,16 +120,19 @@ class MapHomeRouteButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+          padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Route',
-                style: AppTypeScale.action.copyWith(color: Colors.white),
+                style: AppTypeScale.action.copyWith(
+                  fontSize: AppTypeScale.smallSize,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(width: 2),
-              const Icon(Icons.chevron_right, size: 18, color: Colors.white),
+              const Icon(Icons.chevron_right, size: 16, color: Colors.white),
             ],
           ),
         ),

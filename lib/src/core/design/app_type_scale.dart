@@ -14,7 +14,8 @@ abstract final class AppTypeScale {
 
   // Sizes.
   static const sectionTitleSize = 18.0;
-  static const photoTitleSize = 18.0;
+  static const photoTitleSize = 16.0;
+  static const compactTitleSize = 15.0;
   static const cardTitleSize = 16.0;
   static const itemTitleSize = 14.0;
   static const bodySize = 13.0;
@@ -23,6 +24,7 @@ abstract final class AppTypeScale {
   static const smallSize = 12.0;
   static const pillSize = 11.5;
   static const metaSize = 11.0;
+  static const captionSize = 11.0;
   static const labelSize = 10.0;
 
   // Letter spacing for uppercase text.
@@ -119,6 +121,30 @@ abstract final class AppTypeScale {
     color: AppColors.detailStatValue,
   );
 
+  /// Compact cards (Home's For You): a tighter title and stat pair.
+  static const compactTitle = TextStyle(
+    fontFamily: family,
+    fontSize: compactTitleSize,
+    fontWeight: FontWeight.w600,
+    height: 20 / 15,
+    color: AppColors.foreground,
+  );
+
+  static const compactStatValue = TextStyle(
+    fontFamily: family,
+    fontSize: smallSize,
+    fontWeight: FontWeight.w600,
+    height: 17 / 12,
+    color: AppColors.detailStatValue,
+  );
+
+  static const compactStatLabel = TextStyle(
+    fontFamily: family,
+    fontSize: labelSize,
+    height: 14 / 10,
+    color: AppColors.detailStatLabel,
+  );
+
   static const statLabel = TextStyle(
     fontFamily: family,
     fontSize: labelSize,
@@ -131,15 +157,15 @@ abstract final class AppTypeScale {
     fontFamily: family,
     fontSize: photoTitleSize,
     fontWeight: FontWeight.w600,
-    height: 24 / 18,
+    height: 22 / 16,
     color: Color(0xFFFFFFFF),
   );
 
   /// Captions over a photo (location, distance, reason pills).
   static const photoCaption = TextStyle(
     fontFamily: family,
-    fontSize: smallSize,
-    height: 16 / 12,
+    fontSize: captionSize,
+    height: 15 / 11,
     color: AppColors.heroSubheadingText,
   );
 }

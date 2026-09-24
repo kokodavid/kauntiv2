@@ -40,8 +40,9 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Shared content type scale: `core/design/app_type_scale.dart`
   (`AppTypeScale`, Inter tuned ~10% below v1's DM Sans sizes) now drives
   For You, the quest card, Explore (`ExploreStyles`) and the detail pages'
-  body / section / stat styles. For You: section label 10/w600, photo
-  titles 18, card title 16, body 13, stats 13/10, Route 13.
+  body / section / stat styles. Photo titles 16 / captions 11 everywhere.
+  The featured For You card uses the compact set (title 15, reason 12,
+  stats 12/10, Route 12) with a 136px photo and a 72px county tile.
 - For You featured card redesigned (Figma "Your next best move"): inset
   photo with place/county name and a glass Route button; below, "<County>
   County", reason · distance, Area / Elevation / Duration and the county

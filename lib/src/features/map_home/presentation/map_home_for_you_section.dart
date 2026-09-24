@@ -97,7 +97,7 @@ class MapHomeForYouSkeleton extends StatelessWidget {
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MapHomeSkeletonBlock(height: 168, radius: 20),
+              MapHomeSkeletonBlock(height: 136, radius: 20),
               Padding(
                 padding: EdgeInsets.all(14),
                 child: Column(

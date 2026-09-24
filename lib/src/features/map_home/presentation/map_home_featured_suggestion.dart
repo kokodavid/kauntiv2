@@ -46,7 +46,7 @@ class MapHomeFeaturedSuggestion extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               child: MapHomeSuggestionPhotoHeader(
                 suggestion: suggestion,
-                height: 168,
+                height: 136,
                 showReasonPill: false,
                 trailing: route == null
                     ? null
@@ -57,7 +57,7 @@ class MapHomeFeaturedSuggestion extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 8, 10),
+              padding: const EdgeInsets.fromLTRB(10, 10, 6, 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -92,19 +92,19 @@ class _Details extends StatelessWidget {
           '${suggestion.county.name} County',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTypeScale.cardTitle,
+          style: AppTypeScale.compactTitle,
         ),
         const SizedBox(height: 2),
         Text(
           '${suggestion.reasonLabel} · ${suggestion.distanceAway}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: AppTypeScale.body,
+          style: AppTypeScale.small,
         ),
         if (stats.isNotEmpty) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           const Divider(height: 1, color: AppColors.trackInactive),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Row(
             children: [
               for (final (i, stat) in stats.indexed) ...[
@@ -117,9 +117,9 @@ class _Details extends StatelessWidget {
                         stat.value,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTypeScale.statValue,
+                        style: AppTypeScale.compactStatValue,
                       ),
-                      Text(stat.label, style: AppTypeScale.statLabel),
+                      Text(stat.label, style: AppTypeScale.compactStatLabel),
                     ],
                   ),
                 ),
@@ -141,13 +141,13 @@ class _CountyTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 96,
-      height: 96,
-      padding: const EdgeInsets.all(16),
+      width: 72,
+      height: 72,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: AppColors.countyShapeCardBorder),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: AppCountyShape(
         county: suggestion.county,

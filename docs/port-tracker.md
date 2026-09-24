@@ -129,7 +129,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   photos) with back button, centred name and status chip ("NOT VISITED
   YET" / "PASSED THROUGH N TIMES" / "EXPLORED" / "LOCAL EXPERT"); title,
   Area / Elevation / Population, county shape (solid when explored, dashed
-  when not); blurb; Source / Headquarters / Governor card (headquarters from `counties.capital`, replacing v1's "Established"); "Places to See"
+  when not); blurb; Governor / Headquarters / Source card (headquarters from `counties.capital`, replacing v1's "Established"); "Places to See"
   photo cards with save toggles.
 - Place Detail (Figma 235:7353): photo carousel with category pill, title,
   description, Source / Type card, Get Route (Google Maps directions) /

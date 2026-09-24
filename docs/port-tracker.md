@@ -221,8 +221,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   app_feature_card.dart`, same as Home's For You): county photo, rarity or
   distance, blurb, Area / Elevation / Duration, county shape; Route opens
   directions to the county on MINE; tapping opens County Detail. The
-  UNCLAIMED card has no photo buttons: its caption is "HQ · <town>" and
-  distance joins the stats (Area / Elevation / Distance). Saving a whole
+  UNCLAIMED card's photo is bare apart from its label (no name, caption
+  or buttons); its stats read Area / Elevation / Distance / HQ. Saving a whole
   county has no button in Explore for now. The MINE card's two place rows and "ALL N PLACES"
   link and UNCLAIMED's "See what's there" button are gone (County Detail
   has them).

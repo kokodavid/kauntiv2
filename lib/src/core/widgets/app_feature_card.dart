@@ -15,8 +15,8 @@ class AppFeatureCard extends StatelessWidget {
   const AppFeatureCard({
     super.key,
     required this.county,
-    required this.photoTitle,
-    required this.photoCaption,
+    this.photoTitle,
+    this.photoCaption,
     required this.line,
     required this.stats,
     required this.onTap,
@@ -26,8 +26,9 @@ class AppFeatureCard extends StatelessWidget {
   });
 
   final CountyPath county;
-  final String photoTitle;
-  final String photoCaption;
+  /// Title and pinned caption on the photo; the photo is bare when null.
+  final String? photoTitle;
+  final String? photoCaption;
   final String? photoUrl;
 
   /// Top-left label on the photo ("AD", "JUST UNLOCKED").

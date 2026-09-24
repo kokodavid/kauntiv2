@@ -27,7 +27,7 @@ void main() {
   final board = ExploreBoard(
     featuredUnlock: ExploreFeaturedUnlock(
       county: mombasa,
-      rarityLabel: 'RARITY NOT TRACKED YET',
+      rarityLabel: 'Rarity not tracked yet',
       previewPlaces: [_place('a', 'Fort Jesus')],
       totalPlaceCount: 1,
     ),
@@ -62,19 +62,19 @@ void main() {
 
   group('ExploreLabels', () {
     test('rarity shows the gap when not tracked', () {
-      expect(ExploreLabels.rarity(null), 'RARITY NOT TRACKED YET');
-      expect(ExploreLabels.rarity(4.4), 'ONLY 4% HAVE BEEN HERE');
-      expect(ExploreLabels.rarity(12), '12% HAVE BEEN HERE');
+      expect(ExploreLabels.rarity(null), 'Rarity not tracked yet');
+      expect(ExploreLabels.rarity(4.4), 'Only 4% have been here');
+      expect(ExploreLabels.rarity(12), '12% have been here');
     });
 
     test('mine status', () {
       expect(
         ExploreLabels.mineStatus(isLocalExpert: true, visits: 3),
-        'LOCAL EXPERT · 3 VISITS',
+        'Local expert · 3 visits',
       );
       expect(
         ExploreLabels.mineStatus(isLocalExpert: false, visits: 3),
-        'EXPLORED',
+        'Explored',
       );
     });
 
@@ -121,7 +121,7 @@ void main() {
     });
 
     test('status line: rarity, else distance, else headquarters', () {
-      expect(entry(1, percent: 3).statusLine, 'ONLY 3% HAVE BEEN');
+      expect(entry(1, percent: 3).statusLine, 'Only 3% have been');
       expect(
         ExploreUnclaimedCounty(
           county: CountyPaths.byCode[1]!,
@@ -146,9 +146,9 @@ void main() {
     });
 
     test('rarity label', () {
-      expect(entry(1).rarityLabel, 'RARITY NOT TRACKED YET');
-      expect(entry(1, percent: 3).rarityLabel, 'ONLY 3% HAVE BEEN');
-      expect(entry(1, percent: 30).rarityLabel, '30% HAVE BEEN');
+      expect(entry(1).rarityLabel, 'Rarity not tracked yet');
+      expect(entry(1, percent: 3).rarityLabel, 'Only 3% have been');
+      expect(entry(1, percent: 30).rarityLabel, '30% have been');
     });
 
     test('search also matches the blurb', () {

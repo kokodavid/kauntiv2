@@ -41,10 +41,10 @@ class ExploreUnclaimedCounty {
 
   bool get isRare => percentHaveBeen != null && percentHaveBeen! <= 5;
 
-  /// "ONLY 3% HAVE BEEN", "12% HAVE BEEN" or "RARITY NOT TRACKED YET".
+  /// "Only 3% have been", "12% have been" or "Rarity not tracked yet".
   String get rarityLabel => switch (percentHaveBeen) {
-    null => 'RARITY NOT TRACKED YET',
-    final percent => '${isRare ? 'ONLY ' : ''}$percent% HAVE BEEN',
+    null => 'Rarity not tracked yet',
+    final percent => isRare ? 'Only $percent% have been' : '$percent% have been',
   };
 
   /// The accordion's status line. Rarity when it's tracked; until then

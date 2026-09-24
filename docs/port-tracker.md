@@ -184,14 +184,15 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - MINE: "JUST UNLOCKED" card for the newest explored county (rarity line,
   two places, "ALL N PLACES IN …" opens County Detail), then the other
   explored counties listed straight below it, newest first, as accordions
-  (first open, "EXPLORED" or "LOCAL EXPERT · N VISITS", three places, "SEE
+  (first open, "Explored" or "Local expert · N visits", three places, "SEE
   FULL COUNTY PAGE →"). v1's "MINE / Nearby and unclaimed" heading is
   dropped (it described UNCLAIMED, not MINE). Empty card for a new traveller; "Nothing
   matches" for an empty search.
 - Place rows open Place Detail and save to `wishlist_items` (optimistic,
   reverts with a note on failure).
 - Data: `discover_mine_counties()`, `places` with first image, `wishlist_items`,
-  `counties.rarity_pct` (read separately; "RARITY NOT TRACKED YET" when null).
+  `counties.rarity_pct` (read separately; "Rarity not tracked yet" when null). Status lines
+  across MINE / UNCLAIMED / SAVED are sentence case.
   Distances are straight-line from one foreground fix (1.2 s budget, never
   stored).
 - UNCLAIMED: counties with no explored visit, nearest first (live fix, else

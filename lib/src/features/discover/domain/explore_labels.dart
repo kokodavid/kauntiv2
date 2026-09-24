@@ -5,18 +5,18 @@ abstract final class ExploreLabels {
   /// `counties.rarity_pct` is null until a real rarity job runs; that gap
   /// is shown, not filled with an invented percentage.
   static String rarity(num? percent) {
-    if (percent == null) return 'RARITY NOT TRACKED YET';
+    if (percent == null) return 'Rarity not tracked yet';
     final rounded = percent.round();
     return rounded <= 5
-        ? 'ONLY $rounded% HAVE BEEN HERE'
-        : '$rounded% HAVE BEEN HERE';
+        ? 'Only $rounded% have been here'
+        : '$rounded% have been here';
   }
 
-  /// "LOCAL EXPERT · N VISITS" or "EXPLORED".
+  /// "Local expert · N visits" or "Explored".
   static String mineStatus({
     required bool isLocalExpert,
     required int visits,
-  }) => isLocalExpert ? 'LOCAL EXPERT · $visits VISITS' : 'EXPLORED';
+  }) => isLocalExpert ? 'Local expert · $visits visits' : 'Explored';
 
   /// Straight-line distance only: there's no routing step, so no
   /// drive-time copy is generated.

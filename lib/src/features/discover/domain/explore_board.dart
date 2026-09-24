@@ -76,7 +76,7 @@ class ExploreFeaturedUnlock {
 
   final CountyPath county;
 
-  /// Rarity when tracked, else "RARITY NOT TRACKED YET".
+  /// Rarity when tracked, else "Rarity not tracked yet".
   final String rarityLabel;
 
   /// County headquarters town (`counties.capital`).
@@ -108,7 +108,7 @@ class ExploreMineCounty {
 
   final CountyPath county;
 
-  /// "EXPLORED" or "LOCAL EXPERT · N VISITS".
+  /// "Explored" or "Local expert · N visits".
   final String statusLabel;
   final int placeCount;
   final bool isLocalExpert;

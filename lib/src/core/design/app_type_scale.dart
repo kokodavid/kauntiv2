@@ -84,7 +84,7 @@ abstract final class AppTypeScale {
     color: AppColors.mutedForeground,
   );
 
-  /// Uppercase status lines ("EXPLORED", "RARITY NOT TRACKED YET").
+  /// Status lines under a card title ("Explored", "45 km away").
   static const meta = TextStyle(
     fontFamily: family,
     fontSize: metaSize,

@@ -14,6 +14,7 @@ class ExploreUnclaimedCounty {
     this.isSavedAlone = false,
     this.highlightImageUrl,
     this.facts = noCountyFacts,
+    this.headquarters,
   });
 
   final CountyPath county;
@@ -35,6 +36,9 @@ class ExploreUnclaimedCounty {
   final String? highlightImageUrl;
   final ExploreCountyFacts facts;
 
+  /// County headquarters town (`counties.capital`).
+  final String? headquarters;
+
   bool get isRare => percentHaveBeen != null && percentHaveBeen! <= 5;
 
   /// "ONLY 3% HAVE BEEN", "12% HAVE BEEN" or "RARITY NOT TRACKED YET".
@@ -42,6 +46,15 @@ class ExploreUnclaimedCounty {
     null => 'RARITY NOT TRACKED YET',
     final percent => '${isRare ? 'ONLY ' : ''}$percent% HAVE BEEN',
   };
+
+  /// The accordion's status line. Rarity when it's tracked; until then
+  /// distance ("45 KM AWAY"), else the headquarters town ("HQ · KERUGOYA").
+  String get statusLine {
+    if (percentHaveBeen != null) return rarityLabel;
+    if (distanceLabel case final distance?) return distance.toUpperCase();
+    if (headquarters case final town?) return 'HQ · ${town.toUpperCase()}';
+    return rarityLabel;
+  }
 
   /// Nearest first; counties with no distance go last, in their
   /// original order.

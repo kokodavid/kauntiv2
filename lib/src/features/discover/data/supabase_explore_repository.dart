@@ -62,6 +62,7 @@ class SupabaseExploreRepository implements ExploreRepository {
       _countyColumn('rarity_pct'),
       _countyColumn('highlight_image_url'),
       _countyFacts(),
+      _countyColumn('capital'),
     ]);
     final location = await locationFuture;
 
@@ -95,6 +96,7 @@ class SupabaseExploreRepository implements ExploreRepository {
     final rarity = results[3]! as Map<int, Object?>;
     final photos = results[4]! as Map<int, Object?>;
     final facts = results[5]! as Map<int, ExploreCountyFacts>;
+    final headquarters = results[6]! as Map<int, Object?>;
     List<String> placeNames(int code) => [
       for (final place in placesByCounty[code] ?? const [])
         place['name'] as String,
@@ -122,6 +124,7 @@ class SupabaseExploreRepository implements ExploreRepository {
               blurb: ExploreLabels.blurb(placeNames(featuredCode)),
               highlightImageUrl: photos[featuredCode] as String?,
               facts: facts[featuredCode] ?? noCountyFacts,
+              headquarters: headquarters[featuredCode] as String?,
               previewPlaces: preview(featuredCode),
               totalPlaceCount: placeCount(featuredCode),
             ),
@@ -153,6 +156,7 @@ class SupabaseExploreRepository implements ExploreRepository {
               isSavedAlone: savedAloneCounties.contains(_code(row)),
               highlightImageUrl: photos[_code(row)] as String?,
               facts: facts[_code(row)] ?? noCountyFacts,
+              headquarters: headquarters[_code(row)] as String?,
             ),
       ]),
       saved: ExploreRows.savedGroups(

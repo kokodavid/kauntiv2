@@ -1,5 +1,6 @@
 import '../../../core/domain/app_stat_format.dart';
 import '../../../counties/county_paths.dart';
+import 'explore_labels.dart';
 import 'explore_lists.dart';
 import 'place_category.dart';
 
@@ -70,10 +71,22 @@ class ExploreFeaturedUnlock {
     this.blurb = '',
     this.highlightImageUrl,
     this.facts = noCountyFacts,
+    this.headquarters,
   });
 
   final CountyPath county;
+
+  /// Rarity when tracked, else "RARITY NOT TRACKED YET".
   final String rarityLabel;
+
+  /// County headquarters town (`counties.capital`).
+  final String? headquarters;
+
+  /// The photo caption: rarity when tracked, else the headquarters town.
+  String get caption => rarityLabel == ExploreLabels.rarity(null) &&
+          headquarters != null
+      ? 'HQ · $headquarters'
+      : rarityLabel;
   final List<ExplorePlace> previewPlaces;
   final int totalPlaceCount;
 

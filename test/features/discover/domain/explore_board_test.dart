@@ -120,6 +120,31 @@ void main() {
       expect(sorted.map((e) => e.county.code), [4, 2, 1, 3]);
     });
 
+    test('status line: rarity, else distance, else headquarters', () {
+      expect(entry(1, percent: 3).statusLine, 'ONLY 3% HAVE BEEN');
+      expect(
+        ExploreUnclaimedCounty(
+          county: CountyPaths.byCode[1]!,
+          blurb: '',
+          percentHaveBeen: null,
+          placeCount: 0,
+          distanceLabel: '45 km away',
+          headquarters: 'Kerugoya',
+        ).statusLine,
+        '45 KM AWAY',
+      );
+      expect(
+        ExploreUnclaimedCounty(
+          county: CountyPaths.byCode[1]!,
+          blurb: '',
+          percentHaveBeen: null,
+          placeCount: 0,
+          headquarters: 'Kerugoya',
+        ).statusLine,
+        'HQ · KERUGOYA',
+      );
+    });
+
     test('rarity label', () {
       expect(entry(1).rarityLabel, 'RARITY NOT TRACKED YET');
       expect(entry(1, percent: 3).rarityLabel, 'ONLY 3% HAVE BEEN');

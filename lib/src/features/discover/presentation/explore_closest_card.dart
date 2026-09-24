@@ -54,7 +54,10 @@ class ExploreClosestCard extends ConsumerWidget {
       county: entry.county,
       label: "CLOSEST ONE YOU DON'T HAVE",
       photoTitle: entry.county.name,
-      photoCaption: entry.distanceLabel ?? entry.rarityLabel,
+      photoCaption: entry.distanceLabel ??
+          (entry.headquarters == null
+              ? entry.rarityLabel
+              : 'HQ · ${entry.headquarters}'),
       photoUrl: entry.highlightImageUrl,
       line: entry.blurb,
       stats: exploreCountyStats(entry.facts),

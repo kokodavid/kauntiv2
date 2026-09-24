@@ -42,7 +42,7 @@ class ExploreUnclaimedTab extends StatelessWidget {
               ExploreCountyCard(
                 key: ValueKey(counties[i].county.code),
                 county: counties[i].county,
-                statusLabel: counties[i].rarityLabel,
+                statusLabel: counties[i].statusLine,
                 placeCount: counties[i].placeCount,
                 child: _CountyBody(
                   entry: counties[i],

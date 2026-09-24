@@ -94,7 +94,7 @@ class _FeaturedUnlockCard extends StatelessWidget {
       county: unlock.county,
       label: 'JUST UNLOCKED',
       photoTitle: unlock.county.name,
-      photoCaption: unlock.rarityLabel,
+      photoCaption: unlock.caption,
       photoUrl: unlock.highlightImageUrl,
       line: unlock.blurb,
       stats: exploreCountyStats(unlock.facts),

@@ -16,9 +16,9 @@ class AppPhotoHeader extends StatelessWidget {
   const AppPhotoHeader({
     super.key,
     required this.county,
+    required this.title,
+    required this.caption,
     required this.height,
-    this.title,
-    this.caption,
     this.imageUrl,
     this.topLeft,
     this.bottomRight,
@@ -26,9 +26,8 @@ class AppPhotoHeader extends StatelessWidget {
   });
 
   final CountyPath county;
-  /// Bottom-left title and pinned caption; left out when null.
-  final String? title;
-  final String? caption;
+  final String title;
+  final String caption;
   final double height;
   final String? imageUrl;
   final Widget? topLeft;
@@ -66,7 +65,6 @@ class AppPhotoHeader extends StatelessWidget {
           ),
           if (topLeft case final pill?)
             Positioned(top: 10, left: 10, child: pill),
-          if (title != null)
           Positioned(
             left: 12,
             right: bottomRight == null ? 12 : titleRightInset,
@@ -76,7 +74,7 @@ class AppPhotoHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  title!,
+                  title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypeScale.photoTitle,
@@ -92,7 +90,7 @@ class AppPhotoHeader extends StatelessWidget {
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
-                        caption ?? '',
+                        caption,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypeScale.photoCaption,

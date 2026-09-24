@@ -7,8 +7,8 @@ import '../domain/explore_lists.dart';
 import 'explore_place_row.dart';
 
 /// UNCLAIMED's featured card, "CLOSEST ONE YOU DON'T HAVE", in the shared
-/// feature-card design: a bare county photo with the label, then the
-/// blurb and Area / Elevation / Distance / HQ. Tapping opens County Detail.
+/// feature-card design: county photo and headquarters, blurb, and Area /
+/// Elevation / Distance. Tapping opens County Detail.
 class ExploreClosestCard extends StatelessWidget {
   const ExploreClosestCard({super.key, required this.entry, this.onOpenCounty});
 
@@ -22,13 +22,16 @@ class ExploreClosestCard extends StatelessWidget {
     return AppFeatureCard(
       county: entry.county,
       label: "CLOSEST ONE YOU DON'T HAVE",
+      photoTitle: entry.county.name,
+      photoCaption: entry.headquarters == null
+          ? '${entry.county.name} County'
+          : 'HQ · ${entry.headquarters}',
       photoUrl: entry.highlightImageUrl,
       line: entry.blurb,
       stats: [
         ...exploreCountyStats(entry.facts),
         if (meters != null)
           (value: AppStatFormat.distance(meters), label: 'Distance'),
-        if (entry.headquarters case final town?) (value: town, label: 'HQ'),
       ],
       onTap: () => open?.call(context, entry.county.code),
     );

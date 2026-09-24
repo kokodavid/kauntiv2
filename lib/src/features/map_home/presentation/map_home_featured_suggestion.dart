@@ -1,35 +1,94 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/map_home_models.dart';
+import '../domain/map_home_promotion.dart';
 import 'map_home_links.dart';
 import 'map_home_suggestion_media.dart';
 
-/// For You's featured card ("Your next best move"): an inset photo with
-/// the place (or county) name and a Route button; below it the county,
-/// why it's suggested and how far, its stats, and the county shape.
-class MapHomeFeaturedSuggestion extends StatelessWidget {
-  const MapHomeFeaturedSuggestion({
+/// For You's top card ("Your next best move"): an inset photo with a
+/// title and a Route button; below it the county, one line of context,
+/// stats and the county shape. Shows the active promoted place (with its
+/// AD label) or, when nothing is promoted, the best suggestion.
+class MapHomeFeatureCard extends StatelessWidget {
+  const MapHomeFeatureCard({
     super.key,
-    required this.suggestion,
-    this.onOpenCounty,
+    required this.county,
+    required this.photoTitle,
+    required this.photoCaption,
+    required this.line,
+    required this.stats,
+    required this.destination,
+    required this.onTap,
+    this.photoUrl,
+    this.disclosureLabel,
     this.onRoute,
   });
 
-  final MapHomeSuggestion suggestion;
-  final OpenCountyDetail? onOpenCounty;
+  /// The promoted place: opens Place Detail when that link is wired.
+  factory MapHomeFeatureCard.promotion(
+    MapHomePromotedPlace promotion, {
+    OpenPlaceDetail? onOpenPlace,
+    OpenCountyDetail? onOpenCounty,
+    OpenDirections? onRoute,
+  }) => MapHomeFeatureCard(
+    county: promotion.county,
+    photoTitle: promotion.placeName,
+    photoCaption: '${promotion.county.name} County',
+    photoUrl: promotion.photoUrl,
+    disclosureLabel: promotion.disclosureLabel,
+    line: promotion.summary ?? 'Sponsored by ${promotion.sponsorName}',
+    stats: promotion.stats,
+    destination: promotion.directionsQuery,
+    onRoute: onRoute,
+    onTap: (context) => onOpenPlace != null
+        ? onOpenPlace(context, promotion.placeId)
+        : openCountyOrNote(context, promotion.county, onOpenCounty),
+  );
+
+  /// A For You suggestion: opens County Detail.
+  factory MapHomeFeatureCard.suggestion(
+    MapHomeSuggestion suggestion, {
+    OpenCountyDetail? onOpenCounty,
+    OpenDirections? onRoute,
+  }) => MapHomeFeatureCard(
+    county: suggestion.county,
+    photoTitle: suggestion.title,
+    photoCaption: suggestion.placeName == null
+        ? suggestion.distanceAway
+        : '${suggestion.county.name} County',
+    photoUrl: suggestion.highlightImageUrl,
+    line: '${suggestion.reasonLabel} · ${suggestion.distanceAway}',
+    stats: suggestion.stats,
+    destination: suggestion.directionsQuery,
+    onRoute: onRoute,
+    onTap: (context) =>
+        openCountyOrNote(context, suggestion.county, onOpenCounty),
+  );
+
+  final CountyPath county;
+  final String photoTitle;
+  final String photoCaption;
+  final String? photoUrl;
+
+  /// Set for paid placements ("AD"); shown on the photo.
+  final String? disclosureLabel;
+  final String line;
+  final List<({String value, String label})> stats;
+  final String destination;
+  final void Function(BuildContext context) onTap;
   final OpenDirections? onRoute;
 
   @override
   Widget build(BuildContext context) {
     final route = onRoute;
-    final stats = suggestion.stats;
+    final label = disclosureLabel;
 
-    return MapHomeSuggestionTapTarget(
-      suggestion: suggestion,
-      onOpenCounty: onOpenCounty,
+    return GestureDetector(
+      onTap: () => onTap(context),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(4),
@@ -44,15 +103,17 @@ class MapHomeFeaturedSuggestion extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: MapHomeSuggestionPhotoHeader(
-                suggestion: suggestion,
+              child: MapHomePhotoHeader(
+                county: county,
+                title: photoTitle,
+                caption: photoCaption,
+                imageUrl: photoUrl,
                 height: 136,
-                showReasonPill: false,
-                trailing: route == null
+                topLeft: label == null ? null : MapHomePhotoPill(label: label),
+                bottomRight: route == null
                     ? null
                     : MapHomeRouteButton(
-                        onPressed: () =>
-                            openSuggestionRoute(context, suggestion, route),
+                        onPressed: () => openRoute(context, destination, route),
                       ),
               ),
             ),
@@ -61,11 +122,9 @@ class MapHomeFeaturedSuggestion extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: _Details(suggestion: suggestion, stats: stats),
-                  ),
+                  Expanded(child: _Details(card: this)),
                   const SizedBox(width: 12),
-                  _CountyTile(suggestion: suggestion),
+                  _CountyTile(county: county),
                 ],
               ),
             ),
@@ -77,10 +136,9 @@ class MapHomeFeaturedSuggestion extends StatelessWidget {
 }
 
 class _Details extends StatelessWidget {
-  const _Details({required this.suggestion, required this.stats});
+  const _Details({required this.card});
 
-  final MapHomeSuggestion suggestion;
-  final List<({String value, String label})> stats;
+  final MapHomeFeatureCard card;
 
   @override
   Widget build(BuildContext context) {
@@ -89,25 +147,25 @@ class _Details extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '${suggestion.county.name} County',
+          '${card.county.name} County',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTypeScale.compactTitle,
         ),
         const SizedBox(height: 2),
         Text(
-          '${suggestion.reasonLabel} · ${suggestion.distanceAway}',
+          card.line,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: AppTypeScale.small,
         ),
-        if (stats.isNotEmpty) ...[
+        if (card.stats.isNotEmpty) ...[
           const SizedBox(height: 8),
           const Divider(height: 1, color: AppColors.trackInactive),
           const SizedBox(height: 8),
           Row(
             children: [
-              for (final (i, stat) in stats.indexed) ...[
+              for (final (i, stat) in card.stats.indexed) ...[
                 if (i > 0) const SizedBox(width: 16),
                 Flexible(
                   child: Column(
@@ -134,9 +192,9 @@ class _Details extends StatelessWidget {
 
 /// The county's shape in a white squircle (County Detail's treatment).
 class _CountyTile extends StatelessWidget {
-  const _CountyTile({required this.suggestion});
+  const _CountyTile({required this.county});
 
-  final MapHomeSuggestion suggestion;
+  final CountyPath county;
 
   @override
   Widget build(BuildContext context) {
@@ -149,10 +207,7 @@ class _CountyTile extends StatelessWidget {
         border: Border.all(color: AppColors.countyShapeCardBorder),
         borderRadius: BorderRadius.circular(18),
       ),
-      child: AppCountyShape(
-        county: suggestion.county,
-        fill: AppColors.accent,
-      ),
+      child: AppCountyShape(county: county, fill: AppColors.accent),
     );
   }
 }

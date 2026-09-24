@@ -43,6 +43,17 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   body / section / stat styles. Photo titles 16 / captions 11 everywhere.
   The featured For You card uses the compact set (title 15, reason 12,
   stats 12/10, Route 12) with a 136px photo and a 72px county tile.
+- For You split (Figma "Your next best move" / "Nearby and unclaimed"):
+  the top card ("PRIMARY TARGET") shows the active `place_promotions` row
+  for placement `for_you` (highest priority, RLS-filtered to its window)
+  with its AD label, the place photo, county, summary and place stats; it
+  opens Place Detail and Route goes to the place's coordinates. With no
+  promotion it falls back to a saved / depth pick, else the nearest
+  unclaimed county. Below, "NEXT FOR YOU / Nearby and unclaimed" lists the
+  10 nearest unclaimed counties (`discover_unclaimed_counties()`, county
+  photo, distance, Unclaimed pill, Route) and "All N left ›" opens
+  Explore's UNCLAIMED tab (`AppTabShell.select`, keep-alive tab provider).
+  Promotion impressions/taps aren't reported yet.
 - For You featured card redesigned (Figma "Your next best move"): inset
   photo with place/county name and a glass Route button; below, "<County>
   County", reason · distance, Area / Elevation / Duration and the county

@@ -24,6 +24,7 @@ class MapHomeBoard extends StatefulWidget {
     this.onOpenCounty,
     this.onOpenPlace,
     this.onRoute,
+    this.onSeeAllUnclaimed,
   });
 
   /// Null while the board is loading: every slot shows a same-sized
@@ -40,6 +41,7 @@ class MapHomeBoard extends StatefulWidget {
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
   final OpenDirections? onRoute;
+  final OpenAllUnclaimed? onSeeAllUnclaimed;
 
   @override
   State<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -204,9 +206,11 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
               child: data == null
                   ? const MapHomeForYouSkeleton()
                   : MapHomeForYouSection(
-                      suggestions: data.suggestions,
+                      data: data,
                       onOpenCounty: widget.onOpenCounty,
+                      onOpenPlace: widget.onOpenPlace,
                       onRoute: widget.onRoute,
+                      onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
                     ),
             ),
             const MapHomeQuestPreviewCard(),

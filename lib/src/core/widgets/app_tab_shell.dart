@@ -18,6 +18,10 @@ class AppTabShell extends StatefulWidget {
 
   final Map<AppNavTab, WidgetBuilder> tabs;
 
+  /// Switches the nearest shell to [tab], e.g. from a "see all" link.
+  static void select(BuildContext context, AppNavTab tab) =>
+      context.findAncestorStateOfType<_AppTabShellState>()?._select(tab);
+
   @override
   State<AppTabShell> createState() => _AppTabShellState();
 }

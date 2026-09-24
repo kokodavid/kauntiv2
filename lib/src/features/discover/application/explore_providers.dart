@@ -31,8 +31,9 @@ const _notConfigured = 'Supabase is not configured for this build.';
 Future<ExploreBoard> exploreBoard(Ref ref) =>
     ref.watch(exploreRepositoryProvider).loadBoard();
 
-/// Which Explore tab is showing.
-@riverpod
+/// Which Explore tab is showing. Kept alive so another tab (Home's "All N
+/// left") can pick it before Explore is first built.
+@Riverpod(keepAlive: true)
 class ExploreTabSelection extends _$ExploreTabSelection {
   @override
   ExploreTab build() => ExploreTab.mine;

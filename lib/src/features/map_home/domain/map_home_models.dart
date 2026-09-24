@@ -1,5 +1,6 @@
 import '../../../counties/county_paths.dart';
 import 'county_badge_state.dart';
+import 'map_home_promotion.dart';
 import 'map_home_stat_format.dart';
 
 typedef MapHomeCountyBadgeState = CountyBadgeState;
@@ -79,6 +80,9 @@ class MapHomeBoardData {
     required this.countyBadges,
     required this.homeCounty,
     required this.suggestions,
+    this.promotion,
+    this.unclaimed = const [],
+    this.unclaimedCount = 0,
   });
 
   final String tierLabel;
@@ -86,6 +90,36 @@ class MapHomeBoardData {
   final List<MapHomeCountyBadge> countyBadges;
   final CountyPath? homeCounty;
   final List<MapHomeSuggestion> suggestions;
+
+  /// The active For You promotion, if any: it takes the top card.
+  final MapHomePromotedPlace? promotion;
+
+  /// Unclaimed counties, nearest first (only the first few are loaded).
+  final List<MapHomeSuggestion> unclaimed;
+
+  /// How many counties are still unclaimed in total ("All N left").
+  final int unclaimedCount;
+
+  /// The top card when nothing is promoted: a saved place or depth-rank
+  /// pick first, else the nearest unclaimed county.
+  MapHomeSuggestion? get fallbackTop =>
+      suggestions
+          .where((s) => s.reason != MapHomeSuggestionReason.unclaimed)
+          .firstOrNull ??
+      unclaimed.firstOrNull ??
+      suggestions.firstOrNull;
+
+  /// "Nearby and unclaimed", minus any county already on the top card.
+  List<MapHomeSuggestion> get unclaimedRow {
+    final top = promotion == null ? fallbackTop : null;
+    return [
+      for (final entry in unclaimed)
+        if (top == null ||
+            top.reason != MapHomeSuggestionReason.unclaimed ||
+            entry.county.code != top.county.code)
+          entry,
+    ];
+  }
 
   int get exploredCount => countyBadges
       .where((badge) => badge.state == MapHomeCountyBadgeState.earned)

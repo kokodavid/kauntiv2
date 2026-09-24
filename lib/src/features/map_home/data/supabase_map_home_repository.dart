@@ -4,6 +4,7 @@ import '../../../counties/county_paths.dart';
 import '../../../services/app_logger.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
+import 'map_home_for_you_reads.dart';
 import 'map_home_repository.dart';
 
 class SupabaseMapHomeRepository implements MapHomeRepository {
@@ -36,12 +37,22 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
         .where((badge) => badge.state == MapHomeCountyBadgeState.earned)
         .length;
 
+    final forYou = MapHomeForYouReads(client, _readOptional);
+    final (suggestions, promotion, unclaimed) = await (
+      _suggestions(countyFacts),
+      forYou.promotion(),
+      forYou.unclaimed(countyFacts, _distanceLabel),
+    ).wait;
+
     return MapHomeBoardData(
       tierLabel: _tierLabelFor(exploredCount),
       totalCounties: CountyPaths.all.length,
       homeCounty: resolvedHomeCounty,
       countyBadges: badges,
-      suggestions: await _suggestions(countyFacts),
+      suggestions: suggestions,
+      promotion: promotion,
+      unclaimed: unclaimed.row,
+      unclaimedCount: unclaimed.total,
     );
   }
 
@@ -111,7 +122,7 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
   /// Photos and facts are read separately: they come from different
   /// migrations, and a dev database missing one fact column shouldn't also
   /// drop every county photo from the For You cards.
-  Future<Map<int, _CountyFactRow>> _countyFacts() async {
+  Future<Map<int, CountyCardFacts>> _countyFacts() async {
     final results = await Future.wait([
       _readCountyColumns('id, highlight_image_url', label: 'county photos'),
       _readCountyColumns(
@@ -124,7 +135,7 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
 
     return {
       for (final id in {...photos.keys, ...facts.keys})
-        id: _CountyFactRow(
+        id: (
           areaKm2: facts[id]?['area_km2'] as num?,
           elevationM: facts[id]?['elevation_m'] as num?,
           durationMinutes: (facts[id]?['duration_minutes'] as num?)?.toInt(),
@@ -165,7 +176,7 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
   }
 
   Future<List<MapHomeSuggestion>> _suggestions(
-    Map<int, _CountyFactRow> countyFacts,
+    Map<int, CountyCardFacts> countyFacts,
   ) async {
     final rows = await _suggestionRows();
 
@@ -262,18 +273,4 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
     if (exploredCount >= 10) return 'MSAFIRI';
     return 'MGENI';
   }
-}
-
-class _CountyFactRow {
-  const _CountyFactRow({
-    required this.areaKm2,
-    required this.elevationM,
-    required this.durationMinutes,
-    required this.highlightImageUrl,
-  });
-
-  final num? areaKm2;
-  final num? elevationM;
-  final int? durationMinutes;
-  final String? highlightImageUrl;
 }

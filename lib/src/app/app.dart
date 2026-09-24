@@ -141,6 +141,7 @@ class _StartupGateState extends State<_StartupGate>
           onOpenCounty: DetailRoutes.openCounty,
           onOpenPlace: DetailRoutes.openPlace,
           onRoute: DetailRoutes.openDirections,
+          onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
           loader: AppSupabase.isInitialized
               ? MapHomeBoardLoader(
                   repository: SupabaseMapHomeRepository(AppSupabase.client),

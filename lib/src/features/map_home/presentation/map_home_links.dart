@@ -10,3 +10,6 @@ typedef OpenPlaceDetail = void Function(BuildContext context, String placeId);
 /// Opens driving directions in the maps app for a text destination.
 /// Supplied by `app/`; resolves false when nothing could open it.
 typedef OpenDirections = Future<bool> Function(String destination);
+
+/// Opens Explore on its UNCLAIMED list. Supplied by `app/`.
+typedef OpenAllUnclaimed = void Function(BuildContext context);

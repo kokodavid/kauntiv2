@@ -189,4 +189,12 @@ void main() {
       expect(saved.savedCount, 2);
     });
   });
+
+  test('featured county stats list what is on file', () {
+    expect(exploreCountyStats(noCountyFacts), isEmpty);
+    expect(
+      exploreCountyStats((areaKm2: 1205, elevationM: null, durationMinutes: 90)),
+      [(value: '1,205 KM²', label: 'Area'), (value: '1h 30m', label: 'Duration')],
+    );
+  });
 }

@@ -43,14 +43,14 @@ class MapHomeForYouSection extends StatelessWidget {
           const MapHomeForYouHeader(),
           const SizedBox(height: 10),
           if (promotion != null)
-            MapHomeFeatureCard.promotion(
+            mapHomePromotionCard(
               promotion,
               onOpenPlace: onOpenPlace,
               onOpenCounty: onOpenCounty,
               onRoute: onRoute,
             )
           else
-            MapHomeFeatureCard.suggestion(
+            mapHomeSuggestionCard(
               fallback!,
               onOpenCounty: onOpenCounty,
               onRoute: onRoute,

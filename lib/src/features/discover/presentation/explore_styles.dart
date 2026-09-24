@@ -65,14 +65,6 @@ abstract final class ExploreStyles {
     color: AppColors.exploreMutedText,
   );
 
-  static const unlockPill = TextStyle(
-    fontFamily: _family,
-    fontSize: AppTypeScale.labelSize,
-    fontWeight: FontWeight.w600,
-    letterSpacing: AppTypeScale.labelTracking,
-    color: AppColors.exploreUnlockText,
-  );
-
   static const link = TextStyle(
     fontFamily: _family,
     fontSize: AppTypeScale.labelSize,
@@ -85,15 +77,6 @@ abstract final class ExploreStyles {
       .copyWith(color: selected ? Colors.white : AppColors.exploreMutedText);
 
   static const emptyBody = AppTypeScale.body;
-
-  static const photoTitle = AppTypeScale.photoTitle;
-
-  static const photoBlurb = TextStyle(
-    fontFamily: _family,
-    fontSize: AppTypeScale.bodySize,
-    height: 18 / 13,
-    color: Colors.white,
-  );
 
   static const insightTitle = TextStyle(
     fontFamily: _family,

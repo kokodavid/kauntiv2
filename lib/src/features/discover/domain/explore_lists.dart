@@ -13,6 +13,7 @@ class ExploreUnclaimedCounty {
     this.previewPlaces = const [],
     this.isSavedAlone = false,
     this.highlightImageUrl,
+    this.facts = noCountyFacts,
   });
 
   final CountyPath county;
@@ -32,6 +33,7 @@ class ExploreUnclaimedCounty {
   /// Saved as a county (a `wishlist_items` row with no place).
   final bool isSavedAlone;
   final String? highlightImageUrl;
+  final ExploreCountyFacts facts;
 
   bool get isRare => percentHaveBeen != null && percentHaveBeen! <= 5;
 

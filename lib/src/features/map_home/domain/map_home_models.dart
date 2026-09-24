@@ -1,7 +1,7 @@
+import '../../../core/domain/app_stat_format.dart';
 import '../../../counties/county_paths.dart';
 import 'county_badge_state.dart';
 import 'map_home_promotion.dart';
-import 'map_home_stat_format.dart';
 
 typedef MapHomeCountyBadgeState = CountyBadgeState;
 
@@ -55,14 +55,11 @@ class MapHomeSuggestion {
   }
 
   /// Area / Elevation / Duration that are on file, as (value, label).
-  List<({String value, String label})> get stats => [
-    if (areaKm2 case final area?)
-      (value: MapHomeStatFormat.area(area), label: 'Area'),
-    if (elevationM case final elevation?)
-      (value: MapHomeStatFormat.elevation(elevation), label: 'Elevation'),
-    if (visitDurationMinutes case final minutes?)
-      (value: MapHomeStatFormat.duration(minutes), label: 'Duration'),
-  ];
+  List<({String value, String label})> get stats => AppStatFormat.stats(
+    areaKm2: areaKm2,
+    elevationM: elevationM,
+    durationMinutes: visitDurationMinutes,
+  );
 
   /// What to hand a maps app for directions: the place when there is one,
   /// else the county.

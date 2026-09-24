@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_photo_parts.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/explore_providers.dart';
@@ -20,10 +21,18 @@ import 'explore_unclaimed_tab.dart';
 /// visited, so the selected pill, search text and scroll position survive
 /// switching tabs.
 class ExploreScreen extends ConsumerWidget {
-  const ExploreScreen({super.key, this.onOpenCounty, this.onOpenPlace});
+  const ExploreScreen({
+    super.key,
+    this.onOpenCounty,
+    this.onOpenPlace,
+    this.onRoute,
+  });
 
   final OpenExploreCounty? onOpenCounty;
   final OpenExplorePlace? onOpenPlace;
+
+  /// Driving directions for the featured cards' Route buttons.
+  final AppOpenDirections? onRoute;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,6 +49,7 @@ class ExploreScreen extends ConsumerWidget {
             board: value,
             onOpenCounty: onOpenCounty,
             onOpenPlace: onOpenPlace,
+            onRoute: onRoute,
           ),
           AsyncError() => ExploreResolvingState(
             onRetry: () => ref.invalidate(exploreBoardProvider),
@@ -56,11 +66,13 @@ class _ExploreBoardView extends ConsumerWidget {
     required this.board,
     this.onOpenCounty,
     this.onOpenPlace,
+    this.onRoute,
   });
 
   final ExploreBoard board;
   final OpenExploreCounty? onOpenCounty;
   final OpenExplorePlace? onOpenPlace;
+  final AppOpenDirections? onRoute;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,11 +129,13 @@ class _ExploreBoardView extends ConsumerWidget {
                     board: filtered,
                     onOpenCounty: onOpenCounty,
                     onOpenPlace: onOpenPlace,
+                    onRoute: onRoute,
                   ),
                   ExploreTab.unclaimed => ExploreUnclaimedTab(
                     counties: filtered.unclaimed,
                     onOpenCounty: onOpenCounty,
                     onOpenPlace: onOpenPlace,
+                    onRoute: onRoute,
                   ),
                   ExploreTab.saved => ExploreSavedTab(
                     board: filtered,

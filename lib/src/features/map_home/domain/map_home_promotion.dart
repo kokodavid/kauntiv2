@@ -1,5 +1,5 @@
+import '../../../core/domain/app_stat_format.dart';
 import '../../../counties/county_paths.dart';
-import 'map_home_stat_format.dart';
 
 /// A paid place placement for Home's For You (`place_promotions`,
 /// placement `for_you`). Always shown with its [disclosureLabel] (doc 04:
@@ -35,14 +35,11 @@ class MapHomePromotedPlace {
   final int? elevationM;
   final int? visitDurationMinutes;
 
-  List<({String value, String label})> get stats => [
-    if (areaKm2 case final area?)
-      (value: MapHomeStatFormat.area(area), label: 'Area'),
-    if (elevationM case final elevation?)
-      (value: MapHomeStatFormat.elevation(elevation), label: 'Elevation'),
-    if (visitDurationMinutes case final minutes?)
-      (value: MapHomeStatFormat.duration(minutes), label: 'Duration'),
-  ];
+  List<({String value, String label})> get stats => AppStatFormat.stats(
+    areaKm2: areaKm2,
+    elevationM: elevationM,
+    durationMinutes: visitDurationMinutes,
+  );
 
   /// Coordinates when the place has them, else its name and county.
   String get directionsQuery => latitude != null && longitude != null

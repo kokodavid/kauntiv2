@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_photo_parts.dart';
 import '../domain/explore_lists.dart';
 import 'explore_closest_card.dart';
 import 'explore_county_card.dart';
@@ -15,12 +16,14 @@ class ExploreUnclaimedTab extends StatelessWidget {
     required this.counties,
     this.onOpenCounty,
     this.onOpenPlace,
+    this.onRoute,
   });
 
   /// Already nearest first (see [ExploreUnclaimedCounty.nearestFirst]).
   final List<ExploreUnclaimedCounty> counties;
   final OpenExploreCounty? onOpenCounty;
   final OpenExplorePlace? onOpenPlace;
+  final AppOpenDirections? onRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +35,7 @@ class ExploreUnclaimedTab extends StatelessWidget {
             ExploreClosestCard(
               entry: counties.first,
               onOpenCounty: onOpenCounty,
+              onRoute: onRoute,
             ),
             const SizedBox(height: 16),
             for (var i = 1; i < counties.length; i++) ...[

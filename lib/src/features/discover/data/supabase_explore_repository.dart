@@ -61,6 +61,7 @@ class SupabaseExploreRepository implements ExploreRepository {
           .eq('user_id', userId),
       _countyColumn('rarity_pct'),
       _countyColumn('highlight_image_url'),
+      _countyFacts(),
     ]);
     final location = await locationFuture;
 
@@ -93,6 +94,11 @@ class SupabaseExploreRepository implements ExploreRepository {
     };
     final rarity = results[3]! as Map<int, Object?>;
     final photos = results[4]! as Map<int, Object?>;
+    final facts = results[5]! as Map<int, ExploreCountyFacts>;
+    List<String> placeNames(int code) => [
+      for (final place in placesByCounty[code] ?? const [])
+        place['name'] as String,
+    ];
 
     List<ExplorePlace> preview(int code) => [
       for (final row in (placesByCounty[code] ?? const []).take(3))
@@ -113,6 +119,9 @@ class SupabaseExploreRepository implements ExploreRepository {
           : ExploreFeaturedUnlock(
               county: CountyPaths.byCode[featuredCode]!,
               rarityLabel: ExploreLabels.rarity(rarity[featuredCode] as num?),
+              blurb: ExploreLabels.blurb(placeNames(featuredCode)),
+              highlightImageUrl: photos[featuredCode] as String?,
+              facts: facts[featuredCode] ?? noCountyFacts,
               previewPlaces: preview(featuredCode),
               totalPlaceCount: placeCount(featuredCode),
             ),
@@ -135,10 +144,7 @@ class SupabaseExploreRepository implements ExploreRepository {
           if (_known(row['county_id']))
             ExploreUnclaimedCounty(
               county: CountyPaths.byCode[_code(row)]!,
-              blurb: ExploreLabels.blurb([
-                for (final place in (placesByCounty[_code(row)] ?? const []))
-                  place['name'] as String,
-              ]),
+              blurb: ExploreLabels.blurb(placeNames(_code(row))),
               percentHaveBeen: (row['rarity_pct'] as num?)?.round(),
               placeCount: placeCount(_code(row)),
               distanceLabel: ExploreLabels.distance(row['distance_m'] as num?),
@@ -146,6 +152,7 @@ class SupabaseExploreRepository implements ExploreRepository {
               previewPlaces: preview(_code(row)),
               isSavedAlone: savedAloneCounties.contains(_code(row)),
               highlightImageUrl: photos[_code(row)] as String?,
+              facts: facts[_code(row)] ?? noCountyFacts,
             ),
       ]),
       saved: ExploreRows.savedGroups(
@@ -206,6 +213,26 @@ class SupabaseExploreRepository implements ExploreRepository {
     // loudly rather than look like a successful tick.
     if (updated.isEmpty) {
       throw StateError('No saved row to tick for place $placeId.');
+    }
+  }
+
+  /// Area / Elevation / Duration per county, read on its own for the same
+  /// reason as [_countyColumn].
+  Future<Map<int, ExploreCountyFacts>> _countyFacts() async {
+    try {
+      final rows = await client
+          .from('counties')
+          .select('id, area_km2, elevation_m, duration_minutes');
+      return {
+        for (final row in rows)
+          _code(row, key: 'id'): (
+            areaKm2: row['area_km2'] as num?,
+            elevationM: row['elevation_m'] as num?,
+            durationMinutes: (row['duration_minutes'] as num?)?.toInt(),
+          ),
+      };
+    } on PostgrestException {
+      return const {};
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_photo_parts.dart';
 import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_links.dart';
@@ -43,13 +44,13 @@ class MapHomeUnclaimedCard extends StatelessWidget {
                 openCountyOrNote(context, suggestion.county, onOpenCounty),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: MapHomePhotoHeader(
+              child: AppPhotoHeader(
                 county: suggestion.county,
                 title: suggestion.county.name,
                 caption: suggestion.distanceAway,
                 imageUrl: suggestion.highlightImageUrl,
                 height: 132,
-                bottomRight: const MapHomePhotoPill(label: 'Unclaimed'),
+                bottomRight: const AppPhotoPill(label: 'Unclaimed'),
               ),
             ),
           ),

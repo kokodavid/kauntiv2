@@ -215,6 +215,14 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - The first load shows an account-neutral skeleton; errors show "Try again".
   Explore unmounts on sign-out, so a board never outlives its account.
 
+- Explore's top cards (MINE "JUST UNLOCKED", UNCLAIMED "CLOSEST ONE YOU
+  DON'T HAVE") use the shared feature card (`core/widgets/
+  app_feature_card.dart`, same as Home's For You): county photo, rarity or
+  distance, blurb, Area / Elevation / Duration, county shape; Route opens
+  directions to the county, UNCLAIMED keeps a Save / Saved pill; tapping
+  opens County Detail. The MINE card's two place rows and "ALL N PLACES"
+  link and UNCLAIMED's "See what's there" button are gone (County Detail
+  has them).
 - County Detail (v2 addition): place filters above the place cards, "ALL ·
   N" then one pill per category the county's places have, in Explore's
   pill style.
@@ -223,6 +231,9 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Paid place placements are modelled separately in `place_promotions`, with
   the dashboard RPC `set_place_promotion_dashboard(...)` creating/updating an
   active AD row or deactivating it. `places` remains the editorial listing.
+- Promotion edits keep one active AD per place. Changing placement from
+  `places_to_see` to `for_you` updates the active row rather than creating a
+  second live ad.
 
 **Differences from v1 (temporary)**
 
@@ -262,6 +273,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-24 | uncommitted | 6 | Fix promoted-place edits to keep one active AD row per place |
 | 2026-09-24 | uncommitted | 6 | Add promoted-place table and dashboard RPC for AD placements |
 | 2026-09-24 | uncommitted | 4, 6 | Seed county profile facts for Area, Population, Governor, headquarters/capital and headquarters elevation |
 | 2026-09-24 | `b92317a` | 6 | Explore UNCLAIMED and SAVED (Wishlist): county save, ticks, in-place refresh |

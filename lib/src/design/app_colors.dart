@@ -76,8 +76,5 @@ class AppColors {
   static const exploreMutedText = Color(0xFF999999);
   static const exploreCategoryFill = Color(0xFFEEF4F1);
   static const exploreCategoryText = Color(0xFF2D5A3D);
-  static const exploreUnlockFill = Color(0xFFFDF0E8);
-  static const exploreUnlockBorder = Color(0xFFF5D4B4);
-  static const exploreUnlockText = Color(0xFFB05A20);
   static const explorePhotoPlaceholder = Color(0xFFE8E8E8);
 }

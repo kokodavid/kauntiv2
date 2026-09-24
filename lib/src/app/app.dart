@@ -151,6 +151,7 @@ class _StartupGateState extends State<_StartupGate>
         AppNavTab.explore: (_) => ExploreScreen(
           onOpenCounty: DetailRoutes.openCounty,
           onOpenPlace: DetailRoutes.openPlace,
+          onRoute: DetailRoutes.openDirections,
         ),
       },
     );

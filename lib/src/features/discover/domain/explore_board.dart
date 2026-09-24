@@ -1,3 +1,4 @@
+import '../../../core/domain/app_stat_format.dart';
 import '../../../counties/county_paths.dart';
 import 'explore_lists.dart';
 import 'place_category.dart';
@@ -37,6 +38,28 @@ class ExplorePlace {
       description.toLowerCase().contains(needle);
 }
 
+/// A county's Area / Elevation / Duration, when on file.
+typedef ExploreCountyFacts = ({
+  num? areaKm2,
+  num? elevationM,
+  int? durationMinutes,
+});
+
+const ExploreCountyFacts noCountyFacts = (
+  areaKm2: null,
+  elevationM: null,
+  durationMinutes: null,
+);
+
+/// The stats shown on a featured county card.
+List<({String value, String label})> exploreCountyStats(
+  ExploreCountyFacts facts,
+) => AppStatFormat.stats(
+  areaKm2: facts.areaKm2,
+  elevationM: facts.elevationM,
+  durationMinutes: facts.durationMinutes,
+);
+
 /// MINE's "JUST UNLOCKED" card: the most recently explored county.
 class ExploreFeaturedUnlock {
   const ExploreFeaturedUnlock({
@@ -44,12 +67,20 @@ class ExploreFeaturedUnlock {
     required this.rarityLabel,
     required this.previewPlaces,
     required this.totalPlaceCount,
+    this.blurb = '',
+    this.highlightImageUrl,
+    this.facts = noCountyFacts,
   });
 
   final CountyPath county;
   final String rarityLabel;
   final List<ExplorePlace> previewPlaces;
   final int totalPlaceCount;
+
+  /// "N places to see, including A and B."
+  final String blurb;
+  final String? highlightImageUrl;
+  final ExploreCountyFacts facts;
 }
 
 /// One explored county in MINE, below the featured unlock.

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/domain/app_stat_format.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_county_map_painter.dart';
-import '../domain/map_home_stat_format.dart';
 
 class CountyPeekSheet extends StatelessWidget {
   const CountyPeekSheet({
@@ -141,13 +141,13 @@ class _FactRow extends StatelessWidget {
   }
 
   String _formatArea(num? value) =>
-      value == null ? 'Not on file' : MapHomeStatFormat.area(value);
+      value == null ? 'Not on file' : AppStatFormat.area(value);
 
   String _formatElevation(num? value) =>
-      value == null ? 'Not on file' : MapHomeStatFormat.elevation(value);
+      value == null ? 'Not on file' : AppStatFormat.elevation(value);
 
   String _formatDuration(int? minutes) =>
-      minutes == null ? 'Not on file' : MapHomeStatFormat.duration(minutes);
+      minutes == null ? 'Not on file' : AppStatFormat.duration(minutes);
 }
 
 class _Fact extends StatelessWidget {

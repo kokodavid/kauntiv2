@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../design/app_colors.dart';
+import '../../../core/widgets/app_feature_card.dart';
+import '../../../core/widgets/app_photo_parts.dart';
 import '../domain/explore_board.dart';
 import 'explore_county_card.dart';
 import 'explore_place_row.dart';
@@ -15,11 +16,13 @@ class ExploreMineTab extends StatelessWidget {
     required this.board,
     this.onOpenCounty,
     this.onOpenPlace,
+    this.onRoute,
   });
 
   final ExploreBoard board;
   final OpenExploreCounty? onOpenCounty;
   final OpenExplorePlace? onOpenPlace;
+  final AppOpenDirections? onRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,7 @@ class ExploreMineTab extends StatelessWidget {
             _FeaturedUnlockCard(
               unlock: unlock,
               onOpenCounty: onOpenCounty,
-              onOpenPlace: onOpenPlace,
+              onRoute: onRoute,
             ),
             const SizedBox(height: 10),
           ],
@@ -69,86 +72,43 @@ class ExploreMineTab extends StatelessWidget {
   }
 }
 
+/// MINE's "JUST UNLOCKED" card in the shared feature-card design: the
+/// newest explored county's photo, rarity, blurb and stats, with Route.
+/// Tapping opens County Detail.
 class _FeaturedUnlockCard extends StatelessWidget {
   const _FeaturedUnlockCard({
     required this.unlock,
     this.onOpenCounty,
-    this.onOpenPlace,
+    this.onRoute,
   });
 
   final ExploreFeaturedUnlock unlock;
   final OpenExploreCounty? onOpenCounty;
-  final OpenExplorePlace? onOpenPlace;
+  final AppOpenDirections? onRoute;
 
   @override
   Widget build(BuildContext context) {
-    final openCounty = onOpenCounty;
-    return Container(
-      decoration: ExploreStyles.cardDecoration,
-      clipBehavior: Clip.antiAlias,
-      child: Material(
-        color: Colors.transparent,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: Row(
-                children: [
-                  ExploreCountyShapeTile(county: unlock.county),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ExploreCountyHeading(
-                      name: unlock.county.name,
-                      statusLabel: unlock.rarityLabel,
-                      pill: const _UnlockPill(),
-                    ),
-                  ),
-                ],
-              ),
+    final route = onRoute;
+    final open = onOpenCounty;
+    return AppFeatureCard(
+      county: unlock.county,
+      label: 'JUST UNLOCKED',
+      photoTitle: unlock.county.name,
+      photoCaption: unlock.rarityLabel,
+      photoUrl: unlock.highlightImageUrl,
+      line: unlock.blurb,
+      stats: exploreCountyStats(unlock.facts),
+      actions: [
+        if (route != null)
+          AppPhotoButton(
+            onPressed: () => openRoute(
+              context,
+              '${unlock.county.name} County, Kenya',
+              route,
             ),
-            const Divider(height: 1, color: AppColors.exploreBorder),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ExplorePlaceList(
-                places: unlock.previewPlaces.take(2).toList(),
-                countyCode: unlock.county.code,
-                onOpenPlace: onOpenPlace,
-              ),
-            ),
-            InkWell(
-              onTap: openCounty == null
-                  ? null
-                  : () => openCounty(context, unlock.county.code),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-                child: Text(
-                  'ALL ${unlock.totalPlaceCount} PLACES IN '
-                  '${unlock.county.name.toUpperCase()}  →',
-                  style: ExploreStyles.link,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _UnlockPill extends StatelessWidget {
-  const _UnlockPill();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.exploreUnlockFill,
-        border: Border.all(color: AppColors.exploreUnlockBorder),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: const Text('JUST UNLOCKED', style: ExploreStyles.unlockPill),
+          ),
+      ],
+      onTap: () => open?.call(context, unlock.county.code),
     );
   }
 }

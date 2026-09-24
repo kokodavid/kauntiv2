@@ -8,7 +8,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 
 | # | Feature | V1 location | V2 status | PR | Notes |
 |---|---|---|---|---|---|
-| 0 | Guardrails (rules, CI, review) | n/a | In review | setup/guardrails | Riverpod deps, strict analysis, architecture guard + baseline, CI, Claude review, docs |
+| 0 | Guardrails (rules, CI, review) | n/a | Done | #1 (main) | Riverpod deps, strict analysis, architecture guard + baseline, CI, Claude review, docs |
 | 1 | Foundations re-homed to `core/` (config, design, widgets, counties, services) | `lib/src/{config,design,widgets,counties,services}` | Not started | | Move plus a Supabase client provider. Clears most `layout` baseline entries |
 | 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | Not started | | Split `app.dart` (414 lines, 16 setState calls) into router redirects and notifiers. V2 currently lacks v1's 3 how-it-works intro screens |
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/home-migration | Floating bottom nav on Map Home; other tabs show "coming next". Shell/router waits on #2 |

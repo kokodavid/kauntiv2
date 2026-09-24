@@ -56,12 +56,12 @@ class OnboardingHomeCountyPage extends StatelessWidget {
               // No AppBackButton here -- this screen sits inside
               // OnboardingFlow's linear PageView with no back route to
               // go to. See AppBackButton's doc comment.
-              Text(
+              const Text(
                 'Which county do you call home?',
                 style: AppTextStyles.headingForeground,
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'Where you are from, not where life happens to have you. '
                 'you can change it anytime.',
                 style: AppTextStyles.bodyMuted,

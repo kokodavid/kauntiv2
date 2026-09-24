@@ -184,6 +184,9 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - No distance labels on the detail pages (v1: place cards and Place Detail's
   Distance fact).
 - Images use `Image.network` (v1: `cached_network_image`).
+- Detail text is sized to v2's Inter scale (v1's DM Sans sizes read ~10%
+  larger): names 20 (v1 24), "Places to See" 18, nav title 17, place card
+  titles 16, body 13, stat values 13, status chip 11.
 - Explore's tier pill and avatar are left out: v1 hard-coded "Tier 1" and a
   gradient dot. They return with real tier/profile data.
 - Explore text is Inter (v1: DM Sans), like the rest of v2, sized to v2's

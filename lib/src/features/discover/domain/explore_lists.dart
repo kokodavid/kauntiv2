@@ -100,19 +100,22 @@ class ExploreSavedGroup {
   }) {
     if (rank != null) {
       final expert = rank == 'local_expert';
-      final label = expert ? 'LOCAL EXPERT' : 'BADGE EARNED';
+      final label = expert ? 'Local expert' : 'Badge earned';
       return (
         expert
             ? ExploreSavedStatus.localExpert
             : ExploreSavedStatus.badgeEarned,
         savedPlaces == 0
-            ? '$label · NOTHING PICKED YET'
-            : '$label · $stillToSee STILL TO SEE',
+            ? '$label · nothing picked yet'
+            : '$label · $stillToSee still to see',
       );
     }
     if (savedPlaces > 0) {
-      return (ExploreSavedStatus.locked, 'LOCKED · $savedPlaces SAVED');
+      return (ExploreSavedStatus.locked, 'Locked · $savedPlaces saved');
     }
-    return (ExploreSavedStatus.savedOnly, 'SAVED COUNTY · NOTHING PICKED YET');
+    return (
+      ExploreSavedStatus.savedOnly,
+      'Saved county · nothing picked yet',
+    );
   }
 }

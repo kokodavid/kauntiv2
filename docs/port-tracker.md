@@ -202,10 +202,10 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   (rarity once tracked; until then distance, "45 km away", else "HQ ·
   <town>" from `counties.capital`), blurb, three places,
   "SEE FULL COUNTY PAGE →". Then the rarity note card.
-- SAVED (Wishlist): "N PLACES SAVED ACROSS M COUNTIES", county groups (most
-  recently saved first, first open) with status ("LOCAL EXPERT / BADGE
-  EARNED · N STILL TO SEE", "LOCKED · N SAVED", "SAVED COUNTY · NOTHING
-  PICKED YET"), hand-ticked rows (strike-through + "COMPLETE"), the "ticked
+- SAVED (Wishlist): "N places saved across M counties", county groups
+  (most recently saved first, first open) with status in sentence case
+  ("Local expert / Badge earned · N still to see", "Locked · N saved",
+  "Saved county · nothing picked yet"), hand-ticked rows (strike-through + "COMPLETE"), the "ticked
   by hand" footer, and an empty card.
 - Writes: county save (`wishlist_items` row with no place) and ticks
   (`ticked_at`) are optimistic and revert with a note on failure. A place or

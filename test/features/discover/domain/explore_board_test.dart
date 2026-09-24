@@ -179,7 +179,7 @@ void main() {
           savedPlaces: 3,
           stillToSee: 1,
         ),
-        (ExploreSavedStatus.localExpert, 'LOCAL EXPERT · 1 STILL TO SEE'),
+        (ExploreSavedStatus.localExpert, 'Local expert · 1 still to see'),
       );
       expect(
         ExploreSavedGroup.statusFor(
@@ -187,15 +187,15 @@ void main() {
           savedPlaces: 0,
           stillToSee: 0,
         ),
-        (ExploreSavedStatus.badgeEarned, 'BADGE EARNED · NOTHING PICKED YET'),
+        (ExploreSavedStatus.badgeEarned, 'Badge earned · nothing picked yet'),
       );
       expect(
         ExploreSavedGroup.statusFor(rank: null, savedPlaces: 2, stillToSee: 2),
-        (ExploreSavedStatus.locked, 'LOCKED · 2 SAVED'),
+        (ExploreSavedStatus.locked, 'Locked · 2 saved'),
       );
       expect(
         ExploreSavedGroup.statusFor(rank: null, savedPlaces: 0, stillToSee: 0),
-        (ExploreSavedStatus.savedOnly, 'SAVED COUNTY · NOTHING PICKED YET'),
+        (ExploreSavedStatus.savedOnly, 'Saved county · nothing picked yet'),
       );
     });
 

@@ -32,8 +32,8 @@ class ExploreSavedTab extends StatelessWidget {
       sliver: SliverList.list(
         children: [
           Text(
-            '${board.savedCount} PLACES SAVED ACROSS '
-            '${groups.length} COUNTIES',
+            '${_count(board.savedCount, 'place', 'places')} saved across '
+            '${_count(groups.length, 'county', 'counties')}',
             style: ExploreStyles.savedMeta,
           ),
           const SizedBox(height: 12),
@@ -76,8 +76,8 @@ class ExploreSavedTab extends StatelessWidget {
               SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'PLACES ARE TICKED BY HAND — THE APP ONLY KNOWS WHICH '
-                  'COUNTY YOU WERE IN, NEVER WHERE YOU STOOD',
+                  'Places are ticked by hand. The app only knows which '
+                  'county you were in, never where you stood.',
                   style: ExploreStyles.savedMeta,
                 ),
               ),
@@ -135,3 +135,5 @@ class _EmptySavedCard extends StatelessWidget {
     );
   }
 }
+
+String _count(int n, String one, String many) => '$n ${n == 1 ? one : many}';

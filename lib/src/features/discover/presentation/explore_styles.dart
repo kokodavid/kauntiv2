@@ -85,12 +85,10 @@ abstract final class ExploreStyles {
     color: AppColors.exploreText,
   );
 
-  /// SAVED's small uppercase summary and footer lines (v1 used a mono
-  /// face; v2 has none, so Inter with tracking).
+  /// SAVED's summary and footer lines.
   static const savedMeta = TextStyle(
     fontFamily: _family,
-    fontSize: 9,
-    letterSpacing: .4,
+    fontSize: AppTypeScale.metaSize,
     height: 1.5,
     color: AppColors.mutedForeground,
   );

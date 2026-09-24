@@ -6,7 +6,7 @@ machine, the offline visit queue and the arrival nudge. Source is v1
 lines) plus `counties/county_boundary_resolver.dart` and
 `counties/county_boundaries.dart`.
 
-Status: in progress (slices 1-7 on `codex/detection`; needs a device test). Update this file and `port-tracker.md` as
+Status: in progress (slices 1-7 on `main` via #3; needs a device test). Update this file and `port-tracker.md` as
 slices land.
 
 ## What v1 does

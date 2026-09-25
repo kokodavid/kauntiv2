@@ -1,7 +1,8 @@
 # Journeys: implementation plan
 
 Status: steps 1-2 merged (#5-#7; locked-screen device check still open).
-Step 3 (entitlement and sync) on `codex/journeys-sync`.
+Step 3 (entitlement and sync) on `codex/journeys-sync`; step 4 (UI) on
+`codex/journeys-ui`.
 
 ## Product rules
 
@@ -82,6 +83,25 @@ entitlements are not implemented in this foundation slice.
 4. **Journey UI:** fifth bottom-nav destination, live status and Stop controls,
    history, and route rendering on Mapbox. The tab must show archived Journeys
    after expiry and gate only Start Journey.
+   Built on `codex/journeys-ui` behind `--dart-define=JOURNEYS_ENABLED=true`
+   (`AppFeatureFlags.journeys`; off by default, so release builds hide it):
+   - Journeys tab (`/journeys`, fifth shell branch): Start card (live Pro
+     check; "Journeys are part of Pro", "Connect to the internet to start
+     a Journey", location messages with a Settings link), live card (route
+     on the map following the newest point, elapsed time, distance,
+     Pause / Resume / Stop with confirmation), history (waiting-to-upload
+     and cloud Journeys, offline notice, pull to refresh and upload).
+   - A start the phone can't record (location off, no "Always") drops the
+     empty Journey instead of leaving it paused.
+   - A "Recording · 0:12:04" pill over the tab bar on other tabs.
+   - Journey detail (`/journey/:id`): route per segment on Mapbox, distance,
+     duration, start time, a ~10 s replay and delete. Works after Pro
+     expires.
+   - Not built yet: export (GPX), renaming, moving time (elapsed includes
+     pauses).
+   - Testing: grant Pro with
+     `insert into public.pro_entitlement_periods (user_id, starts_at)
+     values ('<user uuid>', now());` then run with the dart-define.
 5. **Release readiness:** update the in-app explanation, privacy policy,
    purpose strings, App Store privacy answers and Play Data safety/declaration.
    Test locked-screen recording on real iOS and Android devices, offline and

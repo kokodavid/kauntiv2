@@ -80,17 +80,27 @@ class SupabaseJourneyRepository {
           .range(from, to)
           .timeout(_timeout),
     );
-    return [
-      for (final row in rows)
-        JourneySummary(
-          id: row['id'] as String,
-          title: row['title'] as String,
-          startedAt: DateTime.parse(row['started_at'] as String),
-          endedAt: DateTime.parse(row['ended_at'] as String),
-          distanceMeters: (row['distance_m'] as num).toDouble(),
-          isUploaded: true,
-        ),
-    ];
+    return [for (final row in rows) _summary(row)];
+  }
+
+  static JourneySummary _summary(Map<String, dynamic> row) => JourneySummary(
+    id: row['id'] as String,
+    title: row['title'] as String,
+    startedAt: DateTime.parse(row['started_at'] as String),
+    endedAt: DateTime.parse(row['ended_at'] as String),
+    distanceMeters: (row['distance_m'] as num).toDouble(),
+    isUploaded: true,
+  );
+
+  /// One uploaded Journey, or null if it's gone (deleted elsewhere).
+  Future<JourneySummary?> journey(String id) async {
+    final row = await _client
+        .from('journeys')
+        .select('id, title, started_at, ended_at, distance_m')
+        .eq('id', id)
+        .maybeSingle()
+        .timeout(_timeout);
+    return row == null ? null : _summary(row);
   }
 
   Future<List<JourneyPoint>> points(String journeyId) async {

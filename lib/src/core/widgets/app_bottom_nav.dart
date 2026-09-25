@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
+import '../domain/app_feature_flags.dart';
 
-enum AppNavTab { map, badges, ranks, explore }
+enum AppNavTab { map, badges, ranks, explore, journeys }
 
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({
@@ -26,6 +27,8 @@ class AppBottomNav extends StatelessWidget {
     ),
     (tab: AppNavTab.ranks, icon: Icons.bar_chart_rounded, label: 'Ranks'),
     (tab: AppNavTab.explore, icon: Icons.travel_explore, label: 'Explore'),
+    if (AppFeatureFlags.journeys)
+      (tab: AppNavTab.journeys, icon: Icons.route_rounded, label: 'Journeys'),
   ];
 
   @override
@@ -38,7 +41,8 @@ class AppBottomNav extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 300),
+            // Wider when the fifth (Journeys) tab is on.
+            constraints: BoxConstraints(maxWidth: _tabs.length > 4 ? 360 : 300),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: AppColors.tabBarShell,

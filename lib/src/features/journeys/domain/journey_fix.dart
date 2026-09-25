@@ -36,3 +36,18 @@ abstract interface class JourneyLocationSource {
   Future<void> start();
   Future<void> stop();
 }
+
+/// Why the phone couldn't start recording a route.
+enum JourneyLocationFailure {
+  servicesDisabled,
+  permissionDenied,
+  backgroundPermissionDenied,
+  backgroundModeUnavailable,
+  settingsUnavailable,
+}
+
+class JourneyLocationException implements Exception {
+  const JourneyLocationException(this.reason);
+
+  final JourneyLocationFailure reason;
+}

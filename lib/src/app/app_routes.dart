@@ -1,3 +1,4 @@
+import '../core/domain/app_feature_flags.dart';
 import '../core/widgets/app_bottom_nav.dart';
 import '../features/onboarding/domain/startup_state.dart';
 
@@ -9,12 +10,18 @@ abstract final class AppRoutes {
   static const permission = '/permission';
   static const map = '/map';
   static const explore = '/explore';
+  static const journeys = '/journeys';
 
   static String county(int code) => '/county/$code';
   static String place(String id) => '/place/$id';
+  static String journey(String id) => '/journey/$id';
 
   /// The tabs that are live, in shell-branch order.
-  static const tabs = [AppNavTab.map, AppNavTab.explore];
+  static const tabs = [
+    AppNavTab.map,
+    AppNavTab.explore,
+    if (AppFeatureFlags.journeys) AppNavTab.journeys,
+  ];
 
   static const _gates = {splash, signIn, homeCounty, permission};
 

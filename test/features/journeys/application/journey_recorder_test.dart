@@ -20,12 +20,16 @@ import 'package:kaunti47_v2/src/features/journeys/domain/pro_status.dart';
 class _FakeSource implements JourneyLocationSource {
   final controller = StreamController<JourneyFix>.broadcast(sync: true);
   var started = false;
+  JourneyLocationException? failStart;
 
   @override
   Stream<JourneyFix> get fixes => controller.stream;
 
   @override
-  Future<void> start() async => started = true;
+  Future<void> start() async {
+    if (failStart case final error?) throw error;
+    started = true;
+  }
 
   @override
   Future<void> stop() async => started = false;
@@ -204,5 +208,22 @@ void main() {
         .read(localJourneyRepositoryProvider)
         .activeSession('alice');
     expect(saved?.recording.phase, JourneyRecordingPhase.paused);
+  });
+
+  test("a phone that can't record drops the Journey", () async {
+    cloud.status = ProStatus(active: true, checkedAt: now);
+    source.failStart = const JourneyLocationException(
+      JourneyLocationFailure.backgroundPermissionDenied,
+    );
+    final c = container();
+    await expectLater(
+      c.read(journeyRecorderProvider.notifier).start(now: now),
+      throwsA(isA<JourneyLocationException>()),
+    );
+    expect(c.read(journeyRecorderProvider), isNull);
+    expect(
+      await c.read(localJourneyRepositoryProvider).activeSession('alice'),
+      isNull,
+    );
   });
 }

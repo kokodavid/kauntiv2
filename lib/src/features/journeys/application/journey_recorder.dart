@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../auth/application/auth_providers.dart';
 import '../data/local_journey_repository.dart';
+import '../domain/journey_fix.dart';
 import '../domain/journey_ids.dart';
 import '../domain/pro_status.dart';
 import 'journey_cloud_providers.dart';
@@ -70,8 +71,9 @@ class JourneyRecorder extends _$JourneyRecorder {
     _set(session, userId);
   }
 
-  /// Starts a Journey. Throws [JourneyStartDenied] without Pro and
-  /// [JourneyProCheckUnavailable] when Pro can't be checked (offline).
+  /// Starts a Journey. Throws [JourneyStartDenied] without Pro,
+  /// [JourneyProCheckUnavailable] when Pro can't be checked (offline) and
+  /// [JourneyLocationException] when the phone can't record.
   Future<void> start({DateTime? now}) async {
     if (state != null) throw StateError('A Journey is already in progress.');
     final userId = _userId();
@@ -87,9 +89,19 @@ class JourneyRecorder extends _$JourneyRecorder {
     final capture = ref.read(journeyCaptureProvider);
     try {
       await capture.attachStarted(session: session, userId: userId);
-    } finally {
-      // On failure capture pauses the session; show that state.
       _set(capture.session, userId);
+    } on JourneyLocationException {
+      // The phone can't record (location off, no "Always" permission,
+      // background mode refused): nothing was recorded, so the Journey is
+      // dropped rather than left paused.
+      await capture.detach();
+      await ref.read(localJourneyRepositoryProvider).discard(session.id, userId);
+      _set(null, null);
+      rethrow;
+    } catch (_) {
+      // Capture keeps the Journey, paused; show that.
+      _set(capture.session, userId);
+      rethrow;
     }
   }
 

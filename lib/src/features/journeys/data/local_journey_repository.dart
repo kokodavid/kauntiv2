@@ -150,19 +150,37 @@ class LocalJourneyRepository {
               ..where((t) => t.journeyId.equals(id))
               ..orderBy([(t) => OrderingTerm.asc(t.sequenceNumber)]))
             .get();
-    return [
-      for (final row in rows)
-        JourneyPoint(
-          recordedAt: DateTime.fromMillisecondsSinceEpoch(
-            row.recordedAtMillis,
-            isUtc: true,
-          ),
-          latitude: row.latitude,
-          longitude: row.longitude,
-          accuracyMeters: row.accuracyMeters,
-          segmentNumber: row.segmentNumber,
-        ),
-    ];
+    return [for (final row in rows) _point(row)];
+  }
+
+  JourneyPoint _point(JourneySample row) => JourneyPoint(
+    recordedAt: DateTime.fromMillisecondsSinceEpoch(
+      row.recordedAtMillis,
+      isUtc: true,
+    ),
+    latitude: row.latitude,
+    longitude: row.longitude,
+    accuracyMeters: row.accuracyMeters,
+    segmentNumber: row.segmentNumber,
+  );
+
+  /// Drops a session and its points (a start that never recorded).
+  Future<void> discard(String id, String userId) => _db.transaction(() async {
+    await _owned(id, userId);
+    await (_db.delete(
+      _db.journeySamples,
+    )..where((t) => t.journeyId.equals(id))).go();
+    await (_db.delete(
+      _db.journeySessions,
+    )..where((t) => t.id.equals(id))).go();
+  });
+
+  /// The session's points as they're recorded, for the live route.
+  Stream<List<JourneyPoint>> watchPoints(String id) {
+    final query = _db.select(_db.journeySamples)
+      ..where((t) => t.journeyId.equals(id))
+      ..orderBy([(t) => OrderingTerm.asc(t.sequenceNumber)]);
+    return query.watch().map((rows) => [for (final row in rows) _point(row)]);
   }
 
   Future<LocalJourneySession> _owned(String id, String userId) async {

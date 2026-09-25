@@ -3,20 +3,6 @@ import 'package:location/location.dart';
 
 import '../domain/journey_fix.dart';
 
-enum JourneyLocationFailure {
-  servicesDisabled,
-  permissionDenied,
-  backgroundPermissionDenied,
-  backgroundModeUnavailable,
-  settingsUnavailable,
-}
-
-class JourneyLocationException implements Exception {
-  const JourneyLocationException(this.reason);
-
-  final JourneyLocationFailure reason;
-}
-
 /// Continuous fixes only for a user-started Journey. Geofencing stays separate.
 class DeviceJourneyLocationSource implements JourneyLocationSource {
   DeviceJourneyLocationSource({Location? location})

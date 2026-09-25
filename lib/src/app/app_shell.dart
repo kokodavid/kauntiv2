@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/domain/app_feature_flags.dart';
 import '../core/widgets/app_bottom_nav.dart';
 import '../design/app_colors.dart';
 import '../features/detection/presentation/detection_lifecycle.dart';
+import '../features/journeys/presentation/journey_active_banner.dart';
 import '../features/journeys/presentation/journey_sync_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import 'app_routes.dart';
@@ -55,6 +57,19 @@ class AppShell extends ConsumerWidget {
           body: Stack(
             children: [
               Positioned.fill(child: navigationShell),
+              if (AppFeatureFlags.journeys &&
+                  AppRoutes.tabs[navigationShell.currentIndex] !=
+                      AppNavTab.journeys)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 96,
+                  child: Center(
+                    child: JourneyActiveBanner(
+                      onTap: () => _select(context, AppNavTab.journeys),
+                    ),
+                  ),
+                ),
               Positioned(
                 left: 0,
                 right: 0,

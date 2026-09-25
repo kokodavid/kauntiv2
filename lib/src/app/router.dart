@@ -67,6 +67,7 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => CountyDetailScreen(
           countyCode: int.parse(state.pathParameters['code']!),
           actions: DetailRoutes.actions!,
+          onOpenPlace: DetailRoutes.openPlace,
         ),
       ),
       GoRoute(

@@ -26,6 +26,8 @@ Future<void> showCountyArrivalSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
+    // Over the tab bar, not inside the tab's own navigator.
+    useRootNavigator: true,
     backgroundColor: AppColors.pageBackground,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),

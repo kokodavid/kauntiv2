@@ -3,6 +3,8 @@ import '../../../counties/county_paths.dart';
 import 'county_badge_state.dart';
 import 'map_home_promotion.dart';
 
+export 'county_badge_state.dart' show CountyBadgeStateLabel;
+
 typedef MapHomeCountyBadgeState = CountyBadgeState;
 
 class MapHomeCountyBadge {
@@ -12,6 +14,9 @@ class MapHomeCountyBadge {
     this.areaKm2,
     this.elevationM,
     this.durationMinutes,
+    this.highlightImageUrl,
+    this.headquarters,
+    this.placeNames = const [],
   });
 
   final CountyPath county;
@@ -19,6 +24,15 @@ class MapHomeCountyBadge {
   final num? areaKm2;
   final num? elevationM;
   final int? durationMinutes;
+
+  /// For the county preview card (same content as Explore's cards).
+  final String? highlightImageUrl;
+
+  /// The county headquarters town (`counties.capital`).
+  final String? headquarters;
+
+  /// Places on file here, for the "N places to see" line.
+  final List<String> placeNames;
 }
 
 class MapHomeSuggestion {

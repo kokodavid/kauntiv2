@@ -44,6 +44,10 @@ LONG_FILE_EXEMPTIONS = {
     "lib/src/core/counties/county_boundaries.dart": "generated county polygons for GPS-to-county lookup (from the counties seed)",
 }
 
+# The app router (architecture §5): the one @riverpod provider allowed in
+# lib/src/app, since it wires every feature's screens together.
+ROUTER_FILE = "lib/src/app/router.dart"
+
 GENERATED_SUFFIXES = (".g.dart", ".freezed.dart", ".gr.dart", ".mocks.dart")
 
 # Which layers of the SAME feature each layer may import.
@@ -105,7 +109,7 @@ RULE_DOCS = {
     "banned-state": "ChangeNotifier/ValueNotifier/StateNotifier/StateProvider/Inherited* used (Riverpod only).",
     "setstate-outside-ui": "setState used outside presentation/ or core/widgets/.",
     "manual-provider": "Hand-written provider constructor; declare providers with @riverpod codegen.",
-    "provider-location": "@riverpod provider declared outside application/ or core/.",
+    "provider-location": "@riverpod provider declared outside application/, core/ or app/router.dart.",
     "supabase-instance": "Supabase.instance used outside core/; read supabaseClientProvider instead.",
     "file-length": f"File exceeds {MAX_FILE_LINES} lines; split it.",
 }
@@ -237,7 +241,8 @@ def check_file(root: Path, path: Path) -> list[Violation]:
             add("setstate-outside-ui", "setState(")
     for _ in MANUAL_PROVIDER_RE.finditer(code):
         add("manual-provider", "hand-written provider")
-    if RIVERPOD_ANNOTATION_RE.search(code) and not (is_application or z.kind == "core"):
+    if RIVERPOD_ANNOTATION_RE.search(code) and not (
+            is_application or z.kind == "core" or rel == ROUTER_FILE):
         add("provider-location", "@riverpod")
     if SUPABASE_INSTANCE_RE.search(code) and z.kind != "core":
         add("supabase-instance", "Supabase.instance")

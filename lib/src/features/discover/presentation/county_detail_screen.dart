@@ -11,7 +11,7 @@ import 'county_place_filters.dart';
 import 'detail_async_body.dart';
 import 'detail_photo_carousel.dart';
 import 'detail_widgets.dart';
-import 'place_detail_screen.dart';
+import 'explore_place_row.dart';
 import 'place_photo_card.dart';
 
 /// County Detail (v2 Figma node 235:7261, ported from v1): photo carousel
@@ -23,10 +23,15 @@ class CountyDetailScreen extends StatelessWidget {
     super.key,
     required this.countyCode,
     required this.actions,
+    this.onOpenPlace,
   });
 
   final int countyCode;
   final DiscoverDetailActions actions;
+
+  /// Place Detail for a tapped place, supplied from `app/` (the
+  /// `/place/:id` route). Null leaves the cards inert.
+  final OpenExplorePlace? onOpenPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +41,11 @@ class CountyDetailScreen extends StatelessWidget {
         child: DetailAsyncBody<CountyDetailData>(
           load: () => actions.countyDetail(countyCode),
           errorMessage: "Couldn't load this county.",
-          builder: (context, data) =>
-              _CountyDetailBody(data: data, actions: actions),
+          builder: (context, data) => _CountyDetailBody(
+            data: data,
+            actions: actions,
+            onOpenPlace: onOpenPlace,
+          ),
         ),
       ),
     );
@@ -45,10 +53,15 @@ class CountyDetailScreen extends StatelessWidget {
 }
 
 class _CountyDetailBody extends StatefulWidget {
-  const _CountyDetailBody({required this.data, required this.actions});
+  const _CountyDetailBody({
+    required this.data,
+    required this.actions,
+    this.onOpenPlace,
+  });
 
   final CountyDetailData data;
   final DiscoverDetailActions actions;
+  final OpenExplorePlace? onOpenPlace;
 
   @override
   State<_CountyDetailBody> createState() => _CountyDetailBodyState();
@@ -140,14 +153,7 @@ class _CountyDetailBodyState extends State<_CountyDetailBody> {
                   PlacePhotoCard(
                     key: ValueKey(place.id),
                     place: _withSaved(place),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => PlaceDetailScreen(
-                          placeId: place.id,
-                          actions: actions,
-                        ),
-                      ),
-                    ),
+                    onTap: () => widget.onOpenPlace?.call(context, place.id),
                     onSavedChanged: (saved) async {
                       await actions.setPlaceSaved(
                         countyCode: data.county.code,

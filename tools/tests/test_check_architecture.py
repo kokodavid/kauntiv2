@@ -145,6 +145,14 @@ class ArchitectureTests(unittest.TestCase):
         self.assertEqual(rules.count(("manual-provider", "lib/src/features/map/application/p.dart")), 2)
         self.assertIn(("provider-location", "lib/src/features/map/data/r.dart"), rules)
 
+    def test_router_may_declare_its_provider(self):
+        r = self.repo
+        r.write("lib/src/app/router.dart", "@Riverpod(keepAlive: true)\nint appRouter(Ref ref) => 1;\n")
+        r.write("lib/src/app/other.dart", "@riverpod\nint other(Ref ref) => 1;\n")
+        rules = r.rules()
+        self.assertNotIn(("provider-location", "lib/src/app/router.dart"), rules)
+        self.assertIn(("provider-location", "lib/src/app/other.dart"), rules)
+
     def test_supabase_instance_only_in_core(self):
         r = self.repo
         r.write("lib/src/features/map/data/r.dart", "final c = Supabase.instance.client;\n")

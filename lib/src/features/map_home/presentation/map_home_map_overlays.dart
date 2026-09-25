@@ -63,7 +63,7 @@ class MapHomeCountyLabel extends StatelessWidget {
             Text(badge.county.name, style: AppTextStyles.mapOverlayTitle),
             const SizedBox(height: 1),
             Text(
-              _statusLabelFor(badge.state),
+              badge.state.statusLabel,
               style: AppTextStyles.mapOverlayMeta,
             ),
           ],
@@ -73,10 +73,3 @@ class MapHomeCountyLabel extends StatelessWidget {
   }
 }
 
-String _statusLabelFor(MapHomeCountyBadgeState state) => switch (state) {
-  MapHomeCountyBadgeState.earned => 'EARNED',
-  MapHomeCountyBadgeState.locked => 'UNCLAIMED',
-  MapHomeCountyBadgeState.passedThrough => 'PASSED THROUGH',
-  MapHomeCountyBadgeState.pending => 'PENDING',
-  MapHomeCountyBadgeState.justUnlocked => 'JUST UNLOCKED',
-};

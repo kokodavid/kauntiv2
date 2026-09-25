@@ -4,6 +4,7 @@ import '../../../counties/county_paths.dart';
 import '../../../services/app_logger.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_place.dart';
+import 'map_home_county_reads.dart';
 import 'map_home_for_you_reads.dart';
 import 'map_home_repository.dart';
 
@@ -21,8 +22,13 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
     }
 
     final resolvedHomeCounty = await _homeCounty(userId, fallback: homeCounty);
-    final countyFacts = await _countyFacts();
-    final visits = await _visits(userId);
+    final countyReads = MapHomeCountyReads(client, _readOptional);
+    final (countyFacts, visits, headquarters, placeNames) = await (
+      _countyFacts(),
+      _visits(userId),
+      countyReads.headquarters(),
+      countyReads.placeNames(),
+    ).wait;
     final badges = [
       for (final county in CountyPaths.all)
         MapHomeCountyBadge(
@@ -31,6 +37,9 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
           areaKm2: countyFacts[county.code]?.areaKm2,
           elevationM: countyFacts[county.code]?.elevationM,
           durationMinutes: countyFacts[county.code]?.durationMinutes,
+          highlightImageUrl: countyFacts[county.code]?.highlightImageUrl,
+          headquarters: headquarters[county.code],
+          placeNames: placeNames[county.code] ?? const [],
         ),
     ];
     final exploredCount = badges

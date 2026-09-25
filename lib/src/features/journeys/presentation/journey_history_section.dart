@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_history.dart';
-import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
+import 'journey_card.dart';
 
 /// Opens a past Journey; supplied by `app/` (the `/journey/:id` route).
 typedef OpenJourney = void Function(BuildContext context, String id);
@@ -70,7 +70,7 @@ class _List extends StatelessWidget {
             ),
           ),
         for (final (i, journey) in history.journeys.indexed) ...[
-          if (i > 0) const Divider(height: 1, color: AppColors.listDivider),
+          if (i > 0) const SizedBox(height: 12),
           _Row(
             journey: journey,
             onTap: open == null ? null : () => open(context, journey.id),
@@ -124,56 +124,11 @@ class _Row extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final local = journey.startedAt.toLocal();
-    final date = JourneyTitles.defaultFor(
-      local,
-    ).replaceFirst('Journey on ', '');
-    final details = [
-      date,
-      JourneyFormat.duration(journey.duration),
-      if (journey.isUploaded) JourneyFormat.distance(journey.distanceMeters),
-    ].join(' · ');
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            const Icon(Icons.route_rounded, color: AppColors.accent, size: 22),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    journey.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypeScale.itemTitle,
-                  ),
-                  Text(details, style: AppTypeScale.small),
-                  if (!journey.isUploaded)
-                    Text(
-                      'Waiting to upload',
-                      style: AppTypeScale.meta.copyWith(
-                        color: AppColors.pendingFill,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            IconButton(
-              onPressed: () => _delete(context, ref),
-              tooltip: 'Delete Journey',
-              color: AppColors.mutedForeground,
-              icon: const Icon(Icons.delete_outline),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context, WidgetRef ref) => JourneyCard(
+    journey: journey,
+    onOpen: onTap,
+    onDelete: () => _delete(context, ref),
+  );
 }
 
 class _Retry extends StatelessWidget {

@@ -324,6 +324,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 | Date | Commit | Rows | Change |
 |---|---|---|---|
 | 2026-09-25 | codex/journeys-ui | 13 | Journeys tab behind `JOURNEYS_ENABLED`: start, live route and controls, history, detail with replay and delete |
+| 2026-09-25 | codex/journeys-ui | 13 | Past Journeys as place-style cards over a Mapbox static-map route preview (thinned, encoded polyline) with Replay and delete |
 | 2026-09-25 | codex/journeys-ui | 13 | Replay moments include every Kaunti47 place within 10 km of the route (saved ones marked), openable and savable from the card |
 | 2026-09-25 | codex/journeys-ui | 13 | Journey detail page removed: a Journey opens straight into the full-screen replay (summary in the card); delete moved to the list |
 | 2026-09-25 | codex/journeys-ui | 13 | Full-screen replay with floating controls; pauses at key moments (breaks, long stops, county crossings, saved places) |

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/config/app_config.dart';
+import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_history.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_recorder.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
@@ -36,7 +38,11 @@ class _History extends JourneyHistoryList {
 }
 
 Widget _app(Widget child, List<Override> overrides) => ProviderScope(
-  overrides: overrides,
+  overrides: [
+    // No Mapbox token: Journey cards show the plain fill, no route load.
+    appConfigProvider.overrideWithValue(const AppConfig.dev()),
+    ...overrides,
+  ],
   child: MaterialApp(home: Scaffold(body: child)),
 );
 
@@ -123,7 +129,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Waiting to upload'), findsOneWidget);
-    expect(find.text('25 Sep 2026 · 1 h 05 min · 12 km'), findsOneWidget);
+    expect(find.text('1 h 05 min · 12 km'), findsOneWidget);
     expect(find.textContaining("You're offline"), findsOneWidget);
     await tester.tap(find.text('Nairobi loop'));
     expect(opened, ['cloud']);

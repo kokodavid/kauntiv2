@@ -8,16 +8,18 @@ part of 'journey_key_moments.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The signed-in user's saved places, for spotting them along a replay.
-/// Empty offline or without Supabase: the other moments still work.
+/// Kaunti47 places (with the user's saved ones marked), for spotting
+/// those near a replayed route. Empty offline or without Supabase: the
+/// other moments still work.
 
-@ProviderFor(journeySavedPlaces)
-const journeySavedPlacesProvider = JourneySavedPlacesProvider._();
+@ProviderFor(journeyPlaces)
+const journeyPlacesProvider = JourneyPlacesProvider._();
 
-/// The signed-in user's saved places, for spotting them along a replay.
-/// Empty offline or without Supabase: the other moments still work.
+/// Kaunti47 places (with the user's saved ones marked), for spotting
+/// those near a replayed route. Empty offline or without Supabase: the
+/// other moments still work.
 
-final class JourneySavedPlacesProvider
+final class JourneyPlacesProvider
     extends
         $FunctionalProvider<
           AsyncValue<List<JourneyPlaceMark>>,
@@ -27,21 +29,22 @@ final class JourneySavedPlacesProvider
     with
         $FutureModifier<List<JourneyPlaceMark>>,
         $FutureProvider<List<JourneyPlaceMark>> {
-  /// The signed-in user's saved places, for spotting them along a replay.
-  /// Empty offline or without Supabase: the other moments still work.
-  const JourneySavedPlacesProvider._()
+  /// Kaunti47 places (with the user's saved ones marked), for spotting
+  /// those near a replayed route. Empty offline or without Supabase: the
+  /// other moments still work.
+  const JourneyPlacesProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'journeySavedPlacesProvider',
+        name: r'journeyPlacesProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$journeySavedPlacesHash();
+  String debugGetCreateSourceHash() => _$journeyPlacesHash();
 
   @$internal
   @override
@@ -51,23 +54,22 @@ final class JourneySavedPlacesProvider
 
   @override
   FutureOr<List<JourneyPlaceMark>> create(Ref ref) {
-    return journeySavedPlaces(ref);
+    return journeyPlaces(ref);
   }
 }
 
-String _$journeySavedPlacesHash() =>
-    r'b2d68ced5838c6b9a37e093da097bf87926e69ab';
+String _$journeyPlacesHash() => r'865025da4c69d93af799a42ec6a620e5fec44db0';
 
 /// A Journey's key moments, in replay order: recording breaks, long stops,
 /// county crossings (from the bundled boundaries, so offline too) and
-/// saved places passed.
+/// places within 10 km.
 
 @ProviderFor(journeyMoments)
 const journeyMomentsProvider = JourneyMomentsFamily._();
 
 /// A Journey's key moments, in replay order: recording breaks, long stops,
 /// county crossings (from the bundled boundaries, so offline too) and
-/// saved places passed.
+/// places within 10 km.
 
 final class JourneyMomentsProvider
     extends
@@ -81,7 +83,7 @@ final class JourneyMomentsProvider
         $FutureProvider<List<JourneyMoment>> {
   /// A Journey's key moments, in replay order: recording breaks, long stops,
   /// county crossings (from the bundled boundaries, so offline too) and
-  /// saved places passed.
+  /// places within 10 km.
   const JourneyMomentsProvider._({
     required JourneyMomentsFamily super.from,
     required String super.argument,
@@ -126,11 +128,11 @@ final class JourneyMomentsProvider
   }
 }
 
-String _$journeyMomentsHash() => r'31fd8d7ffc455e60234d8143a2dd10a19553cd06';
+String _$journeyMomentsHash() => r'a90795c8081acb44e9e38cde1d89c68ba88264c6';
 
 /// A Journey's key moments, in replay order: recording breaks, long stops,
 /// county crossings (from the bundled boundaries, so offline too) and
-/// saved places passed.
+/// places within 10 km.
 
 final class JourneyMomentsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<JourneyMoment>>, String> {
@@ -145,7 +147,7 @@ final class JourneyMomentsFamily extends $Family
 
   /// A Journey's key moments, in replay order: recording breaks, long stops,
   /// county crossings (from the bundled boundaries, so offline too) and
-  /// saved places passed.
+  /// places within 10 km.
 
   JourneyMomentsProvider call(String id) =>
       JourneyMomentsProvider._(argument: id, from: this);

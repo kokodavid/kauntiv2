@@ -1,6 +1,6 @@
 import '../../../counties/county_paths.dart';
 import '../domain/map_home_models.dart';
-import '../domain/map_place.dart';
+import '../../../core/domain/map_place.dart';
 
 abstract interface class MapHomeRepository {
   Future<MapHomeBoardData> loadBoard({CountyPath? homeCounty});

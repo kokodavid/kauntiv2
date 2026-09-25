@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kaunti47_v2/src/features/map_home/domain/map_place.dart';
-import 'package:kaunti47_v2/src/features/map_home/presentation/real_map_place_sheet.dart';
+import 'package:kaunti47_v2/src/core/domain/map_place.dart';
+import 'package:kaunti47_v2/src/core/widgets/app_place_sheet.dart';
 
 const _hellsGate = MapPlace(
   id: 'hg',
@@ -21,7 +21,7 @@ Future<void> _pump(
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: RealMapPlaceSheet(
+        body: AppPlaceSheet(
           place: _hellsGate,
           onOpen: onOpen,
           onRoute: onRoute,

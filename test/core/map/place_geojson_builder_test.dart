@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kaunti47_v2/src/features/map_home/application/place_geojson_builder.dart';
-import 'package:kaunti47_v2/src/features/map_home/domain/map_place.dart';
+import 'package:kaunti47_v2/src/core/map/place_geojson_builder.dart';
+import 'package:kaunti47_v2/src/core/domain/map_place.dart';
 
 void main() {
   test('a place with a thumbnail gets its own photo marker id', () {

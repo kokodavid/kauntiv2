@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
-import '../domain/map_place.dart';
+import '../../../core/domain/map_place.dart';
 import 'map_home_county_map.dart';
 import 'map_home_detection_paused_chip.dart';
 import 'map_home_for_you_section.dart';

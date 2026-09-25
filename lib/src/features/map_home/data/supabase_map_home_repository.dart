@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../counties/county_paths.dart';
 import '../../../services/app_logger.dart';
 import '../domain/map_home_models.dart';
-import '../domain/map_place.dart';
+import '../../../core/domain/map_place.dart';
 import 'map_home_county_reads.dart';
 import 'map_home_for_you_reads.dart';
 import 'map_home_repository.dart';

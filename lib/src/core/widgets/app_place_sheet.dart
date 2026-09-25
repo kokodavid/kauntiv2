@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/design/app_type_scale.dart';
-import '../../../core/widgets/app_photo_parts.dart';
-import '../../../counties/county_paths.dart';
-import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
+import '../../counties/county_paths.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
+import '../design/app_type_scale.dart';
 import '../domain/map_place.dart';
-import 'map_home_links.dart';
+import 'app_photo_parts.dart';
 
-/// The sheet for a tapped place pin, in the feature-card style: the place
+/// Opens Place Detail for a place id. Supplied by `app/`.
+typedef AppOpenPlace = void Function(BuildContext context, String placeId);
+
+/// The sheet for a tapped place pin (Home map, Journey recording), in the
+/// feature-card style: the place
 /// photo with its name, county and type, a Route button on the photo, the
 /// summary, and "View place".
-class RealMapPlaceSheet extends StatelessWidget {
-  const RealMapPlaceSheet({
+class AppPlaceSheet extends StatelessWidget {
+  const AppPlaceSheet({
     super.key,
     required this.place,
     this.onOpen,
@@ -31,7 +34,7 @@ class RealMapPlaceSheet extends StatelessWidget {
   static Future<void> show(
     BuildContext context,
     MapPlace place, {
-    OpenPlaceDetail? onOpenPlace,
+    AppOpenPlace? onOpenPlace,
     AppOpenDirections? onRoute,
   }) {
     return showModalBottomSheet<void>(
@@ -41,7 +44,7 @@ class RealMapPlaceSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.foreground.withValues(alpha: 0.28),
       isScrollControlled: true,
-      builder: (_) => RealMapPlaceSheet(
+      builder: (_) => AppPlaceSheet(
         place: place,
         onOpen: onOpenPlace == null
             ? null

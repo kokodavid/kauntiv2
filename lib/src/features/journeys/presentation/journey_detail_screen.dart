@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,9 +6,8 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/journey_history.dart';
 import '../application/journey_views.dart';
-import '../domain/journey_point.dart';
 import '../domain/journey_route.dart';
-import 'journey_route_map.dart';
+import 'journey_replay_panel.dart';
 
 /// One past Journey: its route on the map with a replay, the summary, and
 /// delete. Viewable with or without Pro.
@@ -55,53 +52,6 @@ class _Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<_Body> {
-  /// About 10 s to replay any route, drawn at 20 frames a second.
-  static const _frame = Duration(milliseconds: 50);
-  static const _frames = 200;
-
-  late final List<JourneyPoint> _points = [
-    for (final segment in widget.detail.route.segments) ...segment,
-  ];
-  Timer? _replay;
-  int? _index;
-
-  @override
-  void dispose() {
-    _replay?.cancel();
-    super.dispose();
-  }
-
-  void _toggleReplay() {
-    if (_replay != null) {
-      _replay!.cancel();
-      // Back to the whole route.
-      setState(() {
-        _replay = null;
-        _index = null;
-      });
-      return;
-    }
-    final step = (_points.length / _frames).ceil().clamp(1, _points.length);
-    var index = 0;
-    setState(() => _index = 0);
-    _replay = Timer.periodic(_frame, (timer) {
-      index += step;
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (index >= _points.length) {
-        timer.cancel();
-        setState(() {
-          _replay = null;
-          _index = null;
-        });
-        return;
-      }
-      setState(() => _index = index);
-    });
-  }
-
   Future<void> _delete() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -142,41 +92,27 @@ class _BodyState extends ConsumerState<_Body> {
   Widget build(BuildContext context) {
     final summary = widget.detail.summary;
     final route = widget.detail.route;
-    final index = _index;
-    JourneyLatLng at(JourneyPoint p) =>
-        (latitude: p.latitude, longitude: p.longitude);
-    // Replay draws the route from the start as it goes, with the camera
-    // following the marker; otherwise the whole route with start and end.
-    final shown = index == null
-        ? route
-        : JourneyRoute(_points.sublist(0, index + 1));
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: SizedBox(
-            height: 320,
-            child: route.isEmpty
-                ? const ColoredBox(
-                    color: AppColors.lockedFill,
-                    child: Center(
-                      child: Text(
-                        'No route points were recorded.',
-                        style: AppTypeScale.small,
-                      ),
-                    ),
-                  )
-                : JourneyRouteMap(
-                    route: shown,
-                    start: at(_points.first),
-                    end: index == null ? at(_points.last) : null,
-                    marker: index == null ? null : at(_points[index]),
-                    follow: index != null,
-                    animateFollow: false,
+        if (route.isEmpty)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: const SizedBox(
+              height: 320,
+              child: ColoredBox(
+                color: AppColors.lockedFill,
+                child: Center(
+                  child: Text(
+                    'No route points were recorded.',
+                    style: AppTypeScale.small,
                   ),
-          ),
-        ),
+                ),
+              ),
+            ),
+          )
+        else
+          JourneyReplayPanel(route: route),
         const SizedBox(height: 16),
         Text(summary.title, style: AppTextStyles.headingForeground),
         if (!summary.isUploaded)
@@ -206,27 +142,6 @@ class _BodyState extends ConsumerState<_Body> {
           ],
         ),
         const SizedBox(height: 16),
-        if (_points.length > 1)
-          SizedBox(
-            height: 48,
-            child: ElevatedButton.icon(
-              onPressed: _toggleReplay,
-              icon: Icon(_replay == null ? Icons.play_arrow : Icons.stop),
-              label: Text(
-                _replay == null ? 'Replay route' : 'Stop replay',
-                style: AppTextStyles.buttonLabel,
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.accentForeground,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-            ),
-          ),
-        const SizedBox(height: 8),
         TextButton(
           onPressed: _delete,
           style: TextButton.styleFrom(foregroundColor: AppColors.danger),

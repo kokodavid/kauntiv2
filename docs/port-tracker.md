@@ -305,8 +305,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   and the `upload_journey` RPC (owner, Pro-at-start, timing and point checks;
   distance computed server-side; idempotent). SQL test in
   `supabase/tests/journey_upload.sql`.
-- `JourneyRecorder` (Pro-gated start with a 7-day offline cache, recover
-  after restart), `JourneyUploadQueue` (backoff, local copy deleted after
+- `JourneyRecorder` (start needs a live Pro check, recover after
+  restart), `JourneyUploadQueue` (backoff, local copy deleted after
   upload), `JourneyHistoryList` (local waiting + cloud, delete). Local
   Journey database schema 2.
 

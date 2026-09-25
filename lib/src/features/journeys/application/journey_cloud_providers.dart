@@ -2,7 +2,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/supabase_client_provider.dart';
 import '../data/journey_upload_queue.dart';
-import '../data/pro_status_cache.dart';
 import '../data/supabase_journey_repository.dart';
 import 'journey_providers.dart';
 
@@ -22,7 +21,3 @@ JourneyUploadQueue? journeyUploadQueue(Ref ref) {
   if (cloud == null) return null;
   return JourneyUploadQueue.supabase(ref.watch(journeyDatabaseProvider), cloud);
 }
-
-@Riverpod(keepAlive: true)
-ProStatusCache proStatusCache(Ref ref) =>
-    ProStatusCache(ref.watch(journeyDatabaseProvider));

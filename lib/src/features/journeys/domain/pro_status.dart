@@ -1,4 +1,4 @@
-/// The account's Pro entitlement as last confirmed by the server.
+/// The account's Pro entitlement as confirmed by the server.
 class ProStatus {
   const ProStatus({
     required this.active,
@@ -12,21 +12,22 @@ class ProStatus {
   final DateTime? activeUntil;
   final DateTime checkedAt;
 
-  /// How long a cached status may gate an offline start.
-  static const maxCacheAge = Duration(days: 7);
-
-  /// Whether Start Journey is allowed at [now] on this status. Fresh from
-  /// the server this is just [active] (within the period); from the cache
-  /// it also has to be recent.
-  bool allowsStartAt(DateTime now, {bool fromCache = false}) {
+  /// Whether Start Journey is allowed at [now].
+  bool allowsStartAt(DateTime now) {
     if (!active) return false;
     final until = activeUntil;
-    if (until != null && !now.isBefore(until)) return false;
-    return !fromCache || now.difference(checkedAt) <= maxCacheAge;
+    return until == null || now.isBefore(until);
   }
 }
 
 /// Starting a Journey needs Pro.
 class JourneyStartDenied implements Exception {
   const JourneyStartDenied();
+}
+
+/// Pro couldn't be checked (offline or the server unreachable). Starting a
+/// Journey needs a live check, so no route can be recorded that the server
+/// would later refuse to save.
+class JourneyProCheckUnavailable implements Exception {
+  const JourneyProCheckUnavailable();
 }

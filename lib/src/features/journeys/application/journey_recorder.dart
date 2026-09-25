@@ -70,7 +70,8 @@ class JourneyRecorder extends _$JourneyRecorder {
     _set(session, userId);
   }
 
-  /// Starts a Journey. Throws [JourneyStartDenied] without Pro.
+  /// Starts a Journey. Throws [JourneyStartDenied] without Pro and
+  /// [JourneyProCheckUnavailable] when Pro can't be checked (offline).
   Future<void> start({DateTime? now}) async {
     if (state != null) throw StateError('A Journey is already in progress.');
     final userId = _userId();

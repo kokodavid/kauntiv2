@@ -11,7 +11,6 @@ import 'package:kaunti47_v2/src/features/journeys/application/journey_providers.
 import 'package:kaunti47_v2/src/features/journeys/application/journey_recorder.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_upload_queue.dart';
-import 'package:kaunti47_v2/src/features/journeys/data/pro_status_cache.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/supabase_journey_repository.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart';
@@ -140,22 +139,21 @@ void main() {
     expect(uploads, hasLength(1));
   });
 
-  test('offline, a recent confirmed Pro status still allows a start', () async {
+  test('offline, a Journey cannot start, even after a good check', () async {
     cloud.status = ProStatus(active: true, checkedAt: now);
     final c = container();
-    final entitlement = c.read(journeyEntitlementProvider.notifier);
-    expect(await entitlement.canStart(now: now), isTrue);
-
-    cloud.offline = true;
     expect(
-      await entitlement.canStart(now: now.add(const Duration(days: 3))),
+      await c.read(journeyEntitlementProvider.notifier).canStart(now: now),
       isTrue,
     );
-    expect(
-      await entitlement.canStart(now: now.add(const Duration(days: 8))),
-      isFalse,
+
+    cloud.offline = true;
+    await expectLater(
+      c.read(journeyRecorderProvider.notifier).start(now: now),
+      throwsA(isA<JourneyProCheckUnavailable>()),
     );
-    expect(await ProStatusCache(db).read('alice'), isNotNull);
+    expect(c.read(journeyRecorderProvider), isNull);
+    expect(source.started, isFalse);
   });
 
   test('history lists waiting Journeys first, then the cloud', () async {

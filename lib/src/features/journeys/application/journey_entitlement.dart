@@ -6,10 +6,10 @@ import 'journey_cloud_providers.dart';
 
 part 'journey_entitlement.g.dart';
 
-/// Pro for starting a Journey. The server is asked first; its answer is
-/// cached so a start also works offline for up to
-/// [ProStatus.maxCacheAge]. This only gates the Start button: the upload
-/// re-checks Pro on the server, so a stale cache can't earn a cloud write.
+/// Pro for starting a Journey, checked live on the server every time. No
+/// cached status can start one: a Journey started on a stale "Pro" would
+/// be refused at upload and stranded on the phone. The upload re-checks
+/// Pro at the start time on the server as well.
 @Riverpod(keepAlive: true)
 class JourneyEntitlement extends _$JourneyEntitlement {
   @override
@@ -19,24 +19,19 @@ class JourneyEntitlement extends _$JourneyEntitlement {
     return null;
   }
 
+  /// Whether a Journey may start now. Throws
+  /// [JourneyProCheckUnavailable] when the server can't be reached.
   Future<bool> canStart({DateTime? now}) async {
-    final at = now ?? DateTime.now();
-    final userId = ref.read(currentUserIdProvider)();
-    if (userId == null) return false;
-    final cache = ref.read(proStatusCacheProvider);
+    if (ref.read(currentUserIdProvider)() == null) return false;
     final cloud = ref.read(supabaseJourneyRepositoryProvider);
-    if (cloud != null) {
-      try {
-        final fresh = await cloud.proStatus();
-        await cache.write(userId, fresh);
-        if (ref.mounted) state = fresh;
-        return fresh.allowsStartAt(at);
-      } on Object {
-        // Offline or unreachable: fall back to the last confirmed status.
-      }
+    if (cloud == null) return false;
+    final ProStatus status;
+    try {
+      status = await cloud.proStatus();
+    } on Object {
+      throw const JourneyProCheckUnavailable();
     }
-    final cached = await cache.read(userId);
-    if (ref.mounted) state = cached;
-    return cached?.allowsStartAt(at, fromCache: true) ?? false;
+    if (ref.mounted) state = status;
+    return status.allowsStartAt(now ?? DateTime.now());
   }
 }

@@ -54,16 +54,16 @@ entitlements are not implemented in this foundation slice.
      Until billing (#12) exists, admins grant periods; billing will add
      periods through its own server path (`source`: app_store, play_store,
      mpesa).
-   - `my_pro_status()` gates Start in the app. The app caches the answer so
-     a start works offline for up to 7 days; the cache never authorizes a
-     cloud write.
+   - `my_pro_status()` gates Start in the app, checked live every time:
+     Start needs a connection (decided 2026-09-25), so no route is ever
+     recorded that the server would refuse to save.
    - `upload_journey(...)` is the only write path (security definer). It
      checks the owner, that Pro was active when the Journey *started*
      (so a lapse mid-Journey still uploads), timing (ends after it starts,
      not in the future beyond 5 min skew, at most 7 days long, started in
      the last 90 days), point order and bounds (max 50,000), computes the
      distance within segments, and is idempotent on the client-made UUID.
-   - App: `JourneyRecorder` (Pro-gated start, pause/resume/finish,
+   - App: `JourneyRecorder` (live Pro-checked start, pause/resume/finish,
      recover), `JourneyUploadQueue` (oldest first, backoff; permanent
      rejections wait a day; local copy deleted after upload),
      `JourneyHistoryList` (waiting-on-phone first, then cloud; delete).
@@ -77,11 +77,7 @@ entitlements are not implemented in this foundation slice.
      changes (before and after each upload, without blaming the Journey);
      the recorder pauses and lets go of a Journey when the account changes;
      history and the Pro status rebuild per account.
-   - Open decision: a cached Pro status can allow an offline Start that the
-     server later rejects (Pro wasn't really active then), leaving the route
-     on the phone only.
-   Provisional limits to confirm: 7-day offline start window, 7-day max
-   Journey, 90-day upload window, 50,000 points per upload, and the default
+   Provisional limits to confirm: 7-day max Journey, 90-day upload window, 50,000 points per upload, and the default
    title "Journey on 25 Sep 2026".
 4. **Journey UI:** fifth bottom-nav destination, live status and Stop controls,
    history, and route rendering on Mapbox. The tab must show archived Journeys

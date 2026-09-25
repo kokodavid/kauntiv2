@@ -24,20 +24,6 @@ void main() {
     );
   });
 
-  test('a cached status only counts while recent', () {
-    final recent = ProStatus(
-      active: true,
-      checkedAt: now.subtract(const Duration(days: 6)),
-    );
-    final stale = ProStatus(
-      active: true,
-      checkedAt: now.subtract(const Duration(days: 8)),
-    );
-    expect(recent.allowsStartAt(now, fromCache: true), isTrue);
-    expect(stale.allowsStartAt(now, fromCache: true), isFalse);
-    expect(stale.allowsStartAt(now), isTrue);
-  });
-
   test('ids are version 4 UUIDs', () {
     final id = JourneyIds.newId();
     expect(

@@ -11,6 +11,7 @@ abstract final class AppRoutes {
   static const map = '/map';
   static const explore = '/explore';
   static const journeys = '/journeys';
+  static const journeyRecording = '/journey-recording';
 
   static String county(int code) => '/county/$code';
   static String place(String id) => '/place/$id';

@@ -66,7 +66,7 @@ class AppShell extends ConsumerWidget {
                   bottom: 96,
                   child: Center(
                     child: JourneyActiveBanner(
-                      onTap: () => _select(context, AppNavTab.journeys),
+                      onTap: () => context.push(AppRoutes.journeyRecording),
                     ),
                   ),
                 ),

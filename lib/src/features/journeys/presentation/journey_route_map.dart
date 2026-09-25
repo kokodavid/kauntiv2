@@ -9,10 +9,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/domain/map_place.dart';
+import '../../../core/map/map_place_layers.dart';
+import '../../../core/map/map_places_layer.dart';
 import '../../../core/services/app_config_provider.dart';
 import '../../../core/services/app_mapbox_telemetry.dart';
 import '../../../design/app_colors.dart';
-import '../../map_home/application/county_camera_fit.dart';
 import '../domain/journey_route.dart';
 import 'journey_map_layers.dart';
 
@@ -34,6 +36,9 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
     this.follow = false,
     this.animateFollow = true,
     this.bottomInset = 0,
+    this.places,
+    this.onPlaceTapped,
+    this.onUserPan,
   });
 
   final JourneyRoute route;
@@ -60,6 +65,13 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
   /// it and the Mapbox logo sits over it.
   final double bottomInset;
 
+  /// Kaunti47 place pins, as on Home's map; tapping one reports it.
+  final Future<List<MapPlace>>? places;
+  final ValueChanged<MapPlace>? onPlaceTapped;
+
+  /// The user dragged the map (e.g. to stop following).
+  final VoidCallback? onUserPan;
+
   @override
   ConsumerState<JourneyRouteMap> createState() => _JourneyRouteMapState();
 }
@@ -74,6 +86,9 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
   bool _styleReady = false;
   late final String _token = ref.read(appConfigProvider).mapboxAccessToken;
   Size _size = const Size(360, 240);
+  late final MapPlacesLayer? _places = widget.places == null
+      ? null
+      : MapPlacesLayer(widget.places);
 
   @override
   void initState() {
@@ -106,8 +121,8 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
         !listEquals(oldWidget.pins, widget.pins)) {
       unawaited(_setSource(JourneyMapLayers.endpointSource, _endpointJson()));
     }
-    // Leaving replay: frame the whole route again.
-    if (oldWidget.follow && !widget.follow) {
+    // Leaving replay: frame the whole route; re-centring: back on it.
+    if (oldWidget.follow != widget.follow) {
       unawaited(_moveCamera(animate: true));
     }
   }
@@ -132,6 +147,13 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     );
     _styleReady = true;
     await _moveCamera(animate: false);
+    final places = _places;
+    if (places == null) return;
+    MapPlaceLayers.addTapHandler(map, (id) {
+      final place = places.placeFor(id);
+      if (place != null) widget.onPlaceTapped?.call(place);
+    });
+    await places.addTo(map.style);
   }
 
   String _routeJson() => jsonEncode(widget.route.toGeoJson());
@@ -216,27 +238,10 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
         widget.marker ?? (latitude: last.latitude, longitude: last.longitude),
       );
     } else {
-      final box = (
-        minLng: bounds.west,
-        minLat: bounds.south,
-        maxLng: bounds.east,
-        maxLat: bounds.north,
-      );
-      camera = CameraOptions(
-        center: Point(
-          coordinates: Position(
-            (bounds.west + bounds.east) / 2,
-            (bounds.south + bounds.north) / 2,
-          ),
-        ),
-        zoom: CountyCameraFit.zoomToFit(
-          box,
-          width: _size.width,
-          height: math.max(_size.height - widget.bottomInset, 120),
-          fill: 0.75,
-          minZoom: 4,
-          maxZoom: 16,
-        ),
+      camera = JourneyMapLayers.frame(
+        bounds,
+        width: _size.width,
+        height: math.max(_size.height - widget.bottomInset, 120),
         padding: _padding,
       );
     }
@@ -271,6 +276,9 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
           ),
           onMapCreated: _onMapCreated,
           onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
+          onScrollListener: widget.onUserPan == null
+              ? null
+              : (_) => widget.onUserPan!(),
         );
       },
     );

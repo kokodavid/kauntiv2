@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
+import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
 import '../../../services/app_logger.dart';
 import '../../auth/application/auth_providers.dart';
@@ -35,6 +36,15 @@ Future<List<JourneyPlaceMark>> journeyPlaces(Ref ref) async {
     );
     return const [];
   }
+}
+
+/// Kaunti47 places as map pins for the map while recording (same pins as
+/// Home). Kept for the session: places change rarely.
+@Riverpod(keepAlive: true)
+Future<List<MapPlace>> journeyMapPlaces(Ref ref) async {
+  final cloud = ref.watch(supabaseJourneyRepositoryProvider);
+  if (cloud == null) return const [];
+  return cloud.mapPlaces();
 }
 
 /// A Journey's key moments, in replay order: recording breaks, long stops,

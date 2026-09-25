@@ -8,6 +8,7 @@ import '../core/services/app_config_provider.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
+import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
@@ -72,12 +73,23 @@ GoRouter appRouter(Ref ref) {
                     onOpenJourney: (context, id) =>
                         context.push(AppRoutes.journey(id)),
                     onOpenSettings: DetailRoutes.openAppSettings,
+                    onOpenRecording: (context) =>
+                        context.push(AppRoutes.journeyRecording),
                   ),
                 ),
               ],
             ),
         ],
       ),
+      if (AppFeatureFlags.journeys)
+        GoRoute(
+          path: AppRoutes.journeyRecording,
+          builder: (context, state) => JourneyRecordingScreen(
+            onOpenSettings: DetailRoutes.openAppSettings,
+            onOpenPlace: DetailRoutes.openPlace,
+            onRoute: DetailRoutes.openDirections,
+          ),
+        ),
       if (AppFeatureFlags.journeys)
         GoRoute(
           path: '/journey/:id',

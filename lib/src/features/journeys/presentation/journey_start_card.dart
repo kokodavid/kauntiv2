@@ -15,9 +15,12 @@ typedef OpenAppSettings = Future<void> Function();
 /// fail explained: no Pro, offline (Pro needs a live check) or location
 /// the phone won't give.
 class JourneyStartCard extends ConsumerStatefulWidget {
-  const JourneyStartCard({super.key, this.onOpenSettings});
+  const JourneyStartCard({super.key, this.onOpenSettings, this.onStarted});
 
   final OpenAppSettings? onOpenSettings;
+
+  /// Runs once recording starts (opens the full-screen map).
+  final void Function(BuildContext context)? onStarted;
 
   @override
   ConsumerState<JourneyStartCard> createState() => _JourneyStartCardState();
@@ -30,6 +33,7 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
     setState(() => _starting = true);
     try {
       await ref.read(journeyRecorderProvider.notifier).start();
+      if (mounted) widget.onStarted?.call(context);
     } on Object catch (error) {
       if (!mounted) return;
       if (error is JourneyStartDenied) {

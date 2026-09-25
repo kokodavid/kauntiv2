@@ -7,14 +7,23 @@ import '../application/journey_history.dart';
 import '../application/journey_recorder.dart';
 import 'journey_history_section.dart';
 import 'journey_live_card.dart';
+import 'journey_recording_screen.dart';
 import 'journey_start_card.dart';
 
 /// The Journeys tab: the Journey in progress (or Start), then history.
 class JourneysScreen extends ConsumerWidget {
-  const JourneysScreen({super.key, this.onOpenJourney, this.onOpenSettings});
+  const JourneysScreen({
+    super.key,
+    this.onOpenJourney,
+    this.onOpenSettings,
+    this.onOpenRecording,
+  });
 
   final OpenJourney? onOpenJourney;
   final OpenAppSettings? onOpenSettings;
+
+  /// The full-screen map for the Journey in progress.
+  final OpenJourneyRecording? onOpenRecording;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,9 +44,15 @@ class JourneysScreen extends ConsumerWidget {
               const Text('Journeys', style: AppTextStyles.headingForeground),
               const SizedBox(height: 16),
               if (active)
-                JourneyLiveCard(onOpenSettings: onOpenSettings)
+                JourneyLiveCard(
+                  onOpenSettings: onOpenSettings,
+                  onOpenMap: onOpenRecording,
+                )
               else
-                JourneyStartCard(onOpenSettings: onOpenSettings),
+                JourneyStartCard(
+                  onOpenSettings: onOpenSettings,
+                  onStarted: onOpenRecording,
+                ),
               const SizedBox(height: 24),
               JourneyHistorySection(onOpen: onOpenJourney),
             ],

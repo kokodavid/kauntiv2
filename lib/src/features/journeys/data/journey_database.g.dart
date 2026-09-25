@@ -112,6 +112,18 @@ class $JourneySessionsTable extends JourneySessions
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _pausedTotalMillisMeta = const VerificationMeta(
+    'pausedTotalMillis',
+  );
+  @override
+  late final GeneratedColumn<int> pausedTotalMillis = GeneratedColumn<int>(
+    'paused_total_millis',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -124,6 +136,7 @@ class $JourneySessionsTable extends JourneySessions
     segmentNumber,
     uploadAttempts,
     nextUploadAtMillis,
+    pausedTotalMillis,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -227,6 +240,15 @@ class $JourneySessionsTable extends JourneySessions
         ),
       );
     }
+    if (data.containsKey('paused_total_millis')) {
+      context.handle(
+        _pausedTotalMillisMeta,
+        pausedTotalMillis.isAcceptableOrUnknown(
+          data['paused_total_millis']!,
+          _pausedTotalMillisMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -276,6 +298,10 @@ class $JourneySessionsTable extends JourneySessions
         DriftSqlType.int,
         data['${effectivePrefix}next_upload_at_millis'],
       ),
+      pausedTotalMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}paused_total_millis'],
+      )!,
     );
   }
 
@@ -298,6 +324,9 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
   /// Upload bookkeeping for completed sessions (schema 2).
   final int uploadAttempts;
   final int? nextUploadAtMillis;
+
+  /// Time spent paused so far, for the recorded-time clock (schema 3).
+  final int pausedTotalMillis;
   const JourneySession({
     required this.id,
     required this.userId,
@@ -309,6 +338,7 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     required this.segmentNumber,
     required this.uploadAttempts,
     this.nextUploadAtMillis,
+    required this.pausedTotalMillis,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -329,6 +359,7 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     if (!nullToAbsent || nextUploadAtMillis != null) {
       map['next_upload_at_millis'] = Variable<int>(nextUploadAtMillis);
     }
+    map['paused_total_millis'] = Variable<int>(pausedTotalMillis);
     return map;
   }
 
@@ -350,6 +381,7 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       nextUploadAtMillis: nextUploadAtMillis == null && nullToAbsent
           ? const Value.absent()
           : Value(nextUploadAtMillis),
+      pausedTotalMillis: Value(pausedTotalMillis),
     );
   }
 
@@ -371,6 +403,7 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       segmentNumber: serializer.fromJson<int>(json['segmentNumber']),
       uploadAttempts: serializer.fromJson<int>(json['uploadAttempts']),
       nextUploadAtMillis: serializer.fromJson<int?>(json['nextUploadAtMillis']),
+      pausedTotalMillis: serializer.fromJson<int>(json['pausedTotalMillis']),
     );
   }
   @override
@@ -387,6 +420,7 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       'segmentNumber': serializer.toJson<int>(segmentNumber),
       'uploadAttempts': serializer.toJson<int>(uploadAttempts),
       'nextUploadAtMillis': serializer.toJson<int?>(nextUploadAtMillis),
+      'pausedTotalMillis': serializer.toJson<int>(pausedTotalMillis),
     };
   }
 
@@ -401,6 +435,7 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     int? segmentNumber,
     int? uploadAttempts,
     Value<int?> nextUploadAtMillis = const Value.absent(),
+    int? pausedTotalMillis,
   }) => JourneySession(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -418,6 +453,7 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     nextUploadAtMillis: nextUploadAtMillis.present
         ? nextUploadAtMillis.value
         : this.nextUploadAtMillis,
+    pausedTotalMillis: pausedTotalMillis ?? this.pausedTotalMillis,
   );
   JourneySession copyWithCompanion(JourneySessionsCompanion data) {
     return JourneySession(
@@ -445,6 +481,9 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       nextUploadAtMillis: data.nextUploadAtMillis.present
           ? data.nextUploadAtMillis.value
           : this.nextUploadAtMillis,
+      pausedTotalMillis: data.pausedTotalMillis.present
+          ? data.pausedTotalMillis.value
+          : this.pausedTotalMillis,
     );
   }
 
@@ -460,7 +499,8 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
           ..write('endedAtMillis: $endedAtMillis, ')
           ..write('segmentNumber: $segmentNumber, ')
           ..write('uploadAttempts: $uploadAttempts, ')
-          ..write('nextUploadAtMillis: $nextUploadAtMillis')
+          ..write('nextUploadAtMillis: $nextUploadAtMillis, ')
+          ..write('pausedTotalMillis: $pausedTotalMillis')
           ..write(')'))
         .toString();
   }
@@ -477,6 +517,7 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     segmentNumber,
     uploadAttempts,
     nextUploadAtMillis,
+    pausedTotalMillis,
   );
   @override
   bool operator ==(Object other) =>
@@ -491,7 +532,8 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
           other.endedAtMillis == this.endedAtMillis &&
           other.segmentNumber == this.segmentNumber &&
           other.uploadAttempts == this.uploadAttempts &&
-          other.nextUploadAtMillis == this.nextUploadAtMillis);
+          other.nextUploadAtMillis == this.nextUploadAtMillis &&
+          other.pausedTotalMillis == this.pausedTotalMillis);
 }
 
 class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
@@ -505,6 +547,7 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
   final Value<int> segmentNumber;
   final Value<int> uploadAttempts;
   final Value<int?> nextUploadAtMillis;
+  final Value<int> pausedTotalMillis;
   final Value<int> rowid;
   const JourneySessionsCompanion({
     this.id = const Value.absent(),
@@ -517,6 +560,7 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     this.segmentNumber = const Value.absent(),
     this.uploadAttempts = const Value.absent(),
     this.nextUploadAtMillis = const Value.absent(),
+    this.pausedTotalMillis = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   JourneySessionsCompanion.insert({
@@ -530,6 +574,7 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     required int segmentNumber,
     this.uploadAttempts = const Value.absent(),
     this.nextUploadAtMillis = const Value.absent(),
+    this.pausedTotalMillis = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        userId = Value(userId),
@@ -548,6 +593,7 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     Expression<int>? segmentNumber,
     Expression<int>? uploadAttempts,
     Expression<int>? nextUploadAtMillis,
+    Expression<int>? pausedTotalMillis,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -563,6 +609,7 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
       if (uploadAttempts != null) 'upload_attempts': uploadAttempts,
       if (nextUploadAtMillis != null)
         'next_upload_at_millis': nextUploadAtMillis,
+      if (pausedTotalMillis != null) 'paused_total_millis': pausedTotalMillis,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -578,6 +625,7 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     Value<int>? segmentNumber,
     Value<int>? uploadAttempts,
     Value<int?>? nextUploadAtMillis,
+    Value<int>? pausedTotalMillis,
     Value<int>? rowid,
   }) {
     return JourneySessionsCompanion(
@@ -591,6 +639,7 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
       segmentNumber: segmentNumber ?? this.segmentNumber,
       uploadAttempts: uploadAttempts ?? this.uploadAttempts,
       nextUploadAtMillis: nextUploadAtMillis ?? this.nextUploadAtMillis,
+      pausedTotalMillis: pausedTotalMillis ?? this.pausedTotalMillis,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -628,6 +677,9 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     if (nextUploadAtMillis.present) {
       map['next_upload_at_millis'] = Variable<int>(nextUploadAtMillis.value);
     }
+    if (pausedTotalMillis.present) {
+      map['paused_total_millis'] = Variable<int>(pausedTotalMillis.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -647,6 +699,7 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
           ..write('segmentNumber: $segmentNumber, ')
           ..write('uploadAttempts: $uploadAttempts, ')
           ..write('nextUploadAtMillis: $nextUploadAtMillis, ')
+          ..write('pausedTotalMillis: $pausedTotalMillis, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1171,6 +1224,7 @@ typedef $$JourneySessionsTableCreateCompanionBuilder =
       required int segmentNumber,
       Value<int> uploadAttempts,
       Value<int?> nextUploadAtMillis,
+      Value<int> pausedTotalMillis,
       Value<int> rowid,
     });
 typedef $$JourneySessionsTableUpdateCompanionBuilder =
@@ -1185,6 +1239,7 @@ typedef $$JourneySessionsTableUpdateCompanionBuilder =
       Value<int> segmentNumber,
       Value<int> uploadAttempts,
       Value<int?> nextUploadAtMillis,
+      Value<int> pausedTotalMillis,
       Value<int> rowid,
     });
 
@@ -1244,6 +1299,11 @@ class $$JourneySessionsTableFilterComposer
 
   ColumnFilters<int> get nextUploadAtMillis => $composableBuilder(
     column: $table.nextUploadAtMillis,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pausedTotalMillis => $composableBuilder(
+    column: $table.pausedTotalMillis,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1306,6 +1366,11 @@ class $$JourneySessionsTableOrderingComposer
     column: $table.nextUploadAtMillis,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get pausedTotalMillis => $composableBuilder(
+    column: $table.pausedTotalMillis,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$JourneySessionsTableAnnotationComposer
@@ -1360,6 +1425,11 @@ class $$JourneySessionsTableAnnotationComposer
     column: $table.nextUploadAtMillis,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get pausedTotalMillis => $composableBuilder(
+    column: $table.pausedTotalMillis,
+    builder: (column) => column,
+  );
 }
 
 class $$JourneySessionsTableTableManager
@@ -1409,6 +1479,7 @@ class $$JourneySessionsTableTableManager
                 Value<int> segmentNumber = const Value.absent(),
                 Value<int> uploadAttempts = const Value.absent(),
                 Value<int?> nextUploadAtMillis = const Value.absent(),
+                Value<int> pausedTotalMillis = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JourneySessionsCompanion(
                 id: id,
@@ -1421,6 +1492,7 @@ class $$JourneySessionsTableTableManager
                 segmentNumber: segmentNumber,
                 uploadAttempts: uploadAttempts,
                 nextUploadAtMillis: nextUploadAtMillis,
+                pausedTotalMillis: pausedTotalMillis,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1435,6 +1507,7 @@ class $$JourneySessionsTableTableManager
                 required int segmentNumber,
                 Value<int> uploadAttempts = const Value.absent(),
                 Value<int?> nextUploadAtMillis = const Value.absent(),
+                Value<int> pausedTotalMillis = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JourneySessionsCompanion.insert(
                 id: id,
@@ -1447,6 +1520,7 @@ class $$JourneySessionsTableTableManager
                 segmentNumber: segmentNumber,
                 uploadAttempts: uploadAttempts,
                 nextUploadAtMillis: nextUploadAtMillis,
+                pausedTotalMillis: pausedTotalMillis,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

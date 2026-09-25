@@ -324,6 +324,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 | Date | Commit | Rows | Change |
 |---|---|---|---|
 | 2026-09-25 | codex/journeys-ui | 13 | Journeys tab behind `JOURNEYS_ENABLED`: start, live route and controls, history, detail with replay and delete |
+| 2026-09-25 | codex/journeys-ui | 13 | Recording on a full-screen map with Home's place pins (tap for the place sheet), follow / re-centre, floating controls; Start opens it; place map pieces moved to core |
 | 2026-09-25 | codex/journeys-ui | 13 | Live clock stands still while paused; recorded time (minus pauses) kept locally (schema 3) and uploaded (`journeys.paused_ms`, `upload_journey` p_paused_ms); Stop can discard |
 | 2026-09-25 | codex/journeys-ui | 13 | Past Journeys as place-style cards over a Mapbox static-map route preview (thinned, encoded polyline) with Replay and delete |
 | 2026-09-25 | codex/journeys-ui | 13 | Replay moments include every Kaunti47 place within 10 km of the route (saved ones marked), openable and savable from the card |

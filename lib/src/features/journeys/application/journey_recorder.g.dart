@@ -62,7 +62,7 @@ final class JourneyRecorderProvider
   }
 }
 
-String _$journeyRecorderHash() => r'8dcf63c5b56080bec6c3b289e22209bdf194eef9';
+String _$journeyRecorderHash() => r'3078b8f881b79789a3134e4b951dde0d66fbbb92';
 
 /// The active Journey for the signed-in account: Pro-gated start, pause,
 /// resume and finish, and recovery after a restart. Finishing queues the

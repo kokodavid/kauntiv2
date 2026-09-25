@@ -10,7 +10,7 @@ import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
 
 /// A small pill over the tab bar while a Journey is in progress, so it's
-/// never forgotten from another tab. Tapping opens the Journeys tab.
+/// never forgotten from another tab. Tapping opens its full-screen map.
 class JourneyActiveBanner extends ConsumerStatefulWidget {
   const JourneyActiveBanner({super.key, required this.onTap});
 
@@ -46,13 +46,13 @@ class _JourneyActiveBannerState extends ConsumerState<JourneyActiveBanner> {
     if (session == null) return const SizedBox.shrink();
     final recording =
         session.recording.phase == JourneyRecordingPhase.recording;
-    final elapsed = DateTime.now().difference(session.recording.startedAt!);
+    final elapsed = session.recording.recordedTime(DateTime.now());
     final label = recording
-        ? 'Recording · ${JourneyFormat.clock(elapsed.isNegative ? Duration.zero : elapsed)}'
+        ? 'Recording · ${JourneyFormat.clock(elapsed)}'
         : 'Journey paused';
     return Semantics(
       button: true,
-      label: '$label. Open Journeys.',
+      label: '$label. Open the Journey map.',
       child: Material(
         color: AppColors.mapOverlayBackground,
         borderRadius: BorderRadius.circular(999),

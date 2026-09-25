@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
 import '../../../design/app_colors.dart';
+import '../../map_home/application/county_camera_fit.dart';
 
 /// A position on the map.
 typedef JourneyLatLng = ({double latitude, double longitude});
@@ -170,4 +171,34 @@ abstract final class JourneyMapLayers {
       ),
     );
   }
+
+  /// A camera framing [bounds] in a map [width] x [height] (the part not
+  /// under overlays), with [padding] for those overlays.
+  static CameraOptions frame(
+    ({double south, double west, double north, double east}) bounds, {
+    required double width,
+    required double height,
+    required MbxEdgeInsets padding,
+  }) => CameraOptions(
+    center: Point(
+      coordinates: Position(
+        (bounds.west + bounds.east) / 2,
+        (bounds.south + bounds.north) / 2,
+      ),
+    ),
+    zoom: CountyCameraFit.zoomToFit(
+      (
+        minLng: bounds.west,
+        minLat: bounds.south,
+        maxLng: bounds.east,
+        maxLat: bounds.north,
+      ),
+      width: width,
+      height: height,
+      fill: 0.75,
+      minZoom: 4,
+      maxZoom: 16,
+    ),
+    padding: padding,
+  );
 }

@@ -61,4 +61,48 @@ class JourneyReplayTrack {
   /// The route as far as [index], for drawing it as it plays.
   JourneyRoute routeUpTo(int index) =>
       JourneyRoute(points.sublist(0, index + 1));
+
+  // Smooth replay: a position is fractional, e.g. 12.4 is 40% of the way
+  // from point 12 to point 13.
+
+  /// Where the marker is at [position]: between the two points around it,
+  /// except across a pause (a new segment), where it waits at the earlier
+  /// point instead of gliding across the gap.
+  ({double latitude, double longitude}) positionAt(double position) {
+    final (i, t) = _split(position);
+    final a = points[i];
+    if (t == 0 || a.segmentNumber != points[i + 1].segmentNumber) {
+      return (latitude: a.latitude, longitude: a.longitude);
+    }
+    final b = points[i + 1];
+    return (
+      latitude: a.latitude + (b.latitude - a.latitude) * t,
+      longitude: a.longitude + (b.longitude - a.longitude) * t,
+    );
+  }
+
+  /// Time since the start at [position].
+  Duration elapsedAtPosition(double position) {
+    final (i, t) = _split(position);
+    if (t == 0) return elapsedAt(i);
+    final a = elapsedAt(i).inMilliseconds;
+    final b = elapsedAt(i + 1).inMilliseconds;
+    return Duration(milliseconds: (a + (b - a) * t).round());
+  }
+
+  /// Distance travelled at [position], in metres.
+  double distanceAtPosition(double position) {
+    final (i, t) = _split(position);
+    if (t == 0) return distanceAt(i);
+    return distanceAt(i) + (distanceAt(i + 1) - distanceAt(i)) * t;
+  }
+
+  /// The point index at or before [position] and how far towards the next
+  /// one it is (0 at the last point).
+  (int, double) _split(double position) {
+    final clamped = position.clamp(0, lastIndex).toDouble();
+    final i = clamped.floor();
+    if (i >= lastIndex) return (lastIndex, 0);
+    return (i, clamped - i);
+  }
 }

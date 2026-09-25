@@ -38,6 +38,7 @@ void main() {
     expect(find.text('Show whole route'), findsNothing);
 
     await tester.tap(find.byTooltip('Play replay'));
+    await tester.pump(); // first frame starts the clock
     // 11 points over the 30 s minimum at 1×: ~3 s per point.
     await tester.pump(const Duration(seconds: 7));
     expect(find.text('0:00:00 · 0 m'), findsNothing);
@@ -52,10 +53,12 @@ void main() {
     await _pump(tester);
     await tester.tap(find.text('4×'));
     await tester.tap(find.byTooltip('Play replay'));
+    await tester.pump(); // first frame starts the clock
     await tester.pump(const Duration(seconds: 7));
-    // 7 s at 4× reaches the ninth point: 9 minutes in.
-    expect(find.textContaining('0:09:00'), findsOneWidget);
+    // 7 s at 4× glides past the ninth point (about 9:20).
+    expect(find.textContaining('0:09:'), findsOneWidget);
     await tester.tap(find.byTooltip('Pause replay'));
+    await tester.pump();
   });
 
   testWidgets('dragging the scrubber jumps and pauses', (tester) async {

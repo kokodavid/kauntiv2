@@ -49,4 +49,16 @@ void main() {
     expect(track.routeUpTo(3).pointCount, 4);
     expect(track.canReplay, isTrue);
   });
+
+  test('fractional positions glide between points, not across a pause', () {
+    final halfway = track.positionAt(0.5);
+    expect(halfway.latitude, closeTo(-1.295, 1e-9));
+    expect(track.elapsedAtPosition(0.5), const Duration(seconds: 150));
+    expect(track.distanceAtPosition(0.5), closeTo(track.distanceAt(1) / 2, 1));
+    // Between points 1 and 2 is a pause: the marker waits at point 1.
+    expect(track.positionAt(1.5).latitude, -1.29);
+    // Past the end stays at the end.
+    expect(track.positionAt(99).latitude, -0.99);
+  });
 }
+

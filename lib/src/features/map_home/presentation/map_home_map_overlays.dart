@@ -62,14 +62,10 @@ class MapHomeCountyLabel extends StatelessWidget {
           children: [
             Text(badge.county.name, style: AppTextStyles.mapOverlayTitle),
             const SizedBox(height: 1),
-            Text(
-              badge.state.statusLabel,
-              style: AppTextStyles.mapOverlayMeta,
-            ),
+            Text(badge.state.statusLabel, style: AppTextStyles.mapOverlayMeta),
           ],
         ),
       ),
     );
   }
 }
-

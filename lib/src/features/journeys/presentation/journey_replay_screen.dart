@@ -28,7 +28,9 @@ class JourneyReplayScreen extends ConsumerWidget {
     final route = detail.value?.route;
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
+      // Expand: the map fills the screen, not just the close button's box.
       body: Stack(
+        fit: StackFit.expand,
         children: [
           Positioned.fill(
             child: route != null && route.pointCount > 1
@@ -43,16 +45,19 @@ class JourneyReplayScreen extends ConsumerWidget {
                   ),
           ),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: IconButton.filled(
-                onPressed: () => Navigator.of(context).maybePop(),
-                tooltip: 'Close replay',
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.foreground,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: IconButton.filled(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  tooltip: 'Close replay',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppColors.foreground,
+                  ),
+                  icon: const Icon(Icons.close),
                 ),
-                icon: const Icon(Icons.close),
               ),
             ),
           ),
@@ -185,6 +190,7 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
     final points = _track.points;
     final safeBottom = MediaQuery.paddingOf(context).bottom;
     return Stack(
+      fit: StackFit.expand,
       children: [
         Positioned.fill(
           child: JourneyRouteMap(

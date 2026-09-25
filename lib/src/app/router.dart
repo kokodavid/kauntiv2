@@ -92,9 +92,8 @@ GoRouter appRouter(Ref ref) {
           routes: [
             GoRoute(
               path: 'replay',
-              builder: (context, state) => JourneyReplayScreen(
-                journeyId: state.pathParameters['id']!,
-              ),
+              builder: (context, state) =>
+                  JourneyReplayScreen(journeyId: state.pathParameters['id']!),
             ),
           ],
         ),

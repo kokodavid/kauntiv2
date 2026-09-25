@@ -43,9 +43,8 @@ class JourneyReplayTrack {
   /// How long a replay lasts at 1×: a quarter second per point, kept
   /// between 30 s and 2 min so short trips are watchable and long ones
   /// don't drag.
-  Duration get baseDuration => Duration(
-    milliseconds: (points.length * 250).clamp(30000, 120000),
-  );
+  Duration get baseDuration =>
+      Duration(milliseconds: (points.length * 250).clamp(30000, 120000));
 
   /// Points to move per second of wall time at [speed].
   double pointsPerSecond(JourneyReplaySpeed speed) =>

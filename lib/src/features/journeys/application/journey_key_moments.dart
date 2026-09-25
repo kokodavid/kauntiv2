@@ -74,7 +74,9 @@ List<JourneyMoment> _findMoments(
     return code;
   }
 
-  final names = {for (final county in CountyPaths.all) county.code: county.name};
+  final names = {
+    for (final county in CountyPaths.all) county.code: county.name,
+  };
   return JourneyMoments.find(
     points,
     countyAt: countyAt,

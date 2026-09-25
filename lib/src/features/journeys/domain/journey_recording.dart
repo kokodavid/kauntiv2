@@ -12,6 +12,35 @@ class JourneyRecording {
 
   const JourneyRecording.idle() : this._(phase: JourneyRecordingPhase.idle);
 
+  factory JourneyRecording.restore({
+    required JourneyRecordingPhase phase,
+    required DateTime startedAt,
+    required DateTime lastChangedAt,
+    required int segmentNumber,
+    DateTime? pausedAt,
+    DateTime? endedAt,
+  }) {
+    if (phase == JourneyRecordingPhase.idle ||
+        segmentNumber < 0 ||
+        lastChangedAt.isBefore(startedAt) ||
+        (phase == JourneyRecordingPhase.paused) != (pausedAt != null) ||
+        (phase == JourneyRecordingPhase.completed) != (endedAt != null) ||
+        (pausedAt != null && !pausedAt.isAtSameMomentAs(lastChangedAt)) ||
+        (endedAt != null &&
+            (!endedAt.isAtSameMomentAs(lastChangedAt) ||
+                !endedAt.isAfter(startedAt)))) {
+      throw ArgumentError('Invalid saved Journey state.');
+    }
+    return JourneyRecording._(
+      phase: phase,
+      startedAt: startedAt,
+      pausedAt: pausedAt,
+      endedAt: endedAt,
+      lastChangedAt: lastChangedAt,
+      segmentNumber: segmentNumber,
+    );
+  }
+
   final JourneyRecordingPhase phase;
   final DateTime? startedAt;
   final DateTime? pausedAt;

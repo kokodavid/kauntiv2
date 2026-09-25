@@ -1,6 +1,7 @@
 # Journeys: implementation plan
 
-Status: foundation in progress on `codex/journeys-foundation`.
+Status: foundation merged; local recorder persistence in progress on
+`codex/journeys-recorder`.
 
 ## Product rules
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Mapbox exports its own `Size`; this file means Flutter's.
@@ -15,11 +16,11 @@ import '../../map_home/application/county_camera_fit.dart';
 import '../domain/journey_route.dart';
 import 'journey_map_layers.dart';
 
-export 'journey_map_layers.dart' show JourneyLatLng;
+export 'journey_map_layers.dart' show JourneyLatLng, JourneyMapPin;
 
 /// A Journey's route on the Mapbox map: one line per segment (gaps stay
-/// gaps), lone fixes as dots, optional [start] / [end] pins and a [marker]
-/// for replay. With [follow] the camera tracks the marker or the newest
+/// gaps), lone fixes as dots, optional [start] / [end] and moment [pins]
+/// and a [marker] for replay. With [follow] the camera tracks the marker or the newest
 /// point (replay, live recording); otherwise it frames the whole route.
 class JourneyRouteMap extends ConsumerStatefulWidget {
   const JourneyRouteMap({
@@ -29,8 +30,10 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
     this.marker,
     this.start,
     this.end,
+    this.pins = const [],
     this.follow = false,
     this.animateFollow = true,
+    this.bottomInset = 0,
   });
 
   final JourneyRoute route;
@@ -44,11 +47,18 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
   /// Where the Journey began (green) and ended (red).
   final JourneyLatLng? start;
   final JourneyLatLng? end;
+
+  /// Key moments along the route.
+  final List<JourneyLatLng> pins;
   final bool follow;
 
   /// Ease the camera to each new point (live) or jump (replay frames come
   /// too fast to animate each one).
   final bool animateFollow;
+
+  /// Height covered by controls at the bottom: the camera centres above
+  /// it and the Mapbox logo sits over it.
+  final double bottomInset;
 
   @override
   ConsumerState<JourneyRouteMap> createState() => _JourneyRouteMapState();
@@ -91,7 +101,9 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
       unawaited(_setSource(JourneyMapLayers.playedSource, _playedJson()));
     }
     if (oldWidget.marker != widget.marker) unawaited(_updateMarker());
-    if (oldWidget.start != widget.start || oldWidget.end != widget.end) {
+    if (oldWidget.start != widget.start ||
+        oldWidget.end != widget.end ||
+        !listEquals(oldWidget.pins, widget.pins)) {
       unawaited(_setSource(JourneyMapLayers.endpointSource, _endpointJson()));
     }
     // Leaving replay: frame the whole route again.
@@ -104,6 +116,7 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     _map = map;
     unawaited(AppMapboxTelemetry.applyPrivacyDefault());
     unawaited(map.scaleBar.updateSettings(ScaleBarSettings(enabled: false)));
+    unawaited(JourneyMapLayers.liftOrnaments(map, widget.bottomInset));
   }
 
   Future<void> _onStyleLoaded() async {
@@ -143,8 +156,11 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     );
   }
 
-  String _endpointJson() =>
-      JourneyMapLayers.pointsJson({'start': widget.start, 'end': widget.end});
+  String _endpointJson() => JourneyMapLayers.pinsJson([
+    for (final at in widget.pins) (kind: 'moment', at: at),
+    if (widget.start case final at?) (kind: 'start', at: at),
+    if (widget.end case final at?) (kind: 'end', at: at),
+  ]);
 
   Future<void> _setSource(String id, String json) async {
     await _map?.style.setStyleSourceProperty(id, 'data', json);
@@ -179,10 +195,14 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     }
   }
 
-  static CameraOptions _centeredOn(JourneyLatLng at) => CameraOptions(
+  CameraOptions _centeredOn(JourneyLatLng at) => CameraOptions(
     center: Point(coordinates: Position(at.longitude, at.latitude)),
     zoom: 15,
+    padding: _padding,
   );
+
+  MbxEdgeInsets get _padding =>
+      MbxEdgeInsets(top: 0, left: 0, bottom: widget.bottomInset, right: 0);
 
   Future<void> _moveCamera({required bool animate}) async {
     final map = _map;
@@ -212,11 +232,12 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
         zoom: CountyCameraFit.zoomToFit(
           box,
           width: _size.width,
-          height: math.max(_size.height, 120),
+          height: math.max(_size.height - widget.bottomInset, 120),
           fill: 0.75,
           minZoom: 4,
           maxZoom: 16,
         ),
+        padding: _padding,
       );
     }
     if (animate) {

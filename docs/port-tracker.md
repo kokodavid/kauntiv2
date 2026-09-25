@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-ui | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. Step 4 UI behind `JOURNEYS_ENABLED`: tab, start, live card, history, detail with smooth replay (60 fps glide between points, speed, scrubber, readout, faded route under the played line). Export and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-ui | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. Step 4 UI behind `JOURNEYS_ENABLED`: tab, start, live card, history, detail with a full-screen replay (60 fps glide, speed, scrubber, readout, faded route under the played line, auto-pause at key moments: recording breaks, 10+ min stops, county crossings, saved places within 300 m). Export and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -324,6 +324,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 | Date | Commit | Rows | Change |
 |---|---|---|---|
 | 2026-09-25 | codex/journeys-ui | 13 | Journeys tab behind `JOURNEYS_ENABLED`: start, live route and controls, history, detail with replay and delete |
+| 2026-09-25 | codex/journeys-ui | 13 | Full-screen replay with floating controls; pauses at key moments (breaks, long stops, county crossings, saved places) |
 | 2026-09-25 | codex/journeys-ui | 13 | Smooth replay: interpolated marker on a frame ticker, played line over a faded route, map layers split out |
 | 2026-09-25 | codex/journeys-sync | 13 | Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue and private history |
 | 2026-09-25 | codex/journeys-native-capture | 13 | Device location adapter, local capture coordinator, restart gap handling and millisecond fixes |

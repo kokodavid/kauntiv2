@@ -9,6 +9,9 @@ import '../../../design/app_colors.dart';
 /// A position on the map.
 typedef JourneyLatLng = ({double latitude, double longitude});
 
+/// A pin on the route: `start`, `end` or `moment` (a replay key moment).
+typedef JourneyMapPin = ({String kind, JourneyLatLng at});
+
 /// The sources and layers a Journey map draws with, and the GeoJSON that
 /// feeds them. Kept apart from the widget so the map stays about camera
 /// and updates.
@@ -32,9 +35,9 @@ abstract final class JourneyMapLayers {
   static String hex(Color color) =>
       '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 
-  /// Points as a GeoJSON collection, each tagged with its `kind`.
-  static String pointsJson(Map<String, JourneyLatLng?> points) =>
-      jsonEncode({'type': 'FeatureCollection', 'features': _points(points)});
+  /// Pins as a GeoJSON collection, each tagged with its `kind`.
+  static String pinsJson(List<JourneyMapPin> pins) =>
+      jsonEncode({'type': 'FeatureCollection', 'features': _points(pins)});
 
   /// The replay marker plus the short line from the last played point to
   /// it, so the drawn route reaches the marker between points. Both go in
@@ -44,7 +47,7 @@ abstract final class JourneyMapLayers {
     return jsonEncode({
       'type': 'FeatureCollection',
       'features': [
-        ..._points({'marker': marker}),
+        ..._points([(kind: 'marker', at: marker)]),
         if (tipFrom != null)
           {
             'type': 'Feature',
@@ -61,20 +64,27 @@ abstract final class JourneyMapLayers {
     });
   }
 
-  static List<Map<String, Object>> _points(
-    Map<String, JourneyLatLng?> points,
-  ) => [
-    for (final MapEntry(key: kind, value: point) in points.entries)
-      if (point != null)
-        {
-          'type': 'Feature',
-          'properties': {'kind': kind},
-          'geometry': {
-            'type': 'Point',
-            'coordinates': [point.longitude, point.latitude],
-          },
+  static List<Map<String, Object>> _points(List<JourneyMapPin> pins) => [
+    for (final (:kind, :at) in pins)
+      {
+        'type': 'Feature',
+        'properties': {'kind': kind},
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [at.longitude, at.latitude],
         },
+      },
   ];
+
+  /// Keeps the Mapbox logo and attribution above an overlay covering the
+  /// bottom [inset] of the map.
+  static Future<void> liftOrnaments(MapboxMap map, double inset) async {
+    if (inset <= 0) return;
+    await map.logo.updateSettings(LogoSettings(marginBottom: inset + 8));
+    await map.attribution.updateSettings(
+      AttributionSettings(marginBottom: inset + 8),
+    );
+  }
 
   static List<Object> _is(String type) => [
     '==',
@@ -83,7 +93,7 @@ abstract final class JourneyMapLayers {
   ];
 
   /// Adds every source and layer, bottom to top: faded route, played line,
-  /// tip, lone-fix dots, start / end pins, marker.
+  /// tip, lone-fix dots, pins (start, end, moments), marker.
   static Future<void> add(
     StyleManager style, {
     required String route,
@@ -133,9 +143,17 @@ abstract final class JourneyMapLayers {
           ['get', 'kind'],
           'start',
           hex(AppColors.legendHome),
+          'end',
           hex(AppColors.danger),
+          hex(AppColors.foreground),
         ],
-        circleRadius: 6,
+        circleRadiusExpression: [
+          'match',
+          ['get', 'kind'],
+          'moment',
+          5,
+          6,
+        ],
         circleStrokeColor: Colors.white.toARGB32(),
         circleStrokeWidth: 2,
       ),

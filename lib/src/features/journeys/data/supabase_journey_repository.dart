@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
 import '../domain/pro_status.dart';
@@ -146,4 +147,26 @@ class SupabaseJourneyRepository {
   /// Deletes the Journey and (by cascade) its points.
   Future<void> delete(String journeyId) =>
       _client.from('journeys').delete().eq('id', journeyId).timeout(_timeout);
+
+  /// [userId]'s saved places with coordinates, for replay moments.
+  Future<List<JourneyPlaceMark>> savedPlaces(String userId) async {
+    final rows = await _client
+        .from('wishlist_items')
+        .select('places(name, lat, lng)')
+        .eq('user_id', userId)
+        .timeout(_timeout);
+    return [
+      for (final row in rows)
+        if (row['places'] case {
+          'name': final String name,
+          'lat': final num lat,
+          'lng': final num lng,
+        })
+          JourneyPlaceMark(
+            name: name,
+            latitude: lat.toDouble(),
+            longitude: lng.toDouble(),
+          ),
+    ];
+  }
 }

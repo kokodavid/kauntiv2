@@ -76,7 +76,8 @@ class SupabaseJourneyRepository {
           .from('journeys')
           .select('id, title, started_at, ended_at, distance_m')
           .order('started_at', ascending: false)
-          .order('id')
+          // postgrest-dart's order() is descending unless told otherwise.
+          .order('id', ascending: true)
           .range(from, to)
           .timeout(_timeout),
     );
@@ -111,7 +112,9 @@ class SupabaseJourneyRepository {
             'segment_number, recorded_at, latitude, longitude, accuracy_m',
           )
           .eq('journey_id', journeyId)
-          .order('sequence_number')
+          // Recording order. order() defaults to descending, which
+          // replayed the route backwards.
+          .order('sequence_number', ascending: true)
           .range(from, to)
           .timeout(_timeout),
     );

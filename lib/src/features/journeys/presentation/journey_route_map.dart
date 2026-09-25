@@ -68,9 +68,7 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     final map = _map;
     if (map == null) return;
     final style = map.style;
-    await style.addSource(
-      GeoJsonSource(id: _routeSource, data: _routeJson()),
-    );
+    await style.addSource(GeoJsonSource(id: _routeSource, data: _routeJson()));
     await style.addSource(
       GeoJsonSource(id: _markerSource, data: _markerJson()),
     );
@@ -88,7 +86,11 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
       CircleLayer(
         id: 'journey-route-dots',
         sourceId: _routeSource,
-        filter: ['==', ['geometry-type'], 'Point'],
+        filter: [
+          '==',
+          ['geometry-type'],
+          'Point',
+        ],
         circleColor: AppColors.accent.toARGB32(),
         circleRadius: 4,
       ),
@@ -192,7 +194,10 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
       return const ColoredBox(
         color: AppColors.lockedFill,
         child: Center(
-          child: Text('Map unavailable in this build', style: AppTypeScale.small),
+          child: Text(
+            'Map unavailable in this build',
+            style: AppTypeScale.small,
+          ),
         ),
       );
     }

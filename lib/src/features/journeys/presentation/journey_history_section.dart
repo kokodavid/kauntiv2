@@ -89,7 +89,9 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final local = journey.startedAt.toLocal();
-    final date = JourneyTitles.defaultFor(local).replaceFirst('Journey on ', '');
+    final date = JourneyTitles.defaultFor(
+      local,
+    ).replaceFirst('Journey on ', '');
     final details = [
       date,
       JourneyFormat.duration(journey.duration),

@@ -54,7 +54,10 @@ class JourneyRoute {
           'geometry': segment.length == 1
               ? {
                   'type': 'Point',
-                  'coordinates': [segment.single.longitude, segment.single.latitude],
+                  'coordinates': [
+                    segment.single.longitude,
+                    segment.single.latitude,
+                  ],
                 }
               : {
                   'type': 'LineString',

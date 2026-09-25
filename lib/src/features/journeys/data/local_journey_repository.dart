@@ -170,9 +170,7 @@ class LocalJourneyRepository {
     await (_db.delete(
       _db.journeySamples,
     )..where((t) => t.journeyId.equals(id))).go();
-    await (_db.delete(
-      _db.journeySessions,
-    )..where((t) => t.id.equals(id))).go();
+    await (_db.delete(_db.journeySessions)..where((t) => t.id.equals(id))).go();
   });
 
   /// The session's points as they're recorded, for the live route.

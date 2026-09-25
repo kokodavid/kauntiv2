@@ -90,35 +90,32 @@ void main() {
     final start = DateTime(2026, 9, 25, 9);
     final opened = <String>[];
     await tester.pumpWidget(
-      _app(
-        JourneyHistorySection(onOpen: (_, id) => opened.add(id)),
-        [
-          journeyHistoryListProvider.overrideWith(
-            () => _History(
-              JourneyHistory(
-                cloudUnavailable: true,
-                journeys: [
-                  JourneySummary(
-                    id: 'local',
-                    title: 'Journey on 25 Sep 2026',
-                    startedAt: start,
-                    endedAt: start.add(const Duration(minutes: 12)),
-                    isUploaded: false,
-                  ),
-                  JourneySummary(
-                    id: 'cloud',
-                    title: 'Nairobi loop',
-                    startedAt: start,
-                    endedAt: start.add(const Duration(hours: 1, minutes: 5)),
-                    distanceMeters: 12400,
-                    isUploaded: true,
-                  ),
-                ],
-              ),
+      _app(JourneyHistorySection(onOpen: (_, id) => opened.add(id)), [
+        journeyHistoryListProvider.overrideWith(
+          () => _History(
+            JourneyHistory(
+              cloudUnavailable: true,
+              journeys: [
+                JourneySummary(
+                  id: 'local',
+                  title: 'Journey on 25 Sep 2026',
+                  startedAt: start,
+                  endedAt: start.add(const Duration(minutes: 12)),
+                  isUploaded: false,
+                ),
+                JourneySummary(
+                  id: 'cloud',
+                  title: 'Nairobi loop',
+                  startedAt: start,
+                  endedAt: start.add(const Duration(hours: 1, minutes: 5)),
+                  distanceMeters: 12400,
+                  isUploaded: true,
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ]),
     );
     await tester.pumpAndSettle();
     expect(find.text('Waiting to upload'), findsOneWidget);

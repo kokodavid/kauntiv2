@@ -44,7 +44,8 @@ class _JourneyActiveBannerState extends ConsumerState<JourneyActiveBanner> {
   Widget build(BuildContext context) {
     final session = ref.watch(journeyRecorderProvider);
     if (session == null) return const SizedBox.shrink();
-    final recording = session.recording.phase == JourneyRecordingPhase.recording;
+    final recording =
+        session.recording.phase == JourneyRecordingPhase.recording;
     final elapsed = DateTime.now().difference(session.recording.startedAt!);
     final label = recording
         ? 'Recording · ${JourneyFormat.clock(elapsed.isNegative ? Duration.zero : elapsed)}'

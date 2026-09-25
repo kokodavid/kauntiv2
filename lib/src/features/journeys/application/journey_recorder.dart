@@ -95,7 +95,9 @@ class JourneyRecorder extends _$JourneyRecorder {
       // background mode refused): nothing was recorded, so the Journey is
       // dropped rather than left paused.
       await capture.detach();
-      await ref.read(localJourneyRepositoryProvider).discard(session.id, userId);
+      await ref
+          .read(localJourneyRepositoryProvider)
+          .discard(session.id, userId);
       _set(null, null);
       rethrow;
     } catch (_) {

@@ -141,7 +141,10 @@ class _BodyState extends ConsumerState<_Body> {
     final index = _index;
     final marker = index == null
         ? null
-        : (latitude: _points[index].latitude, longitude: _points[index].longitude);
+        : (
+            latitude: _points[index].latitude,
+            longitude: _points[index].longitude,
+          );
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
       children: [

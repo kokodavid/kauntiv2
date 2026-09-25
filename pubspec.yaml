@@ -41,6 +41,9 @@ dependencies:
   flutter_svg: ^2.2.4
   permission_handler: ^13.0.1
   url_launcher: ^6.3.2
+  # Routing: start-up gating as redirects, tabs as a shell route, detail
+  # pages as real routes (docs/architecture.md §5). ^17: 18 needs Dart 3.12.
+  go_router: ^17.0.0
 
   # Home's default map (real map); the drawn county map is the fallback
   # when Mapbox can't load. Token: MAPBOX_ACCESS_TOKEN dart-define.

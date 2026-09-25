@@ -29,6 +29,8 @@ class CountyPeekSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
+      // Over the tab bar, not inside the tab's own navigator.
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.foreground.withValues(alpha: 0.28),
       builder: (context) =>

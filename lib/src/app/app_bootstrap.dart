@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
+import '../core/services/app_config_provider.dart';
 import '../core/services/supabase_client_provider.dart';
 import '../services/app_supabase.dart';
 import 'app.dart';
@@ -15,9 +16,10 @@ Future<void> bootstrapApp(AppConfig config) async {
 /// with infrastructure providers bound to what [bootstrapApp] set up.
 Widget buildAppRoot(AppConfig config) => ProviderScope(
   overrides: [
+    appConfigProvider.overrideWithValue(config),
     supabaseClientProvider.overrideWithValue(
       AppSupabase.isInitialized ? AppSupabase.client : null,
     ),
   ],
-  child: App(config: config),
+  child: const App(),
 );

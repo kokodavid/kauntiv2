@@ -9,8 +9,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../config/app_config.dart';
 import '../../../services/app_logger.dart';
 import '../../../services/app_supabase.dart';
-
-enum AppAuthProvider { google, apple }
+import '../domain/auth_failure.dart';
+import 'auth_failure_mapper.dart';
 
 class AppAuthConfigurationException implements Exception {
   const AppAuthConfigurationException(this.message);
@@ -38,6 +38,22 @@ class AppAuthService {
       : null;
 
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
+
+  /// Signs in with [provider]. Returns null on success, else the failure
+  /// to show (already logged).
+  Future<AuthFailure?> signIn(AppAuthProvider provider, AppConfig config) async {
+    try {
+      switch (provider) {
+        case AppAuthProvider.google:
+          await signInWithGoogle(config);
+        case AppAuthProvider.apple:
+          await signInWithApple();
+      }
+      return null;
+    } on Object catch (error, stackTrace) {
+      return authFailureFor(error, stackTrace);
+    }
+  }
 
   Future<void> signInWithGoogle(AppConfig config) async {
     _ensureAvailable();

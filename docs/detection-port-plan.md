@@ -66,7 +66,7 @@ background location mode.
 | `features/detection/data/` | `local/detection_database.dart` (+ `.g.dart`), `detection_repository.dart`, `visit_sync_queue.dart`, `geofence_service.dart`, `geofence_callback.dart`, `arrival_nudge_history.dart` |
 | `features/detection/application/` | `@riverpod` providers: database, repository, sync queue, geofence service; `DetectionController` notifier that runs the foreground cycle; `pendingArrivalNudge` notifier |
 | `features/detection/presentation/` | arrival sheet |
-| `app/` | lifecycle hook that drives `DetectionController` on start / resume / timer; wiring into `AppTabShell` |
+| `app/` | lifecycle hook that drives `DetectionController` on start / resume / timer; wiring around the tab shell (`app/app_shell.dart`) |
 
 Rules this has to respect:
 

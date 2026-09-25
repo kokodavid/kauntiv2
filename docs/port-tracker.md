@@ -10,8 +10,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 |---|---|---|---|---|---|
 | 0 | Guardrails (rules, CI, review) | n/a | Done | #1 (main) | Riverpod deps, strict analysis, architecture guard + baseline, CI, Claude review, docs |
 | 1 | Foundations re-homed to `core/` (config, design, widgets, counties, services) | `lib/src/{config,design,widgets,counties,services}` | Not started | | Move to `core/`. Clears most `layout` baseline entries. `core/services/supabase_client_provider.dart` exists (Explore uses it) |
-| 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | Not started | | `ProviderScope` is wired at the root (`buildAppRoot`); auth/onboarding still setState. Split `app.dart` (414 lines, 16 setState calls) into router redirects and notifiers. V2 currently lacks v1's 3 how-it-works intro screens |
-| 3 | App shell / bottom nav | v1 `AppShell` | In progress | main (#3) | `AppTabShell`: IndexedStack tabs under the floating nav, lazy first build (v1 parity). Map + Explore live; Badges / Ranks show "coming next". go_router waits on #2 |
+| 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | In progress | codex/go-router | go_router (`app/router.dart`, `appRouterProvider`); start-up gating is one redirect on `StartupFlow` (`features/onboarding`), the old `app.dart` state machine ported rule for rule; sign-in on a Riverpod notifier with error mapping in the data layer. Left: move the onboarding pages from `screens/` into `features/onboarding/presentation`, sign-out (with detection's local-state clearing), v1's 3 how-it-works intro screens |
+| 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/go-router | `app/app_shell.dart` on a go_router `StatefulShellRoute.indexedStack`: tab branches keep their own stacks and state, built lazily (v1 parity). County / Place Detail are routes (`/county/:code`, `/place/:id`). Map + Explore live; Badges / Ranks show "coming next" |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 (rules, polygons, local store, sync queue, native geofencing, foreground cycle, background-permission pause, arrival sheet) coded; needs a device test. Needs a real-device test |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
@@ -27,6 +27,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | Date | Baselined violations | Note |
 |---|---|---|
 | 2026-09-23 | 49 | Guard introduced over the imported v2 onboarding code |
+| 2026-09-25 | 28 | `app.dart` state machine and the `ChangeNotifier` sign-in controller replaced (go_router work) |
 
 ## Feature notes
 
@@ -56,7 +57,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   unclaimed county. Below, "NEXT FOR YOU / Nearby and unclaimed" lists at
   most 6 nearest unclaimed counties (`discover_unclaimed_counties()`, county
   photo, distance, Unclaimed pill, Route) and "All N left ›" opens
-  Explore's UNCLAIMED tab (`AppTabShell.select`, keep-alive tab provider).
+  Explore's UNCLAIMED tab (`context.go('/explore')`, keep-alive tab provider).
   Promotion impressions/taps aren't reported yet.
 - For You featured card redesigned (Figma "Your next best move"): inset
   photo with place/county name and a glass Route button; below, "<County>
@@ -271,8 +272,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   the detail screens.
 - Ticking doesn't refresh SAVED's "N STILL TO SEE" until the next load
   (v1 parity).
-- Map Home still loads through a plain loader; `AppTabShell` keeps its
-  selected tab in widget state until go_router (#2).
+- Map Home still loads through a plain loader.
 
 ## Progress log
 
@@ -280,6 +280,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-25 | codex/go-router | 2, 3 | go_router: start-up redirects on `StartupFlow`, tab shell route, detail routes; sign-in on Riverpod; baseline 49 → 28 |
 | 2026-09-24 | `8437820` | 3, 5, 6 | Merge #3: Explore tab, county detection (slices 1-7), arrival and map place sheets |
 | 2026-09-24 | `40e4f22` | 5 | Detection: arrival sheet ("You've crossed into X"), once per crossing, never the home county |
 | 2026-09-24 | `6115570` | 5 | Detection: pause and remove geofences when background location is lost; Home chip opens settings |

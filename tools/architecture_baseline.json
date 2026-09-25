@@ -1,15 +1,10 @@
 {
   "_comment": "Pre-existing architecture debt. May only shrink. Regenerate with: python3 tools/check_architecture.py --update-baseline",
   "violations": {
-    "banned-state": {
-      "lib/src/features/auth/application/sign_in_controller.dart": 1
-    },
     "file-length": {
-      "lib/src/app/app.dart": 1,
       "lib/src/screens/onboarding/onboarding_permission_page.dart": 1
     },
     "io-outside-data": {
-      "lib/src/features/auth/application/sign_in_controller.dart": 3,
       "lib/src/services/app_location_permission_service.dart": 1,
       "lib/src/services/app_supabase.dart": 1
     },
@@ -39,7 +34,6 @@
       "lib/src/widgets/county_picker_sheet.dart": 1
     },
     "setstate-outside-ui": {
-      "lib/src/app/app.dart": 16,
       "lib/src/widgets/county_picker_sheet.dart": 1
     },
     "supabase-instance": {

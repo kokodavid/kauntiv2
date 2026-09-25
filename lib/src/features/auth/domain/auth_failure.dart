@@ -1,3 +1,6 @@
+/// The sign-in providers the onboarding page offers.
+enum AppAuthProvider { google, apple }
+
 enum AuthFailureKind {
   cancelled,
   configuration,

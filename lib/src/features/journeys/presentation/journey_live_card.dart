@@ -11,6 +11,7 @@ import '../application/journey_views.dart';
 import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
 import 'journey_messages.dart';
+import 'journey_stop_dialog.dart';
 import 'journey_route_map.dart';
 import 'journey_start_card.dart';
 
@@ -73,26 +74,15 @@ class _JourneyLiveCardState extends ConsumerState<JourneyLiveCard> {
   }
 
   Future<void> _confirmStop() async {
-    final stop = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Stop this Journey?'),
-        content: const Text(
-          'It will be saved to your Journeys and uploaded to your account.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep going'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Stop and save'),
-          ),
-        ],
-      ),
-    );
-    if (stop == true) await _run((r) => r.finish());
+    final choice = await showJourneyStopDialog(context);
+    switch (choice) {
+      case JourneyStopChoice.save:
+        await _run((r) => r.finish());
+      case JourneyStopChoice.discard:
+        await _run((r) => r.discard());
+      case null:
+        break;
+    }
   }
 
   @override
@@ -103,7 +93,8 @@ class _JourneyLiveCardState extends ConsumerState<JourneyLiveCard> {
     final isRecording = recording.phase == JourneyRecordingPhase.recording;
     final route =
         ref.watch(activeJourneyRouteProvider).value ?? JourneyRoute(const []);
-    final elapsed = DateTime.now().difference(recording.startedAt!);
+    // Recorded time: stands still while paused.
+    final elapsed = recording.recordedTime(DateTime.now());
 
     return Container(
       padding: const EdgeInsets.all(4),
@@ -135,7 +126,7 @@ class _JourneyLiveCardState extends ConsumerState<JourneyLiveCard> {
                   children: [
                     _Stat(
                       value: JourneyFormat.clock(
-                        elapsed.isNegative ? Duration.zero : elapsed,
+                        elapsed,
                       ),
                       label: 'Elapsed',
                     ),

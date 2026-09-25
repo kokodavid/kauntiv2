@@ -66,4 +66,30 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('recorded time leaves out pauses and stands still while paused', () {
+    final paused = const JourneyRecording.idle()
+        .start(start)
+        .pause(start.add(const Duration(minutes: 5)));
+    // Paused at 5 min: the clock stays at 5 min however long the pause.
+    expect(
+      paused.recordedTime(start.add(const Duration(hours: 1))),
+      const Duration(minutes: 5),
+    );
+
+    final resumed = paused.resume(start.add(const Duration(minutes: 8)));
+    expect(resumed.pausedTotal, const Duration(minutes: 3));
+    expect(
+      resumed.recordedTime(start.add(const Duration(minutes: 10))),
+      const Duration(minutes: 7),
+    );
+
+    // Stopping while paused counts that last pause too.
+    final done = resumed
+        .pause(start.add(const Duration(minutes: 12)))
+        .finish(start.add(const Duration(minutes: 20)));
+    expect(done.pausedTotal, const Duration(minutes: 11));
+    expect(done.recordedTime(start.add(const Duration(days: 1))),
+        const Duration(minutes: 9));
+  });
 }

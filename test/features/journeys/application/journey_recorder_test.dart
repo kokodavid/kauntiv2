@@ -11,6 +11,7 @@ import 'package:kaunti47_v2/src/features/journeys/application/journey_providers.
 import 'package:kaunti47_v2/src/features/journeys/application/journey_recorder.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_upload_queue.dart';
+import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/supabase_journey_repository.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart';
@@ -87,6 +88,7 @@ void main() {
                   required title,
                   required startedAt,
                   required endedAt,
+                  required pausedDuration,
                   required points,
                 }) async {
                   if (uploadsFail) throw Exception('offline');
@@ -141,6 +143,25 @@ void main() {
     expect(c.read(journeyRecorderProvider), isNull);
     await c.read(journeySyncProvider.notifier).drain();
     expect(uploads, hasLength(1));
+  });
+
+  test('discarding stops recording and keeps nothing', () async {
+    cloud.status = ProStatus(active: true, checkedAt: now);
+    final c = container();
+    final recorder = c.read(journeyRecorderProvider.notifier);
+
+    await recorder.start(now: now);
+    final id = c.read(journeyRecorderProvider)!.id;
+    await recorder.discard();
+
+    expect(c.read(journeyRecorderProvider), isNull);
+    expect(await LocalJourneyRepository(db).activeSession('alice'), isNull);
+    await expectLater(
+      LocalJourneyRepository(db).points(id, 'alice'),
+      throwsStateError,
+    );
+    await c.read(journeySyncProvider.notifier).drain();
+    expect(uploads, isEmpty);
   });
 
   test('offline, a Journey cannot start, even after a good check', () async {

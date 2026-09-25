@@ -160,6 +160,8 @@ class _SummaryHeader extends StatelessWidget {
     final facts = [
       JourneyFormat.distance(distanceMeters),
       JourneyFormat.duration(summary.duration),
+      if (summary.pausedDuration >= const Duration(minutes: 1))
+        'paused ${JourneyFormat.duration(summary.pausedDuration)}',
       'Started $started',
     ].join(' · ');
     return Padding(

@@ -100,6 +100,7 @@ class LocalJourneyRepository {
         pausedAtMillis: Value(next.pausedAt?.millisecondsSinceEpoch),
         endedAtMillis: Value(next.endedAt?.millisecondsSinceEpoch),
         segmentNumber: Value(next.segmentNumber),
+        pausedTotalMillis: Value(next.pausedTotal.inMilliseconds),
       ),
     );
     return LocalJourneySession(id: id, recording: next);
@@ -215,6 +216,7 @@ class LocalJourneyRepository {
               isUtc: true,
             ),
       segmentNumber: row.segmentNumber,
+      pausedTotal: Duration(milliseconds: row.pausedTotalMillis),
     ),
   );
 }

@@ -8,6 +8,7 @@ class JourneyRecording {
     this.endedAt,
     this.lastChangedAt,
     this.segmentNumber = 0,
+    this.pausedTotal = Duration.zero,
   });
 
   const JourneyRecording.idle() : this._(phase: JourneyRecordingPhase.idle);
@@ -19,9 +20,12 @@ class JourneyRecording {
     required int segmentNumber,
     DateTime? pausedAt,
     DateTime? endedAt,
+    Duration pausedTotal = Duration.zero,
   }) {
     if (phase == JourneyRecordingPhase.idle ||
         segmentNumber < 0 ||
+        pausedTotal.isNegative ||
+        pausedTotal > lastChangedAt.difference(startedAt) ||
         lastChangedAt.isBefore(startedAt) ||
         (phase == JourneyRecordingPhase.paused) != (pausedAt != null) ||
         (phase == JourneyRecordingPhase.completed) != (endedAt != null) ||
@@ -38,6 +42,7 @@ class JourneyRecording {
       endedAt: endedAt,
       lastChangedAt: lastChangedAt,
       segmentNumber: segmentNumber,
+      pausedTotal: pausedTotal,
     );
   }
 
@@ -47,6 +52,20 @@ class JourneyRecording {
   final DateTime? endedAt;
   final DateTime? lastChangedAt;
   final int segmentNumber;
+
+  /// Time spent paused in earlier pauses (the current one, if paused, is
+  /// counted from [pausedAt]).
+  final Duration pausedTotal;
+
+  /// Time spent recording: start to [now] (or the pause, or the end),
+  /// minus pauses. The live clock stands still while paused.
+  Duration recordedTime(DateTime now) {
+    final start = startedAt;
+    if (start == null) return Duration.zero;
+    final until = endedAt ?? pausedAt ?? now;
+    final time = until.difference(start) - pausedTotal;
+    return time.isNegative ? Duration.zero : time;
+  }
 
   JourneyRecording start(DateTime at) {
     if (phase != JourneyRecordingPhase.idle) {
@@ -70,6 +89,7 @@ class JourneyRecording {
       pausedAt: at,
       lastChangedAt: at,
       segmentNumber: segmentNumber,
+      pausedTotal: pausedTotal,
     );
   }
 
@@ -82,6 +102,7 @@ class JourneyRecording {
       startedAt: startedAt,
       lastChangedAt: at,
       segmentNumber: segmentNumber + 1,
+      pausedTotal: pausedTotal + at.difference(pausedAt!),
     );
   }
 
@@ -98,6 +119,10 @@ class JourneyRecording {
       endedAt: at,
       lastChangedAt: at,
       segmentNumber: segmentNumber,
+      // Stopping while paused: that last pause counts too.
+      pausedTotal: pausedAt == null
+          ? pausedTotal
+          : pausedTotal + at.difference(pausedAt!),
     );
   }
 }

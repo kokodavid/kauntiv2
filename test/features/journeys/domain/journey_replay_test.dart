@@ -24,7 +24,8 @@ void main() {
 
   test('elapsed time and distance so far at each point', () {
     expect(track.elapsedAt(0), Duration.zero);
-    expect(track.elapsedAt(3), const Duration(minutes: 25));
+    // 5 min before the pause + 5 after; the 15 min pause doesn't count.
+    expect(track.elapsedAt(3), const Duration(minutes: 10));
     expect(track.distanceAt(0), 0);
     final first = track.distanceAt(1);
     expect(first, closeTo(1112, 5));

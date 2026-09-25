@@ -19,6 +19,7 @@ typedef UploadJourney =
       required String title,
       required DateTime startedAt,
       required DateTime endedAt,
+      required Duration pausedDuration,
       required List<JourneyPoint> points,
     });
 
@@ -56,6 +57,7 @@ class JourneyUploadQueue {
           required title,
           required startedAt,
           required endedAt,
+          required pausedDuration,
           required points,
         }) => cloud.upload(
           userId: userId,
@@ -63,6 +65,7 @@ class JourneyUploadQueue {
           title: title,
           startedAt: startedAt,
           endedAt: endedAt,
+          pausedDuration: pausedDuration,
           points: points,
         ),
   );
@@ -132,6 +135,7 @@ class JourneyUploadQueue {
           title: summary.title,
           startedAt: summary.startedAt,
           endedAt: summary.endedAt,
+          pausedDuration: summary.pausedDuration,
           points: points,
         );
         // Stored under [userId] on the server; the local copy is theirs.
@@ -197,6 +201,7 @@ class JourneyUploadQueue {
         row.endedAtMillis ?? row.lastChangedAtMillis,
         isUtc: true,
       ),
+      pausedDuration: Duration(milliseconds: row.pausedTotalMillis),
       isUploaded: false,
     );
   }

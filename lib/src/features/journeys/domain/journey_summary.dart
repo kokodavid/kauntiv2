@@ -7,6 +7,7 @@ class JourneySummary {
     required this.endedAt,
     required this.isUploaded,
     this.distanceMeters,
+    this.pausedDuration = Duration.zero,
   });
 
   final String id;
@@ -20,7 +21,14 @@ class JourneySummary {
   /// False while it's only on this phone, waiting to upload.
   final bool isUploaded;
 
-  Duration get duration => endedAt.difference(startedAt);
+  /// Time spent paused (0 for Journeys uploaded before it was kept).
+  final Duration pausedDuration;
+
+  /// Recorded time: start to end, minus pauses.
+  Duration get duration {
+    final recorded = endedAt.difference(startedAt) - pausedDuration;
+    return recorded.isNegative ? Duration.zero : recorded;
+  }
 }
 
 abstract final class JourneyTitles {

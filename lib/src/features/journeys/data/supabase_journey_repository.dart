@@ -45,6 +45,7 @@ class SupabaseJourneyRepository {
     required DateTime startedAt,
     required DateTime endedAt,
     required List<JourneyPoint> points,
+    Duration pausedDuration = Duration.zero,
   }) async {
     final result = await _client
         .rpc<Map<String, dynamic>>(
@@ -55,6 +56,7 @@ class SupabaseJourneyRepository {
             'p_title': title,
             'p_started_at': startedAt.toUtc().toIso8601String(),
             'p_ended_at': endedAt.toUtc().toIso8601String(),
+            'p_paused_ms': pausedDuration.inMilliseconds,
             'p_points': [
               for (final point in points)
                 {
@@ -75,7 +77,7 @@ class SupabaseJourneyRepository {
     final rows = await readAllPages(
       (from, to) => _client
           .from('journeys')
-          .select('id, title, started_at, ended_at, distance_m')
+          .select('id, title, started_at, ended_at, distance_m, paused_ms')
           .order('started_at', ascending: false)
           // postgrest-dart's order() is descending unless told otherwise.
           .order('id', ascending: true)
@@ -91,6 +93,9 @@ class SupabaseJourneyRepository {
     startedAt: DateTime.parse(row['started_at'] as String),
     endedAt: DateTime.parse(row['ended_at'] as String),
     distanceMeters: (row['distance_m'] as num).toDouble(),
+    pausedDuration: Duration(
+      milliseconds: (row['paused_ms'] as num?)?.toInt() ?? 0,
+    ),
     isUploaded: true,
   );
 
@@ -98,7 +103,7 @@ class SupabaseJourneyRepository {
   Future<JourneySummary?> journey(String id) async {
     final row = await _client
         .from('journeys')
-        .select('id, title, started_at, ended_at, distance_m')
+        .select('id, title, started_at, ended_at, distance_m, paused_ms')
         .eq('id', id)
         .maybeSingle()
         .timeout(_timeout);

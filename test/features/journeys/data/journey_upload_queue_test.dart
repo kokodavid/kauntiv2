@@ -25,6 +25,7 @@ void main() {
           required title,
           required startedAt,
           required endedAt,
+          required pausedDuration,
           required points,
         }) async {
           expect(userId, 'alice');

@@ -78,6 +78,26 @@ begin
   exception when invalid_parameter_value then null;
   end;
 
+  -- Paused time is stored (the 70 min gap between segments)…
+  v_result := public.upload_journey('33333333-3333-4333-8333-333333333333',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'With a pause',
+    now() - interval '3 hours', now() - interval '90 minutes', v_points,
+    70 * 60 * 1000);
+  if (select paused_ms from public.journeys
+      where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') <> 70 * 60 * 1000 then
+    raise exception 'Paused time was not stored';
+  end if;
+
+  -- …but can't be longer than the Journey itself.
+  begin
+    perform public.upload_journey('33333333-3333-4333-8333-333333333333',
+      'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Paused too long',
+      now() - interval '3 hours', now() - interval '2 hours', '[]',
+      2 * 60 * 60 * 1000);
+    raise exception 'Paused time longer than the Journey was accepted';
+  exception when invalid_parameter_value then null;
+  end;
+
   -- My status reflects the lapsed period.
   if (public.my_pro_status() ->> 'active')::boolean then
     raise exception 'Lapsed Pro reported as active';

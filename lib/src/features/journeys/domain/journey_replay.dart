@@ -17,24 +17,30 @@ enum JourneyReplaySpeed {
 }
 
 /// A route laid out for replay: the points in recording order, with the
-/// time since the start and the distance so far at each one (distance
-/// counted within segments only, like the route itself).
+/// recorded time and the distance so far at each one (both counted within
+/// segments only, so pauses add neither).
 class JourneyReplayTrack {
   JourneyReplayTrack(JourneyRoute route)
     : points = [for (final segment in route.segments) ...segment] {
     var distance = 0.0;
+    var elapsed = Duration.zero;
     final distances = <double>[];
+    final times = <Duration>[];
     for (var i = 0; i < points.length; i++) {
       if (i > 0 && points[i].segmentNumber == points[i - 1].segmentNumber) {
         distance += JourneyRoute.haversineMeters(points[i - 1], points[i]);
+        elapsed += points[i].recordedAt.difference(points[i - 1].recordedAt);
       }
       distances.add(distance);
+      times.add(elapsed);
     }
     _distances = distances;
+    _elapsed = times;
   }
 
   final List<JourneyPoint> points;
   late final List<double> _distances;
+  late final List<Duration> _elapsed;
 
   int get length => points.length;
   bool get canReplay => points.length > 1;
@@ -50,9 +56,9 @@ class JourneyReplayTrack {
   double pointsPerSecond(JourneyReplaySpeed speed) =>
       lastIndex / (baseDuration.inMilliseconds / 1000) * speed.factor;
 
-  /// Time since the first point at [index].
-  Duration elapsedAt(int index) =>
-      points[index].recordedAt.difference(points.first.recordedAt);
+  /// Recorded time at [index]: since the first point, not counting pauses
+  /// (the gaps between segments), like the live clock.
+  Duration elapsedAt(int index) => _elapsed[index];
 
   /// Distance travelled up to [index], in metres.
   double distanceAt(int index) => _distances[index];

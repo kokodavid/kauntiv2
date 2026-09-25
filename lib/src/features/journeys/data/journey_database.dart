@@ -17,6 +17,9 @@ class JourneySessions extends Table {
   IntColumn get uploadAttempts => integer().withDefault(const Constant(0))();
   IntColumn get nextUploadAtMillis => integer().nullable()();
 
+  /// Time spent paused so far, for the recorded-time clock (schema 3).
+  IntColumn get pausedTotalMillis => integer().withDefault(const Constant(0))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -41,7 +44,7 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +53,9 @@ class JourneyDatabase extends _$JourneyDatabase {
       if (from < 2) {
         await m.addColumn(journeySessions, journeySessions.uploadAttempts);
         await m.addColumn(journeySessions, journeySessions.nextUploadAtMillis);
+      }
+      if (from < 3) {
+        await m.addColumn(journeySessions, journeySessions.pausedTotalMillis);
       }
     },
   );

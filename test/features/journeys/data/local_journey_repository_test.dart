@@ -28,6 +28,23 @@ void main() {
     });
     tearDown(() => db.close());
 
+    test('keeps paused time across a restart', () async {
+      await repo.start(id: 'journey-p', userId: 'alice', at: started);
+      await repo.pause(
+        id: 'journey-p',
+        userId: 'alice',
+        at: started.add(const Duration(minutes: 5)),
+      );
+      await repo.resume(
+        id: 'journey-p',
+        userId: 'alice',
+        at: started.add(const Duration(minutes: 9)),
+      );
+      // A fresh repository reads it back from the database.
+      final saved = await LocalJourneyRepository(db).activeSession('alice');
+      expect(saved!.recording.pausedTotal, const Duration(minutes: 4));
+    });
+
     test('persists points and starts a new segment after pause', () async {
       await repo.start(id: 'journey-1', userId: 'alice', at: started);
       expect(

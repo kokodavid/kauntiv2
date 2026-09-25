@@ -128,6 +128,22 @@ class JourneyRecorder extends _$JourneyRecorder {
     ref.invalidate(journeyHistoryListProvider);
     unawaited(ref.read(journeySyncProvider.notifier).drain());
   }
+
+  /// Ends the Journey without saving it: the route is deleted from this
+  /// phone and nothing is uploaded.
+  Future<void> discard() async {
+    _requireOwner();
+    final session = state;
+    final userId = _owner;
+    if (session == null || userId == null) return;
+    try {
+      // Stops the location stream (pausing first if recording).
+      await ref.read(journeyCaptureProvider).detach();
+    } finally {
+      await ref.read(localJourneyRepositoryProvider).discard(session.id, userId);
+      _set(null, null);
+    }
+  }
 }
 
 /// Drains the Journey upload queue; the state counts uploads this session.

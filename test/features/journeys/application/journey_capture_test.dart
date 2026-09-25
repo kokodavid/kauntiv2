@@ -114,10 +114,12 @@ void main() {
     await capture.attachStarted(session: session, userId: 'alice');
     now = t0.add(const Duration(seconds: 2));
     source.controller.addError(StateError('GPS stopped'));
-    for (var attempt = 0;
-        attempt < 100 &&
-            capture.session?.recording.phase != JourneyRecordingPhase.paused;
-        attempt++) {
+    for (
+      var attempt = 0;
+      attempt < 100 &&
+          capture.session?.recording.phase != JourneyRecordingPhase.paused;
+      attempt++
+    ) {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
     expect(capture.lastError, isA<StateError>());

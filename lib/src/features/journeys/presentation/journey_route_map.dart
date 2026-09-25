@@ -124,8 +124,8 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
           'match',
           ['get', 'kind'],
           'start',
-          AppColors.legendHome.toARGB32(),
-          AppColors.danger.toARGB32(),
+          _hex(AppColors.legendHome),
+          _hex(AppColors.danger),
         ],
         circleRadius: 6,
         circleStrokeColor: Colors.white.toARGB32(),
@@ -147,6 +147,11 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
   }
 
   String _routeJson() => jsonEncode(widget.route.toGeoJson());
+
+  /// Colours inside a style expression must be colour strings; a plain
+  /// ARGB int is read as a number and rejected by Mapbox.
+  static String _hex(Color color) =>
+      '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 
   String _markerJson() => _pointsJson({'marker': widget.marker});
 

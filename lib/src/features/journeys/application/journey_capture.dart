@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../../services/app_logger.dart';
 import '../data/local_journey_repository.dart';
 import '../domain/journey_fix.dart';
 import '../domain/journey_recording.dart';
@@ -11,13 +12,20 @@ class JourneyCapture {
     required LocalJourneyRepository repository,
     required JourneyLocationSource locationSource,
     DateTime Function()? clock,
+    this.teardownTimeout = const Duration(seconds: 4),
   }) : _repository = repository,
        _locationSource = locationSource,
        _clock = clock ?? DateTime.now;
 
+  /// How long each teardown step may take before Stop / Pause carry on
+  /// without it. A native call that never returns must not leave the
+  /// Journey stuck recording.
+  final Duration teardownTimeout;
+
   final LocalJourneyRepository _repository;
   final JourneyLocationSource _locationSource;
   final DateTime Function() _clock;
+  static const _logger = AppLogger.journeys();
 
   LocalJourneySession? _session;
   String? _userId;
@@ -207,10 +215,28 @@ class JourneyCapture {
 
   Future<void> _endStream() async {
     _closing = true;
-    await _subscription?.cancel();
+    final subscription = _subscription;
     _subscription = null;
-    await _writes;
-    await _locationSource.stop();
+    await _bounded('cancel the location stream', () async {
+      await subscription?.cancel();
+    });
+    await _bounded('save the last points', () => _writes);
+    await _bounded('stop background location', _locationSource.stop);
+  }
+
+  /// Runs one teardown [step], logging instead of hanging or throwing.
+  Future<void> _bounded(String what, Future<void> Function() step) async {
+    try {
+      await step().timeout(teardownTimeout);
+    } on TimeoutException {
+      _logger.warning('Journey teardown: timed out trying to $what.');
+    } on Object catch (error, stackTrace) {
+      _logger.warning(
+        'Journey teardown: failed to $what.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   LocalJourneySession _requireSession(JourneyRecordingPhase phase) {

@@ -12,6 +12,7 @@ class FakeJourneyLocationSource implements JourneyLocationSource {
   final controller = StreamController<JourneyFix>.broadcast(sync: true);
   bool started = false;
   bool failStart = false;
+  bool hangOnStop = false;
 
   @override
   Stream<JourneyFix> get fixes => controller.stream;
@@ -23,7 +24,11 @@ class FakeJourneyLocationSource implements JourneyLocationSource {
   }
 
   @override
-  Future<void> stop() async => started = false;
+  Future<void> stop() {
+    if (hangOnStop) return Completer<void>().future;
+    started = false;
+    return Future.value();
+  }
 
   Future<void> dispose() => controller.close();
 }
@@ -125,5 +130,22 @@ void main() {
     expect(capture.lastError, isA<StateError>());
     expect(capture.session?.recording.phase, JourneyRecordingPhase.paused);
     expect(source.started, isFalse);
+  });
+
+  test('Stop finishes even if the native stop never returns', () async {
+    final hanging = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+      teardownTimeout: const Duration(milliseconds: 50),
+    );
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await hanging.attachStarted(session: session, userId: 'alice');
+    source.hangOnStop = true;
+    now = t0.add(const Duration(minutes: 1));
+
+    final finished = await hanging.finish();
+    expect(finished.recording.phase, JourneyRecordingPhase.completed);
+    expect(hanging.session, isNull);
   });
 }

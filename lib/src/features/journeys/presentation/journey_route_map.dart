@@ -14,21 +14,35 @@ import '../../../design/app_colors.dart';
 import '../../map_home/application/county_camera_fit.dart';
 import '../domain/journey_route.dart';
 
+/// A position on the map.
+typedef JourneyLatLng = ({double latitude, double longitude});
+
 /// A Journey's route on the Mapbox map: one line per segment (gaps stay
-/// gaps), lone fixes as dots, and an optional [marker] for replay. With
-/// [follow] the camera tracks the newest point (live recording);
-/// otherwise it frames the whole route.
+/// gaps), lone fixes as dots, optional [start] / [end] pins and a [marker]
+/// for replay. With [follow] the camera tracks the newest point (live
+/// recording, replay); otherwise it frames the whole route.
 class JourneyRouteMap extends ConsumerStatefulWidget {
   const JourneyRouteMap({
     super.key,
     required this.route,
     this.marker,
+    this.start,
+    this.end,
     this.follow = false,
+    this.animateFollow = true,
   });
 
   final JourneyRoute route;
-  final ({double latitude, double longitude})? marker;
+  final JourneyLatLng? marker;
+
+  /// Where the Journey began (green) and ended (red).
+  final JourneyLatLng? start;
+  final JourneyLatLng? end;
   final bool follow;
+
+  /// Ease the camera to each new point (live) or jump (replay frames come
+  /// too fast to animate each one).
+  final bool animateFollow;
 
   @override
   ConsumerState<JourneyRouteMap> createState() => _JourneyRouteMapState();
@@ -37,6 +51,7 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
 class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
   static const _routeSource = 'journey-route';
   static const _markerSource = 'journey-marker';
+  static const _endpointSource = 'journey-endpoints';
   MapboxMap? _map;
   bool _styleReady = false;
   late final String _token = ref.read(appConfigProvider).mapboxAccessToken;
@@ -56,6 +71,9 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
       unawaited(_updateRoute());
     }
     if (oldWidget.marker != widget.marker) unawaited(_updateMarker());
+    if (oldWidget.start != widget.start || oldWidget.end != widget.end) {
+      unawaited(_updateEndpoints());
+    }
   }
 
   void _onMapCreated(MapboxMap map) {
@@ -71,6 +89,9 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     await style.addSource(GeoJsonSource(id: _routeSource, data: _routeJson()));
     await style.addSource(
       GeoJsonSource(id: _markerSource, data: _markerJson()),
+    );
+    await style.addSource(
+      GeoJsonSource(id: _endpointSource, data: _endpointJson()),
     );
     await style.addLayer(
       LineLayer(
@@ -97,6 +118,22 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     );
     await style.addLayer(
       CircleLayer(
+        id: 'journey-endpoints',
+        sourceId: _endpointSource,
+        circleColorExpression: [
+          'match',
+          ['get', 'kind'],
+          'start',
+          AppColors.legendHome.toARGB32(),
+          AppColors.danger.toARGB32(),
+        ],
+        circleRadius: 6,
+        circleStrokeColor: Colors.white.toARGB32(),
+        circleStrokeWidth: 2,
+      ),
+    );
+    await style.addLayer(
+      CircleLayer(
         id: 'journey-marker',
         sourceId: _markerSource,
         circleColor: Colors.white.toARGB32(),
@@ -111,23 +148,27 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
 
   String _routeJson() => jsonEncode(widget.route.toGeoJson());
 
-  String _markerJson() {
-    final marker = widget.marker;
-    return jsonEncode({
-      'type': 'FeatureCollection',
-      'features': [
-        if (marker != null)
+  String _markerJson() => _pointsJson({'marker': widget.marker});
+
+  String _endpointJson() =>
+      _pointsJson({'start': widget.start, 'end': widget.end});
+
+  /// Points as a GeoJSON collection, each tagged with its `kind`.
+  static String _pointsJson(Map<String, JourneyLatLng?> points) => jsonEncode({
+    'type': 'FeatureCollection',
+    'features': [
+      for (final MapEntry(key: kind, value: point) in points.entries)
+        if (point != null)
           {
             'type': 'Feature',
-            'properties': <String, Object?>{},
+            'properties': {'kind': kind},
             'geometry': {
               'type': 'Point',
-              'coordinates': [marker.longitude, marker.latitude],
+              'coordinates': [point.longitude, point.latitude],
             },
           },
-      ],
-    });
-  }
+    ],
+  });
 
   Future<void> _updateRoute() async {
     await _map?.style.setStyleSourceProperty(
@@ -135,7 +176,15 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
       'data',
       _routeJson(),
     );
-    await _moveCamera(animate: true);
+    await _moveCamera(animate: !widget.follow || widget.animateFollow);
+  }
+
+  Future<void> _updateEndpoints() async {
+    await _map?.style.setStyleSourceProperty(
+      _endpointSource,
+      'data',
+      _endpointJson(),
+    );
   }
 
   Future<void> _updateMarker() async {

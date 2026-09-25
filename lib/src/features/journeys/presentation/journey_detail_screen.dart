@@ -74,7 +74,11 @@ class _BodyState extends ConsumerState<_Body> {
   void _toggleReplay() {
     if (_replay != null) {
       _replay!.cancel();
-      setState(() => _replay = null);
+      // Back to the whole route.
+      setState(() {
+        _replay = null;
+        _index = null;
+      });
       return;
     }
     final step = (_points.length / _frames).ceil().clamp(1, _points.length);
@@ -139,12 +143,13 @@ class _BodyState extends ConsumerState<_Body> {
     final summary = widget.detail.summary;
     final route = widget.detail.route;
     final index = _index;
-    final marker = index == null
-        ? null
-        : (
-            latitude: _points[index].latitude,
-            longitude: _points[index].longitude,
-          );
+    JourneyLatLng at(JourneyPoint p) =>
+        (latitude: p.latitude, longitude: p.longitude);
+    // Replay draws the route from the start as it goes, with the camera
+    // following the marker; otherwise the whole route with start and end.
+    final shown = index == null
+        ? route
+        : JourneyRoute(_points.sublist(0, index + 1));
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
       children: [
@@ -162,7 +167,14 @@ class _BodyState extends ConsumerState<_Body> {
                       ),
                     ),
                   )
-                : JourneyRouteMap(route: route, marker: marker),
+                : JourneyRouteMap(
+                    route: shown,
+                    start: at(_points.first),
+                    end: index == null ? at(_points.last) : null,
+                    marker: index == null ? null : at(_points[index]),
+                    follow: index != null,
+                    animateFollow: false,
+                  ),
           ),
         ),
         const SizedBox(height: 16),

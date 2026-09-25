@@ -123,6 +123,8 @@ revoke execute on function public.journey_upload_rows(jsonb) from public;
 -- segments only (a pause gap is never counted).
 --
 -- Rules:
+-- - p_user_id is the signed-in account (42501), so an account switch
+--   mid-request can never file one account's route under another;
 -- - the caller owns the Journey (42501);
 -- - Pro was active when the Journey started; it may have lapsed since, so a
 --   session that began with Pro can still finish and upload (42501);
@@ -132,6 +134,7 @@ revoke execute on function public.journey_upload_rows(jsonb) from public;
 --   back a segment (22023); at most 50,000 points (22023);
 -- - a retry of an already uploaded Journey returns it unchanged.
 create function public.upload_journey(
+  p_user_id uuid,
   p_journey_id uuid,
   p_title text,
   p_started_at timestamptz,
@@ -150,8 +153,9 @@ declare
   v_bad integer;
   v_distance numeric;
 begin
-  if v_user is null then
-    raise exception 'Sign in to upload a Journey' using errcode = '42501';
+  if v_user is null or v_user <> p_user_id then
+    raise exception 'Journey owner does not match the signed-in account'
+      using errcode = '42501';
   end if;
 
   select * into v_existing from public.journeys where id = p_journey_id;
@@ -252,7 +256,7 @@ begin
 end;
 $$;
 
-revoke execute on function public.upload_journey(uuid, text, timestamptz, timestamptz, jsonb)
+revoke execute on function public.upload_journey(uuid, uuid, text, timestamptz, timestamptz, jsonb)
   from public;
-grant execute on function public.upload_journey(uuid, text, timestamptz, timestamptz, jsonb)
+grant execute on function public.upload_journey(uuid, uuid, text, timestamptz, timestamptz, jsonb)
   to authenticated;

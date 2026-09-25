@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/widgets/app_bottom_nav.dart';
 import '../design/app_colors.dart';
 import '../features/detection/presentation/detection_lifecycle.dart';
+import '../features/journeys/presentation/journey_sync_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import 'app_routes.dart';
 import 'detail_routes.dart';
@@ -13,7 +14,8 @@ import 'detail_routes.dart';
 /// [AppBottomNav] floating over the live tabs. The tabs are go_router
 /// branches ([StatefulShellRoute.indexedStack]), so each keeps its own
 /// navigation stack, scroll position and state, and is built lazily on
-/// first visit. Detection runs around the whole shell.
+/// first visit. Detection and Journey recovery / upload retries run around
+/// the whole shell.
 ///
 /// Tabs without a branch aren't ported yet; picking one shows a short
 /// "coming next" note instead of switching.
@@ -45,7 +47,8 @@ class AppShell extends ConsumerWidget {
       homeCountyCode: homeCounty?.code,
       onOpenCounty: DetailRoutes.openCounty,
       onOpenPlace: DetailRoutes.openPlace,
-      child: Scaffold(
+      child: JourneySyncLifecycle(
+        child: Scaffold(
         backgroundColor: AppColors.pageBackground,
         // A Stack, not a Column: the glass nav needs the active tab's
         // content underneath it to float over and blur.
@@ -63,6 +66,7 @@ class AppShell extends ConsumerWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

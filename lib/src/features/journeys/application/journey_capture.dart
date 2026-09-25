@@ -143,6 +143,22 @@ class JourneyCapture {
     return finished;
   }
 
+  /// Lets go of the attached Journey without finishing it, e.g. when the
+  /// signed-in account changes: a recording one is paused (saved for its
+  /// owner to resume later) and the location stream stops.
+  Future<void> detach() async {
+    final current = _session;
+    if (current == null) return;
+    try {
+      if (current.recording.phase == JourneyRecordingPhase.recording) {
+        await pause();
+      }
+    } finally {
+      _session = null;
+      _userId = null;
+    }
+  }
+
   Future<void> _startStream() async {
     await _locationSource.start();
     _listen();

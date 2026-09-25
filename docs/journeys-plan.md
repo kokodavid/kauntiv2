@@ -67,6 +67,19 @@ entitlements are not implemented in this foundation slice.
      recover), `JourneyUploadQueue` (oldest first, backoff; permanent
      rejections wait a day; local copy deleted after upload),
      `JourneyHistoryList` (waiting-on-phone first, then cloud; delete).
+   - Retries: `JourneySyncLifecycle` (around the tab shell) recovers a
+     cut-off Journey and drains uploads on launch and every resume, and
+     retries every minute while the app is in front (the queue's backoff
+     decides what's due).
+   - Reads page through Supabase's 1,000-row cap (history and points).
+   - Account isolation: uploads name their owner and the RPC refuses a
+     mismatch with the signed-in account; the queue stops when the account
+     changes (before and after each upload, without blaming the Journey);
+     the recorder pauses and lets go of a Journey when the account changes;
+     history and the Pro status rebuild per account.
+   - Open decision: a cached Pro status can allow an offline Start that the
+     server later rejects (Pro wasn't really active then), leaving the route
+     on the phone only.
    Provisional limits to confirm: 7-day offline start window, 7-day max
    Journey, 90-day upload window, 50,000 points per upload, and the default
    title "Journey on 25 Sep 2026".

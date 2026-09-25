@@ -21,6 +21,8 @@ class JourneyHistory {
 class JourneyHistoryList extends _$JourneyHistoryList {
   @override
   Future<JourneyHistory> build() async {
+    // Rebuilds for the new account when the signed-in account changes.
+    ref.watch(authUserIdProvider);
     final userId = ref.watch(currentUserIdProvider)();
     if (userId == null) return const JourneyHistory(journeys: []);
     final queue = ref.watch(journeyUploadQueueProvider);

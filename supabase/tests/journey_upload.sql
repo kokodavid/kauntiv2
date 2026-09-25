@@ -27,7 +27,7 @@ declare
   );
 begin
   -- Started while Pro was active, finished after it lapsed: accepted.
-  v_result := public.upload_journey(
+  v_result := public.upload_journey('33333333-3333-4333-8333-333333333333',
     '55555555-5555-4555-8555-555555555555', 'Nairobi loop',
     now() - interval '3 hours', now() - interval '90 minutes', v_points);
   if (v_result ->> 'already_uploaded')::boolean then
@@ -43,7 +43,7 @@ begin
   end if;
 
   -- A retry returns the stored Journey.
-  v_result := public.upload_journey(
+  v_result := public.upload_journey('33333333-3333-4333-8333-333333333333',
     '55555555-5555-4555-8555-555555555555', 'Nairobi loop',
     now() - interval '3 hours', now() - interval '90 minutes', v_points);
   if not (v_result ->> 'already_uploaded')::boolean then
@@ -52,7 +52,7 @@ begin
 
   -- Started after Pro lapsed: rejected.
   begin
-    perform public.upload_journey(
+    perform public.upload_journey('33333333-3333-4333-8333-333333333333',
       '66666666-6666-4666-8666-666666666666', 'Too late',
       now() - interval '30 minutes', now() - interval '10 minutes', '[]');
     raise exception 'Upload without Pro was accepted';
@@ -61,7 +61,7 @@ begin
 
   -- Points out of order: rejected.
   begin
-    perform public.upload_journey(
+    perform public.upload_journey('33333333-3333-4333-8333-333333333333',
       '77777777-7777-4777-8777-777777777777', 'Out of order',
       now() - interval '3 hours', now() - interval '2 hours',
       jsonb_build_array(v_points -> 1, v_points -> 0));
@@ -71,7 +71,7 @@ begin
 
   -- Ends in the future: rejected.
   begin
-    perform public.upload_journey(
+    perform public.upload_journey('33333333-3333-4333-8333-333333333333',
       '88888888-8888-4888-8888-888888888888', 'Future',
       now() - interval '1 hour', now() + interval '1 hour', '[]');
     raise exception 'Future end was accepted';
@@ -94,10 +94,18 @@ begin
     raise exception 'Another account can read the Journey';
   end if;
   begin
-    perform public.upload_journey(
+    perform public.upload_journey('44444444-4444-4444-8444-444444444444',
       '55555555-5555-4555-8555-555555555555', 'Hijack',
       now() - interval '3 hours', now() - interval '90 minutes', '[]');
     raise exception 'Another account overwrote the Journey';
+  exception when insufficient_privilege then null;
+  end;
+  -- Uploading as a different account than the signed-in one: rejected.
+  begin
+    perform public.upload_journey('33333333-3333-4333-8333-333333333333',
+      '99999999-9999-4999-8999-999999999999', 'Wrong account',
+      now() - interval '3 hours', now() - interval '2 hours', '[]');
+    raise exception 'Upload for another account was accepted';
   exception when insufficient_privilege then null;
   end;
   begin

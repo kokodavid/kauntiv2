@@ -16,10 +16,44 @@ part 'journey_recorder.g.dart';
 /// The active Journey for the signed-in account: Pro-gated start, pause,
 /// resume and finish, and recovery after a restart. Finishing queues the
 /// upload. No UI calls this yet (Journeys step 4).
+///
+/// Bound to one account: when the signed-in account changes, a recording
+/// Journey is paused for its owner and let go, so the next account never
+/// sees or continues it.
 @Riverpod(keepAlive: true)
 class JourneyRecorder extends _$JourneyRecorder {
+  /// Who [state] belongs to.
+  String? _owner;
+
   @override
-  LocalJourneySession? build() => null;
+  LocalJourneySession? build() {
+    ref.listen(authUserIdProvider, (_, next) {
+      final owner = _owner;
+      if (owner != null && next.value != owner) {
+        unawaited(_releaseForAccountChange());
+      }
+    });
+    return null;
+  }
+
+  void _set(LocalJourneySession? session, String? owner) {
+    if (!ref.mounted) return;
+    _owner = session == null ? null : owner;
+    state = session;
+  }
+
+  Future<void> _releaseForAccountChange() async {
+    _set(null, null);
+    await ref.read(journeyCaptureProvider).detach();
+  }
+
+  /// Throws unless the attached Journey still belongs to the signed-in
+  /// account.
+  void _requireOwner() {
+    if (_owner != ref.read(currentUserIdProvider)()) {
+      throw StateError('This Journey belongs to another account.');
+    }
+  }
 
   String _userId() {
     final userId = ref.read(currentUserIdProvider)();
@@ -31,8 +65,9 @@ class JourneyRecorder extends _$JourneyRecorder {
   /// app was closed isn't recorded) and waits for an explicit Resume.
   Future<void> recover() async {
     if (state != null) return;
-    final session = await ref.read(journeyCaptureProvider).recover(_userId());
-    if (ref.mounted) state = session;
+    final userId = _userId();
+    final session = await ref.read(journeyCaptureProvider).recover(userId);
+    _set(session, userId);
   }
 
   /// Starts a Journey. Throws [JourneyStartDenied] without Pro.
@@ -53,25 +88,28 @@ class JourneyRecorder extends _$JourneyRecorder {
       await capture.attachStarted(session: session, userId: userId);
     } finally {
       // On failure capture pauses the session; show that state.
-      if (ref.mounted) state = capture.session;
+      _set(capture.session, userId);
     }
   }
 
   Future<void> pause() async {
+    _requireOwner();
     final session = await ref.read(journeyCaptureProvider).pause();
-    if (ref.mounted) state = session;
+    _set(session, _owner);
   }
 
   Future<void> resume() async {
+    _requireOwner();
     final session = await ref.read(journeyCaptureProvider).resume();
-    if (ref.mounted) state = session;
+    _set(session, _owner);
   }
 
   /// Ends the Journey and uploads it (now, or later if offline).
   Future<void> finish() async {
+    _requireOwner();
     await ref.read(journeyCaptureProvider).finish();
     if (!ref.mounted) return;
-    state = null;
+    _set(null, null);
     ref.invalidate(journeyHistoryListProvider);
     unawaited(ref.read(journeySyncProvider.notifier).drain());
   }

@@ -62,6 +62,7 @@ void main() {
   late _FakeSource source;
   late _FakeCloud cloud;
   late List<String> uploads;
+  late StreamController<String?> auth;
   var uploadsFail = false;
 
   ProviderContainer container() {
@@ -70,6 +71,7 @@ void main() {
         journeyDatabaseProvider.overrideWithValue(db),
         journeyLocationSourceProvider.overrideWithValue(source),
         currentUserIdProvider.overrideWithValue(() => 'alice'),
+        authUserIdProvider.overrideWith((ref) => auth.stream),
         supabaseJourneyRepositoryProvider.overrideWithValue(cloud),
         journeyUploadQueueProvider.overrideWithValue(
           JourneyUploadQueue(
@@ -77,6 +79,7 @@ void main() {
             currentUserId: () => 'alice',
             upload:
                 ({
+                  required userId,
                   required id,
                   required title,
                   required startedAt,
@@ -100,8 +103,10 @@ void main() {
     cloud = _FakeCloud();
     uploads = [];
     uploadsFail = false;
+    auth = StreamController<String?>.broadcast();
   });
   tearDown(() async {
+    await auth.close();
     await source.controller.close();
     await db.close();
   });
@@ -181,5 +186,25 @@ void main() {
     final offline = await c.read(journeyHistoryListProvider.future);
     expect(offline.cloudUnavailable, isTrue);
     expect(offline.journeys, hasLength(1));
+  });
+
+  test('another account signing in lets go of the Journey', () async {
+    cloud.status = ProStatus(active: true, checkedAt: now);
+    final c = container();
+    c.listen(journeyRecorderProvider, (_, _) {});
+    await c.read(journeyRecorderProvider.notifier).start(now: now);
+    auth.add('alice');
+    await pumpEventQueue();
+    expect(c.read(journeyRecorderProvider), isNotNull);
+
+    auth.add('bob');
+    await pumpEventQueue();
+    expect(c.read(journeyRecorderProvider), isNull);
+    expect(source.started, isFalse);
+    // Saved, paused, for alice to resume later.
+    final saved = await c.read(localJourneyRepositoryProvider).activeSession(
+      'alice',
+    );
+    expect(saved?.recording.phase, JourneyRecordingPhase.paused);
   });
 }

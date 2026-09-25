@@ -12,6 +12,7 @@ void main() {
   late LocalJourneyRepository local;
   late List<String> uploaded;
   late Object? Function(String id) failWith;
+  late void Function(String id) onUpload;
   String? user = 'alice';
 
   JourneyUploadQueue queue() => JourneyUploadQueue(
@@ -19,12 +20,15 @@ void main() {
     currentUserId: () => user,
     upload:
         ({
+          required userId,
           required id,
           required title,
           required startedAt,
           required endedAt,
           required points,
         }) async {
+          expect(userId, 'alice');
+          onUpload(id);
           final error = failWith(id);
           if (error != null) throw error;
           expect(points, hasLength(1));
@@ -59,6 +63,7 @@ void main() {
     local = LocalJourneyRepository(db);
     uploaded = [];
     failWith = (_) => null;
+    onUpload = (_) {};
     user = 'alice';
   });
   tearDown(() => db.close());
@@ -126,4 +131,29 @@ void main() {
       expect(await queue().pending('alice'), isEmpty);
     },
   );
+
+  test('an account switch mid-upload stops the drain, blaming nothing', () async {
+    await completed('a');
+    await completed('b', offsetMinutes: 10);
+    // The account changes while "a" is uploading; the server refuses it.
+    onUpload = (_) => user = 'bob';
+    failWith = (_) => const PostgrestException(message: 'owner', code: '42501');
+    final q = queue();
+    final now = t0.add(const Duration(hours: 1));
+
+    expect(await q.drain(now: now), 0);
+    // Nothing was marked as failed: both are due again for alice.
+    user = 'alice';
+    onUpload = (_) {};
+    failWith = (_) => null;
+    expect(await q.drain(now: now), 2);
+  });
+
+  test('an account switch after an upload stops before the next', () async {
+    await completed('a');
+    await completed('b', offsetMinutes: 10);
+    onUpload = (_) => user = 'bob';
+    expect(await queue().drain(now: t0.add(const Duration(hours: 1))), 1);
+    expect(uploaded, ['a']);
+  });
 }

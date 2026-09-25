@@ -14,6 +14,7 @@ import 'supabase_journey_repository.dart';
 /// Uploads one completed Journey; resolves once the server has stored it.
 typedef UploadJourney =
     Future<void> Function({
+      required String userId,
       required String id,
       required String title,
       required DateTime startedAt,
@@ -28,8 +29,11 @@ typedef UploadJourney =
 /// Like detection's visit queue: a transient failure (offline, timeout)
 /// backs off exponentially and stops the drain; a permanent rejection
 /// (no Pro when it started, invalid timing or points) waits a day and the
-/// drain moves on. The local copy is kept in both cases. The drain stops
-/// if the signed-in user changes.
+/// drain moves on. The local copy is kept in both cases.
+///
+/// Account isolation: every upload names its owner and the server refuses
+/// it unless that's the signed-in account, and the drain stops as soon as
+/// the signed-in account changes (checked before and after each upload).
 class JourneyUploadQueue {
   JourneyUploadQueue(
     this._db, {
@@ -47,12 +51,14 @@ class JourneyUploadQueue {
     currentUserId: () => cloud.currentUserId,
     upload:
         ({
+          required userId,
           required id,
           required title,
           required startedAt,
           required endedAt,
           required points,
         }) => cloud.upload(
+          userId: userId,
           id: id,
           title: title,
           startedAt: startedAt,
@@ -118,16 +124,24 @@ class JourneyUploadQueue {
       if (_currentUserId() != userId) break;
       final summary = _summary(row);
       try {
+        final points = await _local.points(row.id, userId);
+        if (_currentUserId() != userId) break;
         await _upload(
+          userId: userId,
           id: row.id,
           title: summary.title,
           startedAt: summary.startedAt,
           endedAt: summary.endedAt,
-          points: await _local.points(row.id, userId),
+          points: points,
         );
+        // Stored under [userId] on the server; the local copy is theirs.
         await _removeLocal(row.id);
         uploaded++;
+        if (_currentUserId() != userId) break;
       } on Object catch (error, stackTrace) {
+        // The account changed mid-upload: the server refused it for that
+        // reason, not because of the Journey. Leave it for its owner.
+        if (_currentUserId() != userId) break;
         _logger.warning(
           'Journey upload deferred.',
           error: error,

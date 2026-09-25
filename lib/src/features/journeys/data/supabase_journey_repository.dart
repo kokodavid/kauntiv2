@@ -30,9 +30,15 @@ class SupabaseJourneyRepository {
     );
   }
 
-  /// Uploads a completed Journey; returns the server's distance in metres.
-  /// Idempotent: a retry after a lost response returns the stored one.
+  /// Supabase caps a read at 1,000 rows by default; reads page through.
+  static const pageSize = 1000;
+
+  /// Uploads [userId]'s completed Journey; returns the server's distance in
+  /// metres. The server rejects it unless [userId] is still the signed-in
+  /// account. Idempotent: a retry after a lost response returns the stored
+  /// one.
   Future<double> upload({
+    required String userId,
     required String id,
     required String title,
     required DateTime startedAt,
@@ -43,6 +49,7 @@ class SupabaseJourneyRepository {
         .rpc<Map<String, dynamic>>(
           'upload_journey',
           params: {
+            'p_user_id': userId,
             'p_journey_id': id,
             'p_title': title,
             'p_started_at': startedAt.toUtc().toIso8601String(),
@@ -64,11 +71,15 @@ class SupabaseJourneyRepository {
   }
 
   Future<List<JourneySummary>> history() async {
-    final rows = await _client
-        .from('journeys')
-        .select('id, title, started_at, ended_at, distance_m')
-        .order('started_at', ascending: false)
-        .timeout(_timeout);
+    final rows = await readAllPages(
+      (from, to) => _client
+          .from('journeys')
+          .select('id, title, started_at, ended_at, distance_m')
+          .order('started_at', ascending: false)
+          .order('id')
+          .range(from, to)
+          .timeout(_timeout),
+    );
     return [
       for (final row in rows)
         JourneySummary(
@@ -83,12 +94,17 @@ class SupabaseJourneyRepository {
   }
 
   Future<List<JourneyPoint>> points(String journeyId) async {
-    final rows = await _client
-        .from('journey_points')
-        .select('segment_number, recorded_at, latitude, longitude, accuracy_m')
-        .eq('journey_id', journeyId)
-        .order('sequence_number')
-        .timeout(_timeout);
+    final rows = await readAllPages(
+      (from, to) => _client
+          .from('journey_points')
+          .select(
+            'segment_number, recorded_at, latitude, longitude, accuracy_m',
+          )
+          .eq('journey_id', journeyId)
+          .order('sequence_number')
+          .range(from, to)
+          .timeout(_timeout),
+    );
     return [
       for (final row in rows)
         JourneyPoint(
@@ -99,6 +115,19 @@ class SupabaseJourneyRepository {
           segmentNumber: row['segment_number'] as int,
         ),
     ];
+  }
+
+  /// Reads every page of a query ordered on a unique key, [pageSize] rows
+  /// at a time, until a short page.
+  static Future<List<Map<String, dynamic>>> readAllPages(
+    Future<List<Map<String, dynamic>>> Function(int from, int to) page,
+  ) async {
+    final rows = <Map<String, dynamic>>[];
+    while (true) {
+      final next = await page(rows.length, rows.length + pageSize - 1);
+      rows.addAll(next);
+      if (next.length < pageSize) return rows;
+    }
   }
 
   /// Deletes the Journey and (by cascade) its points.

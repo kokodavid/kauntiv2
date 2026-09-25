@@ -13,7 +13,11 @@ part 'journey_entitlement.g.dart';
 @Riverpod(keepAlive: true)
 class JourneyEntitlement extends _$JourneyEntitlement {
   @override
-  ProStatus? build() => null;
+  ProStatus? build() {
+    // A new account starts with no status until it's checked.
+    ref.watch(authUserIdProvider);
+    return null;
+  }
 
   Future<bool> canStart({DateTime? now}) async {
     final at = now ?? DateTime.now();

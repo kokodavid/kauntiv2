@@ -11,7 +11,8 @@ import '../domain/journey_summary.dart';
 typedef OpenJourney = void Function(BuildContext context, String id);
 
 /// Past Journeys, newest first: those still on this phone (waiting to
-/// upload) and the private cloud history. Available with or without Pro.
+/// upload) and the private cloud history. Tap one to replay it; delete it
+/// here. Available with or without Pro.
 class JourneyHistorySection extends ConsumerWidget {
   const JourneyHistorySection({super.key, this.onOpen});
 
@@ -80,14 +81,50 @@ class _List extends StatelessWidget {
   }
 }
 
-class _Row extends StatelessWidget {
+class _Row extends ConsumerWidget {
   const _Row({required this.journey, this.onTap});
 
   final JourneySummary journey;
   final VoidCallback? onTap;
 
+  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete this Journey?'),
+        content: Text(
+          journey.isUploaded
+              ? "'${journey.title}' is removed from your account and this "
+                    "phone. This can't be undone."
+              : "'${journey.title}' hasn't uploaded yet, so it's removed "
+                    "from this phone for good. This can't be undone.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(journeyHistoryListProvider.notifier).delete(journey);
+    } on Object {
+      messenger.showSnackBar(
+        const SnackBar(content: Text("Couldn't delete it. Try again.")),
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final local = journey.startedAt.toLocal();
     final date = JourneyTitles.defaultFor(
       local,
@@ -126,7 +163,12 @@ class _Row extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.mutedForeground),
+            IconButton(
+              onPressed: () => _delete(context, ref),
+              tooltip: 'Delete Journey',
+              color: AppColors.mutedForeground,
+              icon: const Icon(Icons.delete_outline),
+            ),
           ],
         ),
       ),

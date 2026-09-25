@@ -8,7 +8,6 @@ import '../core/services/app_config_provider.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
-import '../features/journeys/presentation/journey_detail_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
@@ -82,20 +81,8 @@ GoRouter appRouter(Ref ref) {
       if (AppFeatureFlags.journeys)
         GoRoute(
           path: '/journey/:id',
-          builder: (context, state) {
-            final id = state.pathParameters['id']!;
-            return JourneyDetailScreen(
-              journeyId: id,
-              onReplay: (context) => context.push(AppRoutes.journeyReplay(id)),
-            );
-          },
-          routes: [
-            GoRoute(
-              path: 'replay',
-              builder: (context, state) =>
-                  JourneyReplayScreen(journeyId: state.pathParameters['id']!),
-            ),
-          ],
+          builder: (context, state) =>
+              JourneyReplayScreen(journeyId: state.pathParameters['id']!),
         ),
       GoRoute(
         path: '/county/:code',

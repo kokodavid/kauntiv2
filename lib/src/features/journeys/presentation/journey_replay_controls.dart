@@ -5,13 +5,16 @@ import '../../../design/app_colors.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_replay.dart';
 import '../domain/journey_route.dart';
+import '../domain/journey_summary.dart';
 
-/// The replay controls floating over the full-screen map: the key moment
-/// replay stopped at (if any), play / pause, the scrubber, the
-/// "time · distance" readout and speed.
+/// The card floating over the full-screen map: the Journey's title and
+/// facts, the key moment replay stopped at (if any), play / pause, the
+/// scrubber, the "time · distance" readout and speed.
 class JourneyReplayControls extends StatelessWidget {
   const JourneyReplayControls({
     super.key,
+    required this.summary,
+    required this.distanceMeters,
     required this.playing,
     required this.position,
     required this.lastIndex,
@@ -24,6 +27,10 @@ class JourneyReplayControls extends StatelessWidget {
     required this.onSpeed,
   });
 
+  final JourneySummary summary;
+
+  /// The server's distance once uploaded, else measured from the route.
+  final double distanceMeters;
   final bool playing;
   final double position;
   final int lastIndex;
@@ -59,6 +66,8 @@ class JourneyReplayControls extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _SummaryHeader(summary: summary, distanceMeters: distanceMeters),
+            const Divider(height: 16),
             for (final moment in moments)
               _MomentRow(moment: moment, time: momentTime),
             if (moments.isNotEmpty) const Divider(height: 16),
@@ -184,5 +193,73 @@ class _MomentRow extends StatelessWidget {
         'A place you saved',
       ),
     };
+  }
+}
+
+class _SummaryHeader extends StatelessWidget {
+  const _SummaryHeader({required this.summary, required this.distanceMeters});
+
+  final JourneySummary summary;
+  final double distanceMeters;
+
+  @override
+  Widget build(BuildContext context) {
+    final started = TimeOfDay.fromDateTime(
+      summary.startedAt.toLocal(),
+    ).format(context);
+    final facts = [
+      JourneyFormat.distance(distanceMeters),
+      JourneyFormat.duration(summary.duration),
+      'Started $started',
+    ].join(' · ');
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            summary.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypeScale.sectionTitle,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            facts,
+            style: AppTypeScale.small.copyWith(
+              color: AppColors.mutedForeground,
+            ),
+          ),
+          if (!summary.isUploaded)
+            Text(
+              'On this phone, waiting to upload to your account.',
+              style: AppTypeScale.small.copyWith(color: AppColors.pendingFill),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A message in place of the replay (deleted, offline, too few points).
+class JourneyReplayMessage extends StatelessWidget {
+  const JourneyReplayMessage({required this.text, this.onRetry});
+
+  final String text;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(text, textAlign: TextAlign.center, style: AppTypeScale.body),
+          if (onRetry != null)
+            TextButton(onPressed: onRetry, child: const Text('Try again')),
+        ],
+      ),
+    );
   }
 }

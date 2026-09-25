@@ -61,4 +61,3 @@ void main() {
     expect(track.positionAt(99).latitude, -0.99);
   });
 }
-

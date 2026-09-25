@@ -10,10 +10,12 @@ import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_replay.dart';
 import '../domain/journey_route.dart';
+import '../domain/journey_summary.dart';
 import 'journey_replay_controls.dart';
 import 'journey_route_map.dart';
 
-/// A Journey's replay on a full-screen map, controls floating over it.
+/// A past Journey on a full-screen map: its summary and the replay
+/// controls float over it (delete lives on the Journeys list).
 /// Replay pauses by itself at key moments (recording breaks, long stops,
 /// county crossings, saved places passed); play continues.
 class JourneyReplayScreen extends ConsumerWidget {
@@ -25,7 +27,8 @@ class JourneyReplayScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(journeyDetailProvider(journeyId));
     final moments = ref.watch(journeyMomentsProvider(journeyId)).value;
-    final route = detail.value?.route;
+    final value = detail.value;
+    final route = value?.route;
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       // Expand: the map fills the screen, not just the close button's box.
@@ -34,14 +37,30 @@ class JourneyReplayScreen extends ConsumerWidget {
         children: [
           Positioned.fill(
             child: route != null && route.pointCount > 1
-                ? _Player(route: route, moments: moments ?? const [])
+                ? _Player(
+                    summary: value!.summary,
+                    route: route,
+                    moments: moments ?? const [],
+                  )
                 : Center(
-                    child: detail.isLoading
-                        ? const CircularProgressIndicator(strokeWidth: 2)
-                        : const Text(
-                            "This Journey can't be replayed.",
-                            style: AppTypeScale.small,
-                          ),
+                    child: switch (detail) {
+                      AsyncValue(:final error?) => JourneyReplayMessage(
+                        text: error is JourneyNotFound
+                            ? 'This Journey was deleted.'
+                            : "Couldn't load this Journey. Check your "
+                                  'connection.',
+                        onRetry: error is JourneyNotFound
+                            ? null
+                            : () => ref.invalidate(
+                                journeyDetailProvider(journeyId),
+                              ),
+                      ),
+                      AsyncValue(hasValue: true) => const JourneyReplayMessage(
+                        text: 'Not enough route points were recorded to '
+                            'show this Journey.',
+                      ),
+                      _ => const CircularProgressIndicator(strokeWidth: 2),
+                    },
                   ),
           ),
           SafeArea(
@@ -68,8 +87,13 @@ class JourneyReplayScreen extends ConsumerWidget {
 }
 
 class _Player extends StatefulWidget {
-  const _Player({required this.route, required this.moments});
+  const _Player({
+    required this.summary,
+    required this.route,
+    required this.moments,
+  });
 
+  final JourneySummary summary;
   final JourneyRoute route;
   final List<JourneyMoment> moments;
 
@@ -78,8 +102,8 @@ class _Player extends StatefulWidget {
 }
 
 class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
-  /// Room the camera leaves for the floating controls.
-  static const _controlsInset = 190.0;
+  /// Room the camera leaves for the floating summary and controls.
+  static const _controlsInset = 250.0;
 
   late final JourneyReplayTrack _track = JourneyReplayTrack(widget.route);
   late final Ticker _ticker = createTicker(_onTick);
@@ -229,6 +253,9 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
             top: false,
             minimum: const EdgeInsets.all(12),
             child: JourneyReplayControls(
+              summary: widget.summary,
+              distanceMeters:
+                  widget.summary.distanceMeters ?? widget.route.distanceMeters,
               playing: _playing,
               position: _position,
               lastIndex: _track.lastIndex,

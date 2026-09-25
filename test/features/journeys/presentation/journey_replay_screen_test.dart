@@ -66,6 +66,9 @@ void main() {
       ],
     );
     expect(find.text('0:00:00 · 0 m'), findsOneWidget);
+    // The Journey's summary rides in the overlay card.
+    expect(find.text('Morning drive'), findsOneWidget);
+    expect(find.textContaining('10 min · Started'), findsOneWidget);
 
     await _play(tester, 'Play replay');
     // 11 points over the 30 s minimum at 1×: 3 s per point, so 12 s

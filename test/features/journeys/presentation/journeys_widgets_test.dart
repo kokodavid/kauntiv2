@@ -26,9 +26,13 @@ class _History extends JourneyHistoryList {
   _History(this.history);
 
   final JourneyHistory history;
+  final deleted = <String>[];
 
   @override
   Future<JourneyHistory> build() async => history;
+
+  @override
+  Future<void> delete(JourneySummary journey) async => deleted.add(journey.id);
 }
 
 Widget _app(Widget child, List<Override> overrides) => ProviderScope(
@@ -135,5 +139,43 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('No Journeys yet'), findsOneWidget);
+  });
+
+  testWidgets('a Journey is deleted from the list after confirming', (
+    tester,
+  ) async {
+    final start = DateTime(2026, 9, 25, 9);
+    final history = _History(
+      JourneyHistory(
+        journeys: [
+          JourneySummary(
+            id: 'cloud',
+            title: 'Nairobi loop',
+            startedAt: start,
+            endedAt: start.add(const Duration(minutes: 30)),
+            distanceMeters: 5000,
+            isUploaded: true,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpWidget(
+      _app(const JourneyHistorySection(), [
+        journeyHistoryListProvider.overrideWith(() => history),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Delete Journey'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(history.deleted, isEmpty);
+
+    await tester.tap(find.byTooltip('Delete Journey'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(history.deleted, ['cloud']);
   });
 }

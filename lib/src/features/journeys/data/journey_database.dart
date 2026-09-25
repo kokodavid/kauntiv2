@@ -13,6 +13,10 @@ class JourneySessions extends Table {
   IntColumn get endedAtMillis => integer().nullable()();
   IntColumn get segmentNumber => integer()();
 
+  /// Upload bookkeeping for completed sessions (schema 2).
+  IntColumn get uploadAttempts => integer().withDefault(const Constant(0))();
+  IntColumn get nextUploadAtMillis => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -30,12 +34,37 @@ class JourneySamples extends Table {
   Set<Column> get primaryKey => {journeyId, sequenceNumber};
 }
 
-@DriftDatabase(tables: [JourneySessions, JourneySamples])
+/// The last server-confirmed Pro status per account (schema 2), so Start
+/// Journey can work offline. It never authorizes a cloud write: the upload
+/// re-checks Pro on the server.
+class ProStatusCaches extends Table {
+  TextColumn get userId => text()();
+  BoolColumn get active => boolean()();
+  IntColumn get activeUntilMillis => integer().nullable()();
+  IntColumn get checkedAtMillis => integer()();
+
+  @override
+  Set<Column> get primaryKey => {userId};
+}
+
+@DriftDatabase(tables: [JourneySessions, JourneySamples, ProStatusCaches])
 class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase() : super(driftDatabase(name: 'journey_recordings'));
 
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.addColumn(journeySessions, journeySessions.uploadAttempts);
+        await m.addColumn(journeySessions, journeySessions.nextUploadAtMillis);
+        await m.createTable(proStatusCaches);
+      }
+    },
+  );
 }

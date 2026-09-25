@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-native-capture | [Plan](journeys-plan.md). Private cloud schema, local store and native capture adapter added; Pro start, sync, UI and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-sync | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. UI and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -299,10 +299,22 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   missing points are never drawn as a straight route. Timestamps preserve
   milliseconds for closely spaced fixes.
 
+**Built in the entitlement and sync slice**
+
+- `pro_entitlement_periods` (admin-granted until billing), `my_pro_status()`
+  and the `upload_journey` RPC (owner, Pro-at-start, timing and point checks;
+  distance computed server-side; idempotent). SQL test in
+  `supabase/tests/journey_upload.sql`.
+- `JourneyRecorder` (Pro-gated start with a 7-day offline cache, recover
+  after restart), `JourneyUploadQueue` (backoff, local copy deleted after
+  upload), `JourneyHistoryList` (local waiting + cloud, delete). Local
+  Journey database schema 2.
+
 **Pending**
 
-- Server-verified Pro start, cloud upload, Journey tab/history/replay, privacy
-  copy and real-device locked-screen tests. No app-facing Start action yet.
+- Journey tab/history/replay UI, calling `recover()` and draining uploads on
+  launch/resume, privacy copy and real-device locked-screen tests.
+- Admin dashboard screen for granting Pro periods (until billing, #12).
 - Subcounty tracking follows Journeys in a later feature.
 
 ## Progress log
@@ -311,6 +323,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-25 | codex/journeys-sync | 13 | Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue and private history |
 | 2026-09-25 | codex/journeys-native-capture | 13 | Device location adapter, local capture coordinator, restart gap handling and millisecond fixes |
 | 2026-09-25 | codex/journeys-recorder | 13 | Durable local Journey sessions and point queue with recovery and ownership tests |
 | 2026-09-25 | codex/journeys-foundation | 13 | Private Journey schema, recording domain and phased implementation plan |

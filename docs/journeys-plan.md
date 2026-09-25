@@ -1,7 +1,7 @@
 # Journeys: implementation plan
 
-Status: foundation and local persistence merged; native capture integration in
-progress on `codex/journeys-native-capture`.
+Status: steps 1-2 merged (#5-#7; locked-screen device check still open).
+Step 3 (entitlement and sync) on `codex/journeys-sync`.
 
 ## Product rules
 
@@ -49,6 +49,27 @@ entitlements are not implemented in this foundation slice.
 3. **Entitlement and sync:** a server-verified Pro entitlement, an upload path
    that validates owner and session timing, offline retries, and private
    history reads/deletion. Never use client-only Pro gating for cloud writes.
+   Built (migration `20260925160000`, `supabase/tests/journey_upload.sql`):
+   - `pro_entitlement_periods`: users read their own, only admins write.
+     Until billing (#12) exists, admins grant periods; billing will add
+     periods through its own server path (`source`: app_store, play_store,
+     mpesa).
+   - `my_pro_status()` gates Start in the app. The app caches the answer so
+     a start works offline for up to 7 days; the cache never authorizes a
+     cloud write.
+   - `upload_journey(...)` is the only write path (security definer). It
+     checks the owner, that Pro was active when the Journey *started*
+     (so a lapse mid-Journey still uploads), timing (ends after it starts,
+     not in the future beyond 5 min skew, at most 7 days long, started in
+     the last 90 days), point order and bounds (max 50,000), computes the
+     distance within segments, and is idempotent on the client-made UUID.
+   - App: `JourneyRecorder` (Pro-gated start, pause/resume/finish,
+     recover), `JourneyUploadQueue` (oldest first, backoff; permanent
+     rejections wait a day; local copy deleted after upload),
+     `JourneyHistoryList` (waiting-on-phone first, then cloud; delete).
+   Provisional limits to confirm: 7-day offline start window, 7-day max
+   Journey, 90-day upload window, 50,000 points per upload, and the default
+   title "Journey on 25 Sep 2026".
 4. **Journey UI:** fifth bottom-nav destination, live status and Stop controls,
    history, and route rendering on Mapbox. The tab must show archived Journeys
    after expiry and gate only Start Journey.

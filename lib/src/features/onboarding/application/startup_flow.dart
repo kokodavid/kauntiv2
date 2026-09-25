@@ -69,10 +69,7 @@ class StartupFlow extends _$StartupFlow {
   Future<void> saveHomeCounty() async {
     final county = state.homeCounty;
     if (county == null || state.isSavingCounty) return;
-    state = state.copyWith(
-      isSavingCounty: true,
-      homeCountyError: () => null,
-    );
+    state = state.copyWith(isSavingCounty: true, homeCountyError: () => null);
     try {
       await ref.read(profileSetupRepositoryProvider).saveHomeCounty(county);
       await _continueAfterHomeCounty();

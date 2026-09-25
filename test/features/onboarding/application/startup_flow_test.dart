@@ -127,7 +127,10 @@ void main() {
     await flow.saveHomeCounty();
     final state = c.read(startupFlowProvider);
     expect(state.step, StartupStep.homeCounty);
-    expect(state.homeCountyError, 'Could not save your home county. Try again.');
+    expect(
+      state.homeCountyError,
+      'Could not save your home county. Try again.',
+    );
     expect(state.isSavingCounty, isFalse);
   });
 

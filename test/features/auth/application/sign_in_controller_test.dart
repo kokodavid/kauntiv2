@@ -17,7 +17,10 @@ class _FakeAuth implements AppAuthService {
   final calls = <AppAuthProvider>[];
 
   @override
-  Future<AuthFailure?> signIn(AppAuthProvider provider, AppConfig config) async {
+  Future<AuthFailure?> signIn(
+    AppAuthProvider provider,
+    AppConfig config,
+  ) async {
     calls.add(provider);
     return failure;
   }

@@ -41,7 +41,10 @@ class AppAuthService {
 
   /// Signs in with [provider]. Returns null on success, else the failure
   /// to show (already logged).
-  Future<AuthFailure?> signIn(AppAuthProvider provider, AppConfig config) async {
+  Future<AuthFailure?> signIn(
+    AppAuthProvider provider,
+    AppConfig config,
+  ) async {
     try {
       switch (provider) {
         case AppAuthProvider.google:

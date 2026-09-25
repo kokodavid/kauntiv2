@@ -23,8 +23,7 @@ abstract final class DetailRoutes {
 
   static void Function(BuildContext, int)? get openCounty =>
       AppSupabase.isInitialized
-      ? (context, countyCode) =>
-            context.push(AppRoutes.county(countyCode))
+      ? (context, countyCode) => context.push(AppRoutes.county(countyCode))
       : null;
 
   static void Function(BuildContext, String)? get openPlace =>
@@ -34,9 +33,10 @@ abstract final class DetailRoutes {
 
   /// Home's "All N left": Explore's UNCLAIMED list, in the tab shell.
   static void openAllUnclaimed(BuildContext context) {
-    ProviderScope.containerOf(context, listen: false)
-        .read(exploreTabSelectionProvider.notifier)
-        .select(ExploreTab.unclaimed);
+    ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(exploreTabSelectionProvider.notifier).select(ExploreTab.unclaimed);
     context.go(AppRoutes.explore);
   }
 

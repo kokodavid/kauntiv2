@@ -45,7 +45,7 @@ void main() {
       );
       expect(
         repo.appendPoint(id: 'journey-1', userId: 'alice', point: point(3, 0)),
-        throwsStateError,
+        throwsA(isA<JourneyPointRejected>()),
       );
       await repo.resume(
         id: 'journey-1',
@@ -54,7 +54,7 @@ void main() {
       );
       expect(
         repo.appendPoint(id: 'journey-1', userId: 'alice', point: point(5, 0)),
-        throwsStateError,
+        throwsA(isA<JourneyPointRejected>()),
       );
       expect(
         await repo.appendPoint(
@@ -89,7 +89,7 @@ void main() {
       );
       expect(
         repo.appendPoint(id: 'journey-1', userId: 'alice', point: point(1, 0)),
-        throwsStateError,
+        throwsA(isA<JourneyPointRejected>()),
       );
       await repo.finish(
         id: 'journey-1',
@@ -99,9 +99,38 @@ void main() {
       expect(await repo.activeSession('alice'), isNull);
       expect(
         repo.appendPoint(id: 'journey-1', userId: 'alice', point: point(4, 0)),
-        throwsStateError,
+        throwsA(isA<JourneyPointRejected>()),
       );
     });
+
+    test(
+      'preserves fixes within the same second after reopening state',
+      () async {
+        final firstFix = started.add(const Duration(milliseconds: 100));
+        final secondFix = started.add(const Duration(milliseconds: 450));
+        await repo.start(id: 'journey-1', userId: 'alice', at: started);
+        for (final at in [firstFix, secondFix]) {
+          await repo.appendPoint(
+            id: 'journey-1',
+            userId: 'alice',
+            point: JourneyPoint(
+              recordedAt: at,
+              latitude: -1.286389,
+              longitude: 36.817223,
+              accuracyMeters: 8,
+              segmentNumber: 0,
+            ),
+          );
+        }
+        final recovered = await LocalJourneyRepository(
+          db,
+        ).points('journey-1', 'alice');
+        expect(recovered.map((point) => point.recordedAt), [
+          firstFix,
+          secondFix,
+        ]);
+      },
+    );
   });
 
   test(

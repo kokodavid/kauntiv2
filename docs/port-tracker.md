@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-recorder | [Plan](journeys-plan.md). Private cloud schema, recording domain and durable local store started; native recording, entitlements, sync and UI pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-native-capture | [Plan](journeys-plan.md). Private cloud schema, local store and native capture adapter added; Pro start, sync, UI and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -291,10 +291,18 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   points; transactional pause/resume/finish and recovery after database reopen.
 - Point writes reject paused sessions, old segments and out-of-order fixes.
 
+**Built in the native capture slice**
+
+- Opt-in location adapter with background-mode configuration and capture
+  coordinator that writes fixes serially to the local Journey store.
+- Restart recovery pauses an active session; Resume creates a new segment so
+  missing points are never drawn as a straight route. Timestamps preserve
+  milliseconds for closely spaced fixes.
+
 **Pending**
 
-- Native locked-screen recording, Pro entitlement and
-  cloud upload, Journey tab/history/replay, privacy copy and device checks.
+- Server-verified Pro start, cloud upload, Journey tab/history/replay, privacy
+  copy and real-device locked-screen tests. No app-facing Start action yet.
 - Subcounty tracking follows Journeys in a later feature.
 
 ## Progress log
@@ -303,6 +311,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-25 | codex/journeys-native-capture | 13 | Device location adapter, local capture coordinator, restart gap handling and millisecond fixes |
 | 2026-09-25 | codex/journeys-recorder | 13 | Durable local Journey sessions and point queue with recovery and ownership tests |
 | 2026-09-25 | codex/journeys-foundation | 13 | Private Journey schema, recording domain and phased implementation plan |
 | 2026-09-25 | codex/go-router | 2, 3 | go_router: start-up redirects on `StartupFlow`, tab shell route, detail routes; sign-in on Riverpod; baseline 49 → 28 |

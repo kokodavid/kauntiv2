@@ -7,10 +7,10 @@ class JourneySessions extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
   TextColumn get phase => text()();
-  DateTimeColumn get startedAt => dateTime()();
-  DateTimeColumn get lastChangedAt => dateTime()();
-  DateTimeColumn get pausedAt => dateTime().nullable()();
-  DateTimeColumn get endedAt => dateTime().nullable()();
+  IntColumn get startedAtMillis => integer()();
+  IntColumn get lastChangedAtMillis => integer()();
+  IntColumn get pausedAtMillis => integer().nullable()();
+  IntColumn get endedAtMillis => integer().nullable()();
   IntColumn get segmentNumber => integer()();
 
   @override
@@ -21,7 +21,7 @@ class JourneySamples extends Table {
   TextColumn get journeyId => text()();
   IntColumn get sequenceNumber => integer()();
   IntColumn get segmentNumber => integer()();
-  DateTimeColumn get recordedAt => dateTime()();
+  IntColumn get recordedAtMillis => integer()();
   RealColumn get latitude => real()();
   RealColumn get longitude => real()();
   RealColumn get accuracyMeters => real()();

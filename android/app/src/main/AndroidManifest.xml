@@ -2,6 +2,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
     <!-- Detection (native_geofence): re-register geofences after a reboot,
          and keep the background callback alive while it records a crossing. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>

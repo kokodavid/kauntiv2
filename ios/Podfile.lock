@@ -41,6 +41,9 @@ PODS:
   - GTMSessionFetcher/Core (3.5.0)
   - GTMSessionFetcher/Full (3.5.0):
     - GTMSessionFetcher/Core
+  - location (8.0.1):
+    - Flutter
+    - FlutterMacOS
   - mapbox_maps_flutter (2.31.0):
     - Flutter
     - MapboxMaps (= 11.31.0)
@@ -99,6 +102,7 @@ DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - Flutter (from `Flutter`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
+  - location (from `.symlinks/plugins/location/darwin`)
   - mapbox_maps_flutter (from `.symlinks/plugins/mapbox_maps_flutter/ios`)
   - native_geofence (from `.symlinks/plugins/native_geofence/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -131,6 +135,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   google_sign_in_ios:
     :path: ".symlinks/plugins/google_sign_in_ios/darwin"
+  location:
+    :path: ".symlinks/plugins/location/darwin"
   mapbox_maps_flutter:
     :path: ".symlinks/plugins/mapbox_maps_flutter/ios"
   native_geofence:
@@ -156,6 +162,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 766ace00c6b10d8148408f329d10c4f051931850
   GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  location: 8591ad4b623e72045097bbca04567b2213c2e293
   mapbox_maps_flutter: 2a19d197b2f06d55857af92f04d0a0a5a3bb0576
   MapboxCommon: cc28b41df14f1de999550bc5040b4c33756f31ca
   MapboxCoreMaps: bc2056387df6ba1d85bf2cd26d53a5c04f611461

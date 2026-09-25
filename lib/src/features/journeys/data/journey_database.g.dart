@@ -36,49 +36,47 @@ class $JourneySessionsTable extends JourneySessions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _startedAtMeta = const VerificationMeta(
-    'startedAt',
+  static const VerificationMeta _startedAtMillisMeta = const VerificationMeta(
+    'startedAtMillis',
   );
   @override
-  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
-    'started_at',
+  late final GeneratedColumn<int> startedAtMillis = GeneratedColumn<int>(
+    'started_at_millis',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _lastChangedAtMeta = const VerificationMeta(
-    'lastChangedAt',
+  static const VerificationMeta _lastChangedAtMillisMeta =
+      const VerificationMeta('lastChangedAtMillis');
+  @override
+  late final GeneratedColumn<int> lastChangedAtMillis = GeneratedColumn<int>(
+    'last_changed_at_millis',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pausedAtMillisMeta = const VerificationMeta(
+    'pausedAtMillis',
   );
   @override
-  late final GeneratedColumn<DateTime> lastChangedAt =
-      GeneratedColumn<DateTime>(
-        'last_changed_at',
-        aliasedName,
-        false,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: true,
-      );
-  static const VerificationMeta _pausedAtMeta = const VerificationMeta(
-    'pausedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> pausedAt = GeneratedColumn<DateTime>(
-    'paused_at',
+  late final GeneratedColumn<int> pausedAtMillis = GeneratedColumn<int>(
+    'paused_at_millis',
     aliasedName,
     true,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _endedAtMeta = const VerificationMeta(
-    'endedAt',
+  static const VerificationMeta _endedAtMillisMeta = const VerificationMeta(
+    'endedAtMillis',
   );
   @override
-  late final GeneratedColumn<DateTime> endedAt = GeneratedColumn<DateTime>(
-    'ended_at',
+  late final GeneratedColumn<int> endedAtMillis = GeneratedColumn<int>(
+    'ended_at_millis',
     aliasedName,
     true,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _segmentNumberMeta = const VerificationMeta(
@@ -97,10 +95,10 @@ class $JourneySessionsTable extends JourneySessions
     id,
     userId,
     phase,
-    startedAt,
-    lastChangedAt,
-    pausedAt,
-    endedAt,
+    startedAtMillis,
+    lastChangedAtMillis,
+    pausedAtMillis,
+    endedAtMillis,
     segmentNumber,
   ];
   @override
@@ -136,35 +134,44 @@ class $JourneySessionsTable extends JourneySessions
     } else if (isInserting) {
       context.missing(_phaseMeta);
     }
-    if (data.containsKey('started_at')) {
+    if (data.containsKey('started_at_millis')) {
       context.handle(
-        _startedAtMeta,
-        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_startedAtMeta);
-    }
-    if (data.containsKey('last_changed_at')) {
-      context.handle(
-        _lastChangedAtMeta,
-        lastChangedAt.isAcceptableOrUnknown(
-          data['last_changed_at']!,
-          _lastChangedAtMeta,
+        _startedAtMillisMeta,
+        startedAtMillis.isAcceptableOrUnknown(
+          data['started_at_millis']!,
+          _startedAtMillisMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_lastChangedAtMeta);
+      context.missing(_startedAtMillisMeta);
     }
-    if (data.containsKey('paused_at')) {
+    if (data.containsKey('last_changed_at_millis')) {
       context.handle(
-        _pausedAtMeta,
-        pausedAt.isAcceptableOrUnknown(data['paused_at']!, _pausedAtMeta),
+        _lastChangedAtMillisMeta,
+        lastChangedAtMillis.isAcceptableOrUnknown(
+          data['last_changed_at_millis']!,
+          _lastChangedAtMillisMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastChangedAtMillisMeta);
+    }
+    if (data.containsKey('paused_at_millis')) {
+      context.handle(
+        _pausedAtMillisMeta,
+        pausedAtMillis.isAcceptableOrUnknown(
+          data['paused_at_millis']!,
+          _pausedAtMillisMeta,
+        ),
       );
     }
-    if (data.containsKey('ended_at')) {
+    if (data.containsKey('ended_at_millis')) {
       context.handle(
-        _endedAtMeta,
-        endedAt.isAcceptableOrUnknown(data['ended_at']!, _endedAtMeta),
+        _endedAtMillisMeta,
+        endedAtMillis.isAcceptableOrUnknown(
+          data['ended_at_millis']!,
+          _endedAtMillisMeta,
+        ),
       );
     }
     if (data.containsKey('segment_number')) {
@@ -199,21 +206,21 @@ class $JourneySessionsTable extends JourneySessions
         DriftSqlType.string,
         data['${effectivePrefix}phase'],
       )!,
-      startedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}started_at'],
+      startedAtMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}started_at_millis'],
       )!,
-      lastChangedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_changed_at'],
+      lastChangedAtMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_changed_at_millis'],
       )!,
-      pausedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}paused_at'],
+      pausedAtMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}paused_at_millis'],
       ),
-      endedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}ended_at'],
+      endedAtMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ended_at_millis'],
       ),
       segmentNumber: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -232,19 +239,19 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
   final String id;
   final String userId;
   final String phase;
-  final DateTime startedAt;
-  final DateTime lastChangedAt;
-  final DateTime? pausedAt;
-  final DateTime? endedAt;
+  final int startedAtMillis;
+  final int lastChangedAtMillis;
+  final int? pausedAtMillis;
+  final int? endedAtMillis;
   final int segmentNumber;
   const JourneySession({
     required this.id,
     required this.userId,
     required this.phase,
-    required this.startedAt,
-    required this.lastChangedAt,
-    this.pausedAt,
-    this.endedAt,
+    required this.startedAtMillis,
+    required this.lastChangedAtMillis,
+    this.pausedAtMillis,
+    this.endedAtMillis,
     required this.segmentNumber,
   });
   @override
@@ -253,13 +260,13 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
     map['phase'] = Variable<String>(phase);
-    map['started_at'] = Variable<DateTime>(startedAt);
-    map['last_changed_at'] = Variable<DateTime>(lastChangedAt);
-    if (!nullToAbsent || pausedAt != null) {
-      map['paused_at'] = Variable<DateTime>(pausedAt);
+    map['started_at_millis'] = Variable<int>(startedAtMillis);
+    map['last_changed_at_millis'] = Variable<int>(lastChangedAtMillis);
+    if (!nullToAbsent || pausedAtMillis != null) {
+      map['paused_at_millis'] = Variable<int>(pausedAtMillis);
     }
-    if (!nullToAbsent || endedAt != null) {
-      map['ended_at'] = Variable<DateTime>(endedAt);
+    if (!nullToAbsent || endedAtMillis != null) {
+      map['ended_at_millis'] = Variable<int>(endedAtMillis);
     }
     map['segment_number'] = Variable<int>(segmentNumber);
     return map;
@@ -270,14 +277,14 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       id: Value(id),
       userId: Value(userId),
       phase: Value(phase),
-      startedAt: Value(startedAt),
-      lastChangedAt: Value(lastChangedAt),
-      pausedAt: pausedAt == null && nullToAbsent
+      startedAtMillis: Value(startedAtMillis),
+      lastChangedAtMillis: Value(lastChangedAtMillis),
+      pausedAtMillis: pausedAtMillis == null && nullToAbsent
           ? const Value.absent()
-          : Value(pausedAt),
-      endedAt: endedAt == null && nullToAbsent
+          : Value(pausedAtMillis),
+      endedAtMillis: endedAtMillis == null && nullToAbsent
           ? const Value.absent()
-          : Value(endedAt),
+          : Value(endedAtMillis),
       segmentNumber: Value(segmentNumber),
     );
   }
@@ -291,10 +298,12 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
       phase: serializer.fromJson<String>(json['phase']),
-      startedAt: serializer.fromJson<DateTime>(json['startedAt']),
-      lastChangedAt: serializer.fromJson<DateTime>(json['lastChangedAt']),
-      pausedAt: serializer.fromJson<DateTime?>(json['pausedAt']),
-      endedAt: serializer.fromJson<DateTime?>(json['endedAt']),
+      startedAtMillis: serializer.fromJson<int>(json['startedAtMillis']),
+      lastChangedAtMillis: serializer.fromJson<int>(
+        json['lastChangedAtMillis'],
+      ),
+      pausedAtMillis: serializer.fromJson<int?>(json['pausedAtMillis']),
+      endedAtMillis: serializer.fromJson<int?>(json['endedAtMillis']),
       segmentNumber: serializer.fromJson<int>(json['segmentNumber']),
     );
   }
@@ -305,10 +314,10 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
       'phase': serializer.toJson<String>(phase),
-      'startedAt': serializer.toJson<DateTime>(startedAt),
-      'lastChangedAt': serializer.toJson<DateTime>(lastChangedAt),
-      'pausedAt': serializer.toJson<DateTime?>(pausedAt),
-      'endedAt': serializer.toJson<DateTime?>(endedAt),
+      'startedAtMillis': serializer.toJson<int>(startedAtMillis),
+      'lastChangedAtMillis': serializer.toJson<int>(lastChangedAtMillis),
+      'pausedAtMillis': serializer.toJson<int?>(pausedAtMillis),
+      'endedAtMillis': serializer.toJson<int?>(endedAtMillis),
       'segmentNumber': serializer.toJson<int>(segmentNumber),
     };
   }
@@ -317,19 +326,23 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     String? id,
     String? userId,
     String? phase,
-    DateTime? startedAt,
-    DateTime? lastChangedAt,
-    Value<DateTime?> pausedAt = const Value.absent(),
-    Value<DateTime?> endedAt = const Value.absent(),
+    int? startedAtMillis,
+    int? lastChangedAtMillis,
+    Value<int?> pausedAtMillis = const Value.absent(),
+    Value<int?> endedAtMillis = const Value.absent(),
     int? segmentNumber,
   }) => JourneySession(
     id: id ?? this.id,
     userId: userId ?? this.userId,
     phase: phase ?? this.phase,
-    startedAt: startedAt ?? this.startedAt,
-    lastChangedAt: lastChangedAt ?? this.lastChangedAt,
-    pausedAt: pausedAt.present ? pausedAt.value : this.pausedAt,
-    endedAt: endedAt.present ? endedAt.value : this.endedAt,
+    startedAtMillis: startedAtMillis ?? this.startedAtMillis,
+    lastChangedAtMillis: lastChangedAtMillis ?? this.lastChangedAtMillis,
+    pausedAtMillis: pausedAtMillis.present
+        ? pausedAtMillis.value
+        : this.pausedAtMillis,
+    endedAtMillis: endedAtMillis.present
+        ? endedAtMillis.value
+        : this.endedAtMillis,
     segmentNumber: segmentNumber ?? this.segmentNumber,
   );
   JourneySession copyWithCompanion(JourneySessionsCompanion data) {
@@ -337,12 +350,18 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
       phase: data.phase.present ? data.phase.value : this.phase,
-      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
-      lastChangedAt: data.lastChangedAt.present
-          ? data.lastChangedAt.value
-          : this.lastChangedAt,
-      pausedAt: data.pausedAt.present ? data.pausedAt.value : this.pausedAt,
-      endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
+      startedAtMillis: data.startedAtMillis.present
+          ? data.startedAtMillis.value
+          : this.startedAtMillis,
+      lastChangedAtMillis: data.lastChangedAtMillis.present
+          ? data.lastChangedAtMillis.value
+          : this.lastChangedAtMillis,
+      pausedAtMillis: data.pausedAtMillis.present
+          ? data.pausedAtMillis.value
+          : this.pausedAtMillis,
+      endedAtMillis: data.endedAtMillis.present
+          ? data.endedAtMillis.value
+          : this.endedAtMillis,
       segmentNumber: data.segmentNumber.present
           ? data.segmentNumber.value
           : this.segmentNumber,
@@ -355,10 +374,10 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('phase: $phase, ')
-          ..write('startedAt: $startedAt, ')
-          ..write('lastChangedAt: $lastChangedAt, ')
-          ..write('pausedAt: $pausedAt, ')
-          ..write('endedAt: $endedAt, ')
+          ..write('startedAtMillis: $startedAtMillis, ')
+          ..write('lastChangedAtMillis: $lastChangedAtMillis, ')
+          ..write('pausedAtMillis: $pausedAtMillis, ')
+          ..write('endedAtMillis: $endedAtMillis, ')
           ..write('segmentNumber: $segmentNumber')
           ..write(')'))
         .toString();
@@ -369,10 +388,10 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     id,
     userId,
     phase,
-    startedAt,
-    lastChangedAt,
-    pausedAt,
-    endedAt,
+    startedAtMillis,
+    lastChangedAtMillis,
+    pausedAtMillis,
+    endedAtMillis,
     segmentNumber,
   );
   @override
@@ -382,10 +401,10 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
           other.id == this.id &&
           other.userId == this.userId &&
           other.phase == this.phase &&
-          other.startedAt == this.startedAt &&
-          other.lastChangedAt == this.lastChangedAt &&
-          other.pausedAt == this.pausedAt &&
-          other.endedAt == this.endedAt &&
+          other.startedAtMillis == this.startedAtMillis &&
+          other.lastChangedAtMillis == this.lastChangedAtMillis &&
+          other.pausedAtMillis == this.pausedAtMillis &&
+          other.endedAtMillis == this.endedAtMillis &&
           other.segmentNumber == this.segmentNumber);
 }
 
@@ -393,20 +412,20 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
   final Value<String> id;
   final Value<String> userId;
   final Value<String> phase;
-  final Value<DateTime> startedAt;
-  final Value<DateTime> lastChangedAt;
-  final Value<DateTime?> pausedAt;
-  final Value<DateTime?> endedAt;
+  final Value<int> startedAtMillis;
+  final Value<int> lastChangedAtMillis;
+  final Value<int?> pausedAtMillis;
+  final Value<int?> endedAtMillis;
   final Value<int> segmentNumber;
   final Value<int> rowid;
   const JourneySessionsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
     this.phase = const Value.absent(),
-    this.startedAt = const Value.absent(),
-    this.lastChangedAt = const Value.absent(),
-    this.pausedAt = const Value.absent(),
-    this.endedAt = const Value.absent(),
+    this.startedAtMillis = const Value.absent(),
+    this.lastChangedAtMillis = const Value.absent(),
+    this.pausedAtMillis = const Value.absent(),
+    this.endedAtMillis = const Value.absent(),
     this.segmentNumber = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -414,26 +433,26 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     required String id,
     required String userId,
     required String phase,
-    required DateTime startedAt,
-    required DateTime lastChangedAt,
-    this.pausedAt = const Value.absent(),
-    this.endedAt = const Value.absent(),
+    required int startedAtMillis,
+    required int lastChangedAtMillis,
+    this.pausedAtMillis = const Value.absent(),
+    this.endedAtMillis = const Value.absent(),
     required int segmentNumber,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        userId = Value(userId),
        phase = Value(phase),
-       startedAt = Value(startedAt),
-       lastChangedAt = Value(lastChangedAt),
+       startedAtMillis = Value(startedAtMillis),
+       lastChangedAtMillis = Value(lastChangedAtMillis),
        segmentNumber = Value(segmentNumber);
   static Insertable<JourneySession> custom({
     Expression<String>? id,
     Expression<String>? userId,
     Expression<String>? phase,
-    Expression<DateTime>? startedAt,
-    Expression<DateTime>? lastChangedAt,
-    Expression<DateTime>? pausedAt,
-    Expression<DateTime>? endedAt,
+    Expression<int>? startedAtMillis,
+    Expression<int>? lastChangedAtMillis,
+    Expression<int>? pausedAtMillis,
+    Expression<int>? endedAtMillis,
     Expression<int>? segmentNumber,
     Expression<int>? rowid,
   }) {
@@ -441,10 +460,11 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
       if (phase != null) 'phase': phase,
-      if (startedAt != null) 'started_at': startedAt,
-      if (lastChangedAt != null) 'last_changed_at': lastChangedAt,
-      if (pausedAt != null) 'paused_at': pausedAt,
-      if (endedAt != null) 'ended_at': endedAt,
+      if (startedAtMillis != null) 'started_at_millis': startedAtMillis,
+      if (lastChangedAtMillis != null)
+        'last_changed_at_millis': lastChangedAtMillis,
+      if (pausedAtMillis != null) 'paused_at_millis': pausedAtMillis,
+      if (endedAtMillis != null) 'ended_at_millis': endedAtMillis,
       if (segmentNumber != null) 'segment_number': segmentNumber,
       if (rowid != null) 'rowid': rowid,
     });
@@ -454,10 +474,10 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     Value<String>? id,
     Value<String>? userId,
     Value<String>? phase,
-    Value<DateTime>? startedAt,
-    Value<DateTime>? lastChangedAt,
-    Value<DateTime?>? pausedAt,
-    Value<DateTime?>? endedAt,
+    Value<int>? startedAtMillis,
+    Value<int>? lastChangedAtMillis,
+    Value<int?>? pausedAtMillis,
+    Value<int?>? endedAtMillis,
     Value<int>? segmentNumber,
     Value<int>? rowid,
   }) {
@@ -465,10 +485,10 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
       id: id ?? this.id,
       userId: userId ?? this.userId,
       phase: phase ?? this.phase,
-      startedAt: startedAt ?? this.startedAt,
-      lastChangedAt: lastChangedAt ?? this.lastChangedAt,
-      pausedAt: pausedAt ?? this.pausedAt,
-      endedAt: endedAt ?? this.endedAt,
+      startedAtMillis: startedAtMillis ?? this.startedAtMillis,
+      lastChangedAtMillis: lastChangedAtMillis ?? this.lastChangedAtMillis,
+      pausedAtMillis: pausedAtMillis ?? this.pausedAtMillis,
+      endedAtMillis: endedAtMillis ?? this.endedAtMillis,
       segmentNumber: segmentNumber ?? this.segmentNumber,
       rowid: rowid ?? this.rowid,
     );
@@ -486,17 +506,17 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     if (phase.present) {
       map['phase'] = Variable<String>(phase.value);
     }
-    if (startedAt.present) {
-      map['started_at'] = Variable<DateTime>(startedAt.value);
+    if (startedAtMillis.present) {
+      map['started_at_millis'] = Variable<int>(startedAtMillis.value);
     }
-    if (lastChangedAt.present) {
-      map['last_changed_at'] = Variable<DateTime>(lastChangedAt.value);
+    if (lastChangedAtMillis.present) {
+      map['last_changed_at_millis'] = Variable<int>(lastChangedAtMillis.value);
     }
-    if (pausedAt.present) {
-      map['paused_at'] = Variable<DateTime>(pausedAt.value);
+    if (pausedAtMillis.present) {
+      map['paused_at_millis'] = Variable<int>(pausedAtMillis.value);
     }
-    if (endedAt.present) {
-      map['ended_at'] = Variable<DateTime>(endedAt.value);
+    if (endedAtMillis.present) {
+      map['ended_at_millis'] = Variable<int>(endedAtMillis.value);
     }
     if (segmentNumber.present) {
       map['segment_number'] = Variable<int>(segmentNumber.value);
@@ -513,10 +533,10 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('phase: $phase, ')
-          ..write('startedAt: $startedAt, ')
-          ..write('lastChangedAt: $lastChangedAt, ')
-          ..write('pausedAt: $pausedAt, ')
-          ..write('endedAt: $endedAt, ')
+          ..write('startedAtMillis: $startedAtMillis, ')
+          ..write('lastChangedAtMillis: $lastChangedAtMillis, ')
+          ..write('pausedAtMillis: $pausedAtMillis, ')
+          ..write('endedAtMillis: $endedAtMillis, ')
           ..write('segmentNumber: $segmentNumber, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -563,15 +583,15 @@ class $JourneySamplesTable extends JourneySamples
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
-    'recordedAt',
+  static const VerificationMeta _recordedAtMillisMeta = const VerificationMeta(
+    'recordedAtMillis',
   );
   @override
-  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
-    'recorded_at',
+  late final GeneratedColumn<int> recordedAtMillis = GeneratedColumn<int>(
+    'recorded_at_millis',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _latitudeMeta = const VerificationMeta(
@@ -612,7 +632,7 @@ class $JourneySamplesTable extends JourneySamples
     journeyId,
     sequenceNumber,
     segmentNumber,
-    recordedAt,
+    recordedAtMillis,
     latitude,
     longitude,
     accuracyMeters,
@@ -659,13 +679,16 @@ class $JourneySamplesTable extends JourneySamples
     } else if (isInserting) {
       context.missing(_segmentNumberMeta);
     }
-    if (data.containsKey('recorded_at')) {
+    if (data.containsKey('recorded_at_millis')) {
       context.handle(
-        _recordedAtMeta,
-        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+        _recordedAtMillisMeta,
+        recordedAtMillis.isAcceptableOrUnknown(
+          data['recorded_at_millis']!,
+          _recordedAtMillisMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_recordedAtMeta);
+      context.missing(_recordedAtMillisMeta);
     }
     if (data.containsKey('latitude')) {
       context.handle(
@@ -715,9 +738,9 @@ class $JourneySamplesTable extends JourneySamples
         DriftSqlType.int,
         data['${effectivePrefix}segment_number'],
       )!,
-      recordedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}recorded_at'],
+      recordedAtMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}recorded_at_millis'],
       )!,
       latitude: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
@@ -744,7 +767,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
   final String journeyId;
   final int sequenceNumber;
   final int segmentNumber;
-  final DateTime recordedAt;
+  final int recordedAtMillis;
   final double latitude;
   final double longitude;
   final double accuracyMeters;
@@ -752,7 +775,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
     required this.journeyId,
     required this.sequenceNumber,
     required this.segmentNumber,
-    required this.recordedAt,
+    required this.recordedAtMillis,
     required this.latitude,
     required this.longitude,
     required this.accuracyMeters,
@@ -763,7 +786,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
     map['journey_id'] = Variable<String>(journeyId);
     map['sequence_number'] = Variable<int>(sequenceNumber);
     map['segment_number'] = Variable<int>(segmentNumber);
-    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    map['recorded_at_millis'] = Variable<int>(recordedAtMillis);
     map['latitude'] = Variable<double>(latitude);
     map['longitude'] = Variable<double>(longitude);
     map['accuracy_meters'] = Variable<double>(accuracyMeters);
@@ -775,7 +798,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
       journeyId: Value(journeyId),
       sequenceNumber: Value(sequenceNumber),
       segmentNumber: Value(segmentNumber),
-      recordedAt: Value(recordedAt),
+      recordedAtMillis: Value(recordedAtMillis),
       latitude: Value(latitude),
       longitude: Value(longitude),
       accuracyMeters: Value(accuracyMeters),
@@ -791,7 +814,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
       journeyId: serializer.fromJson<String>(json['journeyId']),
       sequenceNumber: serializer.fromJson<int>(json['sequenceNumber']),
       segmentNumber: serializer.fromJson<int>(json['segmentNumber']),
-      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      recordedAtMillis: serializer.fromJson<int>(json['recordedAtMillis']),
       latitude: serializer.fromJson<double>(json['latitude']),
       longitude: serializer.fromJson<double>(json['longitude']),
       accuracyMeters: serializer.fromJson<double>(json['accuracyMeters']),
@@ -804,7 +827,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
       'journeyId': serializer.toJson<String>(journeyId),
       'sequenceNumber': serializer.toJson<int>(sequenceNumber),
       'segmentNumber': serializer.toJson<int>(segmentNumber),
-      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'recordedAtMillis': serializer.toJson<int>(recordedAtMillis),
       'latitude': serializer.toJson<double>(latitude),
       'longitude': serializer.toJson<double>(longitude),
       'accuracyMeters': serializer.toJson<double>(accuracyMeters),
@@ -815,7 +838,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
     String? journeyId,
     int? sequenceNumber,
     int? segmentNumber,
-    DateTime? recordedAt,
+    int? recordedAtMillis,
     double? latitude,
     double? longitude,
     double? accuracyMeters,
@@ -823,7 +846,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
     journeyId: journeyId ?? this.journeyId,
     sequenceNumber: sequenceNumber ?? this.sequenceNumber,
     segmentNumber: segmentNumber ?? this.segmentNumber,
-    recordedAt: recordedAt ?? this.recordedAt,
+    recordedAtMillis: recordedAtMillis ?? this.recordedAtMillis,
     latitude: latitude ?? this.latitude,
     longitude: longitude ?? this.longitude,
     accuracyMeters: accuracyMeters ?? this.accuracyMeters,
@@ -837,9 +860,9 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
       segmentNumber: data.segmentNumber.present
           ? data.segmentNumber.value
           : this.segmentNumber,
-      recordedAt: data.recordedAt.present
-          ? data.recordedAt.value
-          : this.recordedAt,
+      recordedAtMillis: data.recordedAtMillis.present
+          ? data.recordedAtMillis.value
+          : this.recordedAtMillis,
       latitude: data.latitude.present ? data.latitude.value : this.latitude,
       longitude: data.longitude.present ? data.longitude.value : this.longitude,
       accuracyMeters: data.accuracyMeters.present
@@ -854,7 +877,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
           ..write('journeyId: $journeyId, ')
           ..write('sequenceNumber: $sequenceNumber, ')
           ..write('segmentNumber: $segmentNumber, ')
-          ..write('recordedAt: $recordedAt, ')
+          ..write('recordedAtMillis: $recordedAtMillis, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('accuracyMeters: $accuracyMeters')
@@ -867,7 +890,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
     journeyId,
     sequenceNumber,
     segmentNumber,
-    recordedAt,
+    recordedAtMillis,
     latitude,
     longitude,
     accuracyMeters,
@@ -879,7 +902,7 @@ class JourneySample extends DataClass implements Insertable<JourneySample> {
           other.journeyId == this.journeyId &&
           other.sequenceNumber == this.sequenceNumber &&
           other.segmentNumber == this.segmentNumber &&
-          other.recordedAt == this.recordedAt &&
+          other.recordedAtMillis == this.recordedAtMillis &&
           other.latitude == this.latitude &&
           other.longitude == this.longitude &&
           other.accuracyMeters == this.accuracyMeters);
@@ -889,7 +912,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
   final Value<String> journeyId;
   final Value<int> sequenceNumber;
   final Value<int> segmentNumber;
-  final Value<DateTime> recordedAt;
+  final Value<int> recordedAtMillis;
   final Value<double> latitude;
   final Value<double> longitude;
   final Value<double> accuracyMeters;
@@ -898,7 +921,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
     this.journeyId = const Value.absent(),
     this.sequenceNumber = const Value.absent(),
     this.segmentNumber = const Value.absent(),
-    this.recordedAt = const Value.absent(),
+    this.recordedAtMillis = const Value.absent(),
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
     this.accuracyMeters = const Value.absent(),
@@ -908,7 +931,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
     required String journeyId,
     required int sequenceNumber,
     required int segmentNumber,
-    required DateTime recordedAt,
+    required int recordedAtMillis,
     required double latitude,
     required double longitude,
     required double accuracyMeters,
@@ -916,7 +939,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
   }) : journeyId = Value(journeyId),
        sequenceNumber = Value(sequenceNumber),
        segmentNumber = Value(segmentNumber),
-       recordedAt = Value(recordedAt),
+       recordedAtMillis = Value(recordedAtMillis),
        latitude = Value(latitude),
        longitude = Value(longitude),
        accuracyMeters = Value(accuracyMeters);
@@ -924,7 +947,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
     Expression<String>? journeyId,
     Expression<int>? sequenceNumber,
     Expression<int>? segmentNumber,
-    Expression<DateTime>? recordedAt,
+    Expression<int>? recordedAtMillis,
     Expression<double>? latitude,
     Expression<double>? longitude,
     Expression<double>? accuracyMeters,
@@ -934,7 +957,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
       if (journeyId != null) 'journey_id': journeyId,
       if (sequenceNumber != null) 'sequence_number': sequenceNumber,
       if (segmentNumber != null) 'segment_number': segmentNumber,
-      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (recordedAtMillis != null) 'recorded_at_millis': recordedAtMillis,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
       if (accuracyMeters != null) 'accuracy_meters': accuracyMeters,
@@ -946,7 +969,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
     Value<String>? journeyId,
     Value<int>? sequenceNumber,
     Value<int>? segmentNumber,
-    Value<DateTime>? recordedAt,
+    Value<int>? recordedAtMillis,
     Value<double>? latitude,
     Value<double>? longitude,
     Value<double>? accuracyMeters,
@@ -956,7 +979,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
       journeyId: journeyId ?? this.journeyId,
       sequenceNumber: sequenceNumber ?? this.sequenceNumber,
       segmentNumber: segmentNumber ?? this.segmentNumber,
-      recordedAt: recordedAt ?? this.recordedAt,
+      recordedAtMillis: recordedAtMillis ?? this.recordedAtMillis,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       accuracyMeters: accuracyMeters ?? this.accuracyMeters,
@@ -976,8 +999,8 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
     if (segmentNumber.present) {
       map['segment_number'] = Variable<int>(segmentNumber.value);
     }
-    if (recordedAt.present) {
-      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    if (recordedAtMillis.present) {
+      map['recorded_at_millis'] = Variable<int>(recordedAtMillis.value);
     }
     if (latitude.present) {
       map['latitude'] = Variable<double>(latitude.value);
@@ -1000,7 +1023,7 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
           ..write('journeyId: $journeyId, ')
           ..write('sequenceNumber: $sequenceNumber, ')
           ..write('segmentNumber: $segmentNumber, ')
-          ..write('recordedAt: $recordedAt, ')
+          ..write('recordedAtMillis: $recordedAtMillis, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('accuracyMeters: $accuracyMeters, ')
@@ -1032,10 +1055,10 @@ typedef $$JourneySessionsTableCreateCompanionBuilder =
       required String id,
       required String userId,
       required String phase,
-      required DateTime startedAt,
-      required DateTime lastChangedAt,
-      Value<DateTime?> pausedAt,
-      Value<DateTime?> endedAt,
+      required int startedAtMillis,
+      required int lastChangedAtMillis,
+      Value<int?> pausedAtMillis,
+      Value<int?> endedAtMillis,
       required int segmentNumber,
       Value<int> rowid,
     });
@@ -1044,10 +1067,10 @@ typedef $$JourneySessionsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> userId,
       Value<String> phase,
-      Value<DateTime> startedAt,
-      Value<DateTime> lastChangedAt,
-      Value<DateTime?> pausedAt,
-      Value<DateTime?> endedAt,
+      Value<int> startedAtMillis,
+      Value<int> lastChangedAtMillis,
+      Value<int?> pausedAtMillis,
+      Value<int?> endedAtMillis,
       Value<int> segmentNumber,
       Value<int> rowid,
     });
@@ -1076,23 +1099,23 @@ class $$JourneySessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get startedAt => $composableBuilder(
-    column: $table.startedAt,
+  ColumnFilters<int> get startedAtMillis => $composableBuilder(
+    column: $table.startedAtMillis,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get lastChangedAt => $composableBuilder(
-    column: $table.lastChangedAt,
+  ColumnFilters<int> get lastChangedAtMillis => $composableBuilder(
+    column: $table.lastChangedAtMillis,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get pausedAt => $composableBuilder(
-    column: $table.pausedAt,
+  ColumnFilters<int> get pausedAtMillis => $composableBuilder(
+    column: $table.pausedAtMillis,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get endedAt => $composableBuilder(
-    column: $table.endedAt,
+  ColumnFilters<int> get endedAtMillis => $composableBuilder(
+    column: $table.endedAtMillis,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1126,23 +1149,23 @@ class $$JourneySessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
-    column: $table.startedAt,
+  ColumnOrderings<int> get startedAtMillis => $composableBuilder(
+    column: $table.startedAtMillis,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get lastChangedAt => $composableBuilder(
-    column: $table.lastChangedAt,
+  ColumnOrderings<int> get lastChangedAtMillis => $composableBuilder(
+    column: $table.lastChangedAtMillis,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get pausedAt => $composableBuilder(
-    column: $table.pausedAt,
+  ColumnOrderings<int> get pausedAtMillis => $composableBuilder(
+    column: $table.pausedAtMillis,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get endedAt => $composableBuilder(
-    column: $table.endedAt,
+  ColumnOrderings<int> get endedAtMillis => $composableBuilder(
+    column: $table.endedAtMillis,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1170,19 +1193,25 @@ class $$JourneySessionsTableAnnotationComposer
   GeneratedColumn<String> get phase =>
       $composableBuilder(column: $table.phase, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get startedAt =>
-      $composableBuilder(column: $table.startedAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get lastChangedAt => $composableBuilder(
-    column: $table.lastChangedAt,
+  GeneratedColumn<int> get startedAtMillis => $composableBuilder(
+    column: $table.startedAtMillis,
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get pausedAt =>
-      $composableBuilder(column: $table.pausedAt, builder: (column) => column);
+  GeneratedColumn<int> get lastChangedAtMillis => $composableBuilder(
+    column: $table.lastChangedAtMillis,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<DateTime> get endedAt =>
-      $composableBuilder(column: $table.endedAt, builder: (column) => column);
+  GeneratedColumn<int> get pausedAtMillis => $composableBuilder(
+    column: $table.pausedAtMillis,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get endedAtMillis => $composableBuilder(
+    column: $table.endedAtMillis,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get segmentNumber => $composableBuilder(
     column: $table.segmentNumber,
@@ -1230,20 +1259,20 @@ class $$JourneySessionsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> userId = const Value.absent(),
                 Value<String> phase = const Value.absent(),
-                Value<DateTime> startedAt = const Value.absent(),
-                Value<DateTime> lastChangedAt = const Value.absent(),
-                Value<DateTime?> pausedAt = const Value.absent(),
-                Value<DateTime?> endedAt = const Value.absent(),
+                Value<int> startedAtMillis = const Value.absent(),
+                Value<int> lastChangedAtMillis = const Value.absent(),
+                Value<int?> pausedAtMillis = const Value.absent(),
+                Value<int?> endedAtMillis = const Value.absent(),
                 Value<int> segmentNumber = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JourneySessionsCompanion(
                 id: id,
                 userId: userId,
                 phase: phase,
-                startedAt: startedAt,
-                lastChangedAt: lastChangedAt,
-                pausedAt: pausedAt,
-                endedAt: endedAt,
+                startedAtMillis: startedAtMillis,
+                lastChangedAtMillis: lastChangedAtMillis,
+                pausedAtMillis: pausedAtMillis,
+                endedAtMillis: endedAtMillis,
                 segmentNumber: segmentNumber,
                 rowid: rowid,
               ),
@@ -1252,20 +1281,20 @@ class $$JourneySessionsTableTableManager
                 required String id,
                 required String userId,
                 required String phase,
-                required DateTime startedAt,
-                required DateTime lastChangedAt,
-                Value<DateTime?> pausedAt = const Value.absent(),
-                Value<DateTime?> endedAt = const Value.absent(),
+                required int startedAtMillis,
+                required int lastChangedAtMillis,
+                Value<int?> pausedAtMillis = const Value.absent(),
+                Value<int?> endedAtMillis = const Value.absent(),
                 required int segmentNumber,
                 Value<int> rowid = const Value.absent(),
               }) => JourneySessionsCompanion.insert(
                 id: id,
                 userId: userId,
                 phase: phase,
-                startedAt: startedAt,
-                lastChangedAt: lastChangedAt,
-                pausedAt: pausedAt,
-                endedAt: endedAt,
+                startedAtMillis: startedAtMillis,
+                lastChangedAtMillis: lastChangedAtMillis,
+                pausedAtMillis: pausedAtMillis,
+                endedAtMillis: endedAtMillis,
                 segmentNumber: segmentNumber,
                 rowid: rowid,
               ),
@@ -1303,7 +1332,7 @@ typedef $$JourneySamplesTableCreateCompanionBuilder =
       required String journeyId,
       required int sequenceNumber,
       required int segmentNumber,
-      required DateTime recordedAt,
+      required int recordedAtMillis,
       required double latitude,
       required double longitude,
       required double accuracyMeters,
@@ -1314,7 +1343,7 @@ typedef $$JourneySamplesTableUpdateCompanionBuilder =
       Value<String> journeyId,
       Value<int> sequenceNumber,
       Value<int> segmentNumber,
-      Value<DateTime> recordedAt,
+      Value<int> recordedAtMillis,
       Value<double> latitude,
       Value<double> longitude,
       Value<double> accuracyMeters,
@@ -1345,8 +1374,8 @@ class $$JourneySamplesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
-    column: $table.recordedAt,
+  ColumnFilters<int> get recordedAtMillis => $composableBuilder(
+    column: $table.recordedAtMillis,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1390,8 +1419,8 @@ class $$JourneySamplesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
-    column: $table.recordedAt,
+  ColumnOrderings<int> get recordedAtMillis => $composableBuilder(
+    column: $table.recordedAtMillis,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1433,8 +1462,8 @@ class $$JourneySamplesTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
-    column: $table.recordedAt,
+  GeneratedColumn<int> get recordedAtMillis => $composableBuilder(
+    column: $table.recordedAtMillis,
     builder: (column) => column,
   );
 
@@ -1490,7 +1519,7 @@ class $$JourneySamplesTableTableManager
                 Value<String> journeyId = const Value.absent(),
                 Value<int> sequenceNumber = const Value.absent(),
                 Value<int> segmentNumber = const Value.absent(),
-                Value<DateTime> recordedAt = const Value.absent(),
+                Value<int> recordedAtMillis = const Value.absent(),
                 Value<double> latitude = const Value.absent(),
                 Value<double> longitude = const Value.absent(),
                 Value<double> accuracyMeters = const Value.absent(),
@@ -1499,7 +1528,7 @@ class $$JourneySamplesTableTableManager
                 journeyId: journeyId,
                 sequenceNumber: sequenceNumber,
                 segmentNumber: segmentNumber,
-                recordedAt: recordedAt,
+                recordedAtMillis: recordedAtMillis,
                 latitude: latitude,
                 longitude: longitude,
                 accuracyMeters: accuracyMeters,
@@ -1510,7 +1539,7 @@ class $$JourneySamplesTableTableManager
                 required String journeyId,
                 required int sequenceNumber,
                 required int segmentNumber,
-                required DateTime recordedAt,
+                required int recordedAtMillis,
                 required double latitude,
                 required double longitude,
                 required double accuracyMeters,
@@ -1519,7 +1548,7 @@ class $$JourneySamplesTableTableManager
                 journeyId: journeyId,
                 sequenceNumber: sequenceNumber,
                 segmentNumber: segmentNumber,
-                recordedAt: recordedAt,
+                recordedAtMillis: recordedAtMillis,
                 latitude: latitude,
                 longitude: longitude,
                 accuracyMeters: accuracyMeters,

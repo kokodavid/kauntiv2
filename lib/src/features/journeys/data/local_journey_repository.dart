@@ -11,6 +11,10 @@ class LocalJourneySession {
   final JourneyRecording recording;
 }
 
+class JourneyPointRejected implements Exception {
+  const JourneyPointRejected();
+}
+
 /// Durable, account-scoped recording state. No network or badge state lives here.
 class LocalJourneyRepository {
   const LocalJourneyRepository(this._db);
@@ -54,8 +58,8 @@ class LocalJourneyRepository {
             id: id,
             userId: userId,
             phase: recording.phase.name,
-            startedAt: at,
-            lastChangedAt: at,
+            startedAtMillis: at.millisecondsSinceEpoch,
+            lastChangedAtMillis: at.millisecondsSinceEpoch,
             segmentNumber: recording.segmentNumber,
           ),
         );
@@ -92,9 +96,9 @@ class LocalJourneyRepository {
     )..where((t) => t.id.equals(id))).write(
       JourneySessionsCompanion(
         phase: Value(next.phase.name),
-        lastChangedAt: Value(next.lastChangedAt!),
-        pausedAt: Value(next.pausedAt),
-        endedAt: Value(next.endedAt),
+        lastChangedAtMillis: Value(next.lastChangedAt!.millisecondsSinceEpoch),
+        pausedAtMillis: Value(next.pausedAt?.millisecondsSinceEpoch),
+        endedAtMillis: Value(next.endedAt?.millisecondsSinceEpoch),
         segmentNumber: Value(next.segmentNumber),
       ),
     );
@@ -110,7 +114,7 @@ class LocalJourneyRepository {
     if (session.phase != JourneyRecordingPhase.recording ||
         point.segmentNumber != session.segmentNumber ||
         point.recordedAt.isBefore(session.lastChangedAt!)) {
-      throw StateError('Point does not belong to the active segment.');
+      throw const JourneyPointRejected();
     }
     final previous =
         await (_db.select(_db.journeySamples)
@@ -118,8 +122,9 @@ class LocalJourneyRepository {
               ..orderBy([(t) => OrderingTerm.desc(t.sequenceNumber)])
               ..limit(1))
             .getSingleOrNull();
-    if (previous != null && !point.recordedAt.isAfter(previous.recordedAt)) {
-      throw StateError('Journey points must arrive in time order.');
+    if (previous != null &&
+        point.recordedAt.millisecondsSinceEpoch <= previous.recordedAtMillis) {
+      throw const JourneyPointRejected();
     }
     final sequence = (previous?.sequenceNumber ?? -1) + 1;
     await _db
@@ -129,7 +134,7 @@ class LocalJourneyRepository {
             journeyId: id,
             sequenceNumber: sequence,
             segmentNumber: point.segmentNumber,
-            recordedAt: point.recordedAt,
+            recordedAtMillis: point.recordedAt.millisecondsSinceEpoch,
             latitude: point.latitude,
             longitude: point.longitude,
             accuracyMeters: point.accuracyMeters,
@@ -148,7 +153,10 @@ class LocalJourneyRepository {
     return [
       for (final row in rows)
         JourneyPoint(
-          recordedAt: row.recordedAt,
+          recordedAt: DateTime.fromMillisecondsSinceEpoch(
+            row.recordedAtMillis,
+            isUtc: true,
+          ),
           latitude: row.latitude,
           longitude: row.longitude,
           accuracyMeters: row.accuracyMeters,
@@ -170,10 +178,26 @@ class LocalJourneyRepository {
     id: row.id,
     recording: JourneyRecording.restore(
       phase: JourneyRecordingPhase.values.byName(row.phase),
-      startedAt: row.startedAt,
-      lastChangedAt: row.lastChangedAt,
-      pausedAt: row.pausedAt,
-      endedAt: row.endedAt,
+      startedAt: DateTime.fromMillisecondsSinceEpoch(
+        row.startedAtMillis,
+        isUtc: true,
+      ),
+      lastChangedAt: DateTime.fromMillisecondsSinceEpoch(
+        row.lastChangedAtMillis,
+        isUtc: true,
+      ),
+      pausedAt: row.pausedAtMillis == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(
+              row.pausedAtMillis!,
+              isUtc: true,
+            ),
+      endedAt: row.endedAtMillis == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(
+              row.endedAtMillis!,
+              isUtc: true,
+            ),
       segmentNumber: row.segmentNumber,
     ),
   );

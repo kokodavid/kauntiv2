@@ -1,7 +1,7 @@
 # Journeys: implementation plan
 
-Status: foundation merged; local recorder persistence in progress on
-`codex/journeys-recorder`.
+Status: foundation and local persistence merged; native capture integration in
+progress on `codex/journeys-native-capture`.
 
 ## Product rules
 
@@ -42,7 +42,10 @@ entitlements are not implemented in this foundation slice.
    states and validation; tests. Keep the tab hidden.
 2. **Recorder:** iOS background location and Android `location` foreground
    service, started from a visible, user-initiated action. Persist points and
-   state locally, including pause/resume and gaps when fixes are missing.
+   state locally, including pause/resume and gaps when fixes are missing. The
+   `location` stream does not survive process termination; on next launch the
+   saved session must pause and require an explicit Resume. Verify this on
+   devices before enabling the tab.
 3. **Entitlement and sync:** a server-verified Pro entitlement, an upload path
    that validates owner and session timing, offline retries, and private
    history reads/deletion. Never use client-only Pro gating for cloud writes.

@@ -113,14 +113,17 @@ void main() {
     expect(await q.drain(now: now.add(const Duration(hours: 25))), 1);
   });
 
-  test('nothing uploads when signed out, and local deletes are owned', () async {
-    await completed('a');
-    user = null;
-    expect(await queue().drain(now: t0.add(const Duration(hours: 1))), 0);
+  test(
+    'nothing uploads when signed out, and local deletes are owned',
+    () async {
+      await completed('a');
+      user = null;
+      expect(await queue().drain(now: t0.add(const Duration(hours: 1))), 0);
 
-    await queue().deleteLocal('a', 'bob');
-    expect(await queue().pending('alice'), hasLength(1));
-    await queue().deleteLocal('a', 'alice');
-    expect(await queue().pending('alice'), isEmpty);
-  });
+      await queue().deleteLocal('a', 'bob');
+      expect(await queue().pending('alice'), hasLength(1));
+      await queue().deleteLocal('a', 'alice');
+      expect(await queue().pending('alice'), isEmpty);
+    },
+  );
 }

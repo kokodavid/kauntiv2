@@ -40,7 +40,9 @@ class JourneyRecorder extends _$JourneyRecorder {
     if (state != null) throw StateError('A Journey is already in progress.');
     final userId = _userId();
     final at = now ?? DateTime.now();
-    if (!await ref.read(journeyEntitlementProvider.notifier).canStart(now: at)) {
+    if (!await ref
+        .read(journeyEntitlementProvider.notifier)
+        .canStart(now: at)) {
       throw const JourneyStartDenied();
     }
     final session = await ref

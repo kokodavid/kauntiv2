@@ -155,9 +155,10 @@ class JourneyUploadQueue {
 
   /// Deletes a Journey that never uploaded (the user's choice).
   Future<void> deleteLocal(String id, String userId) async {
-    final owned = await (_db.select(
-      _db.journeySessions,
-    )..where((t) => t.id.equals(id) & t.userId.equals(userId))).getSingleOrNull();
+    final owned =
+        await (_db.select(_db.journeySessions)
+              ..where((t) => t.id.equals(id) & t.userId.equals(userId)))
+            .getSingleOrNull();
     if (owned == null) return;
     await _removeLocal(id);
   }
@@ -166,9 +167,7 @@ class JourneyUploadQueue {
     await (_db.delete(
       _db.journeySamples,
     )..where((t) => t.journeyId.equals(id))).go();
-    await (_db.delete(
-      _db.journeySessions,
-    )..where((t) => t.id.equals(id))).go();
+    await (_db.delete(_db.journeySessions)..where((t) => t.id.equals(id))).go();
   });
 
   JourneySummary _summary(JourneySession row) {

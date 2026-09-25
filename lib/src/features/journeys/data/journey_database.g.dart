@@ -90,6 +90,28 @@ class $JourneySessionsTable extends JourneySessions
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _uploadAttemptsMeta = const VerificationMeta(
+    'uploadAttempts',
+  );
+  @override
+  late final GeneratedColumn<int> uploadAttempts = GeneratedColumn<int>(
+    'upload_attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _nextUploadAtMillisMeta =
+      const VerificationMeta('nextUploadAtMillis');
+  @override
+  late final GeneratedColumn<int> nextUploadAtMillis = GeneratedColumn<int>(
+    'next_upload_at_millis',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -100,6 +122,8 @@ class $JourneySessionsTable extends JourneySessions
     pausedAtMillis,
     endedAtMillis,
     segmentNumber,
+    uploadAttempts,
+    nextUploadAtMillis,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -185,6 +209,24 @@ class $JourneySessionsTable extends JourneySessions
     } else if (isInserting) {
       context.missing(_segmentNumberMeta);
     }
+    if (data.containsKey('upload_attempts')) {
+      context.handle(
+        _uploadAttemptsMeta,
+        uploadAttempts.isAcceptableOrUnknown(
+          data['upload_attempts']!,
+          _uploadAttemptsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('next_upload_at_millis')) {
+      context.handle(
+        _nextUploadAtMillisMeta,
+        nextUploadAtMillis.isAcceptableOrUnknown(
+          data['next_upload_at_millis']!,
+          _nextUploadAtMillisMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -226,6 +268,14 @@ class $JourneySessionsTable extends JourneySessions
         DriftSqlType.int,
         data['${effectivePrefix}segment_number'],
       )!,
+      uploadAttempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}upload_attempts'],
+      )!,
+      nextUploadAtMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}next_upload_at_millis'],
+      ),
     );
   }
 
@@ -244,6 +294,10 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
   final int? pausedAtMillis;
   final int? endedAtMillis;
   final int segmentNumber;
+
+  /// Upload bookkeeping for completed sessions (schema 2).
+  final int uploadAttempts;
+  final int? nextUploadAtMillis;
   const JourneySession({
     required this.id,
     required this.userId,
@@ -253,6 +307,8 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     this.pausedAtMillis,
     this.endedAtMillis,
     required this.segmentNumber,
+    required this.uploadAttempts,
+    this.nextUploadAtMillis,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -269,6 +325,10 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       map['ended_at_millis'] = Variable<int>(endedAtMillis);
     }
     map['segment_number'] = Variable<int>(segmentNumber);
+    map['upload_attempts'] = Variable<int>(uploadAttempts);
+    if (!nullToAbsent || nextUploadAtMillis != null) {
+      map['next_upload_at_millis'] = Variable<int>(nextUploadAtMillis);
+    }
     return map;
   }
 
@@ -286,6 +346,10 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
           ? const Value.absent()
           : Value(endedAtMillis),
       segmentNumber: Value(segmentNumber),
+      uploadAttempts: Value(uploadAttempts),
+      nextUploadAtMillis: nextUploadAtMillis == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextUploadAtMillis),
     );
   }
 
@@ -305,6 +369,8 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       pausedAtMillis: serializer.fromJson<int?>(json['pausedAtMillis']),
       endedAtMillis: serializer.fromJson<int?>(json['endedAtMillis']),
       segmentNumber: serializer.fromJson<int>(json['segmentNumber']),
+      uploadAttempts: serializer.fromJson<int>(json['uploadAttempts']),
+      nextUploadAtMillis: serializer.fromJson<int?>(json['nextUploadAtMillis']),
     );
   }
   @override
@@ -319,6 +385,8 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       'pausedAtMillis': serializer.toJson<int?>(pausedAtMillis),
       'endedAtMillis': serializer.toJson<int?>(endedAtMillis),
       'segmentNumber': serializer.toJson<int>(segmentNumber),
+      'uploadAttempts': serializer.toJson<int>(uploadAttempts),
+      'nextUploadAtMillis': serializer.toJson<int?>(nextUploadAtMillis),
     };
   }
 
@@ -331,6 +399,8 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     Value<int?> pausedAtMillis = const Value.absent(),
     Value<int?> endedAtMillis = const Value.absent(),
     int? segmentNumber,
+    int? uploadAttempts,
+    Value<int?> nextUploadAtMillis = const Value.absent(),
   }) => JourneySession(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -344,6 +414,10 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
         ? endedAtMillis.value
         : this.endedAtMillis,
     segmentNumber: segmentNumber ?? this.segmentNumber,
+    uploadAttempts: uploadAttempts ?? this.uploadAttempts,
+    nextUploadAtMillis: nextUploadAtMillis.present
+        ? nextUploadAtMillis.value
+        : this.nextUploadAtMillis,
   );
   JourneySession copyWithCompanion(JourneySessionsCompanion data) {
     return JourneySession(
@@ -365,6 +439,12 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
       segmentNumber: data.segmentNumber.present
           ? data.segmentNumber.value
           : this.segmentNumber,
+      uploadAttempts: data.uploadAttempts.present
+          ? data.uploadAttempts.value
+          : this.uploadAttempts,
+      nextUploadAtMillis: data.nextUploadAtMillis.present
+          ? data.nextUploadAtMillis.value
+          : this.nextUploadAtMillis,
     );
   }
 
@@ -378,7 +458,9 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
           ..write('lastChangedAtMillis: $lastChangedAtMillis, ')
           ..write('pausedAtMillis: $pausedAtMillis, ')
           ..write('endedAtMillis: $endedAtMillis, ')
-          ..write('segmentNumber: $segmentNumber')
+          ..write('segmentNumber: $segmentNumber, ')
+          ..write('uploadAttempts: $uploadAttempts, ')
+          ..write('nextUploadAtMillis: $nextUploadAtMillis')
           ..write(')'))
         .toString();
   }
@@ -393,6 +475,8 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
     pausedAtMillis,
     endedAtMillis,
     segmentNumber,
+    uploadAttempts,
+    nextUploadAtMillis,
   );
   @override
   bool operator ==(Object other) =>
@@ -405,7 +489,9 @@ class JourneySession extends DataClass implements Insertable<JourneySession> {
           other.lastChangedAtMillis == this.lastChangedAtMillis &&
           other.pausedAtMillis == this.pausedAtMillis &&
           other.endedAtMillis == this.endedAtMillis &&
-          other.segmentNumber == this.segmentNumber);
+          other.segmentNumber == this.segmentNumber &&
+          other.uploadAttempts == this.uploadAttempts &&
+          other.nextUploadAtMillis == this.nextUploadAtMillis);
 }
 
 class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
@@ -417,6 +503,8 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
   final Value<int?> pausedAtMillis;
   final Value<int?> endedAtMillis;
   final Value<int> segmentNumber;
+  final Value<int> uploadAttempts;
+  final Value<int?> nextUploadAtMillis;
   final Value<int> rowid;
   const JourneySessionsCompanion({
     this.id = const Value.absent(),
@@ -427,6 +515,8 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     this.pausedAtMillis = const Value.absent(),
     this.endedAtMillis = const Value.absent(),
     this.segmentNumber = const Value.absent(),
+    this.uploadAttempts = const Value.absent(),
+    this.nextUploadAtMillis = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   JourneySessionsCompanion.insert({
@@ -438,6 +528,8 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     this.pausedAtMillis = const Value.absent(),
     this.endedAtMillis = const Value.absent(),
     required int segmentNumber,
+    this.uploadAttempts = const Value.absent(),
+    this.nextUploadAtMillis = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        userId = Value(userId),
@@ -454,6 +546,8 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     Expression<int>? pausedAtMillis,
     Expression<int>? endedAtMillis,
     Expression<int>? segmentNumber,
+    Expression<int>? uploadAttempts,
+    Expression<int>? nextUploadAtMillis,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -466,6 +560,9 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
       if (pausedAtMillis != null) 'paused_at_millis': pausedAtMillis,
       if (endedAtMillis != null) 'ended_at_millis': endedAtMillis,
       if (segmentNumber != null) 'segment_number': segmentNumber,
+      if (uploadAttempts != null) 'upload_attempts': uploadAttempts,
+      if (nextUploadAtMillis != null)
+        'next_upload_at_millis': nextUploadAtMillis,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -479,6 +576,8 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     Value<int?>? pausedAtMillis,
     Value<int?>? endedAtMillis,
     Value<int>? segmentNumber,
+    Value<int>? uploadAttempts,
+    Value<int?>? nextUploadAtMillis,
     Value<int>? rowid,
   }) {
     return JourneySessionsCompanion(
@@ -490,6 +589,8 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
       pausedAtMillis: pausedAtMillis ?? this.pausedAtMillis,
       endedAtMillis: endedAtMillis ?? this.endedAtMillis,
       segmentNumber: segmentNumber ?? this.segmentNumber,
+      uploadAttempts: uploadAttempts ?? this.uploadAttempts,
+      nextUploadAtMillis: nextUploadAtMillis ?? this.nextUploadAtMillis,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -521,6 +622,12 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
     if (segmentNumber.present) {
       map['segment_number'] = Variable<int>(segmentNumber.value);
     }
+    if (uploadAttempts.present) {
+      map['upload_attempts'] = Variable<int>(uploadAttempts.value);
+    }
+    if (nextUploadAtMillis.present) {
+      map['next_upload_at_millis'] = Variable<int>(nextUploadAtMillis.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -538,6 +645,8 @@ class JourneySessionsCompanion extends UpdateCompanion<JourneySession> {
           ..write('pausedAtMillis: $pausedAtMillis, ')
           ..write('endedAtMillis: $endedAtMillis, ')
           ..write('segmentNumber: $segmentNumber, ')
+          ..write('uploadAttempts: $uploadAttempts, ')
+          ..write('nextUploadAtMillis: $nextUploadAtMillis, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1033,6 +1142,339 @@ class JourneySamplesCompanion extends UpdateCompanion<JourneySample> {
   }
 }
 
+class $ProStatusCachesTable extends ProStatusCaches
+    with TableInfo<$ProStatusCachesTable, ProStatusCache> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProStatusCachesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _activeMeta = const VerificationMeta('active');
+  @override
+  late final GeneratedColumn<bool> active = GeneratedColumn<bool>(
+    'active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("active" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _activeUntilMillisMeta = const VerificationMeta(
+    'activeUntilMillis',
+  );
+  @override
+  late final GeneratedColumn<int> activeUntilMillis = GeneratedColumn<int>(
+    'active_until_millis',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _checkedAtMillisMeta = const VerificationMeta(
+    'checkedAtMillis',
+  );
+  @override
+  late final GeneratedColumn<int> checkedAtMillis = GeneratedColumn<int>(
+    'checked_at_millis',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    userId,
+    active,
+    activeUntilMillis,
+    checkedAtMillis,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pro_status_caches';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProStatusCache> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('active')) {
+      context.handle(
+        _activeMeta,
+        active.isAcceptableOrUnknown(data['active']!, _activeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_activeMeta);
+    }
+    if (data.containsKey('active_until_millis')) {
+      context.handle(
+        _activeUntilMillisMeta,
+        activeUntilMillis.isAcceptableOrUnknown(
+          data['active_until_millis']!,
+          _activeUntilMillisMeta,
+        ),
+      );
+    }
+    if (data.containsKey('checked_at_millis')) {
+      context.handle(
+        _checkedAtMillisMeta,
+        checkedAtMillis.isAcceptableOrUnknown(
+          data['checked_at_millis']!,
+          _checkedAtMillisMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_checkedAtMillisMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId};
+  @override
+  ProStatusCache map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProStatusCache(
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      active: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}active'],
+      )!,
+      activeUntilMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}active_until_millis'],
+      ),
+      checkedAtMillis: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}checked_at_millis'],
+      )!,
+    );
+  }
+
+  @override
+  $ProStatusCachesTable createAlias(String alias) {
+    return $ProStatusCachesTable(attachedDatabase, alias);
+  }
+}
+
+class ProStatusCache extends DataClass implements Insertable<ProStatusCache> {
+  final String userId;
+  final bool active;
+  final int? activeUntilMillis;
+  final int checkedAtMillis;
+  const ProStatusCache({
+    required this.userId,
+    required this.active,
+    this.activeUntilMillis,
+    required this.checkedAtMillis,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['active'] = Variable<bool>(active);
+    if (!nullToAbsent || activeUntilMillis != null) {
+      map['active_until_millis'] = Variable<int>(activeUntilMillis);
+    }
+    map['checked_at_millis'] = Variable<int>(checkedAtMillis);
+    return map;
+  }
+
+  ProStatusCachesCompanion toCompanion(bool nullToAbsent) {
+    return ProStatusCachesCompanion(
+      userId: Value(userId),
+      active: Value(active),
+      activeUntilMillis: activeUntilMillis == null && nullToAbsent
+          ? const Value.absent()
+          : Value(activeUntilMillis),
+      checkedAtMillis: Value(checkedAtMillis),
+    );
+  }
+
+  factory ProStatusCache.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProStatusCache(
+      userId: serializer.fromJson<String>(json['userId']),
+      active: serializer.fromJson<bool>(json['active']),
+      activeUntilMillis: serializer.fromJson<int?>(json['activeUntilMillis']),
+      checkedAtMillis: serializer.fromJson<int>(json['checkedAtMillis']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'active': serializer.toJson<bool>(active),
+      'activeUntilMillis': serializer.toJson<int?>(activeUntilMillis),
+      'checkedAtMillis': serializer.toJson<int>(checkedAtMillis),
+    };
+  }
+
+  ProStatusCache copyWith({
+    String? userId,
+    bool? active,
+    Value<int?> activeUntilMillis = const Value.absent(),
+    int? checkedAtMillis,
+  }) => ProStatusCache(
+    userId: userId ?? this.userId,
+    active: active ?? this.active,
+    activeUntilMillis: activeUntilMillis.present
+        ? activeUntilMillis.value
+        : this.activeUntilMillis,
+    checkedAtMillis: checkedAtMillis ?? this.checkedAtMillis,
+  );
+  ProStatusCache copyWithCompanion(ProStatusCachesCompanion data) {
+    return ProStatusCache(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      active: data.active.present ? data.active.value : this.active,
+      activeUntilMillis: data.activeUntilMillis.present
+          ? data.activeUntilMillis.value
+          : this.activeUntilMillis,
+      checkedAtMillis: data.checkedAtMillis.present
+          ? data.checkedAtMillis.value
+          : this.checkedAtMillis,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProStatusCache(')
+          ..write('userId: $userId, ')
+          ..write('active: $active, ')
+          ..write('activeUntilMillis: $activeUntilMillis, ')
+          ..write('checkedAtMillis: $checkedAtMillis')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(userId, active, activeUntilMillis, checkedAtMillis);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProStatusCache &&
+          other.userId == this.userId &&
+          other.active == this.active &&
+          other.activeUntilMillis == this.activeUntilMillis &&
+          other.checkedAtMillis == this.checkedAtMillis);
+}
+
+class ProStatusCachesCompanion extends UpdateCompanion<ProStatusCache> {
+  final Value<String> userId;
+  final Value<bool> active;
+  final Value<int?> activeUntilMillis;
+  final Value<int> checkedAtMillis;
+  final Value<int> rowid;
+  const ProStatusCachesCompanion({
+    this.userId = const Value.absent(),
+    this.active = const Value.absent(),
+    this.activeUntilMillis = const Value.absent(),
+    this.checkedAtMillis = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProStatusCachesCompanion.insert({
+    required String userId,
+    required bool active,
+    this.activeUntilMillis = const Value.absent(),
+    required int checkedAtMillis,
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       active = Value(active),
+       checkedAtMillis = Value(checkedAtMillis);
+  static Insertable<ProStatusCache> custom({
+    Expression<String>? userId,
+    Expression<bool>? active,
+    Expression<int>? activeUntilMillis,
+    Expression<int>? checkedAtMillis,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (active != null) 'active': active,
+      if (activeUntilMillis != null) 'active_until_millis': activeUntilMillis,
+      if (checkedAtMillis != null) 'checked_at_millis': checkedAtMillis,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProStatusCachesCompanion copyWith({
+    Value<String>? userId,
+    Value<bool>? active,
+    Value<int?>? activeUntilMillis,
+    Value<int>? checkedAtMillis,
+    Value<int>? rowid,
+  }) {
+    return ProStatusCachesCompanion(
+      userId: userId ?? this.userId,
+      active: active ?? this.active,
+      activeUntilMillis: activeUntilMillis ?? this.activeUntilMillis,
+      checkedAtMillis: checkedAtMillis ?? this.checkedAtMillis,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (active.present) {
+      map['active'] = Variable<bool>(active.value);
+    }
+    if (activeUntilMillis.present) {
+      map['active_until_millis'] = Variable<int>(activeUntilMillis.value);
+    }
+    if (checkedAtMillis.present) {
+      map['checked_at_millis'] = Variable<int>(checkedAtMillis.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProStatusCachesCompanion(')
+          ..write('userId: $userId, ')
+          ..write('active: $active, ')
+          ..write('activeUntilMillis: $activeUntilMillis, ')
+          ..write('checkedAtMillis: $checkedAtMillis, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$JourneyDatabase extends GeneratedDatabase {
   _$JourneyDatabase(QueryExecutor e) : super(e);
   $JourneyDatabaseManager get managers => $JourneyDatabaseManager(this);
@@ -1040,6 +1482,9 @@ abstract class _$JourneyDatabase extends GeneratedDatabase {
     this,
   );
   late final $JourneySamplesTable journeySamples = $JourneySamplesTable(this);
+  late final $ProStatusCachesTable proStatusCaches = $ProStatusCachesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1047,6 +1492,7 @@ abstract class _$JourneyDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     journeySessions,
     journeySamples,
+    proStatusCaches,
   ];
 }
 
@@ -1060,6 +1506,8 @@ typedef $$JourneySessionsTableCreateCompanionBuilder =
       Value<int?> pausedAtMillis,
       Value<int?> endedAtMillis,
       required int segmentNumber,
+      Value<int> uploadAttempts,
+      Value<int?> nextUploadAtMillis,
       Value<int> rowid,
     });
 typedef $$JourneySessionsTableUpdateCompanionBuilder =
@@ -1072,6 +1520,8 @@ typedef $$JourneySessionsTableUpdateCompanionBuilder =
       Value<int?> pausedAtMillis,
       Value<int?> endedAtMillis,
       Value<int> segmentNumber,
+      Value<int> uploadAttempts,
+      Value<int?> nextUploadAtMillis,
       Value<int> rowid,
     });
 
@@ -1121,6 +1571,16 @@ class $$JourneySessionsTableFilterComposer
 
   ColumnFilters<int> get segmentNumber => $composableBuilder(
     column: $table.segmentNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get uploadAttempts => $composableBuilder(
+    column: $table.uploadAttempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nextUploadAtMillis => $composableBuilder(
+    column: $table.nextUploadAtMillis,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1173,6 +1633,16 @@ class $$JourneySessionsTableOrderingComposer
     column: $table.segmentNumber,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get uploadAttempts => $composableBuilder(
+    column: $table.uploadAttempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get nextUploadAtMillis => $composableBuilder(
+    column: $table.nextUploadAtMillis,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$JourneySessionsTableAnnotationComposer
@@ -1215,6 +1685,16 @@ class $$JourneySessionsTableAnnotationComposer
 
   GeneratedColumn<int> get segmentNumber => $composableBuilder(
     column: $table.segmentNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get uploadAttempts => $composableBuilder(
+    column: $table.uploadAttempts,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get nextUploadAtMillis => $composableBuilder(
+    column: $table.nextUploadAtMillis,
     builder: (column) => column,
   );
 }
@@ -1264,6 +1744,8 @@ class $$JourneySessionsTableTableManager
                 Value<int?> pausedAtMillis = const Value.absent(),
                 Value<int?> endedAtMillis = const Value.absent(),
                 Value<int> segmentNumber = const Value.absent(),
+                Value<int> uploadAttempts = const Value.absent(),
+                Value<int?> nextUploadAtMillis = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JourneySessionsCompanion(
                 id: id,
@@ -1274,6 +1756,8 @@ class $$JourneySessionsTableTableManager
                 pausedAtMillis: pausedAtMillis,
                 endedAtMillis: endedAtMillis,
                 segmentNumber: segmentNumber,
+                uploadAttempts: uploadAttempts,
+                nextUploadAtMillis: nextUploadAtMillis,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1286,6 +1770,8 @@ class $$JourneySessionsTableTableManager
                 Value<int?> pausedAtMillis = const Value.absent(),
                 Value<int?> endedAtMillis = const Value.absent(),
                 required int segmentNumber,
+                Value<int> uploadAttempts = const Value.absent(),
+                Value<int?> nextUploadAtMillis = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JourneySessionsCompanion.insert(
                 id: id,
@@ -1296,6 +1782,8 @@ class $$JourneySessionsTableTableManager
                 pausedAtMillis: pausedAtMillis,
                 endedAtMillis: endedAtMillis,
                 segmentNumber: segmentNumber,
+                uploadAttempts: uploadAttempts,
+                nextUploadAtMillis: nextUploadAtMillis,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -1579,6 +2067,201 @@ typedef $$JourneySamplesTableProcessedTableManager =
       JourneySample,
       PrefetchHooks Function()
     >;
+typedef $$ProStatusCachesTableCreateCompanionBuilder =
+    ProStatusCachesCompanion Function({
+      required String userId,
+      required bool active,
+      Value<int?> activeUntilMillis,
+      required int checkedAtMillis,
+      Value<int> rowid,
+    });
+typedef $$ProStatusCachesTableUpdateCompanionBuilder =
+    ProStatusCachesCompanion Function({
+      Value<String> userId,
+      Value<bool> active,
+      Value<int?> activeUntilMillis,
+      Value<int> checkedAtMillis,
+      Value<int> rowid,
+    });
+
+class $$ProStatusCachesTableFilterComposer
+    extends Composer<_$JourneyDatabase, $ProStatusCachesTable> {
+  $$ProStatusCachesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get active => $composableBuilder(
+    column: $table.active,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get activeUntilMillis => $composableBuilder(
+    column: $table.activeUntilMillis,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get checkedAtMillis => $composableBuilder(
+    column: $table.checkedAtMillis,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ProStatusCachesTableOrderingComposer
+    extends Composer<_$JourneyDatabase, $ProStatusCachesTable> {
+  $$ProStatusCachesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get active => $composableBuilder(
+    column: $table.active,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get activeUntilMillis => $composableBuilder(
+    column: $table.activeUntilMillis,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get checkedAtMillis => $composableBuilder(
+    column: $table.checkedAtMillis,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ProStatusCachesTableAnnotationComposer
+    extends Composer<_$JourneyDatabase, $ProStatusCachesTable> {
+  $$ProStatusCachesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<bool> get active =>
+      $composableBuilder(column: $table.active, builder: (column) => column);
+
+  GeneratedColumn<int> get activeUntilMillis => $composableBuilder(
+    column: $table.activeUntilMillis,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get checkedAtMillis => $composableBuilder(
+    column: $table.checkedAtMillis,
+    builder: (column) => column,
+  );
+}
+
+class $$ProStatusCachesTableTableManager
+    extends
+        RootTableManager<
+          _$JourneyDatabase,
+          $ProStatusCachesTable,
+          ProStatusCache,
+          $$ProStatusCachesTableFilterComposer,
+          $$ProStatusCachesTableOrderingComposer,
+          $$ProStatusCachesTableAnnotationComposer,
+          $$ProStatusCachesTableCreateCompanionBuilder,
+          $$ProStatusCachesTableUpdateCompanionBuilder,
+          (
+            ProStatusCache,
+            BaseReferences<
+              _$JourneyDatabase,
+              $ProStatusCachesTable,
+              ProStatusCache
+            >,
+          ),
+          ProStatusCache,
+          PrefetchHooks Function()
+        > {
+  $$ProStatusCachesTableTableManager(
+    _$JourneyDatabase db,
+    $ProStatusCachesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProStatusCachesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ProStatusCachesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ProStatusCachesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> userId = const Value.absent(),
+                Value<bool> active = const Value.absent(),
+                Value<int?> activeUntilMillis = const Value.absent(),
+                Value<int> checkedAtMillis = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProStatusCachesCompanion(
+                userId: userId,
+                active: active,
+                activeUntilMillis: activeUntilMillis,
+                checkedAtMillis: checkedAtMillis,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String userId,
+                required bool active,
+                Value<int?> activeUntilMillis = const Value.absent(),
+                required int checkedAtMillis,
+                Value<int> rowid = const Value.absent(),
+              }) => ProStatusCachesCompanion.insert(
+                userId: userId,
+                active: active,
+                activeUntilMillis: activeUntilMillis,
+                checkedAtMillis: checkedAtMillis,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ProStatusCachesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$JourneyDatabase,
+      $ProStatusCachesTable,
+      ProStatusCache,
+      $$ProStatusCachesTableFilterComposer,
+      $$ProStatusCachesTableOrderingComposer,
+      $$ProStatusCachesTableAnnotationComposer,
+      $$ProStatusCachesTableCreateCompanionBuilder,
+      $$ProStatusCachesTableUpdateCompanionBuilder,
+      (
+        ProStatusCache,
+        BaseReferences<
+          _$JourneyDatabase,
+          $ProStatusCachesTable,
+          ProStatusCache
+        >,
+      ),
+      ProStatusCache,
+      PrefetchHooks Function()
+    >;
 
 class $JourneyDatabaseManager {
   final _$JourneyDatabase _db;
@@ -1587,4 +2270,6 @@ class $JourneyDatabaseManager {
       $$JourneySessionsTableTableManager(_db, _db.journeySessions);
   $$JourneySamplesTableTableManager get journeySamples =>
       $$JourneySamplesTableTableManager(_db, _db.journeySamples);
+  $$ProStatusCachesTableTableManager get proStatusCaches =>
+      $$ProStatusCachesTableTableManager(_db, _db.proStatusCaches);
 }

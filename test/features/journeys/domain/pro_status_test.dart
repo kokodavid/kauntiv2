@@ -18,7 +18,10 @@ void main() {
       activeUntil: now.subtract(const Duration(hours: 1)),
     );
     expect(status.allowsStartAt(now), isFalse);
-    expect(ProStatus(active: false, checkedAt: now).allowsStartAt(now), isFalse);
+    expect(
+      ProStatus(active: false, checkedAt: now).allowsStartAt(now),
+      isFalse,
+    );
   });
 
   test('a cached status only counts while recent', () {

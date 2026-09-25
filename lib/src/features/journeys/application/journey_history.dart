@@ -51,10 +51,9 @@ class JourneyHistoryList extends _$JourneyHistoryList {
     } else {
       final userId = ref.read(currentUserIdProvider)();
       if (userId != null) {
-        await ref.read(journeyUploadQueueProvider)?.deleteLocal(
-          journey.id,
-          userId,
-        );
+        await ref
+            .read(journeyUploadQueueProvider)
+            ?.deleteLocal(journey.id, userId);
       }
     }
     ref.invalidateSelf();

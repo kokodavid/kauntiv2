@@ -107,4 +107,46 @@ void main() {
     await tester.pump();
     expect(find.text('0:00:00 · 0 m'), findsOneWidget);
   });
+
+  testWidgets('a place near the route can be opened', (tester) async {
+    final opened = <String>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appConfigProvider.overrideWithValue(const AppConfig.dev()),
+          journeyDetailProvider('j').overrideWith((ref) async => _detail),
+          journeyMomentsProvider('j').overrideWith(
+            (ref) async => const [
+              JourneyMoment(
+                kind: JourneyMomentKind.nearbyPlace,
+                index: 2,
+                name: 'Karura Forest',
+                distanceMeters: 2400,
+                place: JourneyPlaceMark(
+                  id: 'karura',
+                  countyCode: 47,
+                  name: 'Karura Forest',
+                  latitude: -1.24,
+                  longitude: 36.83,
+                ),
+              ),
+            ],
+          ),
+        ],
+        child: MaterialApp(
+          home: JourneyReplayScreen(
+            journeyId: 'j',
+            onOpenPlace: (_, id) => opened.add(id),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await _play(tester, 'Play replay');
+    await tester.pump(const Duration(seconds: 10));
+    expect(find.text('Karura Forest'), findsOneWidget);
+    expect(find.textContaining('2.4 km from your route'), findsOneWidget);
+    await tester.tap(find.text('Karura Forest'));
+    expect(opened, ['karura']);
+  });
 }

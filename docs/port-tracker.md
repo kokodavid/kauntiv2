@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-ui | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. Step 4 UI behind `JOURNEYS_ENABLED`: tab, start, live card, history, a full-screen replay per Journey with its summary in the overlay card and delete on the list (60 fps glide, speed, scrubber, readout, faded route under the played line, auto-pause at key moments: recording breaks, 10+ min stops, county crossings, saved places within 300 m). Export and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-ui | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. Step 4 UI behind `JOURNEYS_ENABLED`: tab, start, live card, history, a full-screen replay per Journey with its summary in the overlay card and delete on the list (60 fps glide, speed, scrubber, readout, faded route under the played line, auto-pause at key moments: recording breaks, 10+ min stops, county crossings, Kaunti47 places within 10 km with open and save). Export and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -324,6 +324,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 | Date | Commit | Rows | Change |
 |---|---|---|---|
 | 2026-09-25 | codex/journeys-ui | 13 | Journeys tab behind `JOURNEYS_ENABLED`: start, live route and controls, history, detail with replay and delete |
+| 2026-09-25 | codex/journeys-ui | 13 | Replay moments include every Kaunti47 place within 10 km of the route (saved ones marked), openable and savable from the card |
 | 2026-09-25 | codex/journeys-ui | 13 | Journey detail page removed: a Journey opens straight into the full-screen replay (summary in the card); delete moved to the list |
 | 2026-09-25 | codex/journeys-ui | 13 | Full-screen replay with floating controls; pauses at key moments (breaks, long stops, county crossings, saved places) |
 | 2026-09-25 | codex/journeys-ui | 13 | Smooth replay: interpolated marker on a frame ticker, played line over a faded route, map layers split out |

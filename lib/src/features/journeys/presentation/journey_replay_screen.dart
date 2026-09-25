@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_key_moments.dart';
 import '../application/journey_views.dart';
@@ -11,6 +10,7 @@ import '../domain/journey_point.dart';
 import '../domain/journey_replay.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
+import 'journey_moment_row.dart';
 import 'journey_replay_controls.dart';
 import 'journey_route_map.dart';
 
@@ -19,9 +19,16 @@ import 'journey_route_map.dart';
 /// Replay pauses by itself at key moments (recording breaks, long stops,
 /// county crossings, saved places passed); play continues.
 class JourneyReplayScreen extends ConsumerWidget {
-  const JourneyReplayScreen({super.key, required this.journeyId});
+  const JourneyReplayScreen({
+    super.key,
+    required this.journeyId,
+    this.onOpenPlace,
+  });
 
   final String journeyId;
+
+  /// Opens Place Detail from a place moment (null without Supabase).
+  final OpenJourneyPlace? onOpenPlace;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,6 +48,7 @@ class JourneyReplayScreen extends ConsumerWidget {
                     summary: value!.summary,
                     route: route,
                     moments: moments ?? const [],
+                    onOpenPlace: onOpenPlace,
                   )
                 : Center(
                     child: switch (detail) {
@@ -63,22 +71,11 @@ class JourneyReplayScreen extends ConsumerWidget {
                     },
                   ),
           ),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: IconButton.filled(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  tooltip: 'Close replay',
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.foreground,
-                  ),
-                  icon: const Icon(Icons.close),
-                ),
-              ),
-            ),
+          JourneyMapButton(
+            alignment: Alignment.topLeft,
+            onPressed: () => Navigator.of(context).maybePop(),
+            tooltip: 'Close replay',
+            icon: Icons.close,
           ),
         ],
       ),
@@ -91,11 +88,13 @@ class _Player extends StatefulWidget {
     required this.summary,
     required this.route,
     required this.moments,
+    this.onOpenPlace,
   });
 
   final JourneySummary summary;
   final JourneyRoute route;
   final List<JourneyMoment> moments;
+  final OpenJourneyPlace? onOpenPlace;
 
   @override
   State<_Player> createState() => _PlayerState();
@@ -142,9 +141,16 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  /// A pin per moment point on the route; places pinned where they are.
   List<JourneyLatLng> _pinsFor(List<JourneyMoment> moments) => [
-    for (final index in {for (final m in moments) m.index})
+    for (final index in {
+      for (final m in moments)
+        if (!m.isPlace) m.index,
+    })
       if (index <= _track.lastIndex) _at(_track.points[index]),
+    for (final m in moments)
+      if (m.place case final place?)
+        (latitude: place.latitude, longitude: place.longitude),
   ];
 
   void _onTick(Duration elapsed) {
@@ -230,22 +236,11 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
           ),
         ),
         if (_active)
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: IconButton.filled(
-                  onPressed: _showWholeRoute,
-                  tooltip: 'Show whole route',
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.foreground,
-                  ),
-                  icon: const Icon(Icons.zoom_out_map),
-                ),
-              ),
-            ),
+          JourneyMapButton(
+            alignment: Alignment.topRight,
+            onPressed: _showWholeRoute,
+            tooltip: 'Show whole route',
+            icon: Icons.zoom_out_map,
           ),
         Align(
           alignment: Alignment.bottomCenter,
@@ -268,6 +263,7 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
               onTogglePlay: _togglePlay,
               onScrub: _scrub,
               onSpeed: (speed) => setState(() => _speed = speed),
+              onOpenPlace: widget.onOpenPlace,
             ),
           ),
         ),

@@ -148,24 +148,42 @@ class SupabaseJourneyRepository {
   Future<void> delete(String journeyId) =>
       _client.from('journeys').delete().eq('id', journeyId).timeout(_timeout);
 
-  /// [userId]'s saved places with coordinates, for replay moments.
-  Future<List<JourneyPlaceMark>> savedPlaces(String userId) async {
-    final rows = await _client
-        .from('wishlist_items')
-        .select('places(name, lat, lng)')
-        .eq('user_id', userId)
-        .timeout(_timeout);
+  /// Every place with coordinates, marked saved when on [userId]'s list,
+  /// for the places near a replayed route.
+  Future<List<JourneyPlaceMark>> places(String userId) async {
+    final results = await Future.wait([
+      readAllPages(
+        (from, to) => _client
+            .from('places')
+            .select('id, county_id, name, lat, lng')
+            .not('lat', 'is', null)
+            .order('id', ascending: true)
+            .range(from, to)
+            .timeout(_timeout),
+      ),
+      _client
+          .from('wishlist_items')
+          .select('place_id')
+          .eq('user_id', userId)
+          .timeout(_timeout),
+    ]);
+    final saved = {for (final row in results[1]) row['place_id']};
     return [
-      for (final row in rows)
-        if (row['places'] case {
+      for (final row in results[0])
+        if (row case {
+          'id': final String id,
+          'county_id': final int county,
           'name': final String name,
           'lat': final num lat,
           'lng': final num lng,
         })
           JourneyPlaceMark(
+            id: id,
+            countyCode: county,
             name: name,
             latitude: lat.toDouble(),
             longitude: lng.toDouble(),
+            saved: saved.contains(id),
           ),
     ];
   }

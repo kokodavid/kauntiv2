@@ -60,17 +60,30 @@ void main() {
     expect(moments.single.name, 'Kiambu');
   });
 
-  test('a saved place is passed once, at the closest point', () {
+  test('places within 10 km show once, at the closest point', () {
+    JourneyPlaceMark place(String name, double lat, {bool saved = false}) =>
+        JourneyPlaceMark(
+          id: name,
+          countyCode: 47,
+          name: name,
+          latitude: lat,
+          longitude: 36.82,
+          saved: saved,
+        );
     final moments = JourneyMoments.find(
       [_p(0, -1.30), _p(1, -1.29), _p(2, -1.28), _p(3, -1.27)],
-      places: const [
-        JourneyPlaceMark(name: 'Near', latitude: -1.2805, longitude: 36.82),
-        JourneyPlaceMark(name: 'Far', latitude: -1.20, longitude: 36.82),
+      places: [
+        place('Near', -1.2805, saved: true), // ~55 m from point 2
+        place('Nearby', -1.20), // ~7.8 km past the last point
+        place('Far', -1.10), // ~19 km: too far
       ],
     );
-    expect(moments, hasLength(1));
-    expect(moments.single.name, 'Near');
-    expect(moments.single.index, 2);
+    expect(moments.map((m) => m.name), ['Near', 'Nearby']);
+    expect(moments.first.kind, JourneyMomentKind.savedPlace);
+    expect(moments.first.index, 2);
+    expect(moments.first.distanceMeters, closeTo(56, 5));
+    expect(moments.last.kind, JourneyMomentKind.nearbyPlace);
+    expect(moments.last.index, 3);
   });
 
   test('the next stop is strictly after the position', () {

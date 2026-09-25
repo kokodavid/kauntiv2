@@ -16,19 +16,20 @@ part 'journey_key_moments.g.dart';
 
 const _logger = AppLogger.journeys();
 
-/// The signed-in user's saved places, for spotting them along a replay.
-/// Empty offline or without Supabase: the other moments still work.
+/// Kaunti47 places (with the user's saved ones marked), for spotting
+/// those near a replayed route. Empty offline or without Supabase: the
+/// other moments still work.
 @riverpod
-Future<List<JourneyPlaceMark>> journeySavedPlaces(Ref ref) async {
+Future<List<JourneyPlaceMark>> journeyPlaces(Ref ref) async {
   ref.watch(authUserIdProvider);
   final userId = ref.watch(currentUserIdProvider)();
   final cloud = ref.watch(supabaseJourneyRepositoryProvider);
   if (userId == null || cloud == null) return const [];
   try {
-    return await cloud.savedPlaces(userId);
+    return await cloud.places(userId);
   } on Object catch (error, stackTrace) {
     _logger.warning(
-      'Saved places unavailable for replay moments.',
+      'Places unavailable for replay moments.',
       error: error,
       stackTrace: stackTrace,
     );
@@ -38,11 +39,11 @@ Future<List<JourneyPlaceMark>> journeySavedPlaces(Ref ref) async {
 
 /// A Journey's key moments, in replay order: recording breaks, long stops,
 /// county crossings (from the bundled boundaries, so offline too) and
-/// saved places passed.
+/// places within 10 km.
 @riverpod
 Future<List<JourneyMoment>> journeyMoments(Ref ref, String id) async {
   final detail = await ref.watch(journeyDetailProvider(id).future);
-  final places = await ref.watch(journeySavedPlacesProvider.future);
+  final places = await ref.watch(journeyPlacesProvider.future);
   final points = JourneyReplayTrack(detail.route).points;
   // County lookups over a long route are real work: keep it off the UI.
   return Isolate.run(() => _findMoments(points, places));

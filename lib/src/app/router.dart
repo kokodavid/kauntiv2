@@ -81,8 +81,10 @@ GoRouter appRouter(Ref ref) {
       if (AppFeatureFlags.journeys)
         GoRoute(
           path: '/journey/:id',
-          builder: (context, state) =>
-              JourneyReplayScreen(journeyId: state.pathParameters['id']!),
+          builder: (context, state) => JourneyReplayScreen(
+            journeyId: state.pathParameters['id']!,
+            onOpenPlace: DetailRoutes.openPlace,
+          ),
         ),
       GoRoute(
         path: '/county/:code',

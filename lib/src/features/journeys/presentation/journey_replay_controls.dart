@@ -6,6 +6,7 @@ import '../domain/journey_moments.dart';
 import '../domain/journey_replay.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
+import 'journey_moment_row.dart';
 
 /// The card floating over the full-screen map: the Journey's title and
 /// facts, the key moment replay stopped at (if any), play / pause, the
@@ -25,6 +26,7 @@ class JourneyReplayControls extends StatelessWidget {
     required this.onTogglePlay,
     required this.onScrub,
     required this.onSpeed,
+    this.onOpenPlace,
   });
 
   final JourneySummary summary;
@@ -45,6 +47,9 @@ class JourneyReplayControls extends StatelessWidget {
   final VoidCallback onTogglePlay;
   final ValueChanged<double> onScrub;
   final ValueChanged<JourneyReplaySpeed> onSpeed;
+
+  /// Opens Place Detail from a place moment; null leaves rows untappable.
+  final OpenJourneyPlace? onOpenPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -68,8 +73,23 @@ class JourneyReplayControls extends StatelessWidget {
           children: [
             _SummaryHeader(summary: summary, distanceMeters: distanceMeters),
             const Divider(height: 16),
-            for (final moment in moments)
-              _MomentRow(moment: moment, time: momentTime),
+            if (moments.isNotEmpty)
+              // Several places can share one point: scroll, don't grow.
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 176),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      for (final moment in moments)
+                        JourneyMomentRow(
+                          moment: moment,
+                          time: momentTime,
+                          onOpenPlace: onOpenPlace,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             if (moments.isNotEmpty) const Divider(height: 16),
             Row(
               children: [
@@ -123,76 +143,6 @@ class JourneyReplayControls extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _MomentRow extends StatelessWidget {
-  const _MomentRow({required this.moment, required this.time});
-
-  final JourneyMoment moment;
-  final DateTime? time;
-
-  @override
-  Widget build(BuildContext context) {
-    final (icon, title, detail) = _describe(moment);
-    final at = time == null
-        ? null
-        : TimeOfDay.fromDateTime(time!.toLocal()).format(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: AppColors.lockedFill,
-            foregroundColor: AppColors.accent,
-            child: Icon(icon, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppTypeScale.itemTitle),
-                Text(
-                  at == null ? detail : '$at · $detail',
-                  style: AppTypeScale.small.copyWith(
-                    color: AppColors.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static (IconData, String, String) _describe(JourneyMoment moment) {
-    final duration = moment.duration;
-    final took = duration == null ? null : JourneyFormat.duration(duration);
-    return switch (moment.kind) {
-      JourneyMomentKind.recordingBreak => (
-        Icons.pause_circle_outline,
-        'Recording paused',
-        took == null ? 'Picked up again later' : 'Picked up again $took later',
-      ),
-      JourneyMomentKind.longStop => (
-        Icons.schedule,
-        took == null ? 'A long stop' : 'Stopped for $took',
-        'Long stop',
-      ),
-      JourneyMomentKind.countyCrossing => (
-        Icons.flag_outlined,
-        'Entered ${moment.name ?? 'a new county'}',
-        'County crossing',
-      ),
-      JourneyMomentKind.savedPlace => (
-        Icons.bookmark_outline,
-        'Passed ${moment.name ?? 'a saved place'}',
-        'A place you saved',
-      ),
-    };
   }
 }
 
@@ -259,6 +209,43 @@ class JourneyReplayMessage extends StatelessWidget {
           if (onRetry != null)
             TextButton(onPressed: onRetry, child: const Text('Try again')),
         ],
+      ),
+    );
+  }
+}
+
+/// A round white button floating in a corner of the full-screen map.
+class JourneyMapButton extends StatelessWidget {
+  const JourneyMapButton({
+    super.key,
+    required this.alignment,
+    required this.onPressed,
+    required this.tooltip,
+    required this.icon,
+  });
+
+  final Alignment alignment;
+  final VoidCallback onPressed;
+  final String tooltip;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Align(
+        alignment: alignment,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: IconButton.filled(
+            onPressed: onPressed,
+            tooltip: tooltip,
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.foreground,
+            ),
+            icon: Icon(icon),
+          ),
+        ),
       ),
     );
   }

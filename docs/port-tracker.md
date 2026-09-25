@@ -21,6 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-foundation | [Plan](journeys-plan.md). Private cloud schema and recording domain started; native recording, entitlements, sync and UI pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -274,12 +275,29 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   (v1 parity).
 - Map Home still loads through a plain loader.
 
+## Journeys (13)
+
+**Built in the foundation slice**
+
+- Private `journeys` and `journey_points` schema for completed route history;
+  owner-only reads/deletion and no direct authenticated writes until the
+  entitlement-checked upload path exists.
+- Pure recording states and validated route points in
+  `features/journeys/domain`, with focused transition tests.
+
+**Pending**
+
+- Native locked-screen recording, durable local store, Pro entitlement and
+  cloud upload, Journey tab/history/replay, privacy copy and device checks.
+- Subcounty tracking follows Journeys in a later feature.
+
 ## Progress log
 
 Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-25 | codex/journeys-foundation | 13 | Private Journey schema, recording domain and phased implementation plan |
 | 2026-09-25 | codex/go-router | 2, 3 | go_router: start-up redirects on `StartupFlow`, tab shell route, detail routes; sign-in on Riverpod; baseline 49 → 28 |
 | 2026-09-24 | `8437820` | 3, 5, 6 | Merge #3: Explore tab, county detection (slices 1-7), arrival and map place sheets |
 | 2026-09-24 | `40e4f22` | 5 | Detection: arrival sheet ("You've crossed into X"), once per crossing, never the home county |

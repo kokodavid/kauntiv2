@@ -11,6 +11,10 @@ part of 'journey_recorder.dart';
 /// The active Journey for the signed-in account: Pro-gated start, pause,
 /// resume and finish, and recovery after a restart. Finishing queues the
 /// upload. No UI calls this yet (Journeys step 4).
+///
+/// Bound to one account: when the signed-in account changes, a recording
+/// Journey is paused for its owner and let go, so the next account never
+/// sees or continues it.
 
 @ProviderFor(JourneyRecorder)
 const journeyRecorderProvider = JourneyRecorderProvider._();
@@ -18,11 +22,19 @@ const journeyRecorderProvider = JourneyRecorderProvider._();
 /// The active Journey for the signed-in account: Pro-gated start, pause,
 /// resume and finish, and recovery after a restart. Finishing queues the
 /// upload. No UI calls this yet (Journeys step 4).
+///
+/// Bound to one account: when the signed-in account changes, a recording
+/// Journey is paused for its owner and let go, so the next account never
+/// sees or continues it.
 final class JourneyRecorderProvider
     extends $NotifierProvider<JourneyRecorder, LocalJourneySession?> {
   /// The active Journey for the signed-in account: Pro-gated start, pause,
   /// resume and finish, and recovery after a restart. Finishing queues the
   /// upload. No UI calls this yet (Journeys step 4).
+  ///
+  /// Bound to one account: when the signed-in account changes, a recording
+  /// Journey is paused for its owner and let go, so the next account never
+  /// sees or continues it.
   const JourneyRecorderProvider._()
     : super(
         from: null,
@@ -50,11 +62,15 @@ final class JourneyRecorderProvider
   }
 }
 
-String _$journeyRecorderHash() => r'36f0d56c8c8d000f45f6b87165b16cb157ca6ac5';
+String _$journeyRecorderHash() => r'd926412816cd56c611eaf566cf6161f527de56c3';
 
 /// The active Journey for the signed-in account: Pro-gated start, pause,
 /// resume and finish, and recovery after a restart. Finishing queues the
 /// upload. No UI calls this yet (Journeys step 4).
+///
+/// Bound to one account: when the signed-in account changes, a recording
+/// Journey is paused for its owner and let go, so the next account never
+/// sees or continues it.
 
 abstract class _$JourneyRecorder extends $Notifier<LocalJourneySession?> {
   LocalJourneySession? build();

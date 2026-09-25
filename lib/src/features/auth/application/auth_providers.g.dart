@@ -114,3 +114,47 @@ final class CurrentUserIdProvider
 }
 
 String _$currentUserIdHash() => r'00d63cd86d158009cba163b5cbeaf5a6dd1f56de';
+
+/// The signed-in user's id as it changes (sign-in, sign-out, a different
+/// account, session loss). Emits the current id first. Null without
+/// Supabase.
+
+@ProviderFor(authUserId)
+const authUserIdProvider = AuthUserIdProvider._();
+
+/// The signed-in user's id as it changes (sign-in, sign-out, a different
+/// account, session loss). Emits the current id first. Null without
+/// Supabase.
+
+final class AuthUserIdProvider
+    extends $FunctionalProvider<AsyncValue<String?>, String?, Stream<String?>>
+    with $FutureModifier<String?>, $StreamProvider<String?> {
+  /// The signed-in user's id as it changes (sign-in, sign-out, a different
+  /// account, session loss). Emits the current id first. Null without
+  /// Supabase.
+  const AuthUserIdProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authUserIdProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authUserIdHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<String?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<String?> create(Ref ref) {
+    return authUserId(ref);
+  }
+}
+
+String _$authUserIdHash() => r'170c15b0d7c2490a908968276f4044fca70e3b65';

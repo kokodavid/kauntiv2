@@ -200,9 +200,9 @@ void main() {
     expect(c.read(journeyRecorderProvider), isNull);
     expect(source.started, isFalse);
     // Saved, paused, for alice to resume later.
-    final saved = await c.read(localJourneyRepositoryProvider).activeSession(
-      'alice',
-    );
+    final saved = await c
+        .read(localJourneyRepositoryProvider)
+        .activeSession('alice');
     expect(saved?.recording.phase, JourneyRecordingPhase.paused);
   });
 }

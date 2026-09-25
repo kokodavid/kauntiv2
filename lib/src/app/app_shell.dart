@@ -49,24 +49,24 @@ class AppShell extends ConsumerWidget {
       onOpenPlace: DetailRoutes.openPlace,
       child: JourneySyncLifecycle(
         child: Scaffold(
-        backgroundColor: AppColors.pageBackground,
-        // A Stack, not a Column: the glass nav needs the active tab's
-        // content underneath it to float over and blur.
-        body: Stack(
-          children: [
-            Positioned.fill(child: navigationShell),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: AppBottomNav(
-                selected: AppRoutes.tabs[navigationShell.currentIndex],
-                onSelect: (tab) => _select(context, tab),
+          backgroundColor: AppColors.pageBackground,
+          // A Stack, not a Column: the glass nav needs the active tab's
+          // content underneath it to float over and blur.
+          body: Stack(
+            children: [
+              Positioned.fill(child: navigationShell),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: AppBottomNav(
+                  selected: AppRoutes.tabs[navigationShell.currentIndex],
+                  onSelect: (tab) => _select(context, tab),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

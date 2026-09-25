@@ -132,22 +132,26 @@ void main() {
     },
   );
 
-  test('an account switch mid-upload stops the drain, blaming nothing', () async {
-    await completed('a');
-    await completed('b', offsetMinutes: 10);
-    // The account changes while "a" is uploading; the server refuses it.
-    onUpload = (_) => user = 'bob';
-    failWith = (_) => const PostgrestException(message: 'owner', code: '42501');
-    final q = queue();
-    final now = t0.add(const Duration(hours: 1));
+  test(
+    'an account switch mid-upload stops the drain, blaming nothing',
+    () async {
+      await completed('a');
+      await completed('b', offsetMinutes: 10);
+      // The account changes while "a" is uploading; the server refuses it.
+      onUpload = (_) => user = 'bob';
+      failWith = (_) =>
+          const PostgrestException(message: 'owner', code: '42501');
+      final q = queue();
+      final now = t0.add(const Duration(hours: 1));
 
-    expect(await q.drain(now: now), 0);
-    // Nothing was marked as failed: both are due again for alice.
-    user = 'alice';
-    onUpload = (_) {};
-    failWith = (_) => null;
-    expect(await q.drain(now: now), 2);
-  });
+      expect(await q.drain(now: now), 0);
+      // Nothing was marked as failed: both are due again for alice.
+      user = 'alice';
+      onUpload = (_) {};
+      failWith = (_) => null;
+      expect(await q.drain(now: now), 2);
+    },
+  );
 
   test('an account switch after an upload stops before the next', () async {
     await completed('a');

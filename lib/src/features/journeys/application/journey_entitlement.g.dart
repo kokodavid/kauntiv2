@@ -8,24 +8,24 @@ part of 'journey_entitlement.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Pro for starting a Journey. The server is asked first; its answer is
-/// cached so a start also works offline for up to
-/// [ProStatus.maxCacheAge]. This only gates the Start button: the upload
-/// re-checks Pro on the server, so a stale cache can't earn a cloud write.
+/// Pro for starting a Journey, checked live on the server every time. No
+/// cached status can start one: a Journey started on a stale "Pro" would
+/// be refused at upload and stranded on the phone. The upload re-checks
+/// Pro at the start time on the server as well.
 
 @ProviderFor(JourneyEntitlement)
 const journeyEntitlementProvider = JourneyEntitlementProvider._();
 
-/// Pro for starting a Journey. The server is asked first; its answer is
-/// cached so a start also works offline for up to
-/// [ProStatus.maxCacheAge]. This only gates the Start button: the upload
-/// re-checks Pro on the server, so a stale cache can't earn a cloud write.
+/// Pro for starting a Journey, checked live on the server every time. No
+/// cached status can start one: a Journey started on a stale "Pro" would
+/// be refused at upload and stranded on the phone. The upload re-checks
+/// Pro at the start time on the server as well.
 final class JourneyEntitlementProvider
     extends $NotifierProvider<JourneyEntitlement, ProStatus?> {
-  /// Pro for starting a Journey. The server is asked first; its answer is
-  /// cached so a start also works offline for up to
-  /// [ProStatus.maxCacheAge]. This only gates the Start button: the upload
-  /// re-checks Pro on the server, so a stale cache can't earn a cloud write.
+  /// Pro for starting a Journey, checked live on the server every time. No
+  /// cached status can start one: a Journey started on a stale "Pro" would
+  /// be refused at upload and stranded on the phone. The upload re-checks
+  /// Pro at the start time on the server as well.
   const JourneyEntitlementProvider._()
     : super(
         from: null,
@@ -54,12 +54,12 @@ final class JourneyEntitlementProvider
 }
 
 String _$journeyEntitlementHash() =>
-    r'dac62c1f1f8eb5b0ad20f4d7ca851885b972c050';
+    r'0f0bce52c8d7b2bd795db8721c873e11afe219f5';
 
-/// Pro for starting a Journey. The server is asked first; its answer is
-/// cached so a start also works offline for up to
-/// [ProStatus.maxCacheAge]. This only gates the Start button: the upload
-/// re-checks Pro on the server, so a stale cache can't earn a cloud write.
+/// Pro for starting a Journey, checked live on the server every time. No
+/// cached status can start one: a Journey started on a stale "Pro" would
+/// be refused at upload and stranded on the phone. The upload re-checks
+/// Pro at the start time on the server as well.
 
 abstract class _$JourneyEntitlement extends $Notifier<ProStatus?> {
   ProStatus? build();

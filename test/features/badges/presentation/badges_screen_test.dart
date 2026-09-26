@@ -31,16 +31,35 @@ void main() {
     );
     await tester.pump();
 
+    await tester.pump(); // the slider measures its first card
+
+    expect(find.text('Collection'), findsOneWidget);
     expect(find.text('Badges'), findsOneWidget);
-    expect(find.text('Msafiri'), findsOneWidget);
-    expect(find.text('13 more counties to Mzururaji'), findsOneWidget);
+    expect(find.text('Msafiri'), findsOneWidget); // header pill
     expect(find.text('12'), findsOneWidget);
     expect(find.text('of 47 counties claimed'), findsOneWidget);
     expect(find.text('25% OF KENYA'), findsOneWidget);
     expect(find.text('35 LEFT'), findsOneWidget);
     expect(find.text('ALL 47 COUNTIES'), findsOneWidget);
 
+    // Swipe the slider to the tiers card.
+    await tester.drag(find.byType(PageView), const Offset(-600, 0));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Next: Mzururaji'), findsOneWidget);
+
+    // Its footer expands the progress to the next medal.
+    await tester.tap(find.text('Next: Mzururaji'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('12 of 25 counties'), findsOneWidget);
+    expect(find.text('Earned'), findsOneWidget);
+    expect(find.text('13 to go'), findsNWidgets(2));
+    expect(find.text('35 more'), findsOneWidget);
+
     // Tapping a badge opens its sheet (details load from the provider).
+    await tester.ensureVisible(find.byType(BadgeGridCell).first);
+    await tester.pump();
     await tester.tap(find.byType(BadgeGridCell).first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));

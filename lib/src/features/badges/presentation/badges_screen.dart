@@ -11,10 +11,12 @@ import '../domain/badge_collection.dart';
 import 'badge_detail_sheet.dart';
 import 'badge_grid_cell.dart';
 import 'badges_hero_card.dart';
+import 'badges_medals_card.dart';
+import 'badges_summary_slider.dart';
 
-/// The Badges tab (Figma 491:1394): title and the medal once earned, how
-/// many of the 47 counties are claimed, and the collection of every
-/// county's badge with its depth ring. Tapping a badge opens its sheet.
+/// The Badges tab (Figma 491:1394), titled "Collection": the medal once
+/// earned, a slider of counties claimed and the tiers, and every county's
+/// badge with its depth ring. Tapping a badge opens its sheet.
 class BadgesScreen extends ConsumerWidget {
   const BadgesScreen({super.key, this.onOpenCounty, this.onOpenPlace});
 
@@ -69,18 +71,25 @@ class _Content extends StatelessWidget {
             children: [
               _Header(tier: collection.tier),
               const SizedBox(height: 14),
-              BadgesHeroCard(collection: collection),
+              BadgesSummarySlider(
+                pages: [
+                  BadgesHeroCard(collection: collection),
+                  BadgesMedalsCard(claimed: collection.claimed),
+                ],
+              ),
               const SizedBox(height: 20),
-              Text(
-                'ALL ${collection.total} COUNTIES',
-                style: const TextStyle(
+              _Eyebrow('ALL ${collection.total} COUNTIES'),
+              const Text('Badges', style: AppTextStyles.headingForeground),
+              const SizedBox(height: 2),
+              const Text(
+                'Tap a badge to see your insights for that county.',
+                style: TextStyle(
                   fontFamily: AppTypeScale.family,
-                  fontSize: 12,
-                  height: 20 / 12,
-                  color: AppColors.accent,
+                  fontSize: 13,
+                  height: 20 / 13,
+                  color: AppColors.mutedForeground,
                 ),
               ),
-              const Text('Collection', style: AppTextStyles.headingForeground),
               const SizedBox(height: 16),
             ],
           ),
@@ -115,6 +124,25 @@ class _Content extends StatelessWidget {
   }
 }
 
+class _Eyebrow extends StatelessWidget {
+  const _Eyebrow(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontFamily: AppTypeScale.family,
+        fontSize: 12,
+        height: 20 / 12,
+        color: AppColors.accent,
+      ),
+    );
+  }
+}
+
 class _Header extends StatelessWidget {
   const _Header({required this.tier});
 
@@ -127,7 +155,7 @@ class _Header extends StatelessWidget {
     return Row(
       children: [
         const Expanded(
-          child: Text('Badges', style: AppTextStyles.headingForeground),
+          child: Text('Collection', style: AppTextStyles.headingForeground),
         ),
         if (tier != null) AppTierPill(tier: tier),
       ],

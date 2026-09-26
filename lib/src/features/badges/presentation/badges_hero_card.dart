@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
-import '../../../core/domain/county_tier.dart';
 import '../../../design/app_colors.dart';
 import '../domain/badge_collection.dart';
 
@@ -22,28 +21,10 @@ class BadgesHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppColors.lockedFill),
-        gradient: const RadialGradient(
-          radius: 1.2,
-          colors: [Colors.white, Colors.white, Color(0x99FFFFFF)],
-          stops: [0, 0.68, 1],
-        ),
-      ),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(13, 14, 13, 13),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(27),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFE6F3FF), Color(0x14DBEEFF)],
-          ),
-        ),
-        child: Column(
+    return BadgesCardShell(
+      padding: const EdgeInsets.fromLTRB(13, 14, 13, 13),
+      child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
@@ -86,28 +67,49 @@ class BadgesHeroCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (collection.nextTier case final next?)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
-                child: Text(
-                  _nextLine(collection.claimed, next),
-                  style: _muted.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.accent,
-                  ),
-                ),
-              ),
           ],
         ),
-      ),
     );
   }
 }
 
-/// "3 more counties to Msafiri" (the next medal).
-String _nextLine(int claimed, CountyTier next) {
-  final more = next.counties - claimed;
-  return '$more more ${more == 1 ? 'county' : 'counties'} to ${next.label}';
+/// The pale blue card the top of the Badges tab uses (Figma 491:2499):
+/// a white rim around a blue-to-clear fill.
+class BadgesCardShell extends StatelessWidget {
+  const BadgesCardShell({super.key, required this.child, this.padding});
+
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppColors.lockedFill),
+        gradient: const RadialGradient(
+          radius: 1.2,
+          colors: [Colors.white, Colors.white, Color(0x99FFFFFF)],
+          stops: [0, 0.68, 1],
+        ),
+      ),
+      child: Container(
+        padding: padding,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(27),
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFE6F3FF), Color(0x14DBEEFF)],
+          ),
+        ),
+        // Transparent so taps inside show their ink over the fill.
+        child: Material(type: MaterialType.transparency, child: child),
+      ),
+    );
+  }
 }
 
 /// One thin bar per county: claimed ones 20 px and blue, the rest 13 px

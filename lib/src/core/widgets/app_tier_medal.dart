@@ -4,8 +4,7 @@ import '../../design/app_colors.dart';
 import '../design/app_type_scale.dart';
 import '../domain/county_tier.dart';
 
-/// A tier's medal artwork (silver, bronze, gold; `assets/images/Tier N.png`,
-/// 90 x 107).
+/// A tier's medal artwork (bronze 10, silver 25, gold 47; 90 x 107).
 class AppTierMedal extends StatelessWidget {
   const AppTierMedal({super.key, required this.tier, this.height = 24});
 
@@ -15,7 +14,7 @@ class AppTierMedal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Image.asset(
-      'assets/images/Tier ${tier.number}.png',
+      tier.asset,
       height: height,
       width: height * 90 / 107,
       fit: BoxFit.contain,

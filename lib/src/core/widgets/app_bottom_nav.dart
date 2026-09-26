@@ -25,7 +25,8 @@ class AppBottomNav extends StatelessWidget {
       icon: Icons.workspace_premium_outlined,
       label: 'Badges',
     ),
-    (tab: AppNavTab.ranks, icon: Icons.bar_chart_rounded, label: 'Ranks'),
+    if (AppFeatureFlags.ranks)
+      (tab: AppNavTab.ranks, icon: Icons.bar_chart_rounded, label: 'Ranks'),
     (tab: AppNavTab.explore, icon: Icons.travel_explore, label: 'Explore'),
     if (AppFeatureFlags.journeys)
       (tab: AppNavTab.journeys, icon: Icons.route_rounded, label: 'Journeys'),

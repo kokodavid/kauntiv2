@@ -21,12 +21,17 @@ Port of v1's Badges tab to v2, on the new design:
   leaderboard season start for "since reset"; depth changes computed from
   `county_visit_events` for the activity card.
 - **Tier medals:** three tiers (`core/domain/county_tier.dart`): Msafiri
-  at 10 counties, Mzururaji at 25, Mkenya Halisi at all 47, with the
-  medal artwork in `assets/images/Tier 1-3.png`. The old 1-county tier is
-  gone. The medal pill (`AppTierPill`) shows on the Badges header and the
-  Home top bar only once a tier is earned; before that Home shows just
-  the avatar. The Badges hero card says how many counties to the next
-  medal ("3 more counties to Msafiri").
+  at 10 counties (bronze, `Tier 2.png`), Mzururaji at 25 (silver,
+  `Tier 1.png`), Mkenya Halisi at all 47 (gold, `Tier 3.png`). The old
+  1-county tier is gone. The medal pill (`AppTierPill`) shows on the
+  Badges header and the Home top bar only once a tier is earned. The
+  Badges tab is titled "Collection"; its top is a slider
+  (`BadgesSummarySlider`, dots below, height follows the card in view) of
+  the counties-claimed card and a tiers card. The tiers card shows the three medals side by side in full
+  colour with just their names; its footer ("Next: <medal>") expands the
+  progress bar to the next medal, each medal's counties and status
+  (Earned / "N to go" / "N more" with a lock), and how a county is claimed (about 2 hours in it;
+  passing through doesn't count).
 
 ## Steps
 

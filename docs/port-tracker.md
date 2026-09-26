@@ -17,7 +17,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | In progress | codex/badges | [Plan](badges-port-plan.md). Step 1: Badges tab on the new design (Figma 491:1394, star-less badge 277:19839): title + tier pill, claimed hero with 47-segment bar, collection grid with depth rings (county_visits + county_depth_ranks). "Since reset", the activity card, avatar and saved-data time wait on product rules. |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |
-| 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | |
+| 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | Tab hidden from the bottom nav until ported (`AppFeatureFlags.ranks`, `--dart-define=RANKS_ENABLED=true` to show it). |
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
@@ -359,6 +359,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-26 | codex/journey-place-handoff | 3, 7 | Badges tab titled Collection: slider of claimed + Tiers card (medals, expandable progress to the next), 'Badges' grid with tap hint; medal art mapped to the right tier; Ranks tab hidden behind `RANKS_ENABLED` |
 | 2026-09-26 | codex/journey-place-handoff | 13 | Place Detail, Home pin and promoted-place Route choice; background Journey start before external directions, durable destination snapshot and private upload migration; device validation and migration deployment pending |
 | 2026-09-26 | codex/badges | 7, 13 | Badge sheet: 'Your time in <county>' (visits, months, last visit, Journeys + km) replaces the place cards; Journeys record the counties they cross (`journey_counties`, `upload_journey` p_counties) |
 | 2026-09-26 | codex/badges | 7 | Badge sheet: earned date, next-depth progress, saved places / county coverage, share card (share_plus), how-to-earn + places for locked; `county_badge_detail` RPC |

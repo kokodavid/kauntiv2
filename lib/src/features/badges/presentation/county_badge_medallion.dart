@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../counties/county_paths.dart';
 import '../../../widgets/app_county_shape.dart';
+import '../../../widgets/app_svg_path.dart';
 
 /// A county badge (Figma "Badge", no stars): a glossy disc with the county
 /// name across the top and its silhouette in white. Blue once earned,
@@ -75,34 +76,85 @@ class CountyBadgeMedallion extends StatelessWidget {
 }
 
 extension on CountyBadgeMedallion {
+  /// The reverse: Kenya's map with this county picked out in white, and
+  /// the Kaunti47 mark under it.
   Widget _back(double unit) => SizedBox.square(
     dimension: size,
     child: Stack(
-      alignment: Alignment.center,
       children: [
         Positioned.fill(
           child: CustomPaint(painter: _DiscPainter(earned: earned)),
         ),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.star_rounded, color: Colors.white, size: 16 * unit),
-            SizedBox(height: 2 * unit),
-            Text(
-              'KAUNTI47',
-              style: TextStyle(
-                fontFamily: AppTypeScale.family,
-                fontWeight: FontWeight.w600,
-                fontSize: 9 * unit,
-                letterSpacing: 1.2 * unit,
-                color: Colors.white,
-              ),
+        Positioned(
+          left: 18 * unit,
+          right: 18 * unit,
+          top: 12 * unit,
+          bottom: 20 * unit,
+          child: CustomPaint(painter: _KenyaPainter(county.code)),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 10 * unit,
+          child: Text(
+            'KAUNTI47',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: AppTypeScale.family,
+              fontWeight: FontWeight.w600,
+              fontSize: 6 * unit,
+              letterSpacing: 1 * unit,
+              color: Colors.white,
             ),
-          ],
+          ),
         ),
       ],
     ),
   );
+}
+
+/// All 47 counties, faint, with [highlight] solid: the country outline
+/// on the coin's back. Paths are parsed once and reused every frame.
+class _KenyaPainter extends CustomPainter {
+  const _KenyaPainter(this.highlight);
+
+  final int highlight;
+
+  static final Map<int, Path> _paths = {
+    for (final county in CountyPaths.all)
+      county.code: AppSvgPath.parse(county.pathData),
+  };
+  static final Rect _bounds = _paths.values
+      .map((path) => path.getBounds())
+      .reduce((a, b) => a.expandToInclude(b));
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = math.min(
+      size.width / _bounds.width,
+      size.height / _bounds.height,
+    );
+    canvas.save();
+    canvas.translate(
+      (size.width - _bounds.width * scale) / 2,
+      (size.height - _bounds.height * scale) / 2,
+    );
+    canvas.scale(scale);
+    canvas.translate(-_bounds.left, -_bounds.top);
+    final faint = Paint()..color = Colors.white.withValues(alpha: 0.35);
+    for (final MapEntry(key: code, value: path) in _paths.entries) {
+      if (code != highlight) canvas.drawPath(path, faint);
+    }
+    final picked = _paths[highlight];
+    if (picked != null) {
+      canvas.drawPath(picked, Paint()..color = Colors.white);
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_KenyaPainter oldDelegate) =>
+      oldDelegate.highlight != highlight;
 }
 
 /// The disc: a rim (lit from above) round an inner face with a soft light

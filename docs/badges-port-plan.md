@@ -57,7 +57,7 @@ Port of v1's Badges tab to v2, on the new design:
    vertical axis, easing out, slight lift) and lands on its front the
    first time the account opens that badge on this phone
    (`BadgeSpinHistory`, shared_preferences); tapping it spins it again;
-   the back is the disc with the Kaunti47 mark; locked badges don't spin;
+   the back is Kenya's map with the county picked out in white and the Kaunti47 mark; locked badges don't spin;
    reduced motion is respected; Share waits until it lands.
    Next: the unlock celebration + share prompt, a collection share card,
    filter chips and regional goals.

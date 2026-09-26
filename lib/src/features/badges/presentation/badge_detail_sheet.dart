@@ -17,7 +17,7 @@ typedef OpenBadgeCounty = void Function(BuildContext context, int countyCode);
 typedef OpenBadgePlace = void Function(BuildContext context, String placeId);
 
 /// A badge up close: the badge card, when it was earned and what the next
-/// depth needs, saved places visited and county coverage, Share (earned)
+/// depth needs, your visits / last visit / Journeys there, Share (earned)
 /// and View county. A county not yet earned shows how to earn it and
 /// places to start with.
 class BadgeDetailSheet extends ConsumerStatefulWidget {
@@ -150,7 +150,10 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
                   if (badge.isEarned) ...[
                     BadgeProgressSection(badge: badge, detail: value),
                     const SizedBox(height: 12),
-                    BadgeCoverageSection(detail: value),
+                    BadgeTimeSection(
+                      countyName: badge.county.name,
+                      detail: value,
+                    ),
                   ] else
                     BadgeHowToEarnSection(
                       badge: badge,

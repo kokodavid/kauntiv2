@@ -64,15 +64,17 @@ class SupabaseBadgesRepository {
         )
         .timeout(_timeout);
     int count(String key) => (row[key] as num?)?.toInt() ?? 0;
-    final earnedAt = row['earned_at'] as String?;
+    DateTime? at(String key) => switch (row[key]) {
+      final String value => DateTime.parse(value),
+      _ => null,
+    };
     return CountyBadgeDetail(
-      earnedAt: earnedAt == null ? null : DateTime.parse(earnedAt),
+      earnedAt: at('earned_at'),
       exploredVisits: count('explored_visits'),
       exploredMonths: count('explored_months'),
-      savedPlaces: count('saved_places'),
-      savedVisited: count('saved_visited'),
-      placesTotal: count('places_total'),
-      placesVisited: count('places_visited'),
+      lastVisitedAt: at('last_visited_at'),
+      journeys: count('journeys'),
+      journeyMeters: (row['journey_distance_m'] as num?)?.toDouble() ?? 0,
       suggestedPlaces: [
         for (final place
             in (row['suggested_places'] as List<dynamic>? ?? const [])

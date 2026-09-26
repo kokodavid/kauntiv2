@@ -76,31 +76,61 @@ class BadgeProgressSection extends StatelessWidget {
   }
 }
 
-/// Saved places visited and how much of the county's places you've seen.
-class BadgeCoverageSection extends StatelessWidget {
-  const BadgeCoverageSection({super.key, required this.detail});
+/// "Your time in <county>": explored visits and the months they span
+/// (what depth counts), the last visit, and Journeys here when there are
+/// any.
+class BadgeTimeSection extends StatelessWidget {
+  const BadgeTimeSection({
+    super.key,
+    required this.countyName,
+    required this.detail,
+  });
 
+  final String countyName;
   final CountyBadgeDetail detail;
+
+  static String _plural(int n, String word) => n == 1 ? '1 $word' : '$n ${word}s';
+
+  static String _distance(double meters) => meters < 1000
+      ? '${meters.round()} m'
+      : '${(meters / 1000).toStringAsFixed(meters < 10000 ? 1 : 0)} km';
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final last = detail.lastVisitedAt;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _Stat(
-            value: '${detail.savedVisited} of ${detail.savedPlaces}',
-            label: 'Saved places visited',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _Stat(
-            value: '${detail.placesVisited} of ${detail.placesTotal}',
-            label: 'County places ticked',
-            progress: detail.placesTotal == 0
-                ? null
-                : detail.placesVisited / detail.placesTotal,
-          ),
+        Text('Your time in $countyName', style: AppTypeScale.itemTitle),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _Stat(
+                value: _plural(detail.exploredVisits, 'visit'),
+                label: _plural(detail.exploredMonths, 'month'),
+              ),
+            ),
+            if (last != null) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: _Stat(
+                  value: BadgeProgressSection.date(last),
+                  label: 'Last here',
+                ),
+              ),
+            ],
+            if (detail.journeys > 0) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: _Stat(
+                  value: _plural(detail.journeys, 'Journey'),
+                  label: _distance(detail.journeyMeters),
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );
@@ -185,15 +215,13 @@ class _Line extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label, this.progress});
+  const _Stat({required this.value, required this.label});
 
   final String value;
   final String label;
-  final double? progress;
 
   @override
   Widget build(BuildContext context) {
-    final progress = this.progress;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -203,20 +231,13 @@ class _Stat extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value, style: AppTypeScale.cardTitle),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypeScale.itemTitle,
+          ),
           Text(label, style: _muted.copyWith(fontSize: 12)),
-          if (progress != null) ...[
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: progress.clamp(0, 1).toDouble(),
-                minHeight: 4,
-                color: AppColors.accent,
-                backgroundColor: AppColors.trackInactive,
-              ),
-            ),
-          ],
         ],
       ),
     );

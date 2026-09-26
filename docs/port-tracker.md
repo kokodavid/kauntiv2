@@ -345,6 +345,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-26 | codex/badges | 7, 13 | Badge sheet: 'Your time in <county>' (visits, months, last visit, Journeys + km) replaces the place cards; Journeys record the counties they cross (`journey_counties`, `upload_journey` p_counties) |
 | 2026-09-26 | codex/badges | 7 | Badge sheet: earned date, next-depth progress, saved places / county coverage, share card (share_plus), how-to-earn + places for locked; `county_badge_detail` RPC |
 | 2026-09-26 | codex/badges | 7 | Badges tab: tier pill, claimed hero, collection grid of star-less badges with depth rings; tap opens County Detail |
 | 2026-09-26 | codex/journeys-ui | 13 | Reliability pass: account-switch guards, recovery duration, pending delete/upload race, native stop retry state, stream-failure status, GPS-gap segments, replay crossing confirmation, and initial map camera; device verification pending |

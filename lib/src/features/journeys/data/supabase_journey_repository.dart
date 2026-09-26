@@ -1,6 +1,10 @@
+import 'dart:isolate';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/domain/map_place.dart';
+import '../domain/journey_county_split.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
@@ -48,6 +52,8 @@ class SupabaseJourneyRepository {
     required List<JourneyPoint> points,
     Duration pausedDuration = Duration.zero,
   }) async {
+    // County lookups over a long route are real work: off the UI isolate.
+    final counties = await Isolate.run(() => _countySplit(points));
     final result = await _client
         .rpc<Map<String, dynamic>>(
           'upload_journey',
@@ -58,6 +64,14 @@ class SupabaseJourneyRepository {
             'p_started_at': startedAt.toUtc().toIso8601String(),
             'p_ended_at': endedAt.toUtc().toIso8601String(),
             'p_paused_ms': pausedDuration.inMilliseconds,
+            'p_counties': [
+              for (final MapEntry(key: code, value: meters)
+                  in counties.entries)
+                {
+                  'county_id': code,
+                  'distance_m': double.parse(meters.toStringAsFixed(2)),
+                },
+            ],
             'p_points': [
               for (final point in points)
                 {
@@ -235,4 +249,28 @@ class SupabaseJourneyRepository {
       );
     return sorted.isEmpty ? null : sorted.first['thumbnail_url'] as String?;
   }
+}
+
+/// Metres per county for [points], checking the last county first (most
+/// points are in the same county as the one before).
+Map<int, double> _countySplit(List<JourneyPoint> points) {
+  int? last;
+  return JourneyCountySplit.split(points, (latitude, longitude) {
+    final previous = last;
+    if (previous != null &&
+        CountyBoundaryResolver.countyCodeFor(
+              latitude: latitude,
+              longitude: longitude,
+              countyCodes: [previous],
+            ) ==
+            previous) {
+      return previous;
+    }
+    final code = CountyBoundaryResolver.countyCodeFor(
+      latitude: latitude,
+      longitude: longitude,
+    );
+    if (code != null) last = code;
+    return code;
+  });
 }

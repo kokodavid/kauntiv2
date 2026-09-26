@@ -19,10 +19,9 @@ class CountyBadgeDetail {
     this.earnedAt,
     this.exploredVisits = 0,
     this.exploredMonths = 0,
-    this.savedPlaces = 0,
-    this.savedVisited = 0,
-    this.placesTotal = 0,
-    this.placesVisited = 0,
+    this.lastVisitedAt,
+    this.journeys = 0,
+    this.journeyMeters = 0,
     this.suggestedPlaces = const [],
   });
 
@@ -34,13 +33,13 @@ class CountyBadgeDetail {
   final int exploredVisits;
   final int exploredMonths;
 
-  /// Places the user saved here, and how many of them they've ticked.
-  final int savedPlaces;
-  final int savedVisited;
+  /// The latest visit, explored or passed through.
+  final DateTime? lastVisitedAt;
 
-  /// Kaunti47 places in the county, and how many the user has ticked.
-  final int placesTotal;
-  final int placesVisited;
+  /// Journeys whose route crossed the county, and how far they went in
+  /// it (Journeys uploaded before counties were kept don't count).
+  final int journeys;
+  final double journeyMeters;
 
   final List<BadgeSuggestedPlace> suggestedPlaces;
 }

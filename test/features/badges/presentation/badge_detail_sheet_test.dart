@@ -36,7 +36,7 @@ void main() {
   CountyBadge badge(int code) =>
       collection.badges.firstWhere((b) => b.county.code == code);
 
-  testWidgets('an earned badge: date, next depth, coverage, share', (
+  testWidgets('an earned badge: date, next depth, time there, share', (
     tester,
   ) async {
     var opened = 0;
@@ -47,10 +47,9 @@ void main() {
           earnedAt: DateTime(2026, 3, 12, 10),
           exploredVisits: 4,
           exploredMonths: 3,
-          savedPlaces: 5,
-          savedVisited: 3,
-          placesTotal: 12,
-          placesVisited: 3,
+          lastVisitedAt: DateTime(2026, 9, 20, 9),
+          journeys: 2,
+          journeyMeters: 38400,
         ),
         onOpenCounty: () => opened++,
       ),
@@ -65,8 +64,12 @@ void main() {
           'expert.'),
       findsOneWidget,
     );
-    expect(find.text('3 of 5'), findsOneWidget);
-    expect(find.text('3 of 12'), findsOneWidget);
+    expect(find.text('Your time in Nairobi'), findsOneWidget);
+    expect(find.text('4 visits'), findsOneWidget);
+    expect(find.text('3 months'), findsOneWidget);
+    expect(find.text('20 Sep 2026'), findsOneWidget);
+    expect(find.text('2 Journeys'), findsOneWidget);
+    expect(find.text('38 km'), findsOneWidget);
     expect(find.text('Share'), findsOneWidget);
 
     await tester.ensureVisible(find.text('View county'));

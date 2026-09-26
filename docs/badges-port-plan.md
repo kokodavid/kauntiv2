@@ -41,9 +41,16 @@ Port of v1's Badges tab to v2, on the new design:
    View county. Not yet earned: how to earn it (about 2 hours there;
    pending waits for sync) and places to start with. Data: new RPC
    `county_badge_detail(p_county_id)` (migration `20260926100000`).
-   Next: Journeys per county (store the counties a Journey crossed on
-   upload), the unlock celebration + share prompt, a collection share
-   card, filter chips and regional goals.
+   The two place cards (saved places visited / county places ticked)
+   were replaced by **"Your time in <county>"**: explored visits and the
+   months they span, last visit, and Journeys there ("2 Journeys · 38 km",
+   shown only when there are any). Journeys per county: on upload the
+   phone splits the route by county with the bundled boundaries
+   (`JourneyCountySplit`, off the UI isolate) and `upload_journey` stores
+   it in the private `journey_counties` table (migration
+   `20260926120000`). Journeys uploaded earlier have no counties.
+   Next: the unlock celebration + share prompt, a collection share card,
+   filter chips and regional goals.
 3. **Pending overlay:** merge detection's local pending codes (v1 did)
    through detection's application layer.
 4. **Offline:** show the last collection when offline with "Saved data.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/core/widgets/app_place_row.dart';
 import 'package:kaunti47_v2/src/features/badges/application/badges_providers.dart';
 import 'package:kaunti47_v2/src/features/badges/domain/badge_collection.dart';
 import 'package:kaunti47_v2/src/features/badges/domain/county_badge_detail.dart';
@@ -13,6 +14,9 @@ Widget _app(CountyBadge badge, CountyBadgeDetail detail, {
   overrides: [
     countyBadgeDetailProvider(badge.county.code).overrideWith(
       (ref) async => detail,
+    ),
+    badgeUserLocationProvider.overrideWith(
+      (ref) async => (latitude: -1.28, longitude: 36.82),
     ),
   ],
   child: MaterialApp(
@@ -86,7 +90,21 @@ void main() {
         badge(22),
         const CountyBadgeDetail(
           suggestedPlaces: [
-            BadgeSuggestedPlace(id: 'p1', name: 'Karura Forest', type: 'park'),
+            BadgeSuggestedPlace(
+              id: 'p2',
+              name: 'Far Park',
+              type: 'park',
+              latitude: -1.0,
+              longitude: 36.82,
+            ),
+            BadgeSuggestedPlace(
+              id: 'p1',
+              name: 'Karura Forest',
+              type: 'park',
+              summary: 'Urban forest',
+              latitude: -1.24,
+              longitude: 36.83,
+            ),
           ],
         ),
         onOpenPlace: opened.add,
@@ -96,6 +114,14 @@ void main() {
 
     expect(find.text('Share'), findsNothing);
     expect(find.textContaining('Spend about 2 hours here'), findsOneWidget);
+    await tester.pump();
+    expect(find.text('Nearest places to start'), findsOneWidget);
+    // Nearest first, with its distance.
+    final titles = tester
+        .widgetList<AppPlaceRow>(find.byType(AppPlaceRow))
+        .map((row) => row.title);
+    expect(titles, ['Karura Forest', 'Far Park']);
+    expect(find.text('· 4.6 km'), findsOneWidget);
     await tester.ensureVisible(find.text('Karura Forest'));
     await tester.tap(find.text('Karura Forest'));
     expect(opened, ['p1']);

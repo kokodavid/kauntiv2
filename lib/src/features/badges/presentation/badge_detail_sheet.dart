@@ -114,6 +114,9 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
   Widget build(BuildContext context) {
     final badge = widget.badge;
     final detail = ref.watch(countyBadgeDetailProvider(badge.county.code));
+    // Start the position read alongside the details: places to start
+    // with are sorted by distance.
+    if (!badge.isEarned) ref.watch(badgeUserLocationProvider);
     final openCounty = widget.onOpenCounty;
     return Container(
       constraints: BoxConstraints(

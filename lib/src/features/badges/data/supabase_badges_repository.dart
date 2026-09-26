@@ -84,7 +84,16 @@ class SupabaseBadgesRepository {
             'name': final String name,
             'type': final String type,
           })
-            BadgeSuggestedPlace(id: id, name: name, type: type),
+            BadgeSuggestedPlace(
+              id: id,
+              name: name,
+              type: type,
+              summary: place['summary'] as String?,
+              latitude: (place['lat'] as num?)?.toDouble(),
+              longitude: (place['lng'] as num?)?.toDouble(),
+              thumbnailUrl: place['thumbnail_url'] as String?,
+              saved: place['saved'] == true,
+            ),
       ],
     );
   }

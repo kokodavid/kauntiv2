@@ -5,6 +5,7 @@ import '../../../design/app_colors.dart';
 import '../../map_home/domain/county_badge_state.dart';
 import '../domain/badge_collection.dart';
 import '../domain/county_badge_detail.dart';
+import 'badge_places_section.dart';
 
 const _muted = TextStyle(
   fontFamily: AppTypeScale.family,
@@ -162,26 +163,16 @@ class BadgeHowToEarnSection extends StatelessWidget {
             'the badge.',
       _ => 'Spend about 2 hours in $name to earn the badge.',
     };
-    final open = onOpenPlace;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _Line(icon: Icons.flag_outlined, text: how),
-        if (detail.suggestedPlaces.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          const Text('Places to start with', style: AppTypeScale.itemTitle),
-          for (final place in detail.suggestedPlaces)
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.place_outlined, color: AppColors.accent),
-              title: Text(place.name, style: AppTypeScale.body),
-              trailing: open == null
-                  ? null
-                  : const Icon(Icons.chevron_right, size: 18),
-              onTap: open == null ? null : () => open(place.id),
-            ),
-        ],
+        const SizedBox(height: 8),
+        BadgePlacesSection(
+          countyCode: badge.county.code,
+          places: detail.suggestedPlaces,
+          onOpenPlace: onOpenPlace,
+        ),
       ],
     );
   }

@@ -49,6 +49,10 @@ Port of v1's Badges tab to v2, on the new design:
    (`JourneyCountySplit`, off the UI isolate) and `upload_journey` stores
    it in the private `journey_counties` table (migration
    `20260926120000`). Journeys uploaded earlier have no counties.
+   "Places to start with" (not yet earned) now uses the shared place row
+   — photo, summary, type, distance, save — nearest first from a one-shot
+   foreground position (migration `20260926130000` adds photo, summary,
+   coordinates and saved to the suggestions).
    Next: the unlock celebration + share prompt, a collection share card,
    filter chips and regional goals.
 3. **Pending overlay:** merge detection's local pending codes (v1 did)

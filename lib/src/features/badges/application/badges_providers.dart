@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/services/app_current_location.dart';
 import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../detection/application/visit_sync.dart';
@@ -40,3 +41,9 @@ Future<CountyBadgeDetail> countyBadgeDetail(Ref ref, int countyCode) async {
   if (repository == null) return const CountyBadgeDetail();
   return repository.detail(countyCode);
 }
+
+/// Where the user is now, for "Places to start with" distances; null
+/// without permission or a fix. A one-shot foreground read, never stored.
+@riverpod
+Future<AppLocationFix?> badgeUserLocation(Ref ref) =>
+    AppCurrentLocation.read();

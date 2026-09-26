@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'badge_collection.dart';
 
 /// A place to suggest for a county badge.
@@ -6,11 +8,52 @@ class BadgeSuggestedPlace {
     required this.id,
     required this.name,
     required this.type,
+    this.summary,
+    this.latitude,
+    this.longitude,
+    this.thumbnailUrl,
+    this.saved = false,
   });
 
   final String id;
   final String name;
   final String type;
+  final String? summary;
+  final double? latitude;
+  final double? longitude;
+  final String? thumbnailUrl;
+  final bool saved;
+
+  /// Straight-line metres from ([latitude], [longitude]); null without
+  /// coordinates.
+  double? metersFrom(double fromLatitude, double fromLongitude) {
+    final lat = latitude;
+    final lng = longitude;
+    if (lat == null || lng == null) return null;
+    double rad(double degrees) => degrees * math.pi / 180;
+    final dLat = rad(lat - fromLatitude);
+    final dLng = rad(lng - fromLongitude);
+    final h =
+        math.pow(math.sin(dLat / 2), 2) +
+        math.cos(rad(fromLatitude)) *
+            math.cos(rad(lat)) *
+            math.pow(math.sin(dLng / 2), 2);
+    return 2 * 6371000 * math.asin(math.sqrt(h));
+  }
+
+  /// The [count] places nearest to the user when their position is known
+  /// (farther and unplaced ones after), else the first [count] as given.
+  static List<BadgeSuggestedPlace> nearest(
+    List<BadgeSuggestedPlace> places, {
+    ({double latitude, double longitude})? from,
+    int count = 5,
+  }) {
+    if (from == null) return places.take(count).toList();
+    double key(BadgeSuggestedPlace p) =>
+        p.metersFrom(from.latitude, from.longitude) ?? double.infinity;
+    final sorted = [...places]..sort((a, b) => key(a).compareTo(key(b)));
+    return sorted.take(count).toList();
+  }
 }
 
 /// One county's badge, in detail (`county_badge_detail`).

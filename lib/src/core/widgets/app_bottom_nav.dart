@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
+import '../../widgets/app_county_shape.dart';
 import '../domain/app_feature_flags.dart';
 
 enum AppNavTab { map, badges, ranks, explore, journeys }
@@ -19,7 +20,8 @@ class AppBottomNav extends StatelessWidget {
   final ValueChanged<AppNavTab> onSelect;
 
   static const _tabs = [
-    (tab: AppNavTab.map, icon: Icons.home_rounded, label: 'Map'),
+    // Null icon: the Map tab draws Kenya's outline.
+    (tab: AppNavTab.map, icon: null, label: 'Map'),
     (
       tab: AppNavTab.badges,
       icon: Icons.workspace_premium_outlined,
@@ -85,7 +87,7 @@ class _NavTabButton extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final IconData? icon;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
@@ -107,7 +109,13 @@ class _NavTabButton extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: color),
+            if (icon case final icon?)
+              Icon(icon, size: 16, color: color)
+            else
+              SizedBox.square(
+                dimension: 16,
+                child: AppCountryShape(fill: color),
+              ),
             const SizedBox(height: 2),
             Text(
               label,

@@ -364,6 +364,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-26 | codex/journey-place-handoff | 3 | Launcher icon is the splash mark (gradient + white Kenya) on iOS and Android, with an Android 8+ adaptive icon; Map tab icon is Kenya's outline instead of a house |
 | 2026-09-26 | codex/journey-place-handoff | 7, 13 | Repaired Journey stream filtering and destination-era test signatures; cleaned up visible badge analyzer lints. Flutter analysis and device verification pending |
 | 2026-09-26 | codex/journey-place-handoff | 13 | Fixed Android Journey stop: accept the plugin's disable response and retry pending stream cancellation before background-mode shutdown; device verification pending |
 | 2026-09-26 | codex/journey-place-handoff | 13 | Route choice sheet moved above floating bottom navigation; Directions only is a full-width primary action with small-screen coverage |

@@ -152,7 +152,7 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      MapHomeTopBar(tierLabel: data?.tierLabel),
+                      MapHomeTopBar(loading: data == null, tier: data?.tier),
                       const SizedBox(height: 16),
                       AnimatedSwitcher(
                         duration: _fade,

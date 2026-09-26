@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/core/domain/county_tier.dart';
 import 'package:kaunti47_v2/src/features/badges/domain/badge_collection.dart';
 import 'package:kaunti47_v2/src/features/map_home/domain/county_badge_state.dart';
 
@@ -23,7 +24,9 @@ void main() {
     expect(collection.claimed, 3);
     expect(collection.left, 44);
     expect(collection.percentOfKenya, 6); // 3/47 = 6.4%
-    expect(collection.tier, 1);
+    // 3 claimed: no medal yet; Msafiri comes at 10.
+    expect(collection.tier, isNull);
+    expect(collection.nextTier, CountyTier.msafiri);
   });
 
   test('state and depth per county', () {
@@ -45,11 +48,15 @@ void main() {
     expect(collection.badges[3].county.code, 2);
   });
 
-  test('tiers at 1, 10, 25 and 47 counties', () {
-    expect(BadgeTiers.tierFor(0), 0);
-    expect(BadgeTiers.tierFor(9), 1);
-    expect(BadgeTiers.tierFor(10), 2);
-    expect(BadgeTiers.tierFor(25), 3);
-    expect(BadgeTiers.tierFor(47), 4);
+  test('medals at 10, 25 and 47 counties', () {
+    expect(CountyTier.forClaimed(0), isNull);
+    expect(CountyTier.forClaimed(9), isNull);
+    expect(CountyTier.forClaimed(10), CountyTier.msafiri);
+    expect(CountyTier.forClaimed(24), CountyTier.msafiri);
+    expect(CountyTier.forClaimed(25), CountyTier.mzururaji);
+    expect(CountyTier.forClaimed(47), CountyTier.mkenyaHalisi);
+    expect(CountyTier.nextAfter(9), CountyTier.msafiri);
+    expect(CountyTier.nextAfter(10), CountyTier.mzururaji);
+    expect(CountyTier.nextAfter(47), isNull);
   });
 }

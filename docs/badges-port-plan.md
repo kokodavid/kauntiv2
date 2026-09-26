@@ -20,8 +20,13 @@ Port of v1's Badges tab to v2, on the new design:
   avatar, and "Saved data. 12:34". Candidates when decided: active
   leaderboard season start for "since reset"; depth changes computed from
   `county_visit_events` for the activity card.
-- **Tier pill:** "Tier N" from counties claimed (1 / 10 / 25 / 47, docs
-  01), hidden before the first badge.
+- **Tier medals:** three tiers (`core/domain/county_tier.dart`): Msafiri
+  at 10 counties, Mzururaji at 25, Mkenya Halisi at all 47, with the
+  medal artwork in `assets/images/Tier 1-3.png`. The old 1-county tier is
+  gone. The medal pill (`AppTierPill`) shows on the Badges header and the
+  Home top bar only once a tier is earned; before that Home shows just
+  the avatar. The Badges hero card says how many counties to the next
+  medal ("3 more counties to Msafiri").
 
 ## Steps
 

@@ -32,7 +32,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('Badges'), findsOneWidget);
-    expect(find.text('Tier 2'), findsOneWidget);
+    expect(find.text('Msafiri'), findsOneWidget);
+    expect(find.text('13 more counties to Mzururaji'), findsOneWidget);
     expect(find.text('12'), findsOneWidget);
     expect(find.text('of 47 counties claimed'), findsOneWidget);
     expect(find.text('25% OF KENYA'), findsOneWidget);

@@ -1,3 +1,4 @@
+import '../../../core/domain/county_tier.dart';
 import '../../../counties/county_paths.dart';
 import '../../map_home/domain/county_badge_state.dart';
 
@@ -42,16 +43,6 @@ class CountyBadge {
   final CountyDepth depth;
 
   bool get isEarned => state == CountyBadgeState.earned;
-}
-
-/// Tiers by counties claimed (docs 01): Mgeni 1, Msafiri 10, Mzururaji 25,
-/// Mkenya Halisi 47.
-abstract final class BadgeTiers {
-  static const thresholds = [1, 10, 25, 47];
-
-  /// 1-4, or 0 before the first badge.
-  static int tierFor(int claimed) =>
-      thresholds.where((threshold) => claimed >= threshold).length;
 }
 
 /// Every county's badge: earned ones first, then the rest, each in county
@@ -99,6 +90,9 @@ class BadgeCollection {
   /// Whole percent of Kenya's counties claimed, rounded down.
   int get percentOfKenya => total == 0 ? 0 : claimed * 100 ~/ total;
 
-  /// 1-4, or 0 before the first badge.
-  int get tier => BadgeTiers.tierFor(claimed);
+  /// The medal earned so far; null before the first (10 counties).
+  CountyTier? get tier => CountyTier.forClaimed(claimed);
+
+  /// The next medal to go for; null once all three are earned.
+  CountyTier? get nextTier => CountyTier.nextAfter(claimed);
 }

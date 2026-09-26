@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/domain/county_tier.dart';
+import '../../../core/widgets/app_tier_medal.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import 'map_home_skeleton.dart';
 
 class MapHomeTopBar extends StatelessWidget {
-  const MapHomeTopBar({super.key, required this.tierLabel});
+  const MapHomeTopBar({super.key, required this.loading, required this.tier});
 
-  /// Null while the board is loading: the chip shows a placeholder.
-  final String? tierLabel;
+  /// While the board loads the medal spot shows a placeholder.
+  final bool loading;
+
+  /// The medal earned so far; none shows until the first (10 counties).
+  final CountyTier? tier;
 
   @override
   Widget build(BuildContext context) {
+    final tier = this.tier;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -27,38 +33,18 @@ class MapHomeTopBar extends StatelessWidget {
         ),
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: AppColors.cardBorder),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.military_tech_outlined,
-                    size: 16,
-                    color: AppColors.accent,
-                  ),
-                  const SizedBox(width: 6),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
-                    child: switch (tierLabel) {
-                      final label? => Text(
-                        label,
-                        key: const ValueKey('tier'),
-                        style: AppTextStyles.chipLabel,
-                      ),
-                      null => const MapHomeSkeletonMask(
-                        child: Text('Explorer', style: AppTextStyles.chipLabel),
-                      ),
-                    },
-                  ),
-                ],
-              ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              child: loading
+                  ? const _MedalPlaceholder(key: ValueKey('loading'))
+                  : tier == null
+                  ? const SizedBox.shrink(key: ValueKey('none'))
+                  : Padding(
+                      key: ValueKey(tier),
+                      padding: const EdgeInsets.only(right: 8),
+                      child: AppTierPill(tier: tier),
+                    ),
             ),
-            const SizedBox(width: 8),
             Container(
               width: 32,
               height: 32,
@@ -80,6 +66,20 @@ class MapHomeTopBar extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _MedalPlaceholder extends StatelessWidget {
+  const _MedalPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.only(right: 8),
+      child: MapHomeSkeletonMask(
+        child: Text('Mzururaji', style: AppTextStyles.chipLabel),
+      ),
     );
   }
 }

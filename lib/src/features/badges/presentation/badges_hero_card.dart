@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/domain/county_tier.dart';
 import '../../../design/app_colors.dart';
 import '../domain/badge_collection.dart';
 
@@ -85,11 +86,28 @@ class BadgesHeroCard extends StatelessWidget {
                 ],
               ),
             ),
+            if (collection.nextTier case final next?)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+                child: Text(
+                  _nextLine(collection.claimed, next),
+                  style: _muted.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.accent,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
+}
+
+/// "3 more counties to Msafiri" (the next medal).
+String _nextLine(int claimed, CountyTier next) {
+  final more = next.counties - claimed;
+  return '$more more ${more == 1 ? 'county' : 'counties'} to ${next.label}';
 }
 
 /// One thin bar per county: claimed ones 20 px and blue, the rest 13 px

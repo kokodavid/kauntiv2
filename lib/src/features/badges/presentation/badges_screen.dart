@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/domain/county_tier.dart';
+import '../../../core/widgets/app_tier_medal.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/badges_providers.dart';
@@ -10,9 +12,9 @@ import 'badge_detail_sheet.dart';
 import 'badge_grid_cell.dart';
 import 'badges_hero_card.dart';
 
-/// The Badges tab (Figma 491:1394): title and tier, how many of the 47
-/// counties are claimed, and the collection of every county's badge with
-/// its depth ring. Tapping a badge opens its sheet.
+/// The Badges tab (Figma 491:1394): title and the medal once earned, how
+/// many of the 47 counties are claimed, and the collection of every
+/// county's badge with its depth ring. Tapping a badge opens its sheet.
 class BadgesScreen extends ConsumerWidget {
   const BadgesScreen({super.key, this.onOpenCounty, this.onOpenPlace});
 
@@ -116,57 +118,19 @@ class _Content extends StatelessWidget {
 class _Header extends StatelessWidget {
   const _Header({required this.tier});
 
-  final int tier;
+  /// Null until the first medal: nothing shows.
+  final CountyTier? tier;
 
   @override
   Widget build(BuildContext context) {
+    final tier = this.tier;
     return Row(
       children: [
         const Expanded(
           child: Text('Badges', style: AppTextStyles.headingForeground),
         ),
-        if (tier > 0) _TierPill(tier: tier),
+        if (tier != null) AppTierPill(tier: tier),
       ],
-    );
-  }
-}
-
-/// "Tier 2" with a medal (Figma 491:1400).
-class _TierPill extends StatelessWidget {
-  const _TierPill({required this.tier});
-
-  final int tier;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 32,
-      padding: const EdgeInsets.fromLTRB(6, 0, 10, 0),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.trackInactive),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.workspace_premium,
-            size: 22,
-            color: Color(0xFFD67D56),
-          ),
-          const SizedBox(width: 2),
-          Text(
-            'Tier $tier',
-            style: const TextStyle(
-              fontFamily: AppTypeScale.family,
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-              height: 20 / 12,
-              color: AppColors.mutedForeground,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

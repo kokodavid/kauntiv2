@@ -5,8 +5,7 @@ import '../data/local_journey_repository.dart';
 import '../domain/journey_fix.dart';
 import '../domain/journey_recording.dart';
 
-/// Drives an already-authorized local session; creating one is left to the
-/// future server-verified Pro start flow.
+/// Drives a server-authorized local session and its location stream.
 class JourneyCapture {
   JourneyCapture({
     required LocalJourneyRepository repository,
@@ -26,15 +25,20 @@ class JourneyCapture {
   final JourneyLocationSource _locationSource;
   final DateTime Function() _clock;
   static const _logger = AppLogger.journeys();
+  static const missingFixGap = Duration(minutes: 2);
 
   LocalJourneySession? _session;
   String? _userId;
   StreamSubscription<JourneyFix>? _subscription;
   Future<void> _writes = Future.value();
+  DateTime? _lastRecordedAt;
   bool _closing = false;
+  bool _teardownPending = false;
   Object? lastError;
+  void Function(LocalJourneySession)? onUnexpectedPause;
 
   LocalJourneySession? get session => _session;
+  String? get ownerUserId => _userId;
 
   /// A process restart cannot recover locations missed while Dart was dead.
   /// Pause the saved session, so the next Resume begins a new route segment.
@@ -43,13 +47,20 @@ class JourneyCapture {
     final saved = await _repository.activeSession(userId);
     if (saved == null) return null;
     _userId = userId;
-    _session = saved.recording.phase == JourneyRecordingPhase.recording
-        ? await _repository.pause(
-            id: saved.id,
-            userId: userId,
-            at: _notBefore(saved.recording.lastChangedAt!),
-          )
-        : saved;
+    if (saved.recording.phase == JourneyRecordingPhase.recording) {
+      final lastPoint = await _repository.lastPointAt(saved.id, userId);
+      final lastChange = saved.recording.lastChangedAt!;
+      final stoppedAt = lastPoint != null && lastPoint.isAfter(lastChange)
+          ? lastPoint
+          : lastChange;
+      _session = await _repository.pause(
+        id: saved.id,
+        userId: userId,
+        at: stoppedAt,
+      );
+    } else {
+      _session = saved;
+    }
     return _session;
   }
 
@@ -86,6 +97,7 @@ class JourneyCapture {
   Future<LocalJourneySession> resume() async {
     final current = _requireSession(JourneyRecordingPhase.paused);
     lastError = null;
+    if (_teardownPending) await _endStream();
     await _locationSource.start();
     try {
       _session = await _repository.resume(
@@ -93,6 +105,7 @@ class JourneyCapture {
         userId: _userId!,
         at: _notBefore(current.recording.lastChangedAt!),
       );
+      _lastRecordedAt = null;
       _listen();
       return _session!;
     } catch (_) {
@@ -141,6 +154,7 @@ class JourneyCapture {
         rethrow;
       }
     }
+    if (_teardownPending) await _endStream();
     final finished = await _repository.finish(
       id: current.id,
       userId: _userId!,
@@ -157,18 +171,18 @@ class JourneyCapture {
   Future<void> detach() async {
     final current = _session;
     if (current == null) return;
-    try {
-      if (current.recording.phase == JourneyRecordingPhase.recording) {
-        await pause();
-      }
-    } finally {
-      _session = null;
-      _userId = null;
+    if (current.recording.phase == JourneyRecordingPhase.recording) {
+      await pause();
     }
+    if (_teardownPending) await _endStream();
+    _session = null;
+    _userId = null;
   }
 
   Future<void> _startStream() async {
+    if (_teardownPending) await _endStream();
     await _locationSource.start();
+    _lastRecordedAt = null;
     _listen();
   }
 
@@ -179,15 +193,30 @@ class JourneyCapture {
       final current = _session;
       final userId = _userId;
       if (current == null || userId == null) return;
-      final point = fix.inSegment(current.recording.segmentNumber);
       _writes = _writes
           .then<void>((_) async {
             try {
+              final active = _session;
+              if (active == null ||
+                  active.id != current.id ||
+                  active.recording.phase != JourneyRecordingPhase.recording) {
+                return;
+              }
+              final previous = _lastRecordedAt;
+              if (previous != null &&
+                  fix.recordedAt.difference(previous) > missingFixGap) {
+                _session = await _repository.splitSegment(
+                  id: current.id,
+                  userId: userId,
+                  at: fix.recordedAt,
+                );
+              }
               await _repository.appendPoint(
                 id: current.id,
                 userId: userId,
-                point: point,
+                point: fix.inSegment(_session!.recording.segmentNumber),
               );
+              _lastRecordedAt = fix.recordedAt;
             } on JourneyPointRejected {
               // Delayed or out-of-order fixes are not part of the route.
             }
@@ -208,6 +237,11 @@ class JourneyCapture {
           await pause();
         } catch (pauseError) {
           lastError = pauseError;
+        } finally {
+          final paused = _session;
+          if (paused?.recording.phase == JourneyRecordingPhase.paused) {
+            onUnexpectedPause?.call(paused!);
+          }
         }
       }),
     );
@@ -216,18 +250,24 @@ class JourneyCapture {
   Future<void> _endStream() async {
     _closing = true;
     final subscription = _subscription;
-    _subscription = null;
-    await _bounded('cancel the location stream', () async {
+    final canceled = await _bounded('cancel the location stream', () async {
       await subscription?.cancel();
     });
-    await _bounded('save the last points', () => _writes);
-    await _bounded('stop background location', _locationSource.stop);
+    if (canceled) _subscription = null;
+    final saved = await _bounded('save the last points', () => _writes);
+    final stopped = await _bounded(
+      'stop background location',
+      _locationSource.stop,
+    );
+    _teardownPending = !canceled || !saved || !stopped;
+    if (_teardownPending) throw const JourneyTeardownException();
   }
 
   /// Runs one teardown [step], logging instead of hanging or throwing.
-  Future<void> _bounded(String what, Future<void> Function() step) async {
+  Future<bool> _bounded(String what, Future<void> Function() step) async {
     try {
       await step().timeout(teardownTimeout);
+      return true;
     } on TimeoutException {
       _logger.warning('Journey teardown: timed out trying to $what.');
     } on Object catch (error, stackTrace) {
@@ -237,6 +277,7 @@ class JourneyCapture {
         stackTrace: stackTrace,
       );
     }
+    return false;
   }
 
   LocalJourneySession _requireSession(JourneyRecordingPhase phase) {

@@ -73,6 +73,8 @@ List<JourneyMoment> _findMoments(
               latitude: latitude,
               longitude: longitude,
               countyCodes: [previous],
+              minimumInsideDistanceMeters:
+                  CountyBoundaryResolver.boundaryHysteresisMeters,
             ) ==
             previous) {
       return previous;
@@ -80,6 +82,8 @@ List<JourneyMoment> _findMoments(
     final code = CountyBoundaryResolver.countyCodeFor(
       latitude: latitude,
       longitude: longitude,
+      minimumInsideDistanceMeters:
+          CountyBoundaryResolver.boundaryHysteresisMeters,
     );
     if (code != null) last = code;
     return code;

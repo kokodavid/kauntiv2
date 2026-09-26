@@ -108,6 +108,24 @@ entitlements are not implemented in this foundation slice.
    low-power cases, process restarts, permission revocation, account changes,
    deletion and missing-point gaps. Prepare reviewer access and a demo video.
 
+## Reliability review (2026-09-26)
+
+The UI branch now guards account changes during asynchronous Start/recovery,
+coordinates deletion with in-flight uploads, excludes process-down time from
+recorded duration, and splits a route after a long gap in accepted fixes.
+Stop/Discard remain retryable if native background location does not confirm
+shutdown, and a stream failure updates the visible recording state. Replay
+crossings use the detector's inside-boundary margin and wait
+for confirming route points. The recording map no longer opens at a default
+Kenya-wide camera while waiting for its first fix.
+
+Still open before enabling the tab: real-device locked-screen/stop tests,
+comparison of the bundled county geometry with the Mapbox boundary and the
+location-less geofence callback, multi-hour route performance, privacy/store
+disclosures and retention, plus export. A limited free Journey allowance is
+under design; Pro-only remains the implemented rule until a server-enforced
+quota migration and matching app changes land.
+
 ## Privacy boundary
 
 Automatic detection continues to sync county-level visit data only. Precise

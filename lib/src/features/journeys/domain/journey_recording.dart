@@ -106,6 +106,20 @@ class JourneyRecording {
     );
   }
 
+  JourneyRecording splitAt(DateTime at) {
+    if (phase != JourneyRecordingPhase.recording ||
+        at.isBefore(lastChangedAt!)) {
+      throw StateError('Only an active Journey can start a new segment.');
+    }
+    return JourneyRecording._(
+      phase: JourneyRecordingPhase.recording,
+      startedAt: startedAt,
+      lastChangedAt: at,
+      segmentNumber: segmentNumber + 1,
+      pausedTotal: pausedTotal,
+    );
+  }
+
   JourneyRecording finish(DateTime at) {
     if ((phase != JourneyRecordingPhase.recording &&
             phase != JourneyRecordingPhase.paused) ||

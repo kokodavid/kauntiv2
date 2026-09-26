@@ -60,6 +60,53 @@ final class JourneyPlacesProvider
 
 String _$journeyPlacesHash() => r'865025da4c69d93af799a42ec6a620e5fec44db0';
 
+/// Kaunti47 places as map pins for the map while recording (same pins as
+/// Home). Kept for the session: places change rarely.
+
+@ProviderFor(journeyMapPlaces)
+const journeyMapPlacesProvider = JourneyMapPlacesProvider._();
+
+/// Kaunti47 places as map pins for the map while recording (same pins as
+/// Home). Kept for the session: places change rarely.
+
+final class JourneyMapPlacesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<MapPlace>>,
+          List<MapPlace>,
+          FutureOr<List<MapPlace>>
+        >
+    with $FutureModifier<List<MapPlace>>, $FutureProvider<List<MapPlace>> {
+  /// Kaunti47 places as map pins for the map while recording (same pins as
+  /// Home). Kept for the session: places change rarely.
+  const JourneyMapPlacesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'journeyMapPlacesProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$journeyMapPlacesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<MapPlace>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<MapPlace>> create(Ref ref) {
+    return journeyMapPlaces(ref);
+  }
+}
+
+String _$journeyMapPlacesHash() => r'27a21d896568d8f0f668d1106f0c153755141e7d';
+
 /// A Journey's key moments, in replay order: recording breaks, long stops,
 /// county crossings (from the bundled boundaries, so offline too) and
 /// places within 10 km.

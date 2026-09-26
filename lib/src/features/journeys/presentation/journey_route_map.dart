@@ -20,10 +20,7 @@ import 'journey_map_layers.dart';
 
 export 'journey_map_layers.dart' show JourneyLatLng, JourneyMapPin;
 
-/// A Journey's route on the Mapbox map: one line per segment (gaps stay
-/// gaps), lone fixes as dots, optional [start] / [end] and moment [pins]
-/// and a [marker] for replay. With [follow] the camera tracks the marker or the newest
-/// point (replay, live recording); otherwise it frames the whole route.
+/// Draws route segments and pins on Mapbox, framing or following the route.
 class JourneyRouteMap extends ConsumerStatefulWidget {
   const JourneyRouteMap({
     super.key,
@@ -57,8 +54,7 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
   final List<JourneyLatLng> pins;
   final bool follow;
 
-  /// Ease the camera to each new point (live) or jump (replay frames come
-  /// too fast to animate each one).
+  /// Ease live updates; replay frames jump to the next position.
   final bool animateFollow;
 
   /// Height covered by controls at the bottom: the camera centres above
@@ -69,7 +65,6 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
   final Future<List<MapPlace>>? places;
   final ValueChanged<MapPlace>? onPlaceTapped;
 
-  /// The user dragged the map (e.g. to stop following).
   final VoidCallback? onUserPan;
 
   @override
@@ -268,12 +263,30 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     return LayoutBuilder(
       builder: (context, constraints) {
         _size = constraints.biggest;
-        return MapWidget(
-          styleUri: MapboxStyles.OUTDOORS,
-          cameraOptions: CameraOptions(
+        final bounds = widget.route.bounds;
+        final CameraOptions initialCamera;
+        if (bounds == null) {
+          initialCamera = CameraOptions(
             center: Point(coordinates: Position(37.9, 0.2)),
             zoom: 5,
-          ),
+          );
+        } else if (widget.follow) {
+          final last = widget.route.segments.last.last;
+          initialCamera = _centeredOn(
+            widget.marker ??
+                (latitude: last.latitude, longitude: last.longitude),
+          );
+        } else {
+          initialCamera = JourneyMapLayers.frame(
+            bounds,
+            width: _size.width,
+            height: math.max(_size.height - widget.bottomInset, 120),
+            padding: _padding,
+          );
+        }
+        return MapWidget(
+          styleUri: MapboxStyles.OUTDOORS,
+          cameraOptions: initialCamera,
           onMapCreated: _onMapCreated,
           onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
           onScrollListener: widget.onUserPan == null

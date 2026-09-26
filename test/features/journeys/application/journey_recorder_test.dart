@@ -22,6 +22,7 @@ class _FakeSource implements JourneyLocationSource {
   final controller = StreamController<JourneyFix>.broadcast(sync: true);
   var started = false;
   JourneyLocationException? failStart;
+  Completer<void>? startGate;
 
   @override
   Stream<JourneyFix> get fixes => controller.stream;
@@ -29,6 +30,7 @@ class _FakeSource implements JourneyLocationSource {
   @override
   Future<void> start() async {
     if (failStart case final error?) throw error;
+    if (startGate case final gate?) await gate.future;
     started = true;
   }
 
@@ -38,6 +40,7 @@ class _FakeSource implements JourneyLocationSource {
 
 class _FakeCloud implements SupabaseJourneyRepository {
   ProStatus? status;
+  Completer<ProStatus>? statusGate;
   var offline = false;
   final cloudJourneys = <JourneySummary>[];
 
@@ -47,6 +50,7 @@ class _FakeCloud implements SupabaseJourneyRepository {
   @override
   Future<ProStatus> proStatus() async {
     if (offline) throw Exception('offline');
+    if (statusGate case final gate?) return gate.future;
     return status!;
   }
 
@@ -67,6 +71,7 @@ void main() {
   late _FakeCloud cloud;
   late List<String> uploads;
   late StreamController<String?> auth;
+  var signedInUser = 'alice';
   var uploadsFail = false;
 
   ProviderContainer container() {
@@ -74,7 +79,7 @@ void main() {
       overrides: [
         journeyDatabaseProvider.overrideWithValue(db),
         journeyLocationSourceProvider.overrideWithValue(source),
-        currentUserIdProvider.overrideWithValue(() => 'alice'),
+        currentUserIdProvider.overrideWithValue(() => signedInUser),
         authUserIdProvider.overrideWith((ref) => auth.stream),
         supabaseJourneyRepositoryProvider.overrideWithValue(cloud),
         journeyUploadQueueProvider.overrideWithValue(
@@ -108,6 +113,7 @@ void main() {
     cloud = _FakeCloud();
     uploads = [];
     uploadsFail = false;
+    signedInUser = 'alice';
     auth = StreamController<String?>.broadcast();
   });
   tearDown(() async {
@@ -229,6 +235,57 @@ void main() {
         .read(localJourneyRepositoryProvider)
         .activeSession('alice');
     expect(saved?.recording.phase, JourneyRecordingPhase.paused);
+  });
+
+  test('account switch during Pro check blocks Start', () async {
+    cloud.statusGate = Completer<ProStatus>();
+    final c = container();
+    c.listen(journeyRecorderProvider, (_, _) {});
+    final pending = c.read(journeyRecorderProvider.notifier).start(now: now);
+    await pumpEventQueue();
+    signedInUser = 'bob';
+    auth.add('bob');
+    cloud.statusGate!.complete(ProStatus(active: true, checkedAt: now));
+    await expectLater(pending, throwsStateError);
+    expect(c.read(journeyRecorderProvider), isNull);
+    expect(source.started, isFalse);
+    expect(
+      await c.read(localJourneyRepositoryProvider).activeSession('alice'),
+      isNull,
+    );
+  });
+
+  test('account switch during native startup detaches', () async {
+    cloud.status = ProStatus(active: true, checkedAt: now);
+    source.startGate = Completer<void>();
+    final c = container();
+    c.listen(journeyRecorderProvider, (_, _) {});
+    final pending = c.read(journeyRecorderProvider.notifier).start(now: now);
+    await pumpEventQueue();
+    signedInUser = 'bob';
+    auth.add('bob');
+    source.startGate!.complete();
+    await expectLater(pending, throwsStateError);
+    expect(c.read(journeyRecorderProvider), isNull);
+    expect(source.started, isFalse);
+    final alice = await c
+        .read(localJourneyRepositoryProvider)
+        .activeSession('alice');
+    expect(alice?.recording.phase, JourneyRecordingPhase.paused);
+  });
+
+  test('location stream failure updates recording state', () async {
+    cloud.status = ProStatus(active: true, checkedAt: now);
+    final c = container();
+    c.listen(journeyRecorderProvider, (_, _) {});
+    await c.read(journeyRecorderProvider.notifier).start(now: now);
+    source.controller.addError(StateError('Location stream stopped'));
+    await pumpEventQueue();
+    expect(
+      c.read(journeyRecorderProvider)?.recording.phase,
+      JourneyRecordingPhase.paused,
+    );
+    expect(source.started, isFalse);
   });
 
   test("a phone that can't record drops the Journey", () async {

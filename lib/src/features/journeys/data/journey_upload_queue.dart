@@ -82,6 +82,7 @@ class JourneyUploadQueue {
   static const _permanentCodes = {'42501', '22023', '23514', '22007', '22P02'};
 
   Future<int>? _running;
+  final Set<String> _deletingIds = {};
 
   /// Completed Journeys still on this phone for [userId], newest first.
   Future<List<JourneySummary>> pending(String userId) async {
@@ -125,10 +126,12 @@ class JourneyUploadQueue {
     var uploaded = 0;
     for (final row in due) {
       if (_currentUserId() != userId) break;
+      if (_deletingIds.contains(row.id)) continue;
       final summary = _summary(row);
       try {
         final points = await _local.points(row.id, userId);
         if (_currentUserId() != userId) break;
+        if (_deletingIds.contains(row.id)) continue;
         await _upload(
           userId: userId,
           id: row.id,
@@ -171,14 +174,24 @@ class JourneyUploadQueue {
     return uploaded;
   }
 
-  /// Deletes a Journey that never uploaded (the user's choice).
-  Future<void> deleteLocal(String id, String userId) async {
-    final owned =
-        await (_db.select(_db.journeySessions)
-              ..where((t) => t.id.equals(id) & t.userId.equals(userId)))
-            .getSingleOrNull();
-    if (owned == null) return;
-    await _removeLocal(id);
+  /// Deletes a pending Journey without racing an upload. Returns true when
+  /// the local copy disappeared during an upload, so the caller must also
+  /// delete the cloud copy before reporting success.
+  Future<bool> deleteLocal(String id, String userId) async {
+    _deletingIds.add(id);
+    try {
+      final running = _running;
+      if (running != null) await running;
+      final owned =
+          await (_db.select(_db.journeySessions)
+                ..where((t) => t.id.equals(id) & t.userId.equals(userId)))
+              .getSingleOrNull();
+      if (owned == null) return true;
+      await _removeLocal(id);
+      return false;
+    } finally {
+      _deletingIds.remove(id);
+    }
   }
 
   Future<void> _removeLocal(String id) => _db.transaction(() async {

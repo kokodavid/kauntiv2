@@ -22,7 +22,8 @@ class JourneyEntitlement extends _$JourneyEntitlement {
   /// Whether a Journey may start now. Throws
   /// [JourneyProCheckUnavailable] when the server can't be reached.
   Future<bool> canStart({DateTime? now}) async {
-    if (ref.read(currentUserIdProvider)() == null) return false;
+    final userId = ref.read(currentUserIdProvider)();
+    if (userId == null) return false;
     final cloud = ref.read(supabaseJourneyRepositoryProvider);
     if (cloud == null) return false;
     final ProStatus status;
@@ -30,6 +31,9 @@ class JourneyEntitlement extends _$JourneyEntitlement {
       status = await cloud.proStatus();
     } on Object {
       throw const JourneyProCheckUnavailable();
+    }
+    if (ref.read(currentUserIdProvider)() != userId) {
+      throw StateError('Account changed while checking Journey access.');
     }
     if (ref.mounted) state = status;
     return status.allowsStartAt(now ?? DateTime.now());

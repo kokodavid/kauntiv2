@@ -13,6 +13,8 @@ abstract final class JourneyMessages {
     JourneyStartDenied() => null,
     JourneyProCheckUnavailable() =>
       'Connect to the internet to start a Journey.',
+    JourneyTeardownException() =>
+      'Location capture has not stopped yet. Please try again.',
     JourneyLocationException(:final reason) => switch (reason) {
       JourneyLocationFailure.servicesDisabled =>
         'Turn on location services to record a Journey.',

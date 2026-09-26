@@ -68,8 +68,10 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
   @override
   Future<void> stop() async {
     if (!_started) return;
+    if (!await _location.enableBackgroundMode(enable: false)) {
+      throw const JourneyTeardownException();
+    }
     _started = false;
-    await _location.enableBackgroundMode(enable: false);
   }
 
   static JourneyFix? usableFix(LocationData data) {

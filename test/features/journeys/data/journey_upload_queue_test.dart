@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
@@ -126,9 +128,9 @@ void main() {
       user = null;
       expect(await queue().drain(now: t0.add(const Duration(hours: 1))), 0);
 
-      await queue().deleteLocal('a', 'bob');
+      expect(await queue().deleteLocal('a', 'bob'), isFalse);
       expect(await queue().pending('alice'), hasLength(1));
-      await queue().deleteLocal('a', 'alice');
+      expect(await queue().deleteLocal('a', 'alice'), isFalse);
       expect(await queue().pending('alice'), isEmpty);
     },
   );
@@ -160,5 +162,35 @@ void main() {
     onUpload = (_) => user = 'bob';
     expect(await queue().drain(now: t0.add(const Duration(hours: 1))), 1);
     expect(uploaded, ['a']);
+  });
+
+  test('deleting during upload requires removal of the cloud copy', () async {
+    await completed('a');
+    final uploadStarted = Completer<void>();
+    final releaseUpload = Completer<void>();
+    final q = JourneyUploadQueue(
+      db,
+      currentUserId: () => user,
+      upload:
+          ({
+            required userId,
+            required id,
+            required title,
+            required startedAt,
+            required endedAt,
+            required pausedDuration,
+            required points,
+          }) async {
+            uploadStarted.complete();
+            await releaseUpload.future;
+          },
+    );
+    final draining = q.drain(now: t0.add(const Duration(hours: 1)));
+    await uploadStarted.future;
+    final deleting = q.deleteLocal('a', 'alice');
+    releaseUpload.complete();
+    expect(await deleting, isTrue);
+    expect(await draining, 1);
+    expect(await q.pending('alice'), isEmpty);
   });
 }

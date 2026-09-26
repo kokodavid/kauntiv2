@@ -51,3 +51,8 @@ class JourneyLocationException implements Exception {
 
   final JourneyLocationFailure reason;
 }
+
+/// The app has not confirmed that native background capture stopped.
+class JourneyTeardownException implements Exception {
+  const JourneyTeardownException();
+}

@@ -78,6 +78,12 @@ class LocalJourneyRepository {
     required DateTime at,
   }) => _transition(id, userId, (state) => state.resume(at));
 
+  Future<LocalJourneySession> splitSegment({
+    required String id,
+    required String userId,
+    required DateTime at,
+  }) => _transition(id, userId, (state) => state.splitAt(at));
+
   Future<LocalJourneySession> finish({
     required String id,
     required String userId,
@@ -152,6 +158,22 @@ class LocalJourneyRepository {
               ..orderBy([(t) => OrderingTerm.asc(t.sequenceNumber)]))
             .get();
     return [for (final row in rows) _point(row)];
+  }
+
+  Future<DateTime?> lastPointAt(String id, String userId) async {
+    await _owned(id, userId);
+    final row =
+        await (_db.select(_db.journeySamples)
+              ..where((t) => t.journeyId.equals(id))
+              ..orderBy([(t) => OrderingTerm.desc(t.sequenceNumber)])
+              ..limit(1))
+            .getSingleOrNull();
+    return row == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(
+            row.recordedAtMillis,
+            isUtc: true,
+          );
   }
 
   JourneyPoint _point(JourneySample row) => JourneyPoint(

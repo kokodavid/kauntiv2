@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-ui | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. Step 4 UI behind `JOURNEYS_ENABLED`: tab, start, live card, history, a full-screen replay per Journey with its summary in the overlay card and delete on the list (60 fps glide, speed, scrubber, readout, faded route under the played line, auto-pause at key moments: recording breaks, 10+ min stops, county crossings, Kaunti47 places within 10 km with open and save). Export and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-ui | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. Step 4 UI behind `JOURNEYS_ENABLED`: tab, start, live card, history, full-screen recording and replay maps, and key moments. Reliability pass: account-bound async start, crash-duration correction, upload/delete coordination, confirmed location teardown, GPS-gap segments, and conservative replay crossing moments. Export, live boundary validation, long-route performance and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -298,6 +298,12 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Restart recovery pauses an active session; Resume creates a new segment so
   missing points are never drawn as a straight route. Timestamps preserve
   milliseconds for closely spaced fixes.
+- Recovery excludes the process-down interval from recorded time, using the
+  last stored fix. Long gaps between accepted fixes also start new segments.
+- Stop/Discard do not report success if native location teardown is still
+  unconfirmed; a paused session remains available for retry.
+- Unexpected location-stream failure pauses the notifier-visible session, so
+  the UI does not continue to claim it is recording.
 
 **Built in the entitlement and sync slice**
 
@@ -309,11 +315,27 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   restart), `JourneyUploadQueue` (backoff, local copy deleted after
   upload), `JourneyHistoryList` (local waiting + cloud, delete). Local
   Journey database schema 2.
+- Start/recovery recheck account ownership after asynchronous work. Deleting
+  a pending Journey coordinates with in-flight upload and removes any cloud
+  copy created during that race.
+
+**Built in the UI slice**
+
+- Full-screen recording map with place pins and floating controls; Journey
+  list with previews; full-screen replay and key moments. Replay crossings
+  use the same 500 m inside-boundary margin as detection and appear only at
+  the confirming point. The recording map waits for its first fix rather
+  than briefly opening over the default Kenya camera.
 
 **Pending**
 
-- Journey tab/history/replay UI, calling `recover()` and draining uploads on
-  launch/resume, privacy copy and real-device locked-screen tests.
+- Validate native stop and locked-screen recording on devices, including
+  process death, permission changes and account switches. Compare the county
+  geometry with the Mapbox base map; live geofence no-fix callbacks can still
+  announce early crossings.
+- Profile multi-hour route rendering and place-pin loading; add export and
+  update privacy/store copy before release.
+- Decide and implement a server-enforced limited free Journey allowance.
 - Admin dashboard screen for granting Pro periods (until billing, #12).
 - Subcounty tracking follows Journeys in a later feature.
 
@@ -323,6 +345,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-26 | codex/journeys-ui | 13 | Reliability pass: account-switch guards, recovery duration, pending delete/upload race, native stop retry state, stream-failure status, GPS-gap segments, replay crossing confirmation, and initial map camera; device verification pending |
 | 2026-09-25 | codex/journeys-ui | 13 | Journeys tab behind `JOURNEYS_ENABLED`: start, live route and controls, history, detail with replay and delete |
 | 2026-09-25 | codex/journeys-ui | 13 | Recording on a full-screen map with Home's place pins (tap for the place sheet), follow / re-centre, floating controls; Start opens it; place map pieces moved to core |
 | 2026-09-25 | codex/journeys-ui | 13 | Live clock stands still while paused; recorded time (minus pauses) kept locally (schema 3) and uploaded (`journeys.paused_ms`, `upload_journey` p_paused_ms); Stop can discard |

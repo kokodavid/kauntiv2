@@ -76,6 +76,25 @@ void main() {
     expect((await repository.points('one', 'alice')).length, 1);
   });
 
+  test('a long gap in valid fixes starts a new route segment', () async {
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await capture.attachStarted(session: session, userId: 'alice');
+    for (final seconds in [5, 190]) {
+      source.controller.add(
+        JourneyFix(
+          recordedAt: t0.add(Duration(seconds: seconds)),
+          latitude: -1.28 + seconds / 10000,
+          longitude: 36.82,
+          accuracyMeters: 7,
+        ),
+      );
+    }
+    now = t0.add(const Duration(minutes: 4));
+    await capture.pause();
+    final points = await repository.points('one', 'alice');
+    expect(points.map((point) => point.segmentNumber), [0, 1]);
+  });
+
   test('restart pauses old session and Resume creates a route gap', () async {
     await repository.start(id: 'one', userId: 'alice', at: t0);
     now = t0.add(const Duration(minutes: 3));
@@ -95,9 +114,33 @@ void main() {
       ),
     );
     now = t0.add(const Duration(minutes: 6));
-    await capture.finish();
+    final finished = await capture.finish();
     expect(source.started, isFalse);
     expect((await repository.points('one', 'alice')).single.segmentNumber, 1);
+    expect(finished.recording.recordedTime(now), const Duration(minutes: 1));
+  });
+
+  test('restart counts only time through the last saved fix', () async {
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await capture.attachStarted(session: session, userId: 'alice');
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(minutes: 1)),
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await pumpEventQueue();
+    expect(await repository.points('one', 'alice'), hasLength(1));
+    now = t0.add(const Duration(hours: 2));
+    final restarted = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+    );
+    final recovered = await restarted.recover('alice');
+    expect(recovered?.recording.recordedTime(now), const Duration(minutes: 1));
   });
 
   test('failed native start leaves the saved Journey paused', () async {
@@ -132,7 +175,7 @@ void main() {
     expect(source.started, isFalse);
   });
 
-  test('Stop finishes even if the native stop never returns', () async {
+  test('Stop waits for confirmed native shutdown and can be retried', () async {
     final hanging = JourneyCapture(
       repository: repository,
       locationSource: source,
@@ -144,8 +187,15 @@ void main() {
     source.hangOnStop = true;
     now = t0.add(const Duration(minutes: 1));
 
+    await expectLater(
+      hanging.finish(),
+      throwsA(isA<JourneyTeardownException>()),
+    );
+    expect(hanging.session?.recording.phase, JourneyRecordingPhase.paused);
+    source.hangOnStop = false;
     final finished = await hanging.finish();
     expect(finished.recording.phase, JourneyRecordingPhase.completed);
+    expect(source.started, isFalse);
     expect(hanging.session, isNull);
   });
 }

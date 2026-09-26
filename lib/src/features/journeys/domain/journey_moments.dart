@@ -162,11 +162,19 @@ abstract final class JourneyMoments {
   ) sync* {
     int? current;
     int? candidate;
-    var candidateStart = 0;
     var held = 0;
     for (var i = 0; i < points.length; i++) {
+      if (i > 0 &&
+          points[i].segmentNumber != points[i - 1].segmentNumber) {
+        candidate = null;
+        held = 0;
+      }
       final code = countyAt(points[i].latitude, points[i].longitude);
-      if (code == null) continue;
+      if (code == null) {
+        candidate = null;
+        held = 0;
+        continue;
+      }
       if (current == null || code == current) {
         current = code;
         candidate = null;
@@ -177,14 +185,12 @@ abstract final class JourneyMoments {
         held++;
       } else {
         candidate = code;
-        candidateStart = i;
         held = 1;
       }
-      // A county the route ends in counts even with fewer points.
-      if (held >= countySettlePoints || i == points.length - 1) {
+      if (held >= countySettlePoints) {
         yield JourneyMoment(
           kind: JourneyMomentKind.countyCrossing,
-          index: candidateStart,
+          index: i,
           name: countyName?.call(code),
         );
         current = code;

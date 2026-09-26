@@ -79,16 +79,19 @@ class _JourneyRecordingScreenState
       body: Stack(
         fit: StackFit.expand,
         children: [
-          JourneyRouteMap(
-            route: route,
-            follow: isRecording && _following,
-            bottomInset: _controlsInset + safeBottom,
-            places: _places,
-            onPlaceTapped: _showPlace,
-            onUserPan: () {
-              if (_following) setState(() => _following = false);
-            },
-          ),
+          if (route.isEmpty)
+            const ColoredBox(color: AppColors.lockedFill)
+          else
+            JourneyRouteMap(
+              route: route,
+              follow: isRecording && _following,
+              bottomInset: _controlsInset + safeBottom,
+              places: _places,
+              onPlaceTapped: _showPlace,
+              onUserPan: () {
+                if (_following) setState(() => _following = false);
+              },
+            ),
           JourneyMapButton(
             alignment: Alignment.topLeft,
             onPressed: () => Navigator.of(context).maybePop(),

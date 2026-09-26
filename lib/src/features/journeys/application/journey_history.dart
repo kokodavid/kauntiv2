@@ -49,13 +49,22 @@ class JourneyHistoryList extends _$JourneyHistoryList {
   /// Deletes a Journey: from the cloud once uploaded, else from this phone.
   Future<void> delete(JourneySummary journey) async {
     if (journey.isUploaded) {
-      await ref.read(supabaseJourneyRepositoryProvider)?.delete(journey.id);
+      final cloud = ref.read(supabaseJourneyRepositoryProvider);
+      if (cloud == null) throw StateError('Journey cloud is unavailable.');
+      await cloud.delete(journey.id);
     } else {
       final userId = ref.read(currentUserIdProvider)();
-      if (userId != null) {
-        await ref
-            .read(journeyUploadQueueProvider)
-            ?.deleteLocal(journey.id, userId);
+      if (userId == null) throw StateError('Sign in to delete a Journey.');
+      final queue = ref.read(journeyUploadQueueProvider);
+      if (queue == null) throw StateError('Journey storage is unavailable.');
+      final cloudCopyExists = await queue.deleteLocal(journey.id, userId);
+      if (cloudCopyExists) {
+        if (ref.read(currentUserIdProvider)() != userId) {
+          throw StateError('Account changed while deleting a Journey.');
+        }
+        final cloud = ref.read(supabaseJourneyRepositoryProvider);
+        if (cloud == null) throw StateError('Journey cloud is unavailable.');
+        await cloud.delete(journey.id);
       }
     }
     ref.invalidateSelf();

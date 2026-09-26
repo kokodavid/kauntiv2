@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/domain/map_place.dart';
 import '../domain/journey_county_split.dart';
+import '../domain/journey_destination.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
@@ -51,12 +52,13 @@ class SupabaseJourneyRepository {
     required DateTime endedAt,
     required List<JourneyPoint> points,
     Duration pausedDuration = Duration.zero,
+    JourneyDestination? destination,
   }) async {
     // County lookups over a long route are real work: off the UI isolate.
     final counties = await Isolate.run(() => _countySplit(points));
     final result = await _client
         .rpc<Map<String, dynamic>>(
-          'upload_journey',
+          destination == null ? 'upload_journey' : 'upload_journey_to_place',
           params: {
             'p_user_id': userId,
             'p_journey_id': id,
@@ -82,6 +84,12 @@ class SupabaseJourneyRepository {
                   'accuracy_m': point.accuracyMeters,
                 },
             ],
+            if (destination != null) ...{
+              'p_destination_place_id': destination.placeId,
+              'p_destination_name': destination.name,
+              'p_destination_latitude': destination.latitude,
+              'p_destination_longitude': destination.longitude,
+            },
           },
         )
         .timeout(_uploadTimeout);
@@ -92,7 +100,9 @@ class SupabaseJourneyRepository {
     final rows = await readAllPages(
       (from, to) => _client
           .from('journeys')
-          .select('id, title, started_at, ended_at, distance_m, paused_ms')
+          .select('id, title, started_at, ended_at, distance_m, paused_ms, '
+              'destination_place_id, destination_name, '
+              'destination_latitude, destination_longitude')
           .order('started_at', ascending: false)
           // postgrest-dart's order() is descending unless told otherwise.
           .order('id', ascending: true)
@@ -112,13 +122,23 @@ class SupabaseJourneyRepository {
       milliseconds: (row['paused_ms'] as num?)?.toInt() ?? 0,
     ),
     isUploaded: true,
+    destination: row['destination_place_id'] == null
+        ? null
+        : JourneyDestination(
+            placeId: row['destination_place_id'] as String,
+            name: row['destination_name'] as String,
+            latitude: (row['destination_latitude'] as num?)?.toDouble(),
+            longitude: (row['destination_longitude'] as num?)?.toDouble(),
+          ),
   );
 
   /// One uploaded Journey, or null if it's gone (deleted elsewhere).
   Future<JourneySummary?> journey(String id) async {
     final row = await _client
         .from('journeys')
-        .select('id, title, started_at, ended_at, distance_m, paused_ms')
+        .select('id, title, started_at, ended_at, distance_m, paused_ms, '
+            'destination_place_id, destination_name, '
+            'destination_latitude, destination_longitude')
         .eq('id', id)
         .maybeSingle()
         .timeout(_timeout);

@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-ui | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. Step 4 UI behind `JOURNEYS_ENABLED`: tab, start, live card, history, full-screen recording and replay maps, and key moments. Reliability pass: account-bound async start, crash-duration correction, upload/delete coordination, confirmed location teardown, GPS-gap segments, and conservative replay crossing moments. Export, live boundary validation, long-route performance and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Step 3: server Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue, private history/delete. Step 4 UI behind `JOURNEYS_ENABLED`: tab, start, live card, history, full-screen recording and replay maps, and key moments. Reliability pass: account-bound async start, crash-duration correction, upload/delete coordination, confirmed location teardown, GPS-gap segments, and conservative replay crossing moments. Place Detail Get Route now offers an explicit Journey choice, with a durable destination snapshot and private upload. Export, live boundary validation, long-route performance and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -327,6 +327,18 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   the confirming point. The recording map waits for its first fix rather
   than briefly opening over the default Kenya camera.
 
+**Built in the place handoff slice**
+
+- Place Detail Get Route offers Record as a Journey or Directions only when
+  Journeys are enabled. Recording starts and passes entitlement/location checks
+  before external directions launch; a failed launch discards that new Journey
+  where native teardown succeeds.
+- The chosen place ID, name and optional coordinates persist in local schema 4
+  and upload privately through `upload_journey_to_place`. Pending and synced
+  history retain the destination, including after a place listing changes.
+- Planned routes and travel itineraries are not implemented. A Journey remains
+  the actual recorded route, and the user stops it explicitly.
+
 **Pending**
 
 - Validate native stop and locked-screen recording on devices, including
@@ -345,6 +357,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-26 | codex/journey-place-handoff | 13 | Place Detail Get Route choice, background Journey start before external directions, durable destination snapshot and private upload migration; device validation and migration deployment pending |
 | 2026-09-26 | codex/badges | 7, 13 | Badge sheet: 'Your time in <county>' (visits, months, last visit, Journeys + km) replaces the place cards; Journeys record the counties they cross (`journey_counties`, `upload_journey` p_counties) |
 | 2026-09-26 | codex/badges | 7 | Badge sheet: earned date, next-depth progress, saved places / county coverage, share card (share_plus), how-to-earn + places for locked; `county_badge_detail` RPC |
 | 2026-09-26 | codex/badges | 7 | Badges tab: tier pill, claimed hero, collection grid of star-less badges with depth rings; tap opens County Detail |

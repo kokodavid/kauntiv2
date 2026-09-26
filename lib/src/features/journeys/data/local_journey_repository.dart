@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../domain/journey_destination.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_recording.dart';
 import 'journey_database.dart';
@@ -38,9 +39,13 @@ class LocalJourneyRepository {
     required String id,
     required String userId,
     required DateTime at,
+    JourneyDestination? destination,
   }) => _db.transaction(() async {
     if (id.isEmpty || userId.isEmpty) {
       throw ArgumentError('A Journey needs an id and an owner.');
+    }
+    if (destination != null && !destination.isValid) {
+      throw ArgumentError('Journey destination is not valid.');
     }
     final active =
         await (_db.select(_db.journeySessions)
@@ -63,8 +68,45 @@ class LocalJourneyRepository {
             segmentNumber: recording.segmentNumber,
           ),
         );
+    if (destination != null) {
+      await _db.customUpdate(
+        'UPDATE journey_sessions SET destination_place_id = ?, '
+        'destination_name = ?, destination_latitude = ?, '
+        'destination_longitude = ? WHERE id = ? AND user_id = ?',
+        variables: [
+          Variable.withString(destination.placeId),
+          Variable.withString(destination.name),
+          Variable<double>(destination.latitude),
+          Variable<double>(destination.longitude),
+          Variable.withString(id),
+          Variable.withString(userId),
+        ],
+        updates: {_db.journeySessions},
+      );
+    }
     return LocalJourneySession(id: id, recording: recording);
   });
+
+  Future<JourneyDestination?> destination(String id, String userId) async {
+    final rows = await _db.customSelect(
+      'SELECT destination_place_id, destination_name, '
+      'destination_latitude, destination_longitude FROM journey_sessions '
+      'WHERE id = ? AND user_id = ?',
+      variables: [Variable.withString(id), Variable.withString(userId)],
+      readsFrom: {_db.journeySessions},
+    ).get();
+    if (rows.isEmpty) return null;
+    final row = rows.single.data;
+    final placeId = row['destination_place_id'] as String?;
+    final name = row['destination_name'] as String?;
+    if (placeId == null || name == null) return null;
+    return JourneyDestination(
+      placeId: placeId,
+      name: name,
+      latitude: (row['destination_latitude'] as num?)?.toDouble(),
+      longitude: (row['destination_longitude'] as num?)?.toDouble(),
+    );
+  }
 
   Future<LocalJourneySession> pause({
     required String id,

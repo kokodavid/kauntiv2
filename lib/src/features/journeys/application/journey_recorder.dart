@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../services/app_logger.dart';
 import '../../auth/application/auth_providers.dart';
 import '../data/local_journey_repository.dart';
+import '../domain/journey_destination.dart';
 import '../domain/journey_fix.dart';
 import '../domain/journey_ids.dart';
 import '../domain/pro_status.dart';
@@ -122,7 +123,7 @@ class JourneyRecorder extends _$JourneyRecorder {
   /// Starts a Journey. Throws [JourneyStartDenied] without Pro,
   /// [JourneyProCheckUnavailable] when Pro can't be checked (offline) and
   /// [JourneyLocationException] when the phone can't record.
-  Future<void> start({DateTime? now}) async {
+  Future<void> start({DateTime? now, JourneyDestination? destination}) async {
     if (state != null) throw StateError('A Journey is already in progress.');
     final userId = _userId();
     await _detachPreviousOwner(userId);
@@ -137,7 +138,12 @@ class JourneyRecorder extends _$JourneyRecorder {
     }
     final session = await ref
         .read(localJourneyRepositoryProvider)
-        .start(id: JourneyIds.newId(), userId: userId, at: at.toUtc());
+        .start(
+          id: JourneyIds.newId(),
+          userId: userId,
+          at: at.toUtc(),
+          destination: destination,
+        );
     if (!_stillOwnedBy(userId)) {
       await ref
           .read(localJourneyRepositoryProvider)

@@ -20,6 +20,7 @@ import '../services/app_supabase.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
 import 'detail_routes.dart';
+import 'journey_place_routes.dart';
 import 'startup_pages.dart';
 
 part 'router.g.dart';
@@ -124,6 +125,7 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => PlaceDetailScreen(
           placeId: state.pathParameters['id']!,
           actions: DetailRoutes.actions!,
+          onGetRoute: JourneyPlaceRoutes.open,
         ),
       ),
     ],

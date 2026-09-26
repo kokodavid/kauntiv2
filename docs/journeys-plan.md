@@ -23,6 +23,9 @@ Step 3 (entitlement and sync) on `codex/journeys-sync`; step 4 (UI) on
 `features/journeys` owns recording state, route samples, history and replay.
 The existing `features/detection` owns badges and stays independent. Mapbox
 renders a route; it does not own the recording or storage lifecycle.
+Place Detail keeps its external directions launcher; `app/` coordinates the
+optional Journey start before opening it. A destination is intent, not a
+planned route or evidence that the user arrived.
 
 | Layer | Responsibility |
 |---|---|
@@ -125,6 +128,22 @@ location-less geofence callback, multi-hour route performance, privacy/store
 disclosures and retention, plus export. A limited free Journey allowance is
 under design; Pro-only remains the implemented rule until a server-enforced
 quota migration and matching app changes land.
+
+## Place route handoff (2026-09-26)
+
+Place Detail now offers Record as a Journey and Directions only when the
+feature flag is enabled. The user explicitly chooses recording, which must
+pass the live entitlement and background-location checks before directions
+open in the external maps app. If directions cannot open, the new Journey is
+discarded after confirmed teardown; if teardown fails, the app tells the user
+that it is still recording. An existing Journey is not silently retargeted.
+
+Local schema 4 keeps an optional account-scoped destination snapshot. The
+`20260926150000_add_journey_destinations.sql` migration adds private cloud
+fields and an owner-checked wrapper around the existing validated upload RPC.
+Deploy this migration before enabling the new client. The recorded route and
+manual Stop remain independent of the destination. Planning multiple stops,
+route comparison and arrival handling are later work.
 
 ## Privacy boundary
 

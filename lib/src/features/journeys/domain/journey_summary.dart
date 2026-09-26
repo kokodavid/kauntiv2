@@ -1,3 +1,5 @@
+import 'journey_destination.dart';
+
 /// One Journey in the history list.
 class JourneySummary {
   const JourneySummary({
@@ -8,6 +10,7 @@ class JourneySummary {
     required this.isUploaded,
     this.distanceMeters,
     this.pausedDuration = Duration.zero,
+    this.destination,
   });
 
   final String id;
@@ -24,6 +27,8 @@ class JourneySummary {
   /// Time spent paused (0 for Journeys uploaded before it was kept).
   final Duration pausedDuration;
 
+  final JourneyDestination? destination;
+
   /// Recorded time: start to end, minus pauses.
   Duration get duration {
     final recorded = endedAt.difference(startedAt) - pausedDuration;
@@ -32,6 +37,8 @@ class JourneySummary {
 }
 
 abstract final class JourneyTitles {
+  static String toPlace(JourneyDestination destination) =>
+      'Journey to ${destination.name}';
   static const _months = [
     'Jan',
     'Feb',

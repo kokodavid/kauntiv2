@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../services/app_logger.dart';
 import '../domain/journey_point.dart';
+import '../domain/journey_destination.dart';
 import '../domain/journey_summary.dart';
 import 'journey_database.dart';
 import 'local_journey_repository.dart';
@@ -21,6 +22,7 @@ typedef UploadJourney =
       required DateTime endedAt,
       required Duration pausedDuration,
       required List<JourneyPoint> points,
+      JourneyDestination? destination,
     });
 
 /// Uploads completed local Journeys for the signed-in account, oldest
@@ -59,6 +61,7 @@ class JourneyUploadQueue {
           required endedAt,
           required pausedDuration,
           required points,
+          destination,
         }) => cloud.upload(
           userId: userId,
           id: id,
@@ -67,6 +70,7 @@ class JourneyUploadQueue {
           endedAt: endedAt,
           pausedDuration: pausedDuration,
           points: points,
+          destination: destination,
         ),
   );
 
@@ -93,7 +97,7 @@ class JourneyUploadQueue {
               )
               ..orderBy([(t) => OrderingTerm.desc(t.startedAtMillis)]))
             .get();
-    return [for (final row in rows) _summary(row)];
+    return Future.wait([for (final row in rows) _summary(row)]);
   }
 
   /// Uploads what's due; returns how many Journeys uploaded. Concurrent
@@ -127,7 +131,7 @@ class JourneyUploadQueue {
     for (final row in due) {
       if (_currentUserId() != userId) break;
       if (_deletingIds.contains(row.id)) continue;
-      final summary = _summary(row);
+      final summary = await _summary(row);
       try {
         final points = await _local.points(row.id, userId);
         if (_currentUserId() != userId) break;
@@ -140,6 +144,7 @@ class JourneyUploadQueue {
           endedAt: summary.endedAt,
           pausedDuration: summary.pausedDuration,
           points: points,
+          destination: summary.destination,
         );
         // Stored under [userId] on the server; the local copy is theirs.
         await _removeLocal(row.id);
@@ -201,14 +206,17 @@ class JourneyUploadQueue {
     await (_db.delete(_db.journeySessions)..where((t) => t.id.equals(id))).go();
   });
 
-  JourneySummary _summary(JourneySession row) {
+  Future<JourneySummary> _summary(JourneySession row) async {
     final startedAt = DateTime.fromMillisecondsSinceEpoch(
       row.startedAtMillis,
       isUtc: true,
     );
+    final destination = await _local.destination(row.id, row.userId);
     return JourneySummary(
       id: row.id,
-      title: JourneyTitles.defaultFor(startedAt),
+      title: destination == null
+          ? JourneyTitles.defaultFor(startedAt)
+          : JourneyTitles.toPlace(destination),
       startedAt: startedAt,
       endedAt: DateTime.fromMillisecondsSinceEpoch(
         row.endedAtMillis ?? row.lastChangedAtMillis,
@@ -216,6 +224,7 @@ class JourneyUploadQueue {
       ),
       pausedDuration: Duration(milliseconds: row.pausedTotalMillis),
       isUploaded: false,
+      destination: destination,
     );
   }
 

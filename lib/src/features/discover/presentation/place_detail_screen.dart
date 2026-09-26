@@ -12,6 +12,11 @@ import 'detail_photo_carousel.dart';
 import 'detail_widgets.dart';
 import 'place_category_style.dart';
 
+typedef OpenPlaceRoute = Future<void> Function(
+  BuildContext context,
+  PlaceDetailData place,
+);
+
 /// Place Detail (v2 Figma node 235:7353, ported from v1): photo carousel
 /// with back button and category pill, title, description, a Source /
 /// Type card, and a floating Get Route / share / save bar.
@@ -20,10 +25,12 @@ class PlaceDetailScreen extends StatelessWidget {
     super.key,
     required this.placeId,
     required this.actions,
+    this.onGetRoute,
   });
 
   final String placeId;
   final DiscoverDetailActions actions;
+  final OpenPlaceRoute? onGetRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -34,31 +41,65 @@ class PlaceDetailScreen extends StatelessWidget {
           load: () => actions.placeDetail(placeId),
           errorMessage: "Couldn't load this place.",
           builder: (context, data) =>
-              _PlaceDetailBody(data: data, actions: actions),
+              _PlaceDetailBody(
+                data: data,
+                actions: actions,
+                onGetRoute: onGetRoute,
+              ),
         ),
       ),
     );
   }
 }
 
-class _PlaceDetailBody extends StatelessWidget {
-  const _PlaceDetailBody({required this.data, required this.actions});
+class _PlaceDetailBody extends StatefulWidget {
+  const _PlaceDetailBody({
+    required this.data,
+    required this.actions,
+    this.onGetRoute,
+  });
 
   final PlaceDetailData data;
   final DiscoverDetailActions actions;
+  final OpenPlaceRoute? onGetRoute;
+
+  @override
+  State<_PlaceDetailBody> createState() => _PlaceDetailBodyState();
+}
+
+class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
+  bool _openingRoute = false;
 
   Future<void> _getRoute(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final opened = await actions.openDirections(data);
-    if (!opened) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text("Couldn't open directions.")),
-      );
+    if (_openingRoute) return;
+    setState(() => _openingRoute = true);
+    try {
+      final open = widget.onGetRoute;
+      if (open != null) {
+        await open(context, widget.data);
+      } else {
+        final opened = await widget.actions.openDirections(widget.data);
+        if (!opened && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Couldn't open directions.")),
+          );
+        }
+      }
+    } on Object {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Couldn't open directions.")),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _openingRoute = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final data = widget.data;
+    final actions = widget.actions;
     return Stack(
       children: [
         Positioned.fill(
@@ -111,7 +152,9 @@ class _PlaceDetailBody extends StatelessWidget {
                 child: SizedBox(
                   height: 40,
                   child: ElevatedButton(
-                    onPressed: () => unawaited(_getRoute(context)),
+                    onPressed: _openingRoute
+                        ? null
+                        : () => unawaited(_getRoute(context)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accent,
                       foregroundColor: AppColors.accentForeground,
@@ -120,10 +163,15 @@ class _PlaceDetailBody extends StatelessWidget {
                         borderRadius: BorderRadius.circular(24),
                       ),
                     ),
-                    child: const Text(
-                      'Get Route',
-                      style: AppTextStyles.buttonLabel,
-                    ),
+                    child: _openingRoute
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'Get Route',
+                            style: AppTextStyles.buttonLabel,
+                          ),
                   ),
                 ),
               ),

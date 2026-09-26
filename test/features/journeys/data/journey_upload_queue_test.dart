@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_upload_queue.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_destination.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_point.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -15,6 +16,7 @@ void main() {
   late List<String> uploaded;
   late Object? Function(String id) failWith;
   late void Function(String id) onUpload;
+  late JourneyDestination? uploadedDestination;
   String? user = 'alice';
 
   JourneyUploadQueue queue() => JourneyUploadQueue(
@@ -29,20 +31,36 @@ void main() {
           required endedAt,
           required pausedDuration,
           required points,
+          destination,
         }) async {
           expect(userId, 'alice');
           onUpload(id);
           final error = failWith(id);
           if (error != null) throw error;
           expect(points, hasLength(1));
-          expect(title, startsWith('Journey on '));
+          expect(
+            title,
+            destination == null
+                ? startsWith('Journey on ')
+                : 'Journey to ${destination.name}',
+          );
+          uploadedDestination = destination;
           uploaded.add(id);
         },
   );
 
-  Future<void> completed(String id, {int offsetMinutes = 0}) async {
+  Future<void> completed(
+    String id, {
+    int offsetMinutes = 0,
+    JourneyDestination? destination,
+  }) async {
     final start = t0.add(Duration(minutes: offsetMinutes));
-    await local.start(id: id, userId: 'alice', at: start);
+    await local.start(
+      id: id,
+      userId: 'alice',
+      at: start,
+      destination: destination,
+    );
     await local.appendPoint(
       id: id,
       userId: 'alice',
@@ -67,9 +85,26 @@ void main() {
     uploaded = [];
     failWith = (_) => null;
     onUpload = (_) {};
+    uploadedDestination = null;
     user = 'alice';
   });
   tearDown(() => db.close());
+
+  test('uploads the chosen place and labels pending history', () async {
+    const destination = JourneyDestination(
+      placeId: 'place-1',
+      name: 'Nairobi National Museum',
+      latitude: -1.273,
+      longitude: 36.814,
+    );
+    await completed('a', destination: destination);
+    final q = queue();
+    final pending = await q.pending('alice');
+    expect(pending.single.destination?.placeId, destination.placeId);
+    expect(pending.single.title, 'Journey to Nairobi National Museum');
+    expect(await q.drain(now: t0.add(const Duration(hours: 1))), 1);
+    expect(uploadedDestination?.placeId, destination.placeId);
+  });
 
   test('uploads completed Journeys oldest first and deletes them', () async {
     await completed('b', offsetMinutes: 10);
@@ -180,6 +215,7 @@ void main() {
             required endedAt,
             required pausedDuration,
             required points,
+            destination,
           }) async {
             uploadStarted.complete();
             await releaseUpload.future;

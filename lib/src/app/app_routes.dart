@@ -9,6 +9,7 @@ abstract final class AppRoutes {
   static const homeCounty = '/home-county';
   static const permission = '/permission';
   static const map = '/map';
+  static const badges = '/badges';
   static const explore = '/explore';
   static const journeys = '/journeys';
   static const journeyRecording = '/journey-recording';
@@ -20,6 +21,7 @@ abstract final class AppRoutes {
   /// The tabs that are live, in shell-branch order.
   static const tabs = [
     AppNavTab.map,
+    AppNavTab.badges,
     AppNavTab.explore,
     if (AppFeatureFlags.journeys) AppNavTab.journeys,
   ];

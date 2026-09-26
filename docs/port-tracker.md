@@ -15,7 +15,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 (rules, polygons, local store, sync queue, native geofencing, foreground cycle, background-permission pause, arrival sheet) coded; needs a device test. Needs a real-device test |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
-| 7 | Badges + tiers | `features/badges` | Not started | | |
+| 7 | Badges + tiers | `features/badges` | In progress | codex/badges | [Plan](badges-port-plan.md). Step 1: Badges tab on the new design (Figma 491:1394, star-less badge 277:19839): title + tier pill, claimed hero with 47-segment bar, collection grid with depth rings (county_visits + county_depth_ranks). "Since reset", the activity card, avatar and saved-data time wait on product rules. |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |
 | 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | |
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
@@ -345,6 +345,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-26 | codex/badges | 7 | Badges tab: tier pill, claimed hero, collection grid of star-less badges with depth rings; tap opens County Detail |
 | 2026-09-26 | codex/journeys-ui | 13 | Reliability pass: account-switch guards, recovery duration, pending delete/upload race, native stop retry state, stream-failure status, GPS-gap segments, replay crossing confirmation, and initial map camera; device verification pending |
 | 2026-09-25 | codex/journeys-ui | 13 | Journeys tab behind `JOURNEYS_ENABLED`: start, live route and controls, history, detail with replay and delete |
 | 2026-09-25 | codex/journeys-ui | 13 | Recording on a full-screen map with Home's place pins (tap for the place sheet), follow / re-centre, floating controls; Start opens it; place map pieces moved to core |

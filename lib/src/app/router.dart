@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
+import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
@@ -49,6 +50,15 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.map,
                 builder: (context, state) => const _MapTab(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.badges,
+                builder: (context, state) =>
+                    BadgesScreen(onOpenCounty: DetailRoutes.openCounty),
               ),
             ],
           ),

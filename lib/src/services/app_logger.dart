@@ -10,6 +10,7 @@ class AppLogger {
   const AppLogger.mapHome() : this._('map_home');
   const AppLogger.detection() : this._('detection');
   const AppLogger.journeys() : this._('journeys');
+  const AppLogger.badges() : this._('badges');
 
   final String _scope;
 

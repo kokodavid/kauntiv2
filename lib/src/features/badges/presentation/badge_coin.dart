@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,8 +8,10 @@ import 'county_badge_medallion.dart';
 
 /// The badge as a coin that can spin: a few fast turns about its vertical
 /// axis, slowing to land on its front (with a little lift as it starts).
-/// Spins once on start when [spinOnStart]; tapping an earned coin spins
-/// it again. Stays still when the phone asks for reduced motion.
+/// Spins once on start when [spinOnStart], but only after the sheet it's
+/// in has finished sliding up (one motion at a time); tapping an earned
+/// coin spins it again. Stays still when the phone asks for reduced
+/// motion.
 class BadgeCoin extends StatefulWidget {
   const BadgeCoin({
     super.key,
@@ -49,12 +52,17 @@ class _BadgeCoinState extends State<BadgeCoin>
 
   bool _started = false;
 
+  /// A short beat between the sheet settling and the coin spinning.
+  static const _settle = Duration(milliseconds: 150);
+  Timer? _delay;
+  Animation<double>? _routeAnimation;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_started && widget.spinOnStart) {
       _started = true;
-      _spinAfterFrame();
+      _spinWhenShown();
     }
   }
 
@@ -64,8 +72,25 @@ class _BadgeCoinState extends State<BadgeCoin>
     // The "first open?" answer can arrive a moment after the sheet.
     if (!_started && widget.spinOnStart && !oldWidget.spinOnStart) {
       _started = true;
-      _spinAfterFrame();
+      _spinWhenShown();
     }
+  }
+
+  /// Waits for the sheet's slide-up to finish, then spins.
+  void _spinWhenShown() {
+    final route = ModalRoute.of(context)?.animation;
+    if (route == null || route.status == AnimationStatus.completed) {
+      _spinAfterFrame();
+      return;
+    }
+    _routeAnimation = route..addStatusListener(_onRouteStatus);
+  }
+
+  void _onRouteStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+    _routeAnimation?.removeStatusListener(_onRouteStatus);
+    _routeAnimation = null;
+    _spinAfterFrame();
   }
 
   void _onStatus(AnimationStatus status) {
@@ -79,7 +104,10 @@ class _BadgeCoinState extends State<BadgeCoin>
 
   /// Not mid-build: the listener may rebuild the sheet.
   void _spinAfterFrame() => WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (mounted) _spin();
+    _delay?.cancel();
+    _delay = Timer(_settle, () {
+      if (mounted) _spin();
+    });
   });
 
   void _spin() {
@@ -89,6 +117,8 @@ class _BadgeCoinState extends State<BadgeCoin>
 
   @override
   void dispose() {
+    _delay?.cancel();
+    _routeAnimation?.removeStatusListener(_onRouteStatus);
     _controller.dispose();
     super.dispose();
   }

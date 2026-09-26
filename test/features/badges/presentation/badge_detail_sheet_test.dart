@@ -138,7 +138,7 @@ void main() {
       _app(badge(47), const CountyBadgeDetail(), firstSpin: true),
     );
     await tester.pump(); // first-spin answer
-    await tester.pump(); // spin starts after the frame
+    await tester.pump(); // spin is scheduled after the frame
     await tester.pump(const Duration(milliseconds: 300));
     ElevatedButton share() => tester.widget<ElevatedButton>(
       find.ancestor(
@@ -148,7 +148,8 @@ void main() {
     );
     expect(share().onPressed, isNull);
 
-    await tester.pump(const Duration(seconds: 2));
+    // 150 ms beat after the sheet is up, then a 2.2 s spin.
+    await tester.pump(const Duration(seconds: 3));
     await tester.pump(); // rebuild after it lands
     expect(share().onPressed, isNotNull);
   });

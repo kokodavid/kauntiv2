@@ -49,13 +49,20 @@ Future<CountyBadgeDetail> countyBadgeDetail(Ref ref, int countyCode) async {
 Future<AppLocationFix?> badgeUserLocation(Ref ref) =>
     AppCurrentLocation.read();
 
+/// Spin the coin on every open (testing); false = first open only.
+const spinEveryOpen = true;
+
 @riverpod
 BadgeSpinHistory badgeSpinHistory(Ref ref) => const BadgeSpinHistory();
 
 /// Whether this earned badge's coin should spin as its sheet opens: only
 /// the first time the account opens it on this phone. Asking records it.
+///
+/// TEMPORARY while the spin is being tuned: [spinEveryOpen] makes every
+/// open spin. Set it back to false before release.
 @riverpod
 Future<bool> badgeFirstSpin(Ref ref, int countyCode) async {
+  if (spinEveryOpen) return true;
   final userId = ref.watch(currentUserIdProvider)();
   if (userId == null) return false;
   return ref.read(badgeSpinHistoryProvider).claimFirstSpin(userId, countyCode);

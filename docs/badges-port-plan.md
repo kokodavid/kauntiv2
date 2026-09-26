@@ -53,6 +53,12 @@ Port of v1's Badges tab to v2, on the new design:
    — photo, summary, type, distance, save — nearest first from a one-shot
    foreground position (migration `20260926130000` adds photo, summary,
    coordinates and saved to the suggestions).
+   **Coin spin:** an earned badge's coin spins (3 turns about its
+   vertical axis, easing out, slight lift) and lands on its front the
+   first time the account opens that badge on this phone
+   (`BadgeSpinHistory`, shared_preferences); tapping it spins it again;
+   the back is the disc with the Kaunti47 mark; locked badges don't spin;
+   reduced motion is respected; Share waits until it lands.
    Next: the unlock celebration + share prompt, a collection share card,
    filter chips and regional goals.
 3. **Pending overlay:** merge detection's local pending codes (v1 did)

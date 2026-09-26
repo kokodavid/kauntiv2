@@ -10,8 +10,12 @@ import 'package:kaunti47_v2/src/features/badges/presentation/badge_detail_sheet.
 Widget _app(CountyBadge badge, CountyBadgeDetail detail, {
   VoidCallback? onOpenCounty,
   ValueChanged<String>? onOpenPlace,
+  bool firstSpin = false,
 }) => ProviderScope(
   overrides: [
+    badgeFirstSpinProvider(badge.county.code).overrideWith(
+      (ref) async => firstSpin,
+    ),
     countyBadgeDetailProvider(badge.county.code).overrideWith(
       (ref) async => detail,
     ),
@@ -125,5 +129,27 @@ void main() {
     await tester.ensureVisible(find.text('Karura Forest'));
     await tester.tap(find.text('Karura Forest'));
     expect(opened, ['p1']);
+  });
+
+  testWidgets('first open spins the coin; Share waits until it lands', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(badge(47), const CountyBadgeDetail(), firstSpin: true),
+    );
+    await tester.pump(); // first-spin answer
+    await tester.pump(); // spin starts after the frame
+    await tester.pump(const Duration(milliseconds: 300));
+    ElevatedButton share() => tester.widget<ElevatedButton>(
+      find.ancestor(
+        of: find.text('Share'),
+        matching: find.byWidgetPredicate((w) => w is ElevatedButton),
+      ),
+    );
+    expect(share().onPressed, isNull);
+
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(); // rebuild after it lands
+    expect(share().onPressed, isNotNull);
   });
 }

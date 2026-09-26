@@ -20,9 +20,13 @@ class BadgeShareCard extends StatelessWidget {
     required this.badge,
     required this.claimed,
     required this.total,
+    this.coinBuilder,
   });
 
   final CountyBadge badge;
+
+  /// The badge inside the ring, e.g. the spinning coin.
+  final Widget Function(double size)? coinBuilder;
   final int claimed;
   final int total;
 
@@ -46,7 +50,7 @@ class BadgeShareCard extends StatelessWidget {
         children: [
           SizedBox.square(
             dimension: 128,
-            child: BadgeGridCell(badge: badge),
+            child: BadgeGridCell(badge: badge, coinBuilder: coinBuilder),
           ),
           const SizedBox(height: 14),
           Text(

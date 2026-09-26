@@ -6,10 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/services/app_share.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
 import '../application/badges_providers.dart';
 import '../domain/badge_collection.dart';
+import 'badge_coin.dart';
 import 'badge_detail_sections.dart';
+import 'badge_sheet_parts.dart';
 import 'badge_share_card.dart';
 
 /// Opens County Detail / Place Detail; supplied by `app/`.
@@ -18,7 +19,8 @@ typedef OpenBadgePlace = void Function(BuildContext context, String placeId);
 
 /// A badge up close: the badge card, when it was earned and what the next
 /// depth needs, your visits / last visit / Journeys there, Share (earned)
-/// and View county. A county not yet earned shows how to earn it and
+/// and View county. An earned coin spins the first time its sheet opens,
+/// and again when tapped. A county not yet earned shows how to earn it and
 /// places to start with.
 class BadgeDetailSheet extends ConsumerStatefulWidget {
   const BadgeDetailSheet({
@@ -81,6 +83,9 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
   final _cardKey = GlobalKey();
   bool _sharing = false;
 
+  /// The coin is mid-spin: Share waits so the image shows its front.
+  bool _spinning = false;
+
   Future<void> _share() async {
     if (_sharing) return;
     setState(() => _sharing = true);
@@ -117,6 +122,11 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
     // Start the position read alongside the details: places to start
     // with are sorted by distance.
     if (!badge.isEarned) ref.watch(badgeUserLocationProvider);
+    // An earned coin spins the first time its sheet opens.
+    final spin =
+        badge.isEarned &&
+        (ref.watch(badgeFirstSpinProvider(badge.county.code)).value ??
+            false);
     final openCounty = widget.onOpenCounty;
     return Container(
       constraints: BoxConstraints(
@@ -136,13 +146,21 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _Handle(),
+            const BadgeSheetHandle(),
             RepaintBoundary(
               key: _cardKey,
               child: BadgeShareCard(
                 badge: badge,
                 claimed: widget.claimed,
                 total: widget.total,
+                coinBuilder: (size) => BadgeCoin(
+                  badge: badge,
+                  size: size,
+                  spinOnStart: spin,
+                  onSpinningChanged: (spinning) {
+                    if (mounted) setState(() => _spinning = spinning);
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -194,18 +212,20 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
               children: [
                 if (badge.isEarned) ...[
                   Expanded(
-                    child: _SheetButton(
+                    child: BadgeSheetButton(
                       label: 'Share',
                       icon: Icons.ios_share,
                       filled: true,
-                      onPressed: _sharing ? null : () => unawaited(_share()),
+                      onPressed: _sharing || _spinning
+                          ? null
+                          : () => unawaited(_share()),
                     ),
                   ),
                   const SizedBox(width: 8),
                 ],
                 if (openCounty != null)
                   Expanded(
-                    child: _SheetButton(
+                    child: BadgeSheetButton(
                       label: 'View county',
                       icon: Icons.map_outlined,
                       filled: !badge.isEarned,
@@ -215,71 +235,6 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SheetButton extends StatelessWidget {
-  const _SheetButton({
-    required this.label,
-    required this.icon,
-    required this.filled,
-    required this.onPressed,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool filled;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(24),
-    );
-    return SizedBox(
-      height: 48,
-      child: filled
-          ? ElevatedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon, size: 18),
-              label: Text(label, style: AppTextStyles.buttonLabel),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.accentForeground,
-                elevation: 0,
-                shape: shape,
-              ),
-            )
-          : OutlinedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon, size: 18),
-              label: Text(label, style: AppTextStyles.buttonLabelSecondary),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.foreground,
-                side: const BorderSide(color: AppColors.cardBorder),
-                shape: shape,
-              ),
-            ),
-    );
-  }
-}
-
-class _Handle extends StatelessWidget {
-  const _Handle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 40,
-        height: 4,
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: AppColors.trackInactive,
-          borderRadius: BorderRadius.circular(999),
         ),
       ),
     );

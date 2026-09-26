@@ -4,6 +4,7 @@ import '../../../core/services/app_current_location.dart';
 import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../detection/application/visit_sync.dart';
+import '../data/badge_spin_history.dart';
 import '../data/supabase_badges_repository.dart';
 import '../domain/badge_collection.dart';
 import '../domain/county_badge_detail.dart';
@@ -47,3 +48,15 @@ Future<CountyBadgeDetail> countyBadgeDetail(Ref ref, int countyCode) async {
 @riverpod
 Future<AppLocationFix?> badgeUserLocation(Ref ref) =>
     AppCurrentLocation.read();
+
+@riverpod
+BadgeSpinHistory badgeSpinHistory(Ref ref) => const BadgeSpinHistory();
+
+/// Whether this earned badge's coin should spin as its sheet opens: only
+/// the first time the account opens it on this phone. Asking records it.
+@riverpod
+Future<bool> badgeFirstSpin(Ref ref, int countyCode) async {
+  final userId = ref.watch(currentUserIdProvider)();
+  if (userId == null) return false;
+  return ref.read(badgeSpinHistoryProvider).claimFirstSpin(userId, countyCode);
+}

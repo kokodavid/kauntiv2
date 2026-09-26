@@ -8,22 +8,26 @@ import '../../../widgets/app_county_shape.dart';
 
 /// A county badge (Figma "Badge", no stars): a glossy disc with the county
 /// name across the top and its silhouette in white. Blue once earned,
-/// grey otherwise. Drawn at any [size]; the design is 74 px.
+/// grey otherwise. Drawn at any [size]; the design is 74 px. With [back]
+/// it's the coin's reverse: the same disc with the Kaunti47 mark.
 class CountyBadgeMedallion extends StatelessWidget {
   const CountyBadgeMedallion({
     super.key,
     required this.county,
     required this.earned,
     this.size = 74,
+    this.back = false,
   });
 
   final CountyPath county;
   final bool earned;
   final double size;
+  final bool back;
 
   @override
   Widget build(BuildContext context) {
     final unit = size / 74;
+    if (back) return _back(unit);
     return SizedBox.square(
       dimension: size,
       child: Stack(
@@ -68,6 +72,37 @@ class CountyBadgeMedallion extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on CountyBadgeMedallion {
+  Widget _back(double unit) => SizedBox.square(
+    dimension: size,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(
+          child: CustomPaint(painter: _DiscPainter(earned: earned)),
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.star_rounded, color: Colors.white, size: 16 * unit),
+            SizedBox(height: 2 * unit),
+            Text(
+              'KAUNTI47',
+              style: TextStyle(
+                fontFamily: AppTypeScale.family,
+                fontWeight: FontWeight.w600,
+                fontSize: 9 * unit,
+                letterSpacing: 1.2 * unit,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 }
 
 /// The disc: a rim (lit from above) round an inner face with a soft light

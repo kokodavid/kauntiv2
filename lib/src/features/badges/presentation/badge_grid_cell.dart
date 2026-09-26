@@ -12,10 +12,19 @@ import 'county_badge_medallion.dart';
 /// per depth level, from 12 o'clock clockwise). Pending counties get a
 /// small marker so they don't read as locked. Tapping opens the county.
 class BadgeGridCell extends StatelessWidget {
-  const BadgeGridCell({super.key, required this.badge, this.onTap});
+  const BadgeGridCell({
+    super.key,
+    required this.badge,
+    this.onTap,
+    this.coinBuilder,
+  });
 
   final CountyBadge badge;
   final VoidCallback? onTap;
+
+  /// Wraps the badge inside the ring (the sheet's spinning coin); the
+  /// ring itself never moves.
+  final Widget Function(double size)? coinBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +54,12 @@ class BadgeGridCell extends StatelessWidget {
                     ),
                   ),
                 ),
-                CountyBadgeMedallion(
-                  county: badge.county,
-                  earned: badge.isEarned,
-                  size: size - inset * 2,
-                ),
+                coinBuilder?.call(size - inset * 2) ??
+                    CountyBadgeMedallion(
+                      county: badge.county,
+                      earned: badge.isEarned,
+                      size: size - inset * 2,
+                    ),
                 if (pending)
                   const Positioned(bottom: 0, child: _PendingMarker()),
               ],

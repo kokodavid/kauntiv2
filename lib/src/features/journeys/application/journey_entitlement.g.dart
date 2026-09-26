@@ -54,7 +54,7 @@ final class JourneyEntitlementProvider
 }
 
 String _$journeyEntitlementHash() =>
-    r'0f0bce52c8d7b2bd795db8721c873e11afe219f5';
+    r'a252771d3f0569bcec029bc071c99af0257151e3';
 
 /// Pro for starting a Journey, checked live on the server every time. No
 /// cached status can start one: a Journey started on a stale "Pro" would

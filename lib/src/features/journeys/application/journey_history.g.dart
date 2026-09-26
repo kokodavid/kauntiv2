@@ -34,7 +34,7 @@ final class JourneyHistoryListProvider
 }
 
 String _$journeyHistoryListHash() =>
-    r'c1a4c856d69e4afe3f66bea2eb95a447e888eded';
+    r'37d44f0ab6a4afc939ebe06987af74b435f79e41';
 
 abstract class _$JourneyHistoryList extends $AsyncNotifier<JourneyHistory> {
   FutureOr<JourneyHistory> build();

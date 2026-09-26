@@ -131,8 +131,10 @@ quota migration and matching app changes land.
 
 ## Place route handoff (2026-09-26)
 
-Place Detail now offers Record as a Journey and Directions only when the
-feature flag is enabled. The user explicitly chooses recording, which must
+Place Detail, Home map place pins and the Home promoted-place card now offer
+Record as a Journey and Directions only when the feature flag is enabled.
+County-only Route buttons continue to open directions. The user explicitly
+chooses recording, which must
 pass the live entitlement and background-location checks before directions
 open in the external maps app. If directions cannot open, the new Journey is
 discarded after confirmed teardown; if teardown fails, the app tells the user

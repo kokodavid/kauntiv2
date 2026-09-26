@@ -32,11 +32,13 @@ class JourneyRecordingScreen extends ConsumerStatefulWidget {
     this.onOpenSettings,
     this.onOpenPlace,
     this.onRoute,
+    this.onPlaceRoute,
   });
 
   final OpenAppSettings? onOpenSettings;
   final AppOpenPlace? onOpenPlace;
   final AppOpenDirections? onRoute;
+  final AppOpenPlaceRoute? onPlaceRoute;
 
   @override
   ConsumerState<JourneyRecordingScreen> createState() =>
@@ -59,6 +61,7 @@ class _JourneyRecordingScreenState
       place,
       onOpenPlace: widget.onOpenPlace,
       onRoute: widget.onRoute,
+      onPlaceRoute: widget.onPlaceRoute,
     ),
   );
 

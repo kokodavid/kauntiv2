@@ -102,6 +102,7 @@ GoRouter appRouter(Ref ref) {
             onOpenSettings: DetailRoutes.openAppSettings,
             onOpenPlace: DetailRoutes.openPlace,
             onRoute: DetailRoutes.openDirections,
+            onPlaceRoute: JourneyPlaceRoutes.openMapPlace,
           ),
         ),
       if (AppFeatureFlags.journeys)
@@ -161,6 +162,8 @@ class _MapTab extends ConsumerWidget {
       onOpenCounty: DetailRoutes.openCounty,
       onOpenPlace: DetailRoutes.openPlace,
       onRoute: DetailRoutes.openDirections,
+      onPlaceRoute: JourneyPlaceRoutes.openMapPlace,
+      onPromotedPlaceRoute: JourneyPlaceRoutes.openPromotion,
       onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
       loader: AppSupabase.isInitialized
           ? MapHomeBoardLoader(

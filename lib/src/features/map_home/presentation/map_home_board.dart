@@ -25,6 +25,8 @@ class MapHomeBoard extends StatefulWidget {
     this.onOpenCounty,
     this.onOpenPlace,
     this.onRoute,
+    this.onPlaceRoute,
+    this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
   });
 
@@ -42,6 +44,8 @@ class MapHomeBoard extends StatefulWidget {
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
   final OpenDirections? onRoute;
+  final OpenPlaceDirections? onPlaceRoute;
+  final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
 
   @override
@@ -119,6 +123,7 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
               onOpenCounty: widget.onOpenCounty,
               onOpenPlace: widget.onOpenPlace,
               onRoute: widget.onRoute,
+              onPlaceRoute: widget.onPlaceRoute,
             ),
           ),
           const MapHomeHeaderScrim(),
@@ -221,6 +226,7 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                       onOpenCounty: widget.onOpenCounty,
                       onOpenPlace: widget.onOpenPlace,
                       onRoute: widget.onRoute,
+                      onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
                       onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
                     ),
             ),

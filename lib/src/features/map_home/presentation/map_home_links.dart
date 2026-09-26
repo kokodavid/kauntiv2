@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 import '../../../core/widgets/app_photo_parts.dart';
+import '../../../core/widgets/app_place_sheet.dart';
+import '../domain/map_home_promotion.dart';
 
 /// Opens County Detail for a county code. Supplied by `app/` so Map Home
 /// never imports another feature's screens (architecture §2).
@@ -11,6 +13,11 @@ typedef OpenPlaceDetail = void Function(BuildContext context, String placeId);
 
 /// Opens driving directions in the maps app. Supplied by `app/`.
 typedef OpenDirections = AppOpenDirections;
+typedef OpenPlaceDirections = AppOpenPlaceRoute;
+typedef OpenPromotedPlaceDirections = Future<void> Function(
+  BuildContext context,
+  MapHomePromotedPlace place,
+);
 
 /// Opens Explore on its UNCLAIMED list. Supplied by `app/`.
 typedef OpenAllUnclaimed = void Function(BuildContext context);

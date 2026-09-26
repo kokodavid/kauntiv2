@@ -14,6 +14,7 @@ Widget mapHomePromotionCard(
   OpenPlaceDetail? onOpenPlace,
   OpenCountyDetail? onOpenCounty,
   OpenDirections? onRoute,
+  OpenPromotedPlaceDirections? onPlaceRoute,
 }) => Builder(
   builder: (context) => AppFeatureCard(
     county: promotion.county,
@@ -24,10 +25,11 @@ Widget mapHomePromotionCard(
     line: promotion.summary ?? 'Sponsored by ${promotion.sponsorName}',
     stats: promotion.stats,
     actions: [
-      if (onRoute != null)
+      if (onRoute != null || onPlaceRoute != null)
         AppPhotoButton(
-          onPressed: () =>
-              openRoute(context, promotion.directionsQuery, onRoute),
+          onPressed: () => onPlaceRoute != null
+              ? onPlaceRoute(context, promotion)
+              : openRoute(context, promotion.directionsQuery, onRoute!),
         ),
     ],
     onTap: () => onOpenPlace != null

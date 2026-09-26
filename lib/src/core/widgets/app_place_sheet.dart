@@ -9,6 +9,10 @@ import 'app_photo_parts.dart';
 
 /// Opens Place Detail for a place id. Supplied by `app/`.
 typedef AppOpenPlace = void Function(BuildContext context, String placeId);
+typedef AppOpenPlaceRoute = Future<void> Function(
+  BuildContext context,
+  MapPlace place,
+);
 
 /// The sheet for a tapped place pin (Home map, Journey recording), in the
 /// feature-card style: the place
@@ -20,6 +24,7 @@ class AppPlaceSheet extends StatelessWidget {
     required this.place,
     this.onOpen,
     this.onRoute,
+    this.onPlaceRoute,
   });
 
   final MapPlace place;
@@ -29,6 +34,7 @@ class AppPlaceSheet extends StatelessWidget {
 
   /// Driving directions to the pin; null hides Route.
   final AppOpenDirections? onRoute;
+  final Future<void> Function()? onPlaceRoute;
 
   /// Shows the sheet; [onOpenPlace] runs with [context] after it closes.
   static Future<void> show(
@@ -36,6 +42,7 @@ class AppPlaceSheet extends StatelessWidget {
     MapPlace place, {
     AppOpenPlace? onOpenPlace,
     AppOpenDirections? onRoute,
+    AppOpenPlaceRoute? onPlaceRoute,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -44,12 +51,18 @@ class AppPlaceSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.foreground.withValues(alpha: 0.28),
       isScrollControlled: true,
-      builder: (_) => AppPlaceSheet(
+      builder: (sheetContext) => AppPlaceSheet(
         place: place,
         onOpen: onOpenPlace == null
             ? null
             : () => onOpenPlace(context, place.id),
         onRoute: onRoute,
+        onPlaceRoute: onPlaceRoute == null
+            ? null
+            : () {
+                Navigator.of(sheetContext).pop();
+                return onPlaceRoute(context, place);
+              },
       ),
     );
   }
@@ -70,6 +83,7 @@ class AppPlaceSheet extends StatelessWidget {
     final county = CountyPaths.byCode[place.countyCode];
     final summary = place.summary?.trim();
     final route = onRoute;
+    final placeRoute = onPlaceRoute;
     final open = onOpen;
     return Container(
       width: double.infinity,
@@ -99,14 +113,16 @@ class AppPlaceSheet extends StatelessWidget {
                 imageUrl: place.thumbnailUrl,
                 height: 180,
                 topLeft: AppPhotoPill(label: typeLabel(place.type)),
-                bottomRight: route == null
+                bottomRight: route == null && placeRoute == null
                     ? null
                     : AppPhotoButton(
-                        onPressed: () => openRoute(
-                          context,
-                          '${place.lat},${place.lng}',
-                          route,
-                        ),
+                        onPressed: () => placeRoute != null
+                            ? placeRoute()
+                            : openRoute(
+                                context,
+                                '${place.lat},${place.lng}',
+                                route!,
+                              ),
                       ),
               ),
             )

@@ -39,6 +39,7 @@ class RealMapView extends StatefulWidget {
     this.onOpenCounty,
     this.onOpenPlace,
     this.onRoute,
+    this.onPlaceRoute,
   });
 
   final String accessToken;
@@ -48,8 +49,7 @@ class RealMapView extends StatefulWidget {
   /// Loads the pins for `places`; null shows counties only.
   final Future<List<MapPlace>> Function()? loadPlaces;
 
-  /// How far down Home's header covers the map; controls and county
-  /// framing stay below it.
+  /// Header inset for controls and county camera framing.
   final double topInset;
 
   final VoidCallback? onReady;
@@ -57,6 +57,7 @@ class RealMapView extends StatefulWidget {
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
   final OpenDirections? onRoute;
+  final OpenPlaceDirections? onPlaceRoute;
 
   @override
   State<RealMapView> createState() => _RealMapViewState();
@@ -173,6 +174,7 @@ class _RealMapViewState extends State<RealMapView> {
         place,
         onOpenPlace: widget.onOpenPlace,
         onRoute: widget.onRoute,
+        onPlaceRoute: widget.onPlaceRoute,
       ),
     );
   }

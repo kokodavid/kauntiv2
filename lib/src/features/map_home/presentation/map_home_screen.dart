@@ -17,6 +17,8 @@ class MapHomeScreen extends StatefulWidget {
     this.onOpenCounty,
     this.onOpenPlace,
     this.onRoute,
+    this.onPlaceRoute,
+    this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
   });
 
@@ -29,6 +31,8 @@ class MapHomeScreen extends StatefulWidget {
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
   final OpenDirections? onRoute;
+  final OpenPlaceDirections? onPlaceRoute;
+  final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
 
   @override
@@ -69,6 +73,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             onOpenCounty: widget.onOpenCounty,
             onOpenPlace: widget.onOpenPlace,
             onRoute: widget.onRoute,
+            onPlaceRoute: widget.onPlaceRoute,
+            onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
             onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
           );
         },

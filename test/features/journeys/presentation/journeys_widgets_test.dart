@@ -6,6 +6,7 @@ import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_history.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_recorder.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_destination.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_summary.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/pro_status.dart';
@@ -15,13 +16,14 @@ import 'package:kaunti47_v2/src/features/journeys/presentation/journey_start_car
 class _Recorder extends JourneyRecorder {
   _Recorder(this.error);
 
-  final Object error;
+  final Exception error;
 
   @override
   LocalJourneySession? build() => null;
 
   @override
-  Future<void> start({DateTime? now}) async => throw error;
+  Future<void> start({DateTime? now, JourneyDestination? destination}) async =>
+      throw error;
 }
 
 class _History extends JourneyHistoryList {
@@ -37,11 +39,11 @@ class _History extends JourneyHistoryList {
   Future<void> delete(JourneySummary journey) async => deleted.add(journey.id);
 }
 
-Widget _app(Widget child, List<Override> overrides) => ProviderScope(
+Widget _app<T>(Widget child, List<T> overrides) => ProviderScope(
   overrides: [
     // No Mapbox token: Journey cards show the plain fill, no route load.
     appConfigProvider.overrideWithValue(const AppConfig.dev()),
-    ...overrides,
+    ...overrides.cast(),
   ],
   child: MaterialApp(home: Scaffold(body: child)),
 );

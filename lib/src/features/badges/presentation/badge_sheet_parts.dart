@@ -6,6 +6,7 @@ import '../../../design/app_text_styles.dart';
 /// The sheet's pill buttons (Share / View county).
 class BadgeSheetButton extends StatelessWidget {
   const BadgeSheetButton({
+    super.key,
     required this.label,
     required this.icon,
     required this.filled,
@@ -52,7 +53,7 @@ class BadgeSheetButton extends StatelessWidget {
 
 /// The grab handle at the top of the sheet.
 class BadgeSheetHandle extends StatelessWidget {
-  const BadgeSheetHandle();
+  const BadgeSheetHandle({super.key});
 
   @override
   Widget build(BuildContext context) {

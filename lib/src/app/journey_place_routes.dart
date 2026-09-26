@@ -10,8 +10,8 @@ import '../features/journeys/domain/pro_status.dart';
 import '../features/journeys/presentation/journey_messages.dart';
 import '../features/map_home/domain/map_home_promotion.dart';
 import 'detail_routes.dart';
+import 'journey_route_choice_sheet.dart';
 
-enum _RouteChoice { record, directions }
 typedef _LaunchDirections = Future<bool> Function();
 
 /// Place-to-Journey handoff. Navigation stays in app/; recording remains
@@ -93,36 +93,12 @@ abstract final class JourneyPlaceRoutes {
       return;
     }
 
-    final choice = await showModalBottomSheet<_RouteChoice>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text('Go to ${destination.name}'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.route_rounded),
-              title: const Text('Record as a Journey'),
-              subtitle: const Text(
-                'Record privately, even while directions are open. '
-                'Stop it yourself when you finish.',
-              ),
-              onTap: () => Navigator.of(sheetContext).pop(_RouteChoice.record),
-            ),
-            ListTile(
-              leading: const Icon(Icons.directions_rounded),
-              title: const Text('Directions only'),
-              onTap: () =>
-                  Navigator.of(sheetContext).pop(_RouteChoice.directions),
-            ),
-          ],
-        ),
-      ),
+    final choice = await JourneyRouteChoiceSheet.show(
+      context,
+      destination.name,
     );
     if (!context.mounted || choice == null) return;
-    if (choice == _RouteChoice.directions) {
+    if (choice == JourneyRouteChoice.directions) {
       await _openDirections(context, launchDirections);
       return;
     }

@@ -12,12 +12,10 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
   bool _started = false;
 
   @override
-  Stream<JourneyFix> get fixes async* {
-    await for (final data in _location.onLocationChanged) {
-      final fix = usableFix(data);
-      if (fix != null) yield fix;
-    }
-  }
+  Stream<JourneyFix> get fixes => _location.onLocationChanged
+      .map(usableFix)
+      .where((fix) => fix != null)
+      .map((fix) => fix!);
 
   @override
   Future<void> start() async {
@@ -68,9 +66,8 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
   @override
   Future<void> stop() async {
     if (!_started) return;
-    if (!await _location.enableBackgroundMode(enable: false)) {
-      throw const JourneyTeardownException();
-    }
+    // The plugin returns false for a successful disable on Android.
+    await _location.enableBackgroundMode(enable: false);
     _started = false;
   }
 

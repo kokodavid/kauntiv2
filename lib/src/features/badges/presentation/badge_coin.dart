@@ -112,7 +112,7 @@ class _BadgeCoinState extends State<BadgeCoin>
 
   void _spin() {
     if (MediaQuery.disableAnimationsOf(context)) return;
-    _controller.forward(from: 0);
+    unawaited(_controller.forward(from: 0));
   }
 
   @override

@@ -10,12 +10,13 @@ import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart'
 
 class FakeJourneyLocationSource implements JourneyLocationSource {
   final controller = StreamController<JourneyFix>.broadcast(sync: true);
+  Stream<JourneyFix>? overrideFixes;
   bool started = false;
   bool failStart = false;
   bool hangOnStop = false;
 
   @override
-  Stream<JourneyFix> get fixes => controller.stream;
+  Stream<JourneyFix> get fixes => overrideFixes ?? controller.stream;
 
   @override
   Future<void> start() async {
@@ -197,5 +198,35 @@ void main() {
     expect(finished.recording.phase, JourneyRecordingPhase.completed);
     expect(source.started, isFalse);
     expect(hanging.session, isNull);
+  });
+
+  test('waits for stream cancellation before native stop', () async {
+    final cancelGate = Completer<void>();
+    var cancelCalls = 0;
+    final slowStream = StreamController<JourneyFix>(onCancel: () {
+      cancelCalls++;
+      return cancelGate.future;
+    });
+    source.overrideFixes = slowStream.stream;
+    addTearDown(slowStream.close);
+    final slow = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+      teardownTimeout: const Duration(milliseconds: 50),
+    );
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await slow.attachStarted(session: session, userId: 'alice');
+    now = t0.add(const Duration(minutes: 1));
+
+    await expectLater(slow.finish(), throwsA(isA<JourneyTeardownException>()));
+    expect(source.started, isTrue);
+    expect(cancelCalls, 1);
+    cancelGate.complete();
+
+    final finished = await slow.finish();
+    expect(finished.recording.phase, JourneyRecordingPhase.completed);
+    expect(source.started, isFalse);
+    expect(cancelCalls, 1);
   });
 }

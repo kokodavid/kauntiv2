@@ -302,6 +302,9 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   last stored fix. Long gaps between accepted fixes also start new segments.
 - Stop/Discard do not report success if native location teardown is still
   unconfirmed; a paused session remains available for retry.
+- Android's location plugin reports `false` after a successful background-mode
+  disable, so stop now waits for the call rather than treating that value as a
+  failure. A timed-out stream cancellation is retried before native stop.
 - Unexpected location-stream failure pauses the notifier-visible session, so
   the UI does not continue to claim it is recording.
 
@@ -331,6 +334,8 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 
 - Place Detail Get Route, Home map place pins and the Home promoted-place card
   offer Record as a Journey or Directions only when Journeys are enabled.
+  The choice sheet opens over the shell navigation with Directions only as a
+  visible primary action, including on smaller phones.
   County-only Route buttons still open directions without a place association.
   Recording starts and passes entitlement/location checks before external
   directions launch; a failed launch discards that new Journey where native
@@ -359,6 +364,9 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-26 | codex/journey-place-handoff | 7, 13 | Repaired Journey stream filtering and destination-era test signatures; cleaned up visible badge analyzer lints. Flutter analysis and device verification pending |
+| 2026-09-26 | codex/journey-place-handoff | 13 | Fixed Android Journey stop: accept the plugin's disable response and retry pending stream cancellation before background-mode shutdown; device verification pending |
+| 2026-09-26 | codex/journey-place-handoff | 13 | Route choice sheet moved above floating bottom navigation; Directions only is a full-width primary action with small-screen coverage |
 | 2026-09-26 | codex/journey-place-handoff | 3, 7 | Badges tab titled Collection: slider of claimed + Tiers card (medals, expandable progress to the next), 'Badges' grid with tap hint; medal art mapped to the right tier; Ranks tab hidden behind `RANKS_ENABLED` |
 | 2026-09-26 | codex/journey-place-handoff | 13 | Place Detail, Home pin and promoted-place Route choice; background Journey start before external directions, durable destination snapshot and private upload migration; device validation and migration deployment pending |
 | 2026-09-26 | codex/badges | 7, 13 | Badge sheet: 'Your time in <county>' (visits, months, last visit, Journeys + km) replaces the place cards; Journeys record the counties they cross (`journey_counties`, `upload_journey` p_counties) |

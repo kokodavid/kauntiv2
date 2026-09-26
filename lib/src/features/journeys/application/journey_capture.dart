@@ -30,6 +30,7 @@ class JourneyCapture {
   LocalJourneySession? _session;
   String? _userId;
   StreamSubscription<JourneyFix>? _subscription;
+  Future<void>? _canceling;
   Future<void> _writes = Future.value();
   DateTime? _lastRecordedAt;
   bool _closing = false;
@@ -249,21 +250,23 @@ class JourneyCapture {
 
   Future<void> _endStream() async {
     _closing = true;
-    final subscription = _subscription;
-    final canceled = await _bounded('cancel the location stream', () async {
-      await subscription?.cancel();
-    });
-    if (canceled) _subscription = null;
-    final saved = await _bounded('save the last points', () => _writes);
-    final stopped = await _bounded(
-      'stop background location',
-      _locationSource.stop,
+    _canceling ??= _subscription?.cancel() ?? Future<void>.value();
+    final canceled = await _bounded(
+      'cancel the location stream',
+      () => _canceling!,
     );
+    if (canceled) {
+      _subscription = null;
+      _canceling = null;
+    }
+    final saved = await _bounded('save the last points', () => _writes);
+    final stopped = canceled
+        ? await _bounded('stop background location', _locationSource.stop)
+        : false;
     _teardownPending = !canceled || !saved || !stopped;
     if (_teardownPending) throw const JourneyTeardownException();
   }
 
-  /// Runs one teardown [step], logging instead of hanging or throwing.
   Future<bool> _bounded(String what, Future<void> Function() step) async {
     try {
       await step().timeout(teardownTimeout);

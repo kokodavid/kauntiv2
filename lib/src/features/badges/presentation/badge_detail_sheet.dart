@@ -10,8 +10,8 @@ import '../application/badges_providers.dart';
 import '../domain/badge_collection.dart';
 import 'badge_coin.dart';
 import 'badge_detail_sections.dart';
-import 'badge_sheet_parts.dart';
 import 'badge_share_card.dart';
+import 'badge_sheet_parts.dart';
 
 /// Opens County Detail / Place Detail; supplied by `app/`.
 typedef OpenBadgeCounty = void Function(BuildContext context, int countyCode);

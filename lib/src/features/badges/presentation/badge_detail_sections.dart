@@ -77,7 +77,7 @@ class BadgeProgressSection extends StatelessWidget {
   }
 }
 
-/// "Your time in <county>": explored visits and the months they span
+/// "Your time in `<county>`": explored visits and the months they span
 /// (what depth counts), the last visit, and Journeys here when there are
 /// any.
 class BadgeTimeSection extends StatelessWidget {

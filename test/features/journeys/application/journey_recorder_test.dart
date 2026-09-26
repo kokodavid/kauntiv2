@@ -19,6 +19,8 @@ import 'package:kaunti47_v2/src/features/journeys/domain/journey_summary.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/pro_status.dart';
 
 class _FakeSource implements JourneyLocationSource {
+  // Closed by the test group's tearDown.
+  // ignore: close_sinks
   final controller = StreamController<JourneyFix>.broadcast(sync: true);
   var started = false;
   JourneyLocationException? failStart;
@@ -95,6 +97,7 @@ void main() {
                   required endedAt,
                   required pausedDuration,
                   required points,
+                  destination,
                 }) async {
                   if (uploadsFail) throw Exception('offline');
                   uploads.add(id);

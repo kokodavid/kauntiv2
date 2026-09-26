@@ -32,9 +32,18 @@ Port of v1's Badges tab to v2, on the new design:
    change and visit sync), screen: header + tier pill, hero card
    (47-segment bar), "ALL 47 COUNTIES / Collection" grid of
    `CountyBadgeMedallion`s in depth rings. Tap → County Detail.
-2. **Badge detail sheet:** depth ladder for the county, what the next
-   depth needs (visits / distinct months from `county_visit_events`), last
-   visit — needs a small RPC.
+2. **Badge sheet (built):** tapping a badge opens a sheet instead of
+   County Detail: the badge card (big badge in its depth ring, county,
+   depth · N of 47), earned date, what the next depth needs ("2 more
+   visits, in 2 different months, to become a local expert"), saved
+   places visited and county places ticked, Share (earned: the card as a
+   PNG via the share sheet, `share_plus`; no location or dates on it) and
+   View county. Not yet earned: how to earn it (about 2 hours there;
+   pending waits for sync) and places to start with. Data: new RPC
+   `county_badge_detail(p_county_id)` (migration `20260926100000`).
+   Next: Journeys per county (store the counties a Journey crossed on
+   upload), the unlock celebration + share prompt, a collection share
+   card, filter chips and regional goals.
 3. **Pending overlay:** merge detection's local pending codes (v1 did)
    through detection's application layer.
 4. **Offline:** show the last collection when offline with "Saved data.

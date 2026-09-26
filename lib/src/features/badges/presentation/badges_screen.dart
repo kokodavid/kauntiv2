@@ -6,19 +6,18 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/badges_providers.dart';
 import '../domain/badge_collection.dart';
+import 'badge_detail_sheet.dart';
 import 'badge_grid_cell.dart';
 import 'badges_hero_card.dart';
 
-/// Opens County Detail; supplied by `app/`.
-typedef OpenBadgeCounty = void Function(BuildContext context, int countyCode);
-
 /// The Badges tab (Figma 491:1394): title and tier, how many of the 47
 /// counties are claimed, and the collection of every county's badge with
-/// its depth ring.
+/// its depth ring. Tapping a badge opens its sheet.
 class BadgesScreen extends ConsumerWidget {
-  const BadgesScreen({super.key, this.onOpenCounty});
+  const BadgesScreen({super.key, this.onOpenCounty, this.onOpenPlace});
 
   final OpenBadgeCounty? onOpenCounty;
+  final OpenBadgePlace? onOpenPlace;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,6 +32,7 @@ class BadgesScreen extends ConsumerWidget {
             AsyncValue(:final value?) => _Content(
               collection: value,
               onOpenCounty: onOpenCounty,
+              onOpenPlace: onOpenPlace,
             ),
             AsyncValue(hasError: true) => const _Message(
               text: "Couldn't load your badges. Pull down to try again.",
@@ -46,14 +46,18 @@ class BadgesScreen extends ConsumerWidget {
 }
 
 class _Content extends StatelessWidget {
-  const _Content({required this.collection, this.onOpenCounty});
+  const _Content({
+    required this.collection,
+    this.onOpenCounty,
+    this.onOpenPlace,
+  });
 
   final BadgeCollection collection;
   final OpenBadgeCounty? onOpenCounty;
+  final OpenBadgePlace? onOpenPlace;
 
   @override
   Widget build(BuildContext context) {
-    final open = onOpenCounty;
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
@@ -93,9 +97,13 @@ class _Content extends StatelessWidget {
               final badge = collection.badges[i];
               return BadgeGridCell(
                 badge: badge,
-                onTap: open == null
-                    ? null
-                    : () => open(context, badge.county.code),
+                onTap: () => BadgeDetailSheet.show(
+                  context,
+                  badge: badge,
+                  collection: collection,
+                  onOpenCounty: onOpenCounty,
+                  onOpenPlace: onOpenPlace,
+                ),
               );
             },
           ),

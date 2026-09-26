@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../services/app_logger.dart';
 import '../domain/badge_collection.dart';
+import '../domain/county_badge_detail.dart';
 
 /// The signed-in user's badges: visit state per county (`county_visits`)
 /// and depth per explored county (`county_depth_ranks()`, computed from
@@ -52,5 +53,37 @@ class SupabaseBadgesRepository {
       );
       return const {};
     }
+  }
+
+  /// One county's badge in detail (`county_badge_detail`).
+  Future<CountyBadgeDetail> detail(int countyCode) async {
+    final row = await _client
+        .rpc<Map<String, dynamic>>(
+          'county_badge_detail',
+          params: {'p_county_id': countyCode},
+        )
+        .timeout(_timeout);
+    int count(String key) => (row[key] as num?)?.toInt() ?? 0;
+    final earnedAt = row['earned_at'] as String?;
+    return CountyBadgeDetail(
+      earnedAt: earnedAt == null ? null : DateTime.parse(earnedAt),
+      exploredVisits: count('explored_visits'),
+      exploredMonths: count('explored_months'),
+      savedPlaces: count('saved_places'),
+      savedVisited: count('saved_visited'),
+      placesTotal: count('places_total'),
+      placesVisited: count('places_visited'),
+      suggestedPlaces: [
+        for (final place
+            in (row['suggested_places'] as List<dynamic>? ?? const [])
+                .whereType<Map<String, dynamic>>())
+          if (place case {
+            'id': final String id,
+            'name': final String name,
+            'type': final String type,
+          })
+            BadgeSuggestedPlace(id: id, name: name, type: type),
+      ],
+    );
   }
 }

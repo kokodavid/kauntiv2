@@ -5,6 +5,7 @@ import '../../auth/application/auth_providers.dart';
 import '../../detection/application/visit_sync.dart';
 import '../data/supabase_badges_repository.dart';
 import '../domain/badge_collection.dart';
+import '../domain/county_badge_detail.dart';
 
 part 'badges_providers.g.dart';
 
@@ -27,4 +28,15 @@ Future<BadgeCollection> badgeCollection(Ref ref) async {
     return BadgeCollection.from(visitStates: const {}, ranks: const {});
   }
   return repository.collection(userId);
+}
+
+/// One county's badge in detail, for the badge sheet. Reloads with the
+/// collection (account change, visit sync).
+@riverpod
+Future<CountyBadgeDetail> countyBadgeDetail(Ref ref, int countyCode) async {
+  ref.watch(authUserIdProvider);
+  ref.watch(visitSyncProvider);
+  final repository = ref.watch(badgesRepositoryProvider);
+  if (repository == null) return const CountyBadgeDetail();
+  return repository.detail(countyCode);
 }

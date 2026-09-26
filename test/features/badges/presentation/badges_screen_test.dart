@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/badges/application/badges_providers.dart';
 import 'package:kaunti47_v2/src/features/badges/domain/badge_collection.dart';
+import 'package:kaunti47_v2/src/features/badges/domain/county_badge_detail.dart';
 import 'package:kaunti47_v2/src/features/badges/presentation/badge_grid_cell.dart';
 import 'package:kaunti47_v2/src/features/badges/presentation/badges_screen.dart';
 
 void main() {
-  testWidgets('shows the count, tier and every county; tap opens it', (
+  testWidgets('shows the count, tier and every county; tap opens its sheet', (
     tester,
   ) async {
     final opened = <int>[];
@@ -19,6 +20,9 @@ void main() {
       ProviderScope(
         overrides: [
           badgeCollectionProvider.overrideWith((ref) async => collection),
+          countyBadgeDetailProvider(1).overrideWith(
+            (ref) async => const CountyBadgeDetail(),
+          ),
         ],
         child: MaterialApp(
           home: BadgesScreen(onOpenCounty: (_, code) => opened.add(code)),
@@ -35,7 +39,11 @@ void main() {
     expect(find.text('35 LEFT'), findsOneWidget);
     expect(find.text('ALL 47 COUNTIES'), findsOneWidget);
 
+    // Tapping a badge opens its sheet (details load from the provider).
     await tester.tap(find.byType(BadgeGridCell).first);
-    expect(opened, [1]);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Mombasa County'), findsOneWidget);
+    expect(opened, isEmpty);
   });
 }

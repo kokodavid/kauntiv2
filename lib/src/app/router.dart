@@ -58,7 +58,10 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.badges,
                 builder: (context, state) =>
-                    BadgesScreen(onOpenCounty: DetailRoutes.openCounty),
+                    BadgesScreen(
+                      onOpenCounty: DetailRoutes.openCounty,
+                      onOpenPlace: DetailRoutes.openPlace,
+                    ),
               ),
             ],
           ),

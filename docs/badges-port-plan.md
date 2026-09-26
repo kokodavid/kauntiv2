@@ -53,7 +53,7 @@ Port of v1's Badges tab to v2, on the new design:
    — photo, summary, type, distance, save — nearest first from a one-shot
    foreground position (migration `20260926130000` adds photo, summary,
    coordinates and saved to the suggestions).
-   **Coin spin:** an earned badge's coin spins (3 turns about its
+   **Coin spin:** an earned badge's coin spins (2 turns over 2.2 s about its
    vertical axis, easing out, slight lift) and lands on its front the
    first time the account opens that badge on this phone
    (`BadgeSpinHistory`, shared_preferences); tapping it spins it again;

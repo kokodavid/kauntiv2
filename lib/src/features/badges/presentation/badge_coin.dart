@@ -25,8 +25,8 @@ class BadgeCoin extends StatefulWidget {
   /// True while spinning (the sheet holds Share until it lands).
   final ValueChanged<bool>? onSpinningChanged;
 
-  static const duration = Duration(milliseconds: 1500);
-  static const turns = 3;
+  static const duration = Duration(milliseconds: 2200);
+  static const turns = 2;
 
   @override
   State<BadgeCoin> createState() => _BadgeCoinState();

@@ -41,8 +41,8 @@ void main() {
   test('accepts zero from the plugin on background disable', () async {
     const channel = MethodChannel('lyokone/location');
     var disableCalls = 0;
-    final messenger = TestDefaultBinaryMessengerBinding
-        .instance.defaultBinaryMessenger;
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(channel, (call) async {
       if (call.method == 'enableBackgroundMode') {
         final enabled = (call.arguments as Map<Object?, Object?>)['enable'];

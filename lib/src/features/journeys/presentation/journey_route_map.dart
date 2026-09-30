@@ -20,6 +20,8 @@ import 'journey_map_layers.dart';
 
 export 'journey_map_layers.dart' show JourneyLatLng, JourneyMapPin;
 
+part 'journey_route_map_helpers.dart';
+
 /// Draws route segments and pins on Mapbox, framing or following the route.
 class JourneyRouteMap extends ConsumerStatefulWidget {
   const JourneyRouteMap({
@@ -36,6 +38,7 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
     this.places,
     this.onPlaceTapped,
     this.onUserPan,
+    this.pulsing = false,
   });
 
   final JourneyRoute route;
@@ -67,6 +70,10 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
 
   final VoidCallback? onUserPan;
 
+  /// Gently pulses the replay marker: on while paused at a key moment, off
+  /// while playing or showing the whole route.
+  final bool pulsing;
+
   @override
   ConsumerState<JourneyRouteMap> createState() => _JourneyRouteMapState();
 }
@@ -79,6 +86,12 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
   bool _markerStale = false;
   MapboxMap? _map;
   bool _styleReady = false;
+  Timer? _pulseTimer;
+  int _pulseElapsedMs = 0;
+  static const _markerBaseRadius = 7.0;
+  static const _markerPulseAmplitude = 4.0;
+  static const _pulseStepMs = 90;
+  static const _pulsePeriodMs = 1200;
   late final String _token = ref.read(appConfigProvider).mapboxAccessToken;
   Size _size = const Size(360, 240);
   late final MapPlacesLayer? _places = widget.places == null
@@ -94,6 +107,7 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
   @override
   void didUpdateWidget(JourneyRouteMap oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.pulsing != widget.pulsing) _syncPulse();
     if (!_styleReady) return;
     if (oldWidget.route.pointCount != widget.route.pointCount) {
       unawaited(_updateRoute());
@@ -141,6 +155,7 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
       routeOpacity: _routeOpacity,
     );
     _styleReady = true;
+    if (widget.pulsing) _syncPulse();
     await _moveCamera(animate: false);
     final places = _places;
     if (places == null) return;
@@ -150,34 +165,6 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     });
     await places.addTo(map.style);
   }
-
-  String _routeJson() => jsonEncode(widget.route.toGeoJson());
-
-  double get _routeOpacity =>
-      widget.played == null ? 1 : JourneyMapLayers.fadedOpacity;
-
-  String _playedJson() {
-    final played = widget.played;
-    return played == null
-        ? JourneyMapLayers.emptyJson
-        : jsonEncode(played.toGeoJson());
-  }
-
-  String _markerJson() {
-    final tip = widget.played?.segments.lastOrNull?.lastOrNull;
-    return JourneyMapLayers.markerJson(
-      widget.marker,
-      tipFrom: tip == null
-          ? null
-          : (latitude: tip.latitude, longitude: tip.longitude),
-    );
-  }
-
-  String _endpointJson() => JourneyMapLayers.pinsJson([
-    for (final at in widget.pins) (kind: 'moment', at: at),
-    if (widget.start case final at?) (kind: 'start', at: at),
-    if (widget.end case final at?) (kind: 'end', at: at),
-  ]);
 
   Future<void> _setSource(String id, String json) async {
     await _map?.style.setStyleSourceProperty(id, 'data', json);
@@ -248,6 +235,12 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
   }
 
   @override
+  void dispose() {
+    _pulseTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (_token.isEmpty) {
       return const ColoredBox(
@@ -286,7 +279,13 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
         }
         return MapWidget(
           styleUri: MapboxStyles.OUTDOORS,
-          cameraOptions: initialCamera,
+          viewport: CameraViewportState(
+            center: initialCamera.center,
+            padding: _viewportPadding(initialCamera.padding),
+            zoom: initialCamera.zoom,
+            bearing: initialCamera.bearing,
+            pitch: initialCamera.pitch,
+          ),
           onMapCreated: _onMapCreated,
           onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
           onScrollListener: widget.onUserPan == null

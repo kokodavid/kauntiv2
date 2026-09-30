@@ -31,7 +31,7 @@ class AppBottomNav extends StatelessWidget {
       (tab: AppNavTab.ranks, icon: Icons.bar_chart_rounded, label: 'Ranks'),
     (tab: AppNavTab.explore, icon: Icons.travel_explore, label: 'Explore'),
     if (AppFeatureFlags.journeys)
-      (tab: AppNavTab.journeys, icon: Icons.route_rounded, label: 'Journeys'),
+      (tab: AppNavTab.journeys, icon: Icons.route_rounded, label: 'Trips'),
   ];
 
   @override

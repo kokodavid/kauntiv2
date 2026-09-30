@@ -69,7 +69,9 @@ class _JourneyRecordingScreenState
   Widget build(BuildContext context) {
     // Saved or discarded: nothing left to show here.
     ref.listen(journeyRecorderProvider, (previous, next) {
-      if (previous != null && next == null) Navigator.of(context).maybePop();
+      if (previous != null && next == null) {
+        unawaited(Navigator.of(context).maybePop());
+      }
     });
     final session = ref.watch(journeyRecorderProvider);
     final isRecording =

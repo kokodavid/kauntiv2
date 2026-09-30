@@ -44,13 +44,15 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
       await _addDestinationColumns();
+      await _addTitleColumn();
+      await _addSpeedElevationColumns();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -61,6 +63,8 @@ class JourneyDatabase extends _$JourneyDatabase {
         await m.addColumn(journeySessions, journeySessions.pausedTotalMillis);
       }
       if (from < 4) await _addDestinationColumns();
+      if (from < 5) await _addTitleColumn();
+      if (from < 6) await _addSpeedElevationColumns();
     },
   );
 
@@ -78,6 +82,23 @@ class JourneyDatabase extends _$JourneyDatabase {
     );
     await customStatement(
       'ALTER TABLE journey_sessions ADD COLUMN destination_longitude REAL',
+    );
+  }
+
+  /// A user-set name overriding the default "Trip on ..."/"Trip to ..."
+  /// title (schema 5); NULL until the user renames it.
+  Future<void> _addTitleColumn() async {
+    await customStatement('ALTER TABLE journey_sessions ADD COLUMN title TEXT');
+  }
+
+  /// A fix's height above sea level and instantaneous speed, when the
+  /// device reported them (schema 6); NULL for older recordings.
+  Future<void> _addSpeedElevationColumns() async {
+    await customStatement(
+      'ALTER TABLE journey_samples ADD COLUMN altitude_meters REAL',
+    );
+    await customStatement(
+      'ALTER TABLE journey_samples ADD COLUMN speed_mps REAL',
     );
   }
 }

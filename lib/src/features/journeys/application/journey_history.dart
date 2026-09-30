@@ -69,4 +69,25 @@ class JourneyHistoryList extends _$JourneyHistoryList {
     }
     ref.invalidateSelf();
   }
+
+  /// Renames a Journey: on this phone if it hasn't uploaded yet, on the
+  /// cloud once it has.
+  Future<void> rename(JourneySummary journey, String title) async {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty || trimmed.length > 120) {
+      throw ArgumentError('A Trip name needs 1-120 characters.');
+    }
+    final userId = ref.read(currentUserIdProvider)();
+    if (userId == null) throw StateError('Sign in to rename a Journey.');
+    if (journey.isUploaded) {
+      final cloud = ref.read(supabaseJourneyRepositoryProvider);
+      if (cloud == null) throw StateError('Journey cloud is unavailable.');
+      await cloud.rename(userId: userId, id: journey.id, title: trimmed);
+    } else {
+      final queue = ref.read(journeyUploadQueueProvider);
+      if (queue == null) throw StateError('Journey storage is unavailable.');
+      await queue.renameLocal(journey.id, userId, trimmed);
+    }
+    ref.invalidateSelf();
+  }
 }

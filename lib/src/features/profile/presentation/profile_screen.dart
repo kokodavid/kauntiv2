@@ -100,7 +100,9 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
     if (ref.read(journeyRecorderProvider) != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Finish or discard your active Journey before signing out.'),
+          content: Text(
+            'Finish or discard your active Trip before signing out.',
+          ),
         ),
       );
       return;
@@ -110,7 +112,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       builder: (context) => AlertDialog(
         title: const Text('Sign out?'),
         content: const Text(
-          'Your Journeys stay on this phone. Synced Journeys will also be '
+          'Your Trips stay on this phone. Synced Trips will also be '
           'available when you sign in again.',
         ),
         actions: [
@@ -199,15 +201,16 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                     title: 'County badges',
                     subtitle: badges.when(
                       loading: () => 'Loading...',
-                      error: (_, __) => 'Unable to load',
-                      data: (value) => '${value.claimed} of ${value.total} earned',
+                      error: (_, _) => 'Unable to load',
+                      data: (value) =>
+                          '${value.claimed} of ${value.total} earned',
                     ),
                     onTap: widget.onOpenBadges,
                   ),
                   if (widget.onOpenJourneys != null)
                     ProfileTile(
                       icon: Icons.route_outlined,
-                      title: 'Journeys',
+                      title: 'Trips',
                       subtitle: 'Your private recorded routes',
                       onTap: widget.onOpenJourneys,
                     ),
@@ -230,7 +233,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                   ProfileTile(
                     icon: Icons.shield_outlined,
                     title: 'Data and privacy',
-                    subtitle: 'How county visits and Journeys are stored',
+                    subtitle: 'How county visits and Trips are stored',
                     onTap: () => unawaited(
                       showModalBottomSheet<void>(
                         context: context,

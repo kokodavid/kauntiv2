@@ -203,10 +203,12 @@ void main() {
   test('waits for stream cancellation before native stop', () async {
     final cancelGate = Completer<void>();
     var cancelCalls = 0;
-    final slowStream = StreamController<JourneyFix>(onCancel: () {
-      cancelCalls++;
-      return cancelGate.future;
-    });
+    final slowStream = StreamController<JourneyFix>(
+      onCancel: () {
+        cancelCalls++;
+        return cancelGate.future;
+      },
+    );
     source.overrideFixes = slowStream.stream;
     addTearDown(slowStream.close);
     final slow = JourneyCapture(

@@ -24,9 +24,9 @@ void main() {
       ProviderScope(
         overrides: [
           badgeCollectionProvider.overrideWith((ref) async => collection),
-          countyBadgeDetailProvider(1).overrideWith(
-            (ref) async => const CountyBadgeDetail(),
-          ),
+          countyBadgeDetailProvider(
+            1,
+          ).overrideWith((ref) async => const CountyBadgeDetail()),
         ],
         child: MaterialApp(
           home: BadgesScreen(onOpenCounty: (_, code) => opened.add(code)),
@@ -51,11 +51,14 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Next: Mzururaji'), findsOneWidget);
+    await tester.ensureVisible(find.text('Next: Mzururaji'));
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Its footer expands the progress to the next medal.
     await tester.tap(find.text('Next: Mzururaji'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(); // apply the slider's measured expanded height
     expect(find.text('12 of 25 counties'), findsOneWidget);
     expect(find.text('Earned'), findsOneWidget);
     expect(find.text('13 to go'), findsNWidgets(2));

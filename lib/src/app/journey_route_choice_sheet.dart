@@ -52,11 +52,10 @@ abstract final class JourneyRouteChoiceSheet {
               SizedBox(
                 height: 52,
                 child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(
-                    sheetContext,
-                  ).pop(JourneyRouteChoice.record),
+                  onPressed: () =>
+                      Navigator.of(sheetContext).pop(JourneyRouteChoice.record),
                   icon: const Icon(Icons.route_rounded),
-                  label: const Text('Record as a Journey'),
+                  label: const Text('Record as a Trip'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.ink,
                     side: const BorderSide(color: AppColors.cardBorder),

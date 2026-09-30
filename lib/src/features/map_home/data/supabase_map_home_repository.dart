@@ -276,5 +276,4 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
     if (km < 10) return '${km.toStringAsFixed(1)} km away';
     return '${km.round()} km away';
   }
-
 }

@@ -35,9 +35,7 @@ class JourneyRecorder extends _$JourneyRecorder {
     final capture = ref.read(journeyCaptureProvider);
     capture.onUnexpectedPause = (session) {
       final owner = _owner;
-      if (owner != null &&
-          _stillOwnedBy(owner) &&
-          state?.id == session.id) {
+      if (owner != null && _stillOwnedBy(owner) && state?.id == session.id) {
         _set(session, owner);
       }
     };
@@ -50,13 +48,16 @@ class JourneyRecorder extends _$JourneyRecorder {
         _releaseInFlight = release;
         unawaited(
           release
-              .then<void>((_) {}, onError: (Object error, StackTrace stack) {
-                _logger.warning(
-                  'Journey location cleanup after account change failed.',
-                  error: error,
-                  stackTrace: stack,
-                );
-              })
+              .then<void>(
+                (_) {},
+                onError: (Object error, StackTrace stack) {
+                  _logger.warning(
+                    'Journey location cleanup after account change failed.',
+                    error: error,
+                    stackTrace: stack,
+                  );
+                },
+              )
               .whenComplete(() {
                 if (identical(_releaseInFlight, release)) {
                   _releaseInFlight = null;

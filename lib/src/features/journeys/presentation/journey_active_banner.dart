@@ -49,10 +49,10 @@ class _JourneyActiveBannerState extends ConsumerState<JourneyActiveBanner> {
     final elapsed = session.recording.recordedTime(DateTime.now());
     final label = recording
         ? 'Recording · ${JourneyFormat.clock(elapsed)}'
-        : 'Journey paused';
+        : 'Trip paused';
     return Semantics(
       button: true,
-      label: '$label. Open the Journey map.',
+      label: '$label. Open the Trip map.',
       child: Material(
         color: AppColors.mapOverlayBackground,
         borderRadius: BorderRadius.circular(999),

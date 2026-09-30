@@ -119,4 +119,17 @@ abstract final class JourneyFormat {
     final s = (d.inSeconds % 60).toString().padLeft(2, '0');
     return '${d.inHours}:$m:$s';
   }
+
+  /// "14.3 km/h" from a speed in m/s; "—" when unknown.
+  static String speed(double? metersPerSecond) {
+    if (metersPerSecond == null) return '—';
+    final kmh = metersPerSecond * 3.6;
+    return '${kmh.toStringAsFixed(kmh < 10 ? 1 : 0)} km/h';
+  }
+
+  /// "1,340 m" from an altitude in metres; "—" when unknown.
+  static String elevation(double? meters) {
+    if (meters == null) return '—';
+    return '${meters.round()} m';
+  }
 }

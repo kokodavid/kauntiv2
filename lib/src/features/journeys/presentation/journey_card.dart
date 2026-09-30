@@ -11,196 +11,236 @@ import '../domain/journey_preview.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
 
-/// A past Journey in the list, in the place-card style: a map preview of
-/// the route under a fade with the title and facts, Replay on the photo,
-/// and when it started plus delete below.
-class JourneyCard extends StatelessWidget {
+part 'journey_card_parts.dart';
+
+/// A past Trip in the list, styled like a small stack of photos in a
+/// folder: two tinted layers peek out from behind the main card to give
+/// it depth, with a route-preview photo, title and facts on top, Replay
+/// on the photo, and Rename/Delete in a menu below (not loose on the
+/// card face).
+class JourneyCard extends StatefulWidget {
   const JourneyCard({
     super.key,
     required this.journey,
+    required this.onRename,
     required this.onDelete,
     this.onOpen,
   });
 
   final JourneySummary journey;
   final VoidCallback? onOpen;
+  final VoidCallback onRename;
   final VoidCallback onDelete;
 
-  static const _headerHeight = 180.0;
+  static const _headerHeight = 208.0;
+
+  @override
+  State<JourneyCard> createState() => _JourneyCardState();
+}
+
+class _JourneyCardState extends State<JourneyCard> {
+  var _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final journey = widget.journey;
     final started = journey.startedAt.toLocal();
-    final day = JourneyTitles.defaultFor(
-      started,
-    ).replaceFirst('Journey on ', '');
+    final day = JourneyTitles.defaultFor(started).replaceFirst('Trip on ', '');
     final time = TimeOfDay.fromDateTime(started).format(context);
     final facts = [
       JourneyFormat.duration(journey.duration),
       if (journey.isUploaded) JourneyFormat.distance(journey.distanceMeters),
     ].join(' · ');
-    final open = onOpen;
-    return GestureDetector(
-      onTap: open,
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: AppColors.cardBorder),
-          borderRadius: BorderRadius.circular(24),
+    final open = widget.onOpen;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // The folder-stack depth: two tinted layers peeking from behind
+        // the bottom edge, so a pile of past Trips reads like a stack of
+        // photos rather than a flat list.
+        const Positioned(
+          left: 22,
+          right: 6,
+          bottom: -6,
+          child: _StackPeek(color: AppColors.trackInactive),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: SizedBox(
-                height: _headerHeight,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _RoutePreview(journeyId: journey.id),
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Color(0x99000000), Color(0x00000000)],
-                          stops: [0.0, 0.55],
-                        ),
-                      ),
-                    ),
-                    if (!journey.isUploaded)
-                      const Positioned(
-                        top: 10,
-                        left: 10,
-                        child: AppPhotoPill(label: 'Waiting to upload'),
-                      ),
-                    Positioned(
-                      left: 12,
-                      right: open == null ? 12 : 116,
-                      bottom: 12,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        const Positioned(
+          left: 12,
+          right: 2,
+          bottom: -3,
+          child: _StackPeek(color: AppColors.lockedFill),
+        ),
+        AnimatedScale(
+          scale: _pressed ? 0.98 : 1,
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          child: GestureDetector(
+            onTap: open,
+            onTapDown: open == null ? null : (_) => _setPressed(true),
+            onTapCancel: open == null ? null : () => _setPressed(false),
+            onTapUp: open == null ? null : (_) => _setPressed(false),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: AppColors.cardBorder),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x14606060),
+                    offset: Offset(0, 6),
+                    blurRadius: 18,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: SizedBox(
+                      height: JourneyCard._headerHeight,
+                      child: Stack(
+                        fit: StackFit.expand,
                         children: [
-                          Text(
-                            journey.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypeScale.photoTitle,
-                          ),
-                          const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.route_rounded,
-                                size: 13,
-                                color: AppColors.heroSubheadingText,
+                          _RoutePreview(journeyId: journey.id),
+                          const DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Color(0x99000000), Color(0x00000000)],
+                                stops: [0.0, 0.55],
                               ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  facts,
+                            ),
+                          ),
+                          if (!journey.isUploaded)
+                            const Positioned(
+                              top: 10,
+                              left: 10,
+                              child: AppPhotoPill(label: 'Waiting to upload'),
+                            ),
+                          Positioned(
+                            left: 12,
+                            right: open == null ? 12 : 116,
+                            bottom: 12,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  journey.title,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: AppTypeScale.photoCaption,
+                                  style: AppTypeScale.photoTitle,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 5),
+                                _FactsPill(facts: facts),
+                              ],
+                            ),
                           ),
+                          if (open != null)
+                            Positioned(
+                              right: 10,
+                              bottom: 10,
+                              child: AppPhotoButton(
+                                onPressed: open,
+                                label: 'Replay',
+                                icon: Icons.play_arrow_rounded,
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                    if (open != null)
-                      Positioned(
-                        right: 10,
-                        bottom: 10,
-                        child: AppPhotoButton(
-                          onPressed: open,
-                          label: 'Replay',
-                          icon: Icons.play_arrow_rounded,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 0, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Started $time · $day',
-                      style: AppTypeScale.small.copyWith(
-                        color: AppColors.mutedForeground,
-                      ),
-                    ),
                   ),
-                  IconButton(
-                    onPressed: onDelete,
-                    tooltip: 'Delete Journey',
-                    color: AppColors.mutedForeground,
-                    icon: const Icon(Icons.delete_outline),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 6, 0, 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Started $time · $day',
+                            style: AppTypeScale.small.copyWith(
+                              color: AppColors.mutedForeground,
+                            ),
+                          ),
+                        ),
+                        PopupMenuButton<_JourneyCardAction>(
+                          tooltip: 'Trip options',
+                          icon: const Icon(
+                            Icons.more_horiz,
+                            color: AppColors.mutedForeground,
+                          ),
+                          onSelected: (action) => switch (action) {
+                            _JourneyCardAction.rename => widget.onRename(),
+                            _JourneyCardAction.delete => widget.onDelete(),
+                          },
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(
+                              value: _JourneyCardAction.rename,
+                              child: ListTile(
+                                leading: Icon(Icons.edit_outlined),
+                                title: Text('Rename'),
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: _JourneyCardAction.delete,
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.delete_outline,
+                                  color: AppColors.danger,
+                                ),
+                                title: Text(
+                                  'Delete',
+                                  style: TextStyle(color: AppColors.danger),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
 
-/// The route on a Mapbox static map, or a plain fill while it loads,
-/// offline, or in a build without a Mapbox token.
-class _RoutePreview extends ConsumerWidget {
-  const _RoutePreview({required this.journeyId});
+/// A thin tinted layer peeking out behind the main card, suggesting
+/// another photo underneath it in the stack.
+class _StackPeek extends StatelessWidget {
+  const _StackPeek({required this.color});
 
-  final String journeyId;
+  final Color color;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    const fill = ColoredBox(
-      color: AppColors.lockedFill,
-      child: Center(
-        child: Icon(
-          Icons.route_rounded,
-          size: 40,
-          color: AppColors.lockedStroke,
+  Widget build(BuildContext context) {
+    return Container(
+      height: 14,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(18),
+          bottomRight: Radius.circular(18),
         ),
       ),
-    );
-    final token = ref.watch(appConfigProvider).mapboxAccessToken;
-    // No token, no preview: don't load the route for nothing.
-    if (token.isEmpty) return fill;
-    final route = ref.watch(journeyDetailProvider(journeyId)).value?.route;
-    if (route == null || route.isEmpty) return fill;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final url = JourneyStaticMap.url(
-          route,
-          token: token,
-          // Whole 40 px steps so rebuilds hit the image cache.
-          width: (constraints.maxWidth / 40).ceil() * 40,
-          height: constraints.maxHeight.round(),
-        );
-        return Image.network(
-          url,
-          fit: BoxFit.cover,
-          gaplessPlayback: true,
-          frameBuilder: (context, child, frame, synchronous) =>
-              frame == null && !synchronous ? fill : child,
-          errorBuilder: (context, error, stackTrace) => fill,
-        );
-      },
     );
   }
 }
 
 /// Mapbox Static Images URLs for a route preview. The route's (thinned)
 /// coordinates go to Mapbox in the URL to draw it.
+enum _JourneyCardAction { rename, delete }
+
 abstract final class JourneyStaticMap {
   /// Mapbox caps static images at 1280 px a side; @2x doubles the size.
   static const _maxSide = 640;
@@ -218,8 +258,7 @@ abstract final class JourneyStaticMap {
     final overlays = [
       for (final segment in segments)
         if (segment.length > 1)
-          'path-4+$accent-1('
-              '${Uri.encodeComponent(JourneyPreview.encode(segment))})',
+          'path-4+$accent-1(${Uri.encodeComponent(JourneyPreview.encode(segment))})',
       'pin-s+${_hex(AppColors.legendHome)}(${_at(first)})',
       'pin-s+${_hex(AppColors.danger)}(${_at(last)})',
     ].join(',');

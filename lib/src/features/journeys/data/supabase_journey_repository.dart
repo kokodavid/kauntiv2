@@ -2,14 +2,14 @@ import 'dart:isolate';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/domain/map_place.dart';
-import '../domain/journey_county_split.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
 import '../domain/pro_status.dart';
+import 'journey_county_split_resolver.dart';
+import 'journey_place_thumbnail.dart';
 
 /// Journeys in the cloud: the Pro check, the one upload RPC, and private
 /// history reads and deletion (RLS keeps every read to the owner).
@@ -55,7 +55,7 @@ class SupabaseJourneyRepository {
     JourneyDestination? destination,
   }) async {
     // County lookups over a long route are real work: off the UI isolate.
-    final counties = await Isolate.run(() => _countySplit(points));
+    final counties = await Isolate.run(() => splitJourneyCounties(points));
     final result = await _client
         .rpc<Map<String, dynamic>>(
           destination == null ? 'upload_journey' : 'upload_journey_to_place',
@@ -67,8 +67,7 @@ class SupabaseJourneyRepository {
             'p_ended_at': endedAt.toUtc().toIso8601String(),
             'p_paused_ms': pausedDuration.inMilliseconds,
             'p_counties': [
-              for (final MapEntry(key: code, value: meters)
-                  in counties.entries)
+              for (final MapEntry(key: code, value: meters) in counties.entries)
                 {
                   'county_id': code,
                   'distance_m': double.parse(meters.toStringAsFixed(2)),
@@ -82,6 +81,8 @@ class SupabaseJourneyRepository {
                   'lat': point.latitude,
                   'lng': point.longitude,
                   'accuracy_m': point.accuracyMeters,
+                  'altitude_m': point.altitudeMeters,
+                  'speed_mps': point.speedMetersPerSecond,
                 },
             ],
             if (destination != null) ...{
@@ -100,9 +101,12 @@ class SupabaseJourneyRepository {
     final rows = await readAllPages(
       (from, to) => _client
           .from('journeys')
-          .select('id, title, started_at, ended_at, distance_m, paused_ms, '
-              'destination_place_id, destination_name, '
-              'destination_latitude, destination_longitude')
+          .select(
+            'id, title, started_at, ended_at, distance_m, paused_ms, '
+            'destination_place_id, destination_name, '
+            'destination_latitude, destination_longitude, '
+            'top_speed_mps, highest_elevation_m',
+          )
           .order('started_at', ascending: false)
           // postgrest-dart's order() is descending unless told otherwise.
           .order('id', ascending: true)
@@ -130,15 +134,20 @@ class SupabaseJourneyRepository {
             latitude: (row['destination_latitude'] as num?)?.toDouble(),
             longitude: (row['destination_longitude'] as num?)?.toDouble(),
           ),
+    topSpeedMps: (row['top_speed_mps'] as num?)?.toDouble(),
+    highestElevationMeters: (row['highest_elevation_m'] as num?)?.toDouble(),
   );
 
   /// One uploaded Journey, or null if it's gone (deleted elsewhere).
   Future<JourneySummary?> journey(String id) async {
     final row = await _client
         .from('journeys')
-        .select('id, title, started_at, ended_at, distance_m, paused_ms, '
-            'destination_place_id, destination_name, '
-            'destination_latitude, destination_longitude')
+        .select(
+          'id, title, started_at, ended_at, distance_m, paused_ms, '
+          'destination_place_id, destination_name, '
+          'destination_latitude, destination_longitude, '
+          'top_speed_mps, highest_elevation_m',
+        )
         .eq('id', id)
         .maybeSingle()
         .timeout(_timeout);
@@ -150,7 +159,8 @@ class SupabaseJourneyRepository {
       (from, to) => _client
           .from('journey_points')
           .select(
-            'segment_number, recorded_at, latitude, longitude, accuracy_m',
+            'segment_number, recorded_at, latitude, longitude, accuracy_m, '
+            'altitude_m, speed_mps',
           )
           .eq('journey_id', journeyId)
           // Recording order. order() defaults to descending, which
@@ -167,6 +177,8 @@ class SupabaseJourneyRepository {
           longitude: (row['longitude'] as num).toDouble(),
           accuracyMeters: (row['accuracy_m'] as num).toDouble(),
           segmentNumber: row['segment_number'] as int,
+          altitudeMeters: (row['altitude_m'] as num?)?.toDouble(),
+          speedMetersPerSecond: (row['speed_mps'] as num?)?.toDouble(),
         ),
     ];
   }
@@ -188,6 +200,20 @@ class SupabaseJourneyRepository {
   Future<void> delete(String journeyId) =>
       _client.from('journeys').delete().eq('id', journeyId).timeout(_timeout);
 
+  /// Renames [userId]'s Journey. The server rejects it unless [userId] is
+  /// still the signed-in account (no client update policy on `journeys`;
+  /// `rename_journey` is the only write path).
+  Future<void> rename({
+    required String userId,
+    required String id,
+    required String title,
+  }) => _client
+      .rpc<Object?>(
+        'rename_journey',
+        params: {'p_user_id': userId, 'p_journey_id': id, 'p_title': title},
+      )
+      .timeout(_timeout);
+
   /// Every place with coordinates, marked saved when on [userId]'s list,
   /// for the places near a replayed route.
   Future<List<JourneyPlaceMark>> places(String userId) async {
@@ -195,7 +221,10 @@ class SupabaseJourneyRepository {
       readAllPages(
         (from, to) => _client
             .from('places')
-            .select('id, county_id, name, lat, lng')
+            .select(
+              'id, county_id, name, type, summary, lat, lng, '
+              'place_images(thumbnail_url, sort_order)',
+            )
             .not('lat', 'is', null)
             .order('id', ascending: true)
             .range(from, to)
@@ -224,6 +253,9 @@ class SupabaseJourneyRepository {
             latitude: lat.toDouble(),
             longitude: lng.toDouble(),
             saved: saved.contains(id),
+            categoryLabel: row['type'] as String?,
+            description: row['summary'] as String?,
+            thumbnailUrl: journeyPlaceThumbnail(row['place_images']),
           ),
     ];
   }
@@ -254,43 +286,8 @@ class SupabaseJourneyRepository {
             lat: (row['lat'] as num).toDouble(),
             lng: (row['lng'] as num).toDouble(),
             summary: row['summary'] as String?,
-            thumbnailUrl: _firstThumbnail(row['place_images']),
+            thumbnailUrl: journeyPlaceThumbnail(row['place_images']),
           ),
     ];
   }
-
-  static String? _firstThumbnail(Object? images) {
-    if (images is! List) return null;
-    final sorted = [...images.whereType<Map<String, dynamic>>()]
-      ..sort(
-        (a, b) => ((a['sort_order'] as num?) ?? 0).compareTo(
-          (b['sort_order'] as num?) ?? 0,
-        ),
-      );
-    return sorted.isEmpty ? null : sorted.first['thumbnail_url'] as String?;
-  }
-}
-
-/// Metres per county for [points], checking the last county first (most
-/// points are in the same county as the one before).
-Map<int, double> _countySplit(List<JourneyPoint> points) {
-  int? last;
-  return JourneyCountySplit.split(points, (latitude, longitude) {
-    final previous = last;
-    if (previous != null &&
-        CountyBoundaryResolver.countyCodeFor(
-              latitude: latitude,
-              longitude: longitude,
-              countyCodes: [previous],
-            ) ==
-            previous) {
-      return previous;
-    }
-    final code = CountyBoundaryResolver.countyCodeFor(
-      latitude: latitude,
-      longitude: longitude,
-    );
-    if (code != null) last = code;
-    return code;
-  });
 }

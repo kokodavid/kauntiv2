@@ -24,51 +24,51 @@ class BadgesHeroCard extends StatelessWidget {
     return BadgesCardShell(
       padding: const EdgeInsets.fromLTRB(13, 14, 13, 13),
       child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '${collection.claimed}',
+                style: const TextStyle(
+                  fontFamily: AppTypeScale.family,
+                  fontWeight: FontWeight.w200,
+                  fontSize: 56,
+                  height: 1,
+                  color: AppColors.accent,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'of ${collection.total} counties claimed',
+                style: _muted.copyWith(fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: _SegmentBar(
+              filled: collection.claimed,
+              total: collection.total,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${collection.claimed}',
-                  style: const TextStyle(
-                    fontFamily: AppTypeScale.family,
-                    fontWeight: FontWeight.w200,
-                    fontSize: 56,
-                    height: 1,
-                    color: AppColors.accent,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'of ${collection.total} counties claimed',
-                  style: _muted.copyWith(fontWeight: FontWeight.w500),
-                ),
+                Text('${collection.percentOfKenya}% OF KENYA', style: _muted),
+                Text('${collection.left} LEFT', style: _muted),
               ],
             ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: _SegmentBar(
-                filled: collection.claimed,
-                total: collection.total,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('${collection.percentOfKenya}% OF KENYA', style: _muted),
-                  Text('${collection.left} LEFT', style: _muted),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }

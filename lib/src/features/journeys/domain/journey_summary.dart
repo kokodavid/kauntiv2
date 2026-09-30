@@ -11,6 +11,8 @@ class JourneySummary {
     this.distanceMeters,
     this.pausedDuration = Duration.zero,
     this.destination,
+    this.topSpeedMps,
+    this.highestElevationMeters,
   });
 
   final String id;
@@ -29,6 +31,25 @@ class JourneySummary {
 
   final JourneyDestination? destination;
 
+  /// The device's fastest instantaneous speed, in m/s. Computed by the
+  /// server on upload; null while waiting to upload or when no fix
+  /// reported a speed.
+  final double? topSpeedMps;
+
+  /// The highest altitude reached, in metres above sea level. Computed by
+  /// the server on upload; null while waiting to upload or when no fix
+  /// reported an altitude.
+  final double? highestElevationMeters;
+
+  /// The average speed for the recorded time, in m/s; null once there is
+  /// no recorded time or distance to divide.
+  double? get averageSpeedMps {
+    final distance = distanceMeters;
+    final seconds = duration.inMilliseconds / 1000;
+    if (distance == null || seconds <= 0) return null;
+    return distance / seconds;
+  }
+
   /// Recorded time: start to end, minus pauses.
   Duration get duration {
     final recorded = endedAt.difference(startedAt) - pausedDuration;
@@ -38,7 +59,7 @@ class JourneySummary {
 
 abstract final class JourneyTitles {
   static String toPlace(JourneyDestination destination) =>
-      'Journey to ${destination.name}';
+      'Trip to ${destination.name}';
   static const _months = [
     'Jan',
     'Feb',
@@ -54,10 +75,25 @@ abstract final class JourneyTitles {
     'Dec',
   ];
 
-  /// The default name until renaming exists: "Journey on 25 Sep 2026", in
+  /// The default name until renaming exists: "Trip on 25 Sep 2026", in
   /// the phone's local date.
   static String defaultFor(DateTime startedAt) {
     final local = startedAt.toLocal();
-    return 'Journey on ${local.day} ${_months[local.month - 1]} ${local.year}';
+    return 'Trip on ${local.day} ${_months[local.month - 1]} ${local.year}';
+  }
+
+  /// A month heading for grouping history ("This month", "Last month", or
+  /// "September 2026"), in the phone's local date.
+  static String monthLabel(DateTime startedAt) {
+    final local = startedAt.toLocal();
+    final now = DateTime.now();
+    if (local.year == now.year && local.month == now.month) {
+      return 'This month';
+    }
+    final lastMonth = DateTime(now.year, now.month - 1);
+    if (local.year == lastMonth.year && local.month == lastMonth.month) {
+      return 'Last month';
+    }
+    return '${_months[local.month - 1]} ${local.year}';
   }
 }

@@ -32,7 +32,8 @@ void main() {
       headerDecorations.any(
         (widget) =>
             widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == ProfilePalette.surface,
+            (widget.decoration as BoxDecoration).color ==
+                ProfilePalette.surface,
       ),
       isTrue,
     );
@@ -51,10 +52,7 @@ void main() {
           authUserIdProvider.overrideWith((ref) => auth.stream),
         ],
         child: MaterialApp(
-          home: ProfileScreen(
-            onOpenBadges: () {},
-            onOpenSettings: () async {},
-          ),
+          home: ProfileScreen(onOpenBadges: () {}, onOpenSettings: () async {}),
         ),
       ),
     );

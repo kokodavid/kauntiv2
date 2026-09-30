@@ -209,8 +209,12 @@ class _DiscPainter extends CustomPainter {
     canvas.save();
     canvas.clipPath(Path()..addOval(faceRect));
     canvas.drawRect(
-      Rect.fromLTRB(faceRect.left, faceRect.top, center.dx - face * 0.15,
-          faceRect.bottom),
+      Rect.fromLTRB(
+        faceRect.left,
+        faceRect.top,
+        center.dx - face * 0.15,
+        faceRect.bottom,
+      ),
       Paint()..color = Colors.white.withValues(alpha: 0.08),
     );
     // Top glow.
@@ -218,17 +222,18 @@ class _DiscPainter extends CustomPainter {
       center.translate(0, -face * 0.35),
       face * 0.75,
       Paint()
-        ..shader = RadialGradient(
-          colors: [
-            Colors.white.withValues(alpha: 0.28),
-            Colors.white.withValues(alpha: 0),
-          ],
-        ).createShader(
-          Rect.fromCircle(
-            center: center.translate(0, -face * 0.35),
-            radius: face * 0.75,
-          ),
-        ),
+        ..shader =
+            RadialGradient(
+              colors: [
+                Colors.white.withValues(alpha: 0.28),
+                Colors.white.withValues(alpha: 0),
+              ],
+            ).createShader(
+              Rect.fromCircle(
+                center: center.translate(0, -face * 0.35),
+                radius: face * 0.75,
+              ),
+            ),
     );
     canvas.restore();
     // Thin edge between rim and face.
@@ -243,6 +248,5 @@ class _DiscPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DiscPainter oldDelegate) =>
-      oldDelegate.earned != earned;
+  bool shouldRepaint(_DiscPainter oldDelegate) => oldDelegate.earned != earned;
 }

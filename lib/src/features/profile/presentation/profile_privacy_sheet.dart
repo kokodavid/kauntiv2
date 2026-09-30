@@ -27,15 +27,15 @@ class ProfilePrivacySheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const Text(
-              'Journeys record your route. Completed Journeys are kept on '
+              'Trips record your route. Completed Trips are kept on '
               'this phone and synced privately to your account when '
-              'available. You can delete a Journey from its list.',
+              'available. You can delete a Trip from its list.',
             ),
             const SizedBox(height: 12),
             const Text(
               'Location permission can be changed at any time in your device '
               'settings. Turning it off stops new automatic county detection '
-              'and Journey recording.',
+              'and Trip recording.',
             ),
             const SizedBox(height: 20),
             Align(

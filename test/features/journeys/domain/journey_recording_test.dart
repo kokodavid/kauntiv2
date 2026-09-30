@@ -89,7 +89,9 @@ void main() {
         .pause(start.add(const Duration(minutes: 12)))
         .finish(start.add(const Duration(minutes: 20)));
     expect(done.pausedTotal, const Duration(minutes: 11));
-    expect(done.recordedTime(start.add(const Duration(days: 1))),
-        const Duration(minutes: 9));
+    expect(
+      done.recordedTime(start.add(const Duration(days: 1))),
+      const Duration(minutes: 9),
+    );
   });
 }

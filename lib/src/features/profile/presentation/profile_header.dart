@@ -5,11 +5,7 @@ import 'profile_tiles.dart';
 
 /// Full-width account band, in the same blue family as v2's map controls.
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({
-    super.key,
-    required this.name,
-    required this.email,
-  });
+  const ProfileHeader({super.key, required this.name, required this.email});
 
   final String name;
   final String email;

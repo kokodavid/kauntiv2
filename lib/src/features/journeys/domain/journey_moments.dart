@@ -51,6 +51,9 @@ class JourneyPlaceMark {
     required this.latitude,
     required this.longitude,
     this.saved = false,
+    this.categoryLabel,
+    this.description,
+    this.thumbnailUrl,
   });
 
   final String id;
@@ -61,6 +64,16 @@ class JourneyPlaceMark {
 
   /// On the user's saved list when the replay loaded.
   final bool saved;
+
+  /// The place's category (e.g. "Waterfall"), for showing it as an
+  /// Explore-style place row in the replay; null falls back to a generic
+  /// label.
+  final String? categoryLabel;
+
+  /// A one-line description, for the same place row; null when unknown.
+  final String? description;
+
+  final String? thumbnailUrl;
 }
 
 /// Finds a Journey's key moments: recording breaks, long stops, county
@@ -164,8 +177,7 @@ abstract final class JourneyMoments {
     int? candidate;
     var held = 0;
     for (var i = 0; i < points.length; i++) {
-      if (i > 0 &&
-          points[i].segmentNumber != points[i - 1].segmentNumber) {
+      if (i > 0 && points[i].segmentNumber != points[i - 1].segmentNumber) {
         candidate = null;
         held = 0;
       }
@@ -215,7 +227,7 @@ abstract final class JourneyMoments {
       west = math.min(west, p.longitude);
       east = math.max(east, p.longitude);
     }
-    final padLat = placeRadiusMeters / 111000;
+    const padLat = placeRadiusMeters / 111000;
     final widestLat = math.min(math.max(north.abs(), south.abs()), 89.0);
     final padLng = padLat / math.cos(widestLat * math.pi / 180);
     for (final place in places) {

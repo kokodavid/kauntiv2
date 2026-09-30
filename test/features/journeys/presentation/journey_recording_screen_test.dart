@@ -22,9 +22,7 @@ class _Recorder extends JourneyRecorder {
 }
 
 void main() {
-  testWidgets('recording shows full screen with its controls', (
-    tester,
-  ) async {
+  testWidgets('recording shows full screen with its controls', (tester) async {
     // Paused 10 minutes in: the clock shows 10 minutes, not the wall time.
     final start = DateTime.now().toUtc().subtract(const Duration(hours: 1));
     final recording = const JourneyRecording.idle()

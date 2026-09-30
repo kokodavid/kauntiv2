@@ -260,10 +260,10 @@ class _Progress extends StatelessWidget {
           for (final tier in CountyTier.values)
             _TierLine(tier: tier, claimed: claimed, isNext: tier == next),
           const SizedBox(height: 14),
-          Row(
+          const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 1),
                 child: Icon(
                   Icons.info_outline,
@@ -271,7 +271,7 @@ class _Progress extends StatelessWidget {
                   color: AppColors.mutedForeground,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Claim a county by spending about 2 hours in it. '

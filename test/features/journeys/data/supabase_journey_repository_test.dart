@@ -4,7 +4,7 @@ import 'package:kaunti47_v2/src/features/journeys/data/supabase_journey_reposito
 void main() {
   test('reads every page until a short one', () async {
     const size = SupabaseJourneyRepository.pageSize;
-    final total = size * 2 + 17;
+    const total = size * 2 + 17;
     final ranges = <(int, int)>[];
     final rows = await SupabaseJourneyRepository.readAllPages((from, to) async {
       ranges.add((from, to));

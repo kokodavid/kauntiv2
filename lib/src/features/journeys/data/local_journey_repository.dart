@@ -5,6 +5,8 @@ import '../domain/journey_point.dart';
 import '../domain/journey_recording.dart';
 import 'journey_database.dart';
 
+part 'local_journey_repository_mappers.dart';
+
 class LocalJourneySession {
   const LocalJourneySession({required this.id, required this.recording});
 
@@ -16,7 +18,6 @@ class JourneyPointRejected implements Exception {
   const JourneyPointRejected();
 }
 
-/// Durable, account-scoped recording state. No network or badge state lives here.
 class LocalJourneyRepository {
   const LocalJourneyRepository(this._db);
 
@@ -88,13 +89,15 @@ class LocalJourneyRepository {
   });
 
   Future<JourneyDestination?> destination(String id, String userId) async {
-    final rows = await _db.customSelect(
-      'SELECT destination_place_id, destination_name, '
-      'destination_latitude, destination_longitude FROM journey_sessions '
-      'WHERE id = ? AND user_id = ?',
-      variables: [Variable.withString(id), Variable.withString(userId)],
-      readsFrom: {_db.journeySessions},
-    ).get();
+    final rows = await _db
+        .customSelect(
+          'SELECT destination_place_id, destination_name, '
+          'destination_latitude, destination_longitude FROM journey_sessions '
+          'WHERE id = ? AND user_id = ?',
+          variables: [Variable.withString(id), Variable.withString(userId)],
+          readsFrom: {_db.journeySessions},
+        )
+        .get();
     if (rows.isEmpty) return null;
     final row = rows.single.data;
     final placeId = row['destination_place_id'] as String?;
@@ -105,6 +108,42 @@ class LocalJourneyRepository {
       name: name,
       latitude: (row['destination_latitude'] as num?)?.toDouble(),
       longitude: (row['destination_longitude'] as num?)?.toDouble(),
+    );
+  }
+
+  /// The name the user gave this Trip, overriding the default "Trip on
+  /// ..."/"Trip to ..." title; null until it's renamed.
+  Future<String?> customTitle(String id, String userId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT title FROM journey_sessions WHERE id = ? AND user_id = ?',
+          variables: [Variable.withString(id), Variable.withString(userId)],
+          readsFrom: {_db.journeySessions},
+        )
+        .get();
+    if (rows.isEmpty) return null;
+    return rows.single.data['title'] as String?;
+  }
+
+  /// Sets this Trip's name, overriding its default title.
+  Future<void> rename({
+    required String id,
+    required String userId,
+    required String title,
+  }) async {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty || trimmed.length > 120) {
+      throw ArgumentError('A Trip name needs 1-120 characters.');
+    }
+    await _owned(id, userId);
+    await _db.customUpdate(
+      'UPDATE journey_sessions SET title = ? WHERE id = ? AND user_id = ?',
+      variables: [
+        Variable.withString(trimmed),
+        Variable.withString(id),
+        Variable.withString(userId),
+      ],
+      updates: {_db.journeySessions},
     );
   }
 
@@ -189,17 +228,34 @@ class LocalJourneyRepository {
             accuracyMeters: point.accuracyMeters,
           ),
         );
+    if (point.altitudeMeters != null || point.speedMetersPerSecond != null) {
+      await _db.customUpdate(
+        'UPDATE journey_samples SET altitude_meters = ?, speed_mps = ? '
+        'WHERE journey_id = ? AND sequence_number = ?',
+        variables: [
+          Variable<double>(point.altitudeMeters),
+          Variable<double>(point.speedMetersPerSecond),
+          Variable.withString(id),
+          Variable.withInt(sequence),
+        ],
+        updates: {_db.journeySamples},
+      );
+    }
     return sequence;
   });
 
   Future<List<JourneyPoint>> points(String id, String userId) async {
     await _owned(id, userId);
-    final rows =
-        await (_db.select(_db.journeySamples)
-              ..where((t) => t.journeyId.equals(id))
-              ..orderBy([(t) => OrderingTerm.asc(t.sequenceNumber)]))
-            .get();
-    return [for (final row in rows) _point(row)];
+    final rows = await _db
+        .customSelect(
+          'SELECT segment_number, recorded_at_millis, latitude, longitude, '
+          'accuracy_meters, altitude_meters, speed_mps FROM journey_samples '
+          'WHERE journey_id = ? ORDER BY sequence_number ASC',
+          variables: [Variable.withString(id)],
+          readsFrom: {_db.journeySamples},
+        )
+        .get();
+    return [for (final row in rows) _pointFromRow(row.data)];
   }
 
   Future<DateTime?> lastPointAt(String id, String userId) async {
@@ -218,18 +274,6 @@ class LocalJourneyRepository {
           );
   }
 
-  JourneyPoint _point(JourneySample row) => JourneyPoint(
-    recordedAt: DateTime.fromMillisecondsSinceEpoch(
-      row.recordedAtMillis,
-      isUtc: true,
-    ),
-    latitude: row.latitude,
-    longitude: row.longitude,
-    accuracyMeters: row.accuracyMeters,
-    segmentNumber: row.segmentNumber,
-  );
-
-  /// Drops a session and its points (a start that never recorded).
   Future<void> discard(String id, String userId) => _db.transaction(() async {
     await _owned(id, userId);
     await (_db.delete(
@@ -238,49 +282,16 @@ class LocalJourneyRepository {
     await (_db.delete(_db.journeySessions)..where((t) => t.id.equals(id))).go();
   });
 
-  /// The session's points as they're recorded, for the live route.
   Stream<List<JourneyPoint>> watchPoints(String id) {
-    final query = _db.select(_db.journeySamples)
-      ..where((t) => t.journeyId.equals(id))
-      ..orderBy([(t) => OrderingTerm.asc(t.sequenceNumber)]);
-    return query.watch().map((rows) => [for (final row in rows) _point(row)]);
+    final query = _db.customSelect(
+      'SELECT segment_number, recorded_at_millis, latitude, longitude, '
+      'accuracy_meters, altitude_meters, speed_mps FROM journey_samples '
+      'WHERE journey_id = ? ORDER BY sequence_number ASC',
+      variables: [Variable.withString(id)],
+      readsFrom: {_db.journeySamples},
+    );
+    return query.watch().map(
+      (rows) => [for (final row in rows) _pointFromRow(row.data)],
+    );
   }
-
-  Future<LocalJourneySession> _owned(String id, String userId) async {
-    final row =
-        await (_db.select(_db.journeySessions)
-              ..where((t) => t.id.equals(id) & t.userId.equals(userId)))
-            .getSingleOrNull();
-    if (row == null) throw StateError('Journey not found for this account.');
-    return _session(row);
-  }
-
-  LocalJourneySession _session(JourneySession row) => LocalJourneySession(
-    id: row.id,
-    recording: JourneyRecording.restore(
-      phase: JourneyRecordingPhase.values.byName(row.phase),
-      startedAt: DateTime.fromMillisecondsSinceEpoch(
-        row.startedAtMillis,
-        isUtc: true,
-      ),
-      lastChangedAt: DateTime.fromMillisecondsSinceEpoch(
-        row.lastChangedAtMillis,
-        isUtc: true,
-      ),
-      pausedAt: row.pausedAtMillis == null
-          ? null
-          : DateTime.fromMillisecondsSinceEpoch(
-              row.pausedAtMillis!,
-              isUtc: true,
-            ),
-      endedAt: row.endedAtMillis == null
-          ? null
-          : DateTime.fromMillisecondsSinceEpoch(
-              row.endedAtMillis!,
-              isUtc: true,
-            ),
-      segmentNumber: row.segmentNumber,
-      pausedTotal: Duration(milliseconds: row.pausedTotalMillis),
-    ),
-  );
 }

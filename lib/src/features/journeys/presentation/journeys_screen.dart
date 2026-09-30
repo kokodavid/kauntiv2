@@ -5,6 +5,7 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/journey_history.dart';
 import '../application/journey_recorder.dart';
+import 'journey_hero_stats.dart';
 import 'journey_history_section.dart';
 import 'journey_live_card.dart';
 import 'journey_recording_screen.dart';
@@ -41,7 +42,9 @@ class JourneysScreen extends ConsumerWidget {
             // Room for the floating tab bar.
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             children: [
-              const Text('Journeys', style: AppTextStyles.headingForeground),
+              const Text('Trips', style: AppTextStyles.headingForeground),
+              const SizedBox(height: 16),
+              const JourneyHeroStats(),
               const SizedBox(height: 16),
               if (active)
                 JourneyLiveCard(

@@ -14,7 +14,7 @@ void main() {
   late JourneyDatabase db;
   late LocalJourneyRepository local;
   late List<String> uploaded;
-  late Object? Function(String id) failWith;
+  late Exception? Function(String id) failWith;
   late void Function(String id) onUpload;
   late JourneyDestination? uploadedDestination;
   String? user = 'alice';
@@ -41,8 +41,8 @@ void main() {
           expect(
             title,
             destination == null
-                ? startsWith('Journey on ')
-                : 'Journey to ${destination.name}',
+                ? startsWith('Trip on ')
+                : 'Trip to ${destination.name}',
           );
           uploadedDestination = destination;
           uploaded.add(id);
@@ -101,7 +101,7 @@ void main() {
     final q = queue();
     final pending = await q.pending('alice');
     expect(pending.single.destination?.placeId, destination.placeId);
-    expect(pending.single.title, 'Journey to Nairobi National Museum');
+    expect(pending.single.title, 'Trip to Nairobi National Museum');
     expect(await q.drain(now: t0.add(const Duration(hours: 1))), 1);
     expect(uploadedDestination?.placeId, destination.placeId);
   });
@@ -163,7 +163,10 @@ void main() {
       user = null;
       expect(await queue().drain(now: t0.add(const Duration(hours: 1))), 0);
 
-      expect(await queue().deleteLocal('a', 'bob'), isFalse);
+      await expectLater(
+        queue().deleteLocal('a', 'bob'),
+        throwsA(isA<StateError>()),
+      );
       expect(await queue().pending('alice'), hasLength(1));
       expect(await queue().deleteLocal('a', 'alice'), isFalse);
       expect(await queue().pending('alice'), isEmpty);

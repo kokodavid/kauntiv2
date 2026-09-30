@@ -3,21 +3,20 @@ import '../domain/pro_status.dart';
 
 /// What to tell the user when a Journey can't start or resume.
 abstract final class JourneyMessages {
-  static const proRequiredTitle = 'Journeys are part of Pro';
+  static const proRequiredTitle = 'Trips are part of Pro';
   static const proRequiredBody =
       'Recording your route needs an active Kaunti47 Pro plan. Your past '
-      'Journeys stay yours to view and delete either way.';
+      'Trips stay yours to view and delete either way.';
 
   /// Null for errors the screen handles itself ([JourneyStartDenied]).
   static String? forError(Object error) => switch (error) {
     JourneyStartDenied() => null,
-    JourneyProCheckUnavailable() =>
-      'Connect to the internet to start a Journey.',
+    JourneyProCheckUnavailable() => 'Connect to the internet to start a Trip.',
     JourneyTeardownException() =>
       'Location capture has not stopped yet. Please try again.',
     JourneyLocationException(:final reason) => switch (reason) {
       JourneyLocationFailure.servicesDisabled =>
-        'Turn on location services to record a Journey.',
+        'Turn on location services to record a Trip.',
       JourneyLocationFailure.permissionDenied ||
       JourneyLocationFailure.backgroundPermissionDenied =>
         'Allow location "All the time" in Settings to record your route '
@@ -26,7 +25,7 @@ abstract final class JourneyMessages {
       JourneyLocationFailure.settingsUnavailable =>
         "This phone couldn't start recording in the background.",
     },
-    _ => "Couldn't start the Journey. Try again.",
+    _ => "Couldn't start the Trip. Try again.",
   };
 
   /// Whether the fix for [error] is in the phone's Settings.

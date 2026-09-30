@@ -8,6 +8,8 @@ import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
 import 'journey_moment_row.dart';
 
+part 'journey_replay_controls_parts.dart';
+
 /// The card floating over the full-screen map: the Journey's title and
 /// facts, the key moment replay stopped at (if any), play / pause, the
 /// scrubber, the "time · distance" readout and speed.
@@ -73,24 +75,11 @@ class JourneyReplayControls extends StatelessWidget {
           children: [
             _SummaryHeader(summary: summary, distanceMeters: distanceMeters),
             const Divider(height: 16),
-            if (moments.isNotEmpty)
-              // Several places can share one point: scroll, don't grow.
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 176),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      for (final moment in moments)
-                        JourneyMomentRow(
-                          moment: moment,
-                          time: momentTime,
-                          onOpenPlace: onOpenPlace,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            if (moments.isNotEmpty) const Divider(height: 16),
+            _MomentsReveal(
+              moments: moments,
+              momentTime: momentTime,
+              onOpenPlace: onOpenPlace,
+            ),
             Row(
               children: [
                 IconButton.filled(
@@ -104,7 +93,17 @@ class JourneyReplayControls extends StatelessWidget {
                     backgroundColor: AppColors.accent,
                     foregroundColor: AppColors.accentForeground,
                   ),
-                  icon: Icon(playing ? Icons.pause : Icons.play_arrow),
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      scale: animation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    ),
+                    child: Icon(
+                      playing ? Icons.pause : Icons.play_arrow,
+                      key: ValueKey(playing),
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: Slider(
@@ -164,6 +163,14 @@ class _SummaryHeader extends StatelessWidget {
         'paused ${JourneyFormat.duration(summary.pausedDuration)}',
       'Started $started',
     ].join(' · ');
+    final durationSeconds = summary.duration.inMilliseconds / 1000;
+    final averageSpeed = durationSeconds > 0
+        ? distanceMeters / durationSeconds
+        : null;
+    final showStats =
+        averageSpeed != null ||
+        summary.topSpeedMps != null ||
+        summary.highestElevationMeters != null;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Column(
@@ -182,6 +189,14 @@ class _SummaryHeader extends StatelessWidget {
               color: AppColors.mutedForeground,
             ),
           ),
+          if (showStats) ...[
+            const SizedBox(height: 6),
+            _StatsRow(
+              averageSpeedMps: averageSpeed,
+              topSpeedMps: summary.topSpeedMps,
+              highestElevationMeters: summary.highestElevationMeters,
+            ),
+          ],
           if (!summary.isUploaded)
             Text(
               'On this phone, waiting to upload to your account.',
@@ -195,7 +210,7 @@ class _SummaryHeader extends StatelessWidget {
 
 /// A message in place of the replay (deleted, offline, too few points).
 class JourneyReplayMessage extends StatelessWidget {
-  const JourneyReplayMessage({required this.text, this.onRetry});
+  const JourneyReplayMessage({super.key, required this.text, this.onRetry});
 
   final String text;
   final VoidCallback? onRetry;

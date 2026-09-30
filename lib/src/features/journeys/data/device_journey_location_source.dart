@@ -48,8 +48,8 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       await _location.changeNotificationOptions(
-        channelName: 'Journey recording',
-        title: 'Recording your Journey',
+        channelName: 'Trip recording',
+        title: 'Recording your Trip',
         description:
             'Kaunti47 is saving your route. Open the app to pause or stop.',
         onTapBringToFront: true,
@@ -83,6 +83,14 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
         data.isMock == true) {
       return null;
     }
+    final rawAltitude = data.altitude;
+    final altitude = (rawAltitude != null && rawAltitude.isFinite)
+        ? rawAltitude
+        : null;
+    final rawSpeed = data.speed;
+    final speed = (rawSpeed != null && rawSpeed.isFinite && rawSpeed >= 0)
+        ? rawSpeed
+        : null;
     try {
       return JourneyFix(
         recordedAt: DateTime.fromMillisecondsSinceEpoch(
@@ -92,6 +100,8 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
         latitude: latitude,
         longitude: longitude,
         accuracyMeters: accuracy,
+        altitudeMeters: altitude,
+        speedMetersPerSecond: speed,
       );
     } on ArgumentError {
       return null;

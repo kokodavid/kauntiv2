@@ -5,6 +5,8 @@ class JourneyPoint {
     required this.longitude,
     required this.accuracyMeters,
     required this.segmentNumber,
+    this.altitudeMeters,
+    this.speedMetersPerSecond,
   }) {
     if (!latitude.isFinite ||
         latitude < -90 ||
@@ -14,7 +16,10 @@ class JourneyPoint {
         longitude > 180 ||
         !accuracyMeters.isFinite ||
         accuracyMeters < 0 ||
-        segmentNumber < 0) {
+        segmentNumber < 0 ||
+        (altitudeMeters != null && !altitudeMeters!.isFinite) ||
+        (speedMetersPerSecond != null &&
+            (!speedMetersPerSecond!.isFinite || speedMetersPerSecond! < 0))) {
       throw ArgumentError('Invalid Journey point.');
     }
   }
@@ -24,4 +29,10 @@ class JourneyPoint {
   final double longitude;
   final double accuracyMeters;
   final int segmentNumber;
+
+  /// Height above sea level, when the fix reported one.
+  final double? altitudeMeters;
+
+  /// The device's instantaneous speed at this fix, when it reported one.
+  final double? speedMetersPerSecond;
 }

@@ -46,8 +46,7 @@ Future<CountyBadgeDetail> countyBadgeDetail(Ref ref, int countyCode) async {
 /// Where the user is now, for "Places to start with" distances; null
 /// without permission or a fix. A one-shot foreground read, never stored.
 @riverpod
-Future<AppLocationFix?> badgeUserLocation(Ref ref) =>
-    AppCurrentLocation.read();
+Future<AppLocationFix?> badgeUserLocation(Ref ref) => AppCurrentLocation.read();
 
 /// Spin the coin on every open (testing); false = first open only.
 const spinEveryOpen = true;

@@ -118,7 +118,8 @@ abstract final class DepthLadder {
 
   /// Null when there's no next level from [current] (not yet earned, or
   /// already a local expert).
-  static DepthStep? nextStep(CountyDepth current, {
+  static DepthStep? nextStep(
+    CountyDepth current, {
     required int visits,
     required int months,
   }) {

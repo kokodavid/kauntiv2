@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../design/app_colors.dart';
-import '../data/map_home_view_preference.dart';
-import '../domain/map_home_models.dart';
 import '../../../core/domain/map_place.dart';
+import '../../../design/app_colors.dart';
+import '../application/map_home_view_preference_provider.dart';
+import '../domain/map_home_models.dart';
 import 'map_home_county_map.dart';
 import 'map_home_detection_paused_chip.dart';
 import 'map_home_for_you_section.dart';
@@ -19,7 +20,7 @@ import 'map_home_stat_card.dart';
 import 'real_map_controls.dart';
 import 'real_map_view.dart';
 
-class MapHomeBoard extends StatefulWidget {
+class MapHomeBoard extends ConsumerStatefulWidget {
   const MapHomeBoard({
     super.key,
     required this.data,
@@ -38,13 +39,11 @@ class MapHomeBoard extends StatefulWidget {
   /// placeholder, then crossfades to the real content in place.
   final MapHomeBoardData? data;
 
-  /// Place pins for the real map.
   final Future<List<MapPlace>> Function()? loadMapPlaces;
 
   /// Empty (or web, which Mapbox doesn't support): drawn map only.
   final String mapboxAccessToken;
 
-  /// County / Place Detail, supplied from `app/`; null keeps the peeks.
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
   final OpenDirections? onRoute;
@@ -54,11 +53,10 @@ class MapHomeBoard extends StatefulWidget {
   final VoidCallback? onOpenProfile;
 
   @override
-  State<MapHomeBoard> createState() => _MapHomeBoardState();
+  ConsumerState<MapHomeBoard> createState() => _MapHomeBoardState();
 }
 
-class _MapHomeBoardState extends State<MapHomeBoard> {
-  /// Ephemeral UI state: collapses the stat card while the map is browsed.
+class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
   bool _isMapInteracting = false;
 
   /// The real (Mapbox) map is Home's default; the drawn map is the
@@ -72,7 +70,6 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
   /// back is instant), it's just not the one shown while this is true.
   /// Loaded from storage on first build and persisted on every toggle.
   bool _preferDrawnMap = false;
-  final _viewPreference = const MapHomeViewPreference();
 
   bool get _realMapAllowed => !kIsWeb && widget.mapboxAccessToken.isNotEmpty;
 
@@ -82,7 +79,9 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
   void initState() {
     super.initState();
     unawaited(
-      _viewPreference.preferDrawnMap().then((preferDrawn) {
+      ref.read(mapHomeViewPreferenceProvider).preferDrawnMap().then((
+        preferDrawn,
+      ) {
         if (mounted && preferDrawn) {
           setState(() => _preferDrawnMap = preferDrawn);
         }
@@ -92,7 +91,9 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
 
   void _setPreferDrawnMap(bool preferDrawn) {
     setState(() => _preferDrawnMap = preferDrawn);
-    unawaited(_viewPreference.setPreferDrawnMap(preferDrawn));
+    unawaited(
+      ref.read(mapHomeViewPreferenceProvider).setPreferDrawnMap(preferDrawn),
+    );
   }
 
   /// Where the header (top bar + stat card) ends, in board coordinates;
@@ -262,11 +263,7 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
         // can get back to whichever map they're not currently viewing.
         if (mountReal)
           Positioned(
-            top:
-                _headerBottom +
-                20 +
-                8 +
-                (_preferDrawnMap ? 0 : 3 * 48),
+            top: _headerBottom + 20 + 8 + (_preferDrawnMap ? 0 : 3 * 48),
             right: 16,
             child: RealMapRoundButton(
               icon: _preferDrawnMap ? Icons.public : Icons.map_outlined,

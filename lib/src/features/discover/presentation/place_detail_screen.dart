@@ -12,10 +12,8 @@ import 'detail_photo_carousel.dart';
 import 'detail_widgets.dart';
 import 'place_category_style.dart';
 
-typedef OpenPlaceRoute = Future<void> Function(
-  BuildContext context,
-  PlaceDetailData place,
-);
+typedef OpenPlaceRoute =
+    Future<void> Function(BuildContext context, PlaceDetailData place);
 
 /// Place Detail (v2 Figma node 235:7353, ported from v1): photo carousel
 /// with back button and category pill, title, description, a Source /
@@ -40,12 +38,11 @@ class PlaceDetailScreen extends StatelessWidget {
         child: DetailAsyncBody<PlaceDetailData>(
           load: () => actions.placeDetail(placeId),
           errorMessage: "Couldn't load this place.",
-          builder: (context, data) =>
-              _PlaceDetailBody(
-                data: data,
-                actions: actions,
-                onGetRoute: onGetRoute,
-              ),
+          builder: (context, data) => _PlaceDetailBody(
+            data: data,
+            actions: actions,
+            onGetRoute: onGetRoute,
+          ),
         ),
       ),
     );

@@ -5,8 +5,8 @@ import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../services/app_logger.dart';
-import '../domain/journey_point.dart';
 import '../domain/journey_destination.dart';
+import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
 import 'journey_database.dart';
 import 'local_journey_repository.dart';
@@ -191,12 +191,28 @@ class JourneyUploadQueue {
           await (_db.select(_db.journeySessions)
                 ..where((t) => t.id.equals(id) & t.userId.equals(userId)))
               .getSingleOrNull();
-      if (owned == null) return true;
+      if (owned == null) {
+        final otherOwner = await (_db.select(
+          _db.journeySessions,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        if (otherOwner != null) {
+          throw StateError('Journey not found for this account.');
+        }
+        return true;
+      }
       await _removeLocal(id);
       return false;
     } finally {
       _deletingIds.remove(id);
     }
+  }
+
+  /// Renames a pending Journey still on this phone; waits for any running
+  /// drain first so a rename never races an upload reading the old title.
+  Future<void> renameLocal(String id, String userId, String title) async {
+    final running = _running;
+    if (running != null) await running;
+    await _local.rename(id: id, userId: userId, title: title);
   }
 
   Future<void> _removeLocal(String id) => _db.transaction(() async {
@@ -212,11 +228,14 @@ class JourneyUploadQueue {
       isUtc: true,
     );
     final destination = await _local.destination(row.id, row.userId);
+    final customTitle = await _local.customTitle(row.id, row.userId);
     return JourneySummary(
       id: row.id,
-      title: destination == null
-          ? JourneyTitles.defaultFor(startedAt)
-          : JourneyTitles.toPlace(destination),
+      title:
+          customTitle ??
+          (destination == null
+              ? JourneyTitles.defaultFor(startedAt)
+              : JourneyTitles.toPlace(destination)),
       startedAt: startedAt,
       endedAt: DateTime.fromMillisecondsSinceEpoch(
         row.endedAtMillis ?? row.lastChangedAtMillis,

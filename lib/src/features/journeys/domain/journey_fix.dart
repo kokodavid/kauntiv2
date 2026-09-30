@@ -6,6 +6,8 @@ class JourneyFix {
     required this.latitude,
     required this.longitude,
     required this.accuracyMeters,
+    this.altitudeMeters,
+    this.speedMetersPerSecond,
   }) {
     JourneyPoint(
       recordedAt: recordedAt,
@@ -13,6 +15,8 @@ class JourneyFix {
       longitude: longitude,
       accuracyMeters: accuracyMeters,
       segmentNumber: 0,
+      altitudeMeters: altitudeMeters,
+      speedMetersPerSecond: speedMetersPerSecond,
     );
   }
 
@@ -20,6 +24,8 @@ class JourneyFix {
   final double latitude;
   final double longitude;
   final double accuracyMeters;
+  final double? altitudeMeters;
+  final double? speedMetersPerSecond;
 
   JourneyPoint inSegment(int segmentNumber) => JourneyPoint(
     recordedAt: recordedAt,
@@ -27,6 +33,8 @@ class JourneyFix {
     longitude: longitude,
     accuracyMeters: accuracyMeters,
     segmentNumber: segmentNumber,
+    altitudeMeters: altitudeMeters,
+    speedMetersPerSecond: speedMetersPerSecond,
   );
 }
 

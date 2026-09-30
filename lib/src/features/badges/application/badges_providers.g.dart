@@ -293,18 +293,27 @@ String _$badgeSpinHistoryHash() => r'913f307873272776da233d669ed81ce183df3690';
 
 /// Whether this earned badge's coin should spin as its sheet opens: only
 /// the first time the account opens it on this phone. Asking records it.
+///
+/// TEMPORARY while the spin is being tuned: [spinEveryOpen] makes every
+/// open spin. Set it back to false before release.
 
 @ProviderFor(badgeFirstSpin)
 const badgeFirstSpinProvider = BadgeFirstSpinFamily._();
 
 /// Whether this earned badge's coin should spin as its sheet opens: only
 /// the first time the account opens it on this phone. Asking records it.
+///
+/// TEMPORARY while the spin is being tuned: [spinEveryOpen] makes every
+/// open spin. Set it back to false before release.
 
 final class BadgeFirstSpinProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
   /// Whether this earned badge's coin should spin as its sheet opens: only
   /// the first time the account opens it on this phone. Asking records it.
+  ///
+  /// TEMPORARY while the spin is being tuned: [spinEveryOpen] makes every
+  /// open spin. Set it back to false before release.
   const BadgeFirstSpinProvider._({
     required BadgeFirstSpinFamily super.from,
     required int super.argument,
@@ -348,10 +357,13 @@ final class BadgeFirstSpinProvider
   }
 }
 
-String _$badgeFirstSpinHash() => r'a8286eb1f504ccb3d32f77528cb50ce843597e0a';
+String _$badgeFirstSpinHash() => r'8657f9d350f5688357e6e8b32cfbbfdd79afd208';
 
 /// Whether this earned badge's coin should spin as its sheet opens: only
 /// the first time the account opens it on this phone. Asking records it.
+///
+/// TEMPORARY while the spin is being tuned: [spinEveryOpen] makes every
+/// open spin. Set it back to false before release.
 
 final class BadgeFirstSpinFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<bool>, int> {
@@ -366,6 +378,9 @@ final class BadgeFirstSpinFamily extends $Family
 
   /// Whether this earned badge's coin should spin as its sheet opens: only
   /// the first time the account opens it on this phone. Asking records it.
+  ///
+  /// TEMPORARY while the spin is being tuned: [spinEveryOpen] makes every
+  /// open spin. Set it back to false before release.
 
   BadgeFirstSpinProvider call(int countyCode) =>
       BadgeFirstSpinProvider._(argument: countyCode, from: this);

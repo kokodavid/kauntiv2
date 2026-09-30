@@ -70,9 +70,9 @@ abstract final class JourneyPlaceRoutes {
       final proceed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Journey already recording'),
+          title: const Text('Trip already recording'),
           content: const Text(
-            'Directions will open while your current Journey keeps '
+            'Directions will open while your current Trip keeps '
             'recording. Its destination will not change.',
           ),
           actions: [
@@ -126,9 +126,9 @@ abstract final class JourneyPlaceRoutes {
       _message(
         context,
         stopped
-            ? "Couldn't open directions. The Journey was stopped."
-            : "Couldn't open directions. Your Journey is still recording; "
-                  'stop it in Journeys.',
+            ? "Couldn't open directions. The Trip was stopped."
+            : "Couldn't open directions. Your Trip is still recording; "
+                  'stop it in Trips.',
       );
     }
   }
@@ -144,7 +144,7 @@ abstract final class JourneyPlaceRoutes {
         title: Text(
           error is JourneyStartDenied
               ? JourneyMessages.proRequiredTitle
-              : "Couldn't record a Journey",
+              : "Couldn't record a Trip",
         ),
         content: Text(
           error is JourneyStartDenied

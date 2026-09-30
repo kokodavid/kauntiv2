@@ -56,7 +56,7 @@ class _JourneyRecordingControlsState
     } on Object catch (error) {
       final message =
           JourneyMessages.forError(error) ??
-          "Couldn't update the Journey. Try again.";
+          "Couldn't update the Trip. Try again.";
       final settings = widget.onOpenSettings;
       messenger.showSnackBar(
         SnackBar(
@@ -72,7 +72,9 @@ class _JourneyRecordingControlsState
   }
 
   Future<void> _confirmStop() async {
-    switch (await showJourneyStopDialog(context)) {
+    final choice = await showJourneyStopDialog(context);
+    if (!mounted) return;
+    switch (choice) {
       case JourneyStopChoice.save:
         await _run((r) => r.finish());
       case JourneyStopChoice.discard:

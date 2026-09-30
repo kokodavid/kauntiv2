@@ -7,18 +7,20 @@ import 'package:kaunti47_v2/src/features/badges/domain/badge_collection.dart';
 import 'package:kaunti47_v2/src/features/badges/domain/county_badge_detail.dart';
 import 'package:kaunti47_v2/src/features/badges/presentation/badge_detail_sheet.dart';
 
-Widget _app(CountyBadge badge, CountyBadgeDetail detail, {
+Widget _app(
+  CountyBadge badge,
+  CountyBadgeDetail detail, {
   VoidCallback? onOpenCounty,
   ValueChanged<String>? onOpenPlace,
   bool firstSpin = false,
 }) => ProviderScope(
   overrides: [
-    badgeFirstSpinProvider(badge.county.code).overrideWith(
-      (ref) async => firstSpin,
-    ),
-    countyBadgeDetailProvider(badge.county.code).overrideWith(
-      (ref) async => detail,
-    ),
+    badgeFirstSpinProvider(
+      badge.county.code,
+    ).overrideWith((ref) async => firstSpin),
+    countyBadgeDetailProvider(
+      badge.county.code,
+    ).overrideWith((ref) async => detail),
     badgeUserLocationProvider.overrideWith(
       (ref) async => (latitude: -1.28, longitude: 36.82),
     ),
@@ -68,15 +70,17 @@ void main() {
     expect(find.text('Regular · 12 of 47 counties'), findsOneWidget);
     expect(find.text('Earned 12 Mar 2026'), findsOneWidget);
     expect(
-      find.text('2 more visits, in 2 different months, to become a local '
-          'expert.'),
+      find.text(
+        '2 more visits, in 2 different months, to become a local '
+        'expert.',
+      ),
       findsOneWidget,
     );
     expect(find.text('Your time in Nairobi'), findsOneWidget);
     expect(find.text('4 visits'), findsOneWidget);
     expect(find.text('3 months'), findsOneWidget);
     expect(find.text('20 Sep 2026'), findsOneWidget);
-    expect(find.text('2 Journeys'), findsOneWidget);
+    expect(find.text('2 Trips'), findsOneWidget);
     expect(find.text('38 km'), findsOneWidget);
     expect(find.text('Share'), findsOneWidget);
 

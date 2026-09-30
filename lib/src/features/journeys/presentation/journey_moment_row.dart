@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
-import '../../../core/widgets/app_save_icon.dart';
+import '../../../core/widgets/app_place_row.dart';
 import '../../../design/app_colors.dart';
 import '../../discover/application/explore_providers.dart';
 import '../domain/journey_moments.dart';
@@ -32,12 +32,15 @@ class JourneyMomentRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final place = moment.place;
+    final open = onOpenPlace;
+    if (place != null) {
+      return _PlaceMomentRow(moment: moment, place: place, onOpenPlace: open);
+    }
     final (icon, title, detail) = _describe(moment);
     final at = time == null
         ? null
         : TimeOfDay.fromDateTime(time!.toLocal()).format(context);
-    final place = moment.place;
-    final open = onOpenPlace;
     final row = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
@@ -68,30 +71,10 @@ class JourneyMomentRow extends ConsumerWidget {
               ],
             ),
           ),
-          if (place != null)
-            AppSaveIcon(
-              saved:
-                  ref.watch(
-                    exploreSavedPlacesProvider.select((s) => s[place.id]),
-                  ) ??
-                  place.saved,
-              onChanged: (saved) => ref
-                  .read(exploreSavedPlacesProvider.notifier)
-                  .setSaved(
-                    countyCode: place.countyCode,
-                    placeId: place.id,
-                    saved: saved,
-                  ),
-            ),
         ],
       ),
     );
-    if (place == null || open == null) return row;
-    return InkWell(
-      onTap: () => open(context, place.id),
-      borderRadius: BorderRadius.circular(12),
-      child: row,
-    );
+    return row;
   }
 
   static (IconData, String, String) _describe(JourneyMoment moment) {
@@ -128,5 +111,52 @@ class JourneyMomentRow extends ConsumerWidget {
         away,
       ),
     };
+  }
+}
+
+/// A place visited along the route, shown as the same place row Explore
+/// uses, so a place looks the same whether it's being browsed or replayed.
+class _PlaceMomentRow extends ConsumerWidget {
+  const _PlaceMomentRow({
+    required this.moment,
+    required this.place,
+    this.onOpenPlace,
+  });
+
+  final JourneyMoment moment;
+  final JourneyPlaceMark place;
+  final OpenJourneyPlace? onOpenPlace;
+
+  /// Closer than this reads as "on route" rather than a distance.
+  static const _onRouteMeters = 300.0;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final open = onOpenPlace;
+    final meters = moment.distanceMeters;
+    final distanceLabel = meters == null
+        ? null
+        : meters < _onRouteMeters
+        ? 'On route'
+        : JourneyFormat.distance(meters);
+    final saved =
+        ref.watch(exploreSavedPlacesProvider.select((s) => s[place.id])) ??
+        place.saved;
+    return AppPlaceRow(
+      title: place.name,
+      description: place.description ?? 'A place near your route.',
+      categoryLabel: place.categoryLabel ?? 'Place',
+      saved: saved,
+      thumbnailUrl: place.thumbnailUrl,
+      distanceLabel: distanceLabel,
+      onTap: open == null ? null : () => open(context, place.id),
+      onSaveChanged: (saved) => ref
+          .read(exploreSavedPlacesProvider.notifier)
+          .setSaved(
+            countyCode: place.countyCode,
+            placeId: place.id,
+            saved: saved,
+          ),
+    );
   }
 }

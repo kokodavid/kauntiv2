@@ -93,7 +93,7 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
               Icon(Icons.route_rounded, color: AppColors.accent),
               SizedBox(width: 8),
               Expanded(
-                child: Text('Record a Journey', style: AppTypeScale.cardTitle),
+                child: Text('Record a Trip', style: AppTypeScale.cardTitle),
               ),
               _ProChip(),
             ],
@@ -126,10 +126,7 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
                         color: AppColors.accentForeground,
                       ),
                     )
-                  : const Text(
-                      'Start Journey',
-                      style: AppTextStyles.buttonLabel,
-                    ),
+                  : const Text('Start Trip', style: AppTextStyles.buttonLabel),
             ),
           ),
         ],

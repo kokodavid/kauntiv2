@@ -9,10 +9,8 @@ import 'app_photo_parts.dart';
 
 /// Opens Place Detail for a place id. Supplied by `app/`.
 typedef AppOpenPlace = void Function(BuildContext context, String placeId);
-typedef AppOpenPlaceRoute = Future<void> Function(
-  BuildContext context,
-  MapPlace place,
-);
+typedef AppOpenPlaceRoute =
+    Future<void> Function(BuildContext context, MapPlace place);
 
 /// The sheet for a tapped place pin (Home map, Journey recording), in the
 /// feature-card style: the place

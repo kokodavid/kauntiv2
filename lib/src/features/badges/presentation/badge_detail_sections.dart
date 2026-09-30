@@ -90,7 +90,8 @@ class BadgeTimeSection extends StatelessWidget {
   final String countyName;
   final CountyBadgeDetail detail;
 
-  static String _plural(int n, String word) => n == 1 ? '1 $word' : '$n ${word}s';
+  static String _plural(int n, String word) =>
+      n == 1 ? '1 $word' : '$n ${word}s';
 
   static String _distance(double meters) => meters < 1000
       ? '${meters.round()} m'
@@ -126,7 +127,7 @@ class BadgeTimeSection extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _Stat(
-                  value: _plural(detail.journeys, 'Journey'),
+                  value: _plural(detail.journeys, 'Trip'),
                   label: _distance(detail.journeyMeters),
                 ),
               ),

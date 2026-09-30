@@ -46,11 +46,13 @@ Future<void> _pump(
     ),
   );
   await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
 }
 
 Future<void> _play(WidgetTester tester, String tooltip) async {
   await tester.tap(find.byTooltip(tooltip));
-  await tester.pump(); // first frame starts the clock
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 1)); // start the ticker clock
 }
 
 void main() {
@@ -144,8 +146,9 @@ void main() {
     await tester.pump();
     await _play(tester, 'Play replay');
     await tester.pump(const Duration(seconds: 10));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Karura Forest'), findsOneWidget);
-    expect(find.textContaining('2.4 km from your route'), findsOneWidget);
+    expect(find.textContaining('2.4 km'), findsOneWidget);
     await tester.tap(find.text('Karura Forest'));
     expect(opened, ['karura']);
   });

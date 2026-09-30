@@ -9,9 +9,9 @@ Future<JourneyStopChoice?> showJourneyStopDialog(BuildContext context) {
   return showDialog<JourneyStopChoice>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Stop this Journey?'),
+      title: const Text('Stop this Trip?'),
       content: const Text(
-        'Save it to your Journeys and upload it to your account, or '
+        'Save it to your Trips and upload it to your account, or '
         "discard it: the route is deleted from this phone and can't be "
         'recovered.',
       ),

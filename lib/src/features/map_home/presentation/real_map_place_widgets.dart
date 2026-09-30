@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../design/app_colors.dart';
 import '../../../core/map/map_place_types.dart';
+import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 
 /// Compact legend for the place pins.

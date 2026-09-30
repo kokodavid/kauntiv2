@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,10 +16,8 @@ import 'journey_moment_row.dart';
 import 'journey_replay_controls.dart';
 import 'journey_route_map.dart';
 
-/// A past Journey on a full-screen map: its summary and the replay
-/// controls float over it (delete lives on the Journeys list).
-/// Replay pauses by itself at key moments (recording breaks, long stops,
-/// county crossings, saved places passed); play continues.
+/// A past Journey on a full-screen map with floating replay controls.
+/// Replay pauses at key moments before continuing.
 class JourneyReplayScreen extends ConsumerWidget {
   const JourneyReplayScreen({
     super.key,
@@ -54,8 +54,8 @@ class JourneyReplayScreen extends ConsumerWidget {
                     child: switch (detail) {
                       AsyncValue(:final error?) => JourneyReplayMessage(
                         text: error is JourneyNotFound
-                            ? 'This Journey was deleted.'
-                            : "Couldn't load this Journey. Check your "
+                            ? 'This Trip was deleted.'
+                            : "Couldn't load this Trip. Check your "
                                   'connection.',
                         onRetry: error is JourneyNotFound
                             ? null
@@ -64,8 +64,9 @@ class JourneyReplayScreen extends ConsumerWidget {
                               ),
                       ),
                       AsyncValue(hasValue: true) => const JourneyReplayMessage(
-                        text: 'Not enough route points were recorded to '
-                            'show this Journey.',
+                        text:
+                            'Not enough route points were recorded to '
+                            'show this Trip.',
                       ),
                       _ => const CircularProgressIndicator(strokeWidth: 2),
                     },
@@ -100,13 +101,24 @@ class _Player extends StatefulWidget {
   State<_Player> createState() => _PlayerState();
 }
 
-class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
+class _PlayerState extends State<_Player> with TickerProviderStateMixin {
   /// Room the camera leaves for the floating summary and controls.
   static const _controlsInset = 250.0;
 
   late final JourneyReplayTrack _track = JourneyReplayTrack(widget.route);
   late final Ticker _ticker = createTicker(_onTick);
   Duration _lastTick = Duration.zero;
+
+  /// A one-shot fade/slide as the replay screen first appears, rather than
+  /// the map and controls just popping in.
+  late final AnimationController _enterController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+  )..forward();
+  late final CurvedAnimation _enterCurve = CurvedAnimation(
+    parent: _enterController,
+    curve: Curves.easeOut,
+  );
 
   /// Position along the track in points, fractional between them.
   double _position = 0;
@@ -138,6 +150,7 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     _ticker.dispose();
+    _enterController.dispose();
     super.dispose();
   }
 
@@ -178,7 +191,7 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
       _active = true;
       _showing = const [];
     });
-    _ticker.start();
+    unawaited(_ticker.start());
   }
 
   void _togglePlay() => _playing ? setState(_ticker.stop) : _play();
@@ -223,16 +236,20 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
       fit: StackFit.expand,
       children: [
         Positioned.fill(
-          child: JourneyRouteMap(
-            route: widget.route,
-            played: _active ? _playedUpTo(_index) : null,
-            start: _at(points.first),
-            end: _active ? null : _at(points.last),
-            pins: _pins,
-            marker: _active ? _track.positionAt(_position) : null,
-            follow: _active,
-            animateFollow: false,
-            bottomInset: _controlsInset + safeBottom,
+          child: FadeTransition(
+            opacity: _enterCurve,
+            child: JourneyRouteMap(
+              route: widget.route,
+              played: _active ? _playedUpTo(_index) : null,
+              start: _at(points.first),
+              end: _active ? null : _at(points.last),
+              pins: _pins,
+              marker: _active ? _track.positionAt(_position) : null,
+              follow: _active,
+              animateFollow: false,
+              bottomInset: _controlsInset + safeBottom,
+              pulsing: _showing.isNotEmpty,
+            ),
           ),
         ),
         if (_active)
@@ -247,23 +264,33 @@ class _PlayerState extends State<_Player> with SingleTickerProviderStateMixin {
           child: SafeArea(
             top: false,
             minimum: const EdgeInsets.all(12),
-            child: JourneyReplayControls(
-              summary: widget.summary,
-              distanceMeters:
-                  widget.summary.distanceMeters ?? widget.route.distanceMeters,
-              playing: _playing,
-              position: _position,
-              lastIndex: _track.lastIndex,
-              readout: _readout,
-              speed: _speed,
-              moments: _showing,
-              momentTime: _showing.isEmpty
-                  ? null
-                  : points[_showing.first.index].recordedAt,
-              onTogglePlay: _togglePlay,
-              onScrub: _scrub,
-              onSpeed: (speed) => setState(() => _speed = speed),
-              onOpenPlace: widget.onOpenPlace,
+            child: FadeTransition(
+              opacity: _enterCurve,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.15),
+                  end: Offset.zero,
+                ).animate(_enterCurve),
+                child: JourneyReplayControls(
+                  summary: widget.summary,
+                  distanceMeters:
+                      widget.summary.distanceMeters ??
+                      widget.route.distanceMeters,
+                  playing: _playing,
+                  position: _position,
+                  lastIndex: _track.lastIndex,
+                  readout: _readout,
+                  speed: _speed,
+                  moments: _showing,
+                  momentTime: _showing.isEmpty
+                      ? null
+                      : points[_showing.first.index].recordedAt,
+                  onTogglePlay: _togglePlay,
+                  onScrub: _scrub,
+                  onSpeed: (speed) => setState(() => _speed = speed),
+                  onOpenPlace: widget.onOpenPlace,
+                ),
+              ),
             ),
           ),
         ),

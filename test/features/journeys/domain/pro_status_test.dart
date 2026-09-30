@@ -38,7 +38,7 @@ void main() {
   test('default titles use the local date', () {
     expect(
       JourneyTitles.defaultFor(DateTime(2026, 9, 25, 9)),
-      'Journey on 25 Sep 2026',
+      'Trip on 25 Sep 2026',
     );
   });
 }

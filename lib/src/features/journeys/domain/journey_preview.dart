@@ -26,9 +26,7 @@ abstract final class JourneyPreview {
     }
     if (segment.length <= keep) return segment;
     final step = (segment.length - 1) / (keep - 1);
-    return [
-      for (var i = 0; i < keep; i++) segment[(i * step).round()],
-    ];
+    return [for (var i = 0; i < keep; i++) segment[(i * step).round()]];
   }
 
   /// Google's encoded polyline format (precision 5), as Mapbox's static

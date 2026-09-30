@@ -62,10 +62,11 @@ void main() {
 
   test('one point at the route end does not confirm a county crossing', () {
     int? county(double lat, double lng) => lat > -1.2 ? 22 : 47;
-    final moments = JourneyMoments.find(
-      [_p(0, -1.30), _p(1, -1.29), _p(2, -1.19)],
-      countyAt: county,
-    );
+    final moments = JourneyMoments.find([
+      _p(0, -1.30),
+      _p(1, -1.29),
+      _p(2, -1.19),
+    ], countyAt: county);
     expect(moments, isEmpty);
   });
 
@@ -74,18 +75,16 @@ void main() {
       if (lat == -1.20) return null;
       return lat > -1.2 ? 22 : 47;
     }
-    final moments = JourneyMoments.find(
-      [
-        _p(0, -1.30),
-        _p(1, -1.19),
-        _p(2, -1.18),
-        _p(3, -1.20),
-        _p(4, -1.17),
-        _p(5, -1.16),
-        _p(6, -1.15),
-      ],
-      countyAt: county,
-    );
+
+    final moments = JourneyMoments.find([
+      _p(0, -1.30),
+      _p(1, -1.19),
+      _p(2, -1.18),
+      _p(3, -1.20),
+      _p(4, -1.17),
+      _p(5, -1.16),
+      _p(6, -1.15),
+    ], countyAt: county);
     expect(moments, hasLength(1));
     expect(moments.single.index, 6);
   });

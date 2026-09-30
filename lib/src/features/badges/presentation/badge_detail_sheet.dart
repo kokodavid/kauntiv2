@@ -125,8 +125,7 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
     // An earned coin spins the first time its sheet opens.
     final spin =
         badge.isEarned &&
-        (ref.watch(badgeFirstSpinProvider(badge.county.code)).value ??
-            false);
+        (ref.watch(badgeFirstSpinProvider(badge.county.code)).value ?? false);
     final openCounty = widget.onOpenCounty;
     return Container(
       constraints: BoxConstraints(

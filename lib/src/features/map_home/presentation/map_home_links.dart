@@ -14,10 +14,8 @@ typedef OpenPlaceDetail = void Function(BuildContext context, String placeId);
 /// Opens driving directions in the maps app. Supplied by `app/`.
 typedef OpenDirections = AppOpenDirections;
 typedef OpenPlaceDirections = AppOpenPlaceRoute;
-typedef OpenPromotedPlaceDirections = Future<void> Function(
-  BuildContext context,
-  MapHomePromotedPlace place,
-);
+typedef OpenPromotedPlaceDirections =
+    Future<void> Function(BuildContext context, MapHomePromotedPlace place);
 
 /// Opens Explore on its UNCLAIMED list. Supplied by `app/`.
 typedef OpenAllUnclaimed = void Function(BuildContext context);

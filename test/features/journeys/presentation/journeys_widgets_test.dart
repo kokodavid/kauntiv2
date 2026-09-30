@@ -34,12 +34,17 @@ class _History extends JourneyHistoryList {
 
   final JourneyHistory history;
   final deleted = <String>[];
+  final renamed = <(String, String)>[];
 
   @override
   Future<JourneyHistory> build() async => history;
 
   @override
   Future<void> delete(JourneySummary journey) async => deleted.add(journey.id);
+
+  @override
+  Future<void> rename(JourneySummary journey, String title) async =>
+      renamed.add((journey.id, title));
 }
 
 class _Pending extends JourneyHistoryList {
@@ -69,9 +74,10 @@ void main() {
         ),
       ]),
     );
-    await tester.tap(find.text('Start Journey'));
-    await tester.pumpAndSettle();
-    expect(find.text('Journeys are part of Pro'), findsOneWidget);
+    await tester.tap(find.text('Start Trip'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Trips are part of Pro'), findsOneWidget);
   });
 
   testWidgets('Start offline asks for a connection', (tester) async {
@@ -82,10 +88,10 @@ void main() {
         ),
       ]),
     );
-    await tester.tap(find.text('Start Journey'));
+    await tester.tap(find.text('Start Trip'));
     await tester.pump();
     expect(
-      find.text('Connect to the internet to start a Journey.'),
+      find.text('Connect to the internet to start a Trip.'),
       findsOneWidget,
     );
   });
@@ -103,7 +109,7 @@ void main() {
         ),
       ]),
     );
-    await tester.tap(find.text('Start Journey'));
+    await tester.tap(find.text('Start Trip'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 750));
     await tester.tap(find.text('Settings'));
@@ -114,32 +120,37 @@ void main() {
     final start = DateTime(2026, 9, 25, 9);
     final opened = <String>[];
     await tester.pumpWidget(
-      _app(JourneyHistorySection(onOpen: (_, id) => opened.add(id)), [
-        journeyHistoryListProvider.overrideWith(
-          () => _History(
-            JourneyHistory(
-              cloudUnavailable: true,
-              journeys: [
-                JourneySummary(
-                  id: 'local',
-                  title: 'Journey on 25 Sep 2026',
-                  startedAt: start,
-                  endedAt: start.add(const Duration(minutes: 12)),
-                  isUploaded: false,
-                ),
-                JourneySummary(
-                  id: 'cloud',
-                  title: 'Nairobi loop',
-                  startedAt: start,
-                  endedAt: start.add(const Duration(hours: 1, minutes: 5)),
-                  distanceMeters: 12400,
-                  isUploaded: true,
-                ),
-              ],
+      _app(
+        SingleChildScrollView(
+          child: JourneyHistorySection(onOpen: (_, id) => opened.add(id)),
+        ),
+        [
+          journeyHistoryListProvider.overrideWith(
+            () => _History(
+              JourneyHistory(
+                cloudUnavailable: true,
+                journeys: [
+                  JourneySummary(
+                    id: 'local',
+                    title: 'Journey on 25 Sep 2026',
+                    startedAt: start,
+                    endedAt: start.add(const Duration(minutes: 12)),
+                    isUploaded: false,
+                  ),
+                  JourneySummary(
+                    id: 'cloud',
+                    title: 'Nairobi loop',
+                    startedAt: start,
+                    endedAt: start.add(const Duration(hours: 1, minutes: 5)),
+                    distanceMeters: 12400,
+                    isUploaded: true,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('Waiting to upload'), findsOneWidget);
@@ -170,7 +181,7 @@ void main() {
       ]),
     );
     await tester.pumpAndSettle();
-    expect(find.textContaining('No Journeys yet'), findsOneWidget);
+    expect(find.textContaining('No Trips yet'), findsOneWidget);
   });
 
   testWidgets('a Journey is deleted from the list after confirming', (
@@ -198,16 +209,54 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Delete Journey'));
+    await tester.tap(find.byTooltip('Trip options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(history.deleted, isEmpty);
 
-    await tester.tap(find.byTooltip('Delete Journey'));
+    await tester.tap(find.byTooltip('Trip options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
     expect(history.deleted, ['cloud']);
+  });
+
+  testWidgets('a Trip is renamed from the card menu', (tester) async {
+    final start = DateTime(2026, 9, 25, 9);
+    final history = _History(
+      JourneyHistory(
+        journeys: [
+          JourneySummary(
+            id: 'cloud',
+            title: 'Nairobi loop',
+            startedAt: start,
+            endedAt: start.add(const Duration(minutes: 30)),
+            distanceMeters: 5000,
+            isUploaded: true,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpWidget(
+      _app(const JourneyHistorySection(), [
+        journeyHistoryListProvider.overrideWith(() => history),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Trip options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rename'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rename this Trip'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Forest loop');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(history.renamed, [('cloud', 'Forest loop')]);
   });
 }

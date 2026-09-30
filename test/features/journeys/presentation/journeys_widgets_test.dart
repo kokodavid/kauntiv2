@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +12,7 @@ import 'package:kaunti47_v2/src/features/journeys/domain/journey_destination.dar
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_summary.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/pro_status.dart';
+import 'package:kaunti47_v2/src/features/journeys/presentation/journey_card_skeleton.dart';
 import 'package:kaunti47_v2/src/features/journeys/presentation/journey_history_section.dart';
 import 'package:kaunti47_v2/src/features/journeys/presentation/journey_start_card.dart';
 
@@ -37,6 +40,15 @@ class _History extends JourneyHistoryList {
 
   @override
   Future<void> delete(JourneySummary journey) async => deleted.add(journey.id);
+}
+
+class _Pending extends JourneyHistoryList {
+  _Pending(this.pending);
+
+  final Completer<JourneyHistory> pending;
+
+  @override
+  Future<JourneyHistory> build() => pending.future;
 }
 
 Widget _app<T>(Widget child, List<T> overrides) => ProviderScope(
@@ -135,6 +147,18 @@ void main() {
     expect(find.textContaining("You're offline"), findsOneWidget);
     await tester.tap(find.text('Nairobi loop'));
     expect(opened, ['cloud']);
+  });
+
+  testWidgets('history shows shimmering cards while it loads', (tester) async {
+    final pending = Completer<JourneyHistory>();
+    await tester.pumpWidget(
+      _app(const JourneyHistorySection(), [
+        journeyHistoryListProvider.overrideWith(() => _Pending(pending)),
+      ]),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(JourneyCardsLoading), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('no Journeys yet says so', (tester) async {

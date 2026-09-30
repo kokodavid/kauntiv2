@@ -39,6 +39,22 @@ class AppAuthService {
 
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
+  /// The signed-in user's initial for avatars: the first letter of the
+  /// name from the sign-in provider, else of the email; null when signed
+  /// out or neither is known.
+  String? get currentUserInitial {
+    final user = currentUser;
+    if (user == null) return null;
+    final metadata = user.userMetadata ?? const <String, dynamic>{};
+    final candidates = [metadata['full_name'], metadata['name'], user.email];
+    for (final candidate in candidates) {
+      if (candidate is String && candidate.trim().isNotEmpty) {
+        return String.fromCharCode(candidate.trim().runes.first).toUpperCase();
+      }
+    }
+    return null;
+  }
+
   /// Signs in with [provider]. Returns null on success, else the failure
   /// to show (already logged).
   Future<AuthFailure?> signIn(

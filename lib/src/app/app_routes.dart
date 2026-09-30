@@ -12,6 +12,7 @@ abstract final class AppRoutes {
   static const badges = '/badges';
   static const explore = '/explore';
   static const journeys = '/journeys';
+  static const profile = '/profile';
   static const journeyRecording = '/journey-recording';
 
   static String county(int code) => '/county/$code';

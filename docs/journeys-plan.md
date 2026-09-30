@@ -147,6 +147,12 @@ Deploy this migration before enabling the new client. The recorded route and
 manual Stop remain independent of the destination. Planning multiple stops,
 route comparison and arrival handling are later work.
 
+## Loading (2026-09-26)
+
+- Past Journeys show shimmering placeholder cards shaped like the real
+  cards (`JourneyCardsLoading`, shared `core/widgets/app_shimmer.dart`)
+  while the history loads, instead of a spinner.
+
 ## Privacy boundary
 
 Automatic detection continues to sync county-level visit data only. Precise

@@ -16,6 +16,7 @@ import '../features/map_home/application/map_home_board_loader.dart';
 import '../features/map_home/data/supabase_map_home_repository.dart';
 import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/profile/presentation/profile_screen.dart';
 import '../services/app_supabase.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
@@ -114,6 +115,16 @@ GoRouter appRouter(Ref ref) {
           ),
         ),
       GoRoute(
+        path: AppRoutes.profile,
+        builder: (context, state) => ProfileScreen(
+          onOpenBadges: () => context.go(AppRoutes.badges),
+          onOpenJourneys: AppFeatureFlags.journeys
+              ? () => context.go(AppRoutes.journeys)
+              : null,
+          onOpenSettings: DetailRoutes.openAppSettings,
+        ),
+      ),
+      GoRoute(
         path: '/county/:code',
         builder: (context, state) => CountyDetailScreen(
           countyCode: int.parse(state.pathParameters['code']!),
@@ -165,6 +176,7 @@ class _MapTab extends ConsumerWidget {
       onPlaceRoute: JourneyPlaceRoutes.openMapPlace,
       onPromotedPlaceRoute: JourneyPlaceRoutes.openPromotion,
       onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
+      onOpenProfile: () => context.push(AppRoutes.profile),
       loader: AppSupabase.isInitialized
           ? MapHomeBoardLoader(
               repository: SupabaseMapHomeRepository(AppSupabase.client),

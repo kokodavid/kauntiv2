@@ -33,6 +33,10 @@ Port of v1's Badges tab to v2, on the new design:
   (Earned / "N to go" / "N more" with a lock), and how a county is claimed (about 2 hours in it;
   passing through doesn't count).
 
+- **Loading:** a shimmer skeleton in the page's layout (`BadgesLoading`,
+  built on the shared `core/widgets/app_shimmer.dart`: one band sweeps all
+  placeholders in step; still under reduced motion) instead of a spinner.
+
 ## Steps
 
 1. **Badges tab (built):** `features/badges` — domain `BadgeCollection`

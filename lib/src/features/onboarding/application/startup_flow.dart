@@ -39,6 +39,9 @@ class StartupFlow extends _$StartupFlow {
 
   void completeSplash() => state = state.copyWith(splashComplete: true);
 
+  /// Clear account-specific onboarding state before routing to sign-in.
+  void resetAfterSignOut() => state = const StartupState(splashComplete: true);
+
   /// After sign-in (or a restored session): the saved home county decides
   /// whether to pick one or check permission next.
   Future<void> onSignedIn() async {

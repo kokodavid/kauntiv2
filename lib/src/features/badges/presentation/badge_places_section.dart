@@ -7,6 +7,7 @@ import '../../../core/widgets/app_place_sheet.dart';
 import '../../discover/application/explore_providers.dart';
 import '../application/badges_providers.dart';
 import '../domain/county_badge_detail.dart';
+import 'badge_sheet_parts.dart';
 
 /// "Places to start with" for a county not yet earned: the nearest few
 /// places as the shared place rows (photo, summary, type, distance, save).
@@ -33,10 +34,7 @@ class BadgePlacesSection extends ConsumerWidget {
     if (places.isEmpty) return const SizedBox.shrink();
     final location = ref.watch(badgeUserLocationProvider);
     if (location.isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
+      return const BadgePlacesLoading();
     }
     final from = location.value;
     final saved = ref.watch(exploreSavedPlacesProvider);

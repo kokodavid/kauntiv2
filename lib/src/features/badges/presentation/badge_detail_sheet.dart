@@ -202,10 +202,7 @@ class _BadgeDetailSheetState extends ConsumerState<BadgeDetailSheet> {
                   ],
                 ),
               ),
-              _ => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
+              _ => const BadgeDetailLoading(),
             },
             const SizedBox(height: 16),
             Row(

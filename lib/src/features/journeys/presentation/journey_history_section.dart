@@ -6,6 +6,7 @@ import '../../../design/app_colors.dart';
 import '../application/journey_history.dart';
 import '../domain/journey_summary.dart';
 import 'journey_card.dart';
+import 'journey_card_skeleton.dart';
 
 /// Opens a past Journey; supplied by `app/` (the `/journey/:id` route).
 typedef OpenJourney = void Function(BuildContext context, String id);
@@ -31,10 +32,7 @@ class JourneyHistorySection extends ConsumerWidget {
           AsyncValue(hasError: true) => _Retry(
             onRetry: () => ref.invalidate(journeyHistoryListProvider),
           ),
-          _ => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          ),
+          _ => const JourneyCardsLoading(),
         },
       ],
     );

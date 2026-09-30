@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
+import '../data/map_home_view_preference.dart';
 import '../domain/map_home_models.dart';
 import '../../../core/domain/map_place.dart';
 import 'map_home_county_map.dart';
@@ -13,7 +16,7 @@ import 'map_home_sheet.dart';
 import 'map_home_sheet_cards.dart';
 import 'map_home_skeleton.dart';
 import 'map_home_stat_card.dart';
-import 'map_home_top_bar.dart';
+import 'real_map_controls.dart';
 import 'real_map_view.dart';
 
 class MapHomeBoard extends StatefulWidget {
@@ -28,6 +31,7 @@ class MapHomeBoard extends StatefulWidget {
     this.onPlaceRoute,
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
+    this.onOpenProfile,
   });
 
   /// Null while the board is loading: every slot shows a same-sized
@@ -47,6 +51,7 @@ class MapHomeBoard extends StatefulWidget {
   final OpenPlaceDirections? onPlaceRoute;
   final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
+  final VoidCallback? onOpenProfile;
 
   @override
   State<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -62,9 +67,33 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
   _RealMapStatus _realMap = _RealMapStatus.loading;
   int _realMapAttempt = 0;
 
+  /// The user's own choice of map, independent of [_realMap]'s load/fail
+  /// state: the real map still loads normally underneath (so switching
+  /// back is instant), it's just not the one shown while this is true.
+  /// Loaded from storage on first build and persisted on every toggle.
+  bool _preferDrawnMap = false;
+  final _viewPreference = const MapHomeViewPreference();
+
   bool get _realMapAllowed => !kIsWeb && widget.mapboxAccessToken.isNotEmpty;
 
   static const _fade = Duration(milliseconds: 400);
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(
+      _viewPreference.preferDrawnMap().then((preferDrawn) {
+        if (mounted && preferDrawn) {
+          setState(() => _preferDrawnMap = preferDrawn);
+        }
+      }),
+    );
+  }
+
+  void _setPreferDrawnMap(bool preferDrawn) {
+    setState(() => _preferDrawnMap = preferDrawn);
+    unawaited(_viewPreference.setPreferDrawnMap(preferDrawn));
+  }
 
   /// Where the header (top bar + stat card) ends, in board coordinates;
   /// the real map keeps its controls and camera framing below it.
@@ -103,6 +132,15 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
     final mountReal =
         data != null && _realMapAllowed && _realMap != _RealMapStatus.failed;
     final realReady = mountReal && _realMap == _RealMapStatus.ready;
+    // What's actually on screen: the real map once it's ready, unless the
+    // user has chosen the drawn map themselves.
+    final showRealMap = realReady && !_preferDrawnMap;
+    // Only the automatic path should wait on the real map before showing
+    // the drawn map's real content (so a fallback never flashes it right
+    // before the real map turns out to succeed); a manual pick shouldn't
+    // wait on it at all.
+    final waitingOnRealMap =
+        mountReal && _realMap == _RealMapStatus.loading && !_preferDrawnMap;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _measureHeader();
     });
@@ -127,12 +165,14 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
             ),
           ),
           const MapHomeHeaderScrim(),
-          // Page background over the map until its style is up, so its
-          // blank canvas never flashes; fades out when ready.
+          // Opaque page background behind everything until the real map's
+          // style is up (so its blank canvas never flashes) or whenever
+          // it's not the map being shown at all — covering the header
+          // area too, which the drawn map's own layer below can't reach.
           Positioned.fill(
             child: IgnorePointer(
               child: AnimatedOpacity(
-                opacity: realReady ? 0 : 1,
+                opacity: showRealMap ? 0 : 1,
                 duration: _fade,
                 child: const ColoredBox(color: AppColors.pageBackground),
               ),
@@ -145,27 +185,26 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 16),
+                // Equal top and side margin around the card, so it sits
+                // a little inset from the screen edges on every side.
+                const SizedBox(height: 12),
                 Padding(
                   key: _headerKey,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      MapHomeTopBar(loading: data == null, tier: data?.tier),
-                      const SizedBox(height: 16),
-                      AnimatedSwitcher(
-                        duration: _fade,
-                        child: data == null
-                            ? const MapHomeStatCard.loading()
-                            : MapHomeStatCard(
-                                key: const ValueKey('stat-card'),
-                                exploredCount: data.exploredCount,
-                                totalCounties: data.totalCounties,
-                                compact: _isMapInteracting,
-                              ),
-                      ),
-                    ],
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: AnimatedSwitcher(
+                    duration: _fade,
+                    child: data == null
+                        ? MapHomeStatCard.loading(
+                            onOpenProfile: widget.onOpenProfile,
+                          )
+                        : MapHomeStatCard(
+                            key: const ValueKey('stat-card'),
+                            exploredCount: data.exploredCount,
+                            totalCounties: data.totalCounties,
+                            compact: _isMapInteracting,
+                            tier: data.tier,
+                            onOpenProfile: widget.onOpenProfile,
+                          ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -174,13 +213,16 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
                     children: [
                       Positioned.fill(
                         child: IgnorePointer(
-                          ignoring: realReady,
+                          ignoring: showRealMap,
                           child: AnimatedOpacity(
-                            opacity: realReady ? 0 : 1,
+                            opacity: showRealMap ? 0 : 1,
                             duration: _fade,
                             child: AnimatedSwitcher(
                               duration: _fade,
-                              child: _drawnMapFor(data, realLoading: mountReal),
+                              child: _drawnMapFor(
+                                data,
+                                realLoading: waitingOnRealMap,
+                              ),
                             ),
                           ),
                         ),
@@ -215,6 +257,26 @@ class _MapHomeBoardState extends State<MapHomeBoard> {
             ),
           ),
         ),
+        // Always on top of both map layers (even when the drawn map is
+        // covering RealMapView's own controls underneath), so the user
+        // can get back to whichever map they're not currently viewing.
+        if (mountReal)
+          Positioned(
+            top:
+                _headerBottom +
+                20 +
+                8 +
+                (_preferDrawnMap ? 0 : 3 * 48),
+            right: 16,
+            child: RealMapRoundButton(
+              icon: _preferDrawnMap ? Icons.public : Icons.map_outlined,
+              tooltip: _preferDrawnMap
+                  ? 'Switch to live map'
+                  : 'Switch to simple map',
+              active: _preferDrawnMap,
+              onPressed: () => _setPreferDrawnMap(!_preferDrawnMap),
+            ),
+          ),
         MapHomeSheet(
           children: [
             AnimatedSwitcher(

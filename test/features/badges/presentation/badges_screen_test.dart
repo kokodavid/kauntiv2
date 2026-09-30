@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/core/widgets/app_shimmer.dart';
 import 'package:kaunti47_v2/src/features/badges/application/badges_providers.dart';
 import 'package:kaunti47_v2/src/features/badges/domain/badge_collection.dart';
 import 'package:kaunti47_v2/src/features/badges/domain/county_badge_detail.dart';
 import 'package:kaunti47_v2/src/features/badges/presentation/badge_grid_cell.dart';
+import 'package:kaunti47_v2/src/features/badges/presentation/badges_loading.dart';
 import 'package:kaunti47_v2/src/features/badges/presentation/badges_screen.dart';
 
 void main() {
@@ -65,5 +69,25 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Mombasa County'), findsOneWidget);
     expect(opened, isEmpty);
+  });
+
+  testWidgets('shows the shimmer skeleton while the collection loads', (
+    tester,
+  ) async {
+    final pending = Completer<BadgeCollection>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          badgeCollectionProvider.overrideWith((ref) => pending.future),
+        ],
+        child: const MaterialApp(home: BadgesScreen()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(BadgesLoading), findsOneWidget);
+    expect(find.byType(AppSkeleton), findsWidgets);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Collection'), findsOneWidget);
   });
 }

@@ -11,6 +11,7 @@ import '../domain/badge_collection.dart';
 import 'badge_detail_sheet.dart';
 import 'badge_grid_cell.dart';
 import 'badges_hero_card.dart';
+import 'badges_loading.dart';
 import 'badges_medals_card.dart';
 import 'badges_summary_slider.dart';
 
@@ -41,7 +42,7 @@ class BadgesScreen extends ConsumerWidget {
             AsyncValue(hasError: true) => const _Message(
               text: "Couldn't load your badges. Pull down to try again.",
             ),
-            _ => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            _ => const BadgesLoading(),
           },
         ),
       ),

@@ -16,7 +16,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 (rules, polygons, local store, sync queue, native geofencing, foreground cycle, background-permission pause, arrival sheet) coded; needs a device test. Needs a real-device test |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | In progress | codex/badges | [Plan](badges-port-plan.md). Step 1: Badges tab on the new design (Figma 491:1394, star-less badge 277:19839): title + tier pill, claimed hero with 47-segment bar, collection grid with depth rings (county_visits + county_depth_ranks). "Since reset", the activity card, avatar and saved-data time wait on product rules. |
-| 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |
+| 8 | Profile, Settings, Data & Privacy | `features/profile` | In progress | codex/journey-place-handoff | First-release account overview from Home avatar: auth identity, home county, badges, live Pro status, Journeys link, OS location settings, privacy summary and sign-out (removes native county geofences first). Full settings, published policy/support links and account deletion remain. |
 | 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | Tab hidden from the bottom nav until ported (`AppFeatureFlags.ranks`, `--dart-define=RANKS_ENABLED=true` to show it). |
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
@@ -31,6 +31,24 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2026-09-25 | 28 | `app.dart` state machine and the `ChangeNotifier` sign-in controller replaced (go_router work) |
 
 ## Feature notes
+
+### Profile (#8)
+
+- Home avatar opens an account-bound Profile route. Until auth resolves (and
+  the stream ID matches the current user), it shows a neutral state rather
+  than any previous account's identity or progress.
+- Name/email come from the signed-in user, home county from onboarding state,
+  earned count from Badges, and Pro status from the live entitlement RPC.
+  Links open the existing Badges/Journeys tabs and device location settings.
+- Data and privacy explains the data this build stores. Sign-out blocks while
+  a Journey is active, removes native county geofences, then resets the
+  startup route. A failed sign-out resumes detection for the still-signed-in
+  account.
+- The account header uses v2's light-blue band and blue action accents; the
+  information rows remain neutral for scanning.
+- Pending before release: published policy/support destinations, a real
+  account-deletion workflow, app-version display, and device-level transition
+  checks. The in-app summary is not a substitute for the privacy policy.
 
 ### Map Home (#4)
 
@@ -364,6 +382,8 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-09-26 | codex/journey-place-handoff | 8 | Profile visual pass: pale-blue account band and v2 blue accents for profile actions; neutral information rows retained |
+| 2026-09-26 | codex/journey-place-handoff | 8 | First-release Profile from Home avatar with account-bound identity, county badges, live Pro status, Journeys, permission settings, privacy summary, and sign-out. Flutter/device verification pending; published policy, support and deletion workflow pending |
 | 2026-09-26 | codex/journey-place-handoff | 3 | Launcher icon is the splash mark (gradient + white Kenya) on iOS and Android, with an Android 8+ adaptive icon; Map tab icon is Kenya's outline instead of a house |
 | 2026-09-26 | codex/journey-place-handoff | 7, 13 | Repaired Journey stream filtering and destination-era test signatures; cleaned up visible badge analyzer lints. Flutter analysis and device verification pending |
 | 2026-09-26 | codex/journey-place-handoff | 13 | Fixed Android Journey stop: accept the plugin's disable response and retry pending stream cancellation before background-mode shutdown; device verification pending |

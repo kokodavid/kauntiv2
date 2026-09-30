@@ -38,4 +38,15 @@ class JourneyEntitlement extends _$JourneyEntitlement {
     if (ref.mounted) state = status;
     return status.allowsStartAt(now ?? DateTime.now());
   }
+
+  /// Refreshes the read-only Profile status without starting a Journey.
+  Future<void> refreshStatus() async {
+    final userId = ref.read(currentUserIdProvider)();
+    if (userId == null) return;
+    final cloud = ref.read(supabaseJourneyRepositoryProvider);
+    if (cloud == null) throw const JourneyProCheckUnavailable();
+    final status = await cloud.proStatus();
+    if (ref.read(currentUserIdProvider)() != userId) return;
+    if (ref.mounted) state = status;
+  }
 }

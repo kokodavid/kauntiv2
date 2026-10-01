@@ -44,7 +44,7 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -53,6 +53,7 @@ class JourneyDatabase extends _$JourneyDatabase {
       await _addDestinationColumns();
       await _addTitleColumn();
       await _addSpeedElevationColumns();
+      await _addTrialLimitColumn();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -65,6 +66,7 @@ class JourneyDatabase extends _$JourneyDatabase {
       if (from < 4) await _addDestinationColumns();
       if (from < 5) await _addTitleColumn();
       if (from < 6) await _addSpeedElevationColumns();
+      if (from < 7) await _addTrialLimitColumn();
     },
   );
 
@@ -99,6 +101,16 @@ class JourneyDatabase extends _$JourneyDatabase {
     );
     await customStatement(
       'ALTER TABLE journey_samples ADD COLUMN speed_mps REAL',
+    );
+  }
+
+  /// Set (1) when this completed Trip's last upload attempt was rejected
+  /// because the free Trip allowance for that month was used up (schema
+  /// 7); NULL/0 otherwise. Lets the history list explain why a waiting
+  /// Trip isn't just "offline".
+  Future<void> _addTrialLimitColumn() async {
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN blocked_by_trial_limit INTEGER',
     );
   }
 }

@@ -157,6 +157,24 @@ void main() {
   });
 
   test(
+    'a free Trip limit rejection marks the Trip, then clears once lifted',
+    () async {
+      await completed('a');
+      failWith = (_) =>
+          const PostgrestException(message: 'limit reached', code: '75001');
+      final q = queue();
+      final now = t0.add(const Duration(hours: 1));
+
+      expect(await q.drain(now: now), 0);
+      expect((await q.pending('alice')).single.blockedByTrialLimit, isTrue);
+
+      failWith = (_) => null;
+      expect(await q.drain(now: now.add(const Duration(hours: 25))), 1);
+      expect(await q.pending('alice'), isEmpty);
+    },
+  );
+
+  test(
     'nothing uploads when signed out, and local deletes are owned',
     () async {
       await completed('a');

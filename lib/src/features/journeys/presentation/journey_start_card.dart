@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
+import '../application/journey_entitlement.dart';
 import '../application/journey_recorder.dart';
 import '../domain/pro_status.dart';
 import 'journey_messages.dart';
@@ -11,9 +14,13 @@ import 'journey_messages.dart';
 /// Opens the OS settings (location permission); supplied by `app/`.
 typedef OpenAppSettings = Future<void> Function();
 
-/// "Record a Journey" and the Start button, with every reason Start can
-/// fail explained: no Pro, offline (Pro needs a live check) or location
-/// the phone won't give.
+/// "Record a Trip" and the Start button, compact enough to sit above the
+/// history list without dominating the page: an icon, title and a short
+/// status line on the left, a usage pill (PRO, or "x/3 this month" for a
+/// free account) and the Start button on the right. Every reason Start
+/// can fail is explained: the free Trip allowance is used up for this
+/// month, offline (entitlement needs a live check) or location the phone
+/// won't give.
 class JourneyStartCard extends ConsumerStatefulWidget {
   const JourneyStartCard({super.key, this.onOpenSettings, this.onStarted});
 
@@ -29,6 +36,14 @@ class JourneyStartCard extends ConsumerStatefulWidget {
 class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
   bool _starting = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Best-effort: shows an accurate usage pill before Start is even
+    // tapped. canStart() at the actual Start time is still authoritative.
+    unawaited(ref.read(journeyEntitlementProvider.notifier).refreshAccess());
+  }
+
   Future<void> _start() async {
     setState(() => _starting = true);
     try {
@@ -36,8 +51,8 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
       if (mounted) widget.onStarted?.call(context);
     } on Object catch (error) {
       if (!mounted) return;
-      if (error is JourneyStartDenied) {
-        await _showProRequired();
+      if (error is JourneyTrialExhausted) {
+        await _showTrialExhausted();
       } else {
         _showError(error);
       }
@@ -46,19 +61,46 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
     }
   }
 
-  Future<void> _showProRequired() => showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text(JourneyMessages.proRequiredTitle),
-      content: const Text(JourneyMessages.proRequiredBody),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('OK'),
-        ),
-      ],
-    ),
-  );
+  Future<void> _showTrialExhausted() {
+    final trial = ref.read(journeyTrialUsageProvider);
+    final body = trial == null
+        ? JourneyMessages.trialExhaustedBody
+        : "You've recorded ${trial.tripLimit} Trips this month, the limit "
+              'on the free plan. Upgrade to Pro for unlimited Trips, or try '
+              'again after it resets on ${_resetDay(trial.resetsAt)}.';
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(JourneyMessages.trialExhaustedTitle),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _resetDay(DateTime resetsAt) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final local = resetsAt.toLocal();
+    return '${local.day} ${months[local.month - 1]}';
+  }
 
   void _showError(Object error) {
     final message = JourneyMessages.forError(error);
@@ -78,44 +120,90 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
 
   @override
   Widget build(BuildContext context) {
+    final pro = ref.watch(journeyEntitlementProvider);
+    final trial = ref.watch(journeyTrialUsageProvider);
+    final isPro = pro?.allowsStartAt(DateTime.now()) ?? false;
+    final exhausted = !isPro && trial != null && !trial.hasRemaining;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: AppColors.cardBorder),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.route_rounded, color: AppColors.accent),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text('Record a Trip', style: AppTypeScale.cardTitle),
-              ),
-              _ProChip(),
-            ],
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: Color(0x1F0A84FF), // accent at 12% opacity
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.route_rounded,
+              color: AppColors.accent,
+              size: 20,
+            ),
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Your route is drawn as you travel, even with the phone locked, '
-            'and saved privately to your account. Pause or stop any time.',
-            style: AppTypeScale.body,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Flexible(
+                      child: Text(
+                        'Record a Trip',
+                        style: AppTypeScale.cardTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    if (isPro)
+                      const _ProChip()
+                    else if (trial != null)
+                      _TrialPill(trial: trial),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isPro
+                      ? 'Recorded privately, even with your phone locked.'
+                      : trial == null
+                      ? 'Even with your phone locked.'
+                      : exhausted
+                      ? 'Resets ${_resetDay(trial.resetsAt)}.'
+                      : '${trial.tripsRemaining} of ${trial.tripLimit} free '
+                            'Trips left this month.',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypeScale.small,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: double.infinity,
-            height: 48,
+            height: 40,
             child: ElevatedButton(
-              onPressed: _starting ? null : _start,
+              onPressed: _starting
+                  ? null
+                  : exhausted
+                  ? _showTrialExhausted
+                  : _start,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: AppColors.accentForeground,
                 elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 18),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
               child: _starting
@@ -126,7 +214,10 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
                         color: AppColors.accentForeground,
                       ),
                     )
-                  : const Text('Start Trip', style: AppTextStyles.buttonLabel),
+                  : Text(
+                      exhausted ? 'Details' : 'Start Trip',
+                      style: AppTextStyles.buttonLabel,
+                    ),
             ),
           ),
         ],
@@ -150,6 +241,39 @@ class _ProChip extends StatelessWidget {
         'PRO',
         style: AppTypeScale.meta.copyWith(
           color: AppColors.explorePromotionText,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// This month's free-Trip usage ("2/3"), neutral while Trips remain and
+/// switching to the same warm tone as [_ProChip] once they're used up, so
+/// the one moment that actually needs attention is the one that stands
+/// out.
+class _TrialPill extends StatelessWidget {
+  const _TrialPill({required this.trial});
+
+  final JourneyTrialStatus trial;
+
+  @override
+  Widget build(BuildContext context) {
+    final exhausted = !trial.hasRemaining;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: exhausted
+            ? AppColors.explorePromotionFill
+            : AppColors.lockedFill,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '${trial.tripsUsed}/${trial.tripLimit}',
+        style: AppTypeScale.meta.copyWith(
+          color: exhausted
+              ? AppColors.explorePromotionText
+              : AppColors.mutedForeground,
           fontWeight: FontWeight.w600,
         ),
       ),

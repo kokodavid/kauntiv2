@@ -476,3 +476,183 @@ over the bigger draggable-sheet redesign this step could also have been):
 turning the floating card into an expandable/draggable bottom sheet, and
 any changes to the card list or media — those remain in Step 5's other
 option and Step 6 respectively if picked up later.
+
+## Step added: search and date filter for Past Trips (2026-10-01)
+
+Not part of the original 6-step order — came out of a design discussion
+about what happens once someone has a lot of Trips, and the user asked to
+build the discussed version: search by title/destination, plus a quick
+date filter.
+
+- **Visibility:** the search field and filter chips only render once
+  there are more than 8 Trips (`_searchThreshold` in
+  `JourneyHistorySection`). Below that, the list looks exactly as before —
+  no point cluttering the screen for someone with three Trips.
+- **Search:** matches the Trip's title (user-given or the default "Trip
+  on .../Trip to ...") and its destination name, case-insensitively.
+  Reuses Explore's existing `ExploreSearchField` widget rather than
+  building a new one, for a consistent look and because it's already
+  exactly the right shape (a styled `TextField` with a search icon).
+- **Date filter:** All / This month / Last month as `ChoiceChip`s,
+  matching the same `ChoiceChip` pattern already used for replay speed.
+  Reuses `JourneyTitles.monthLabel()` (built for the month-grouped
+  headers) rather than re-deriving "this month" logic separately.
+- **State:** kept as plain local `State` on
+  `JourneyHistorySection` (now a `ConsumerStatefulWidget`), not a Riverpod
+  provider — this query/filter is only ever read by this one widget, so a
+  shared provider (like Explore's `exploreSearchQueryProvider`) would add
+  indirection without a reason; it also sidesteps needing new
+  `@riverpod`-generated code in a workflow with no `build_runner` access.
+- A distinct "No Trips match ..." empty state (with a "Clear filters"
+  button) shows when filtering leaves nothing, separate from the "No
+  Trips yet" state for a genuinely empty history.
+
+Deliberately deferred (flagged during the design discussion, not
+requested yet): searching by county crossed. The data exists server-side
+(`journey_counties`, from the badge-sheet work) but nothing in the app
+currently reads that table — wiring it up means a new repository query
+and joining it onto `JourneySummary`, which is real additional plumbing
+rather than a tweak to this feature. Worth a follow-up if county search
+turns out to matter in practice. Also deferred: a travel-mode filter
+(foot/drive/fly, "Trek" naming) — blocked on travel mode not existing as
+a field yet; that was scoped in the original redesign discussion but
+never actually built.
+
+## Icons and empty-state polish (2026-10-01)
+
+Prompted by feedback that the default Material icon glyphs read as dated
+next to the rest of the redesign.
+
+- Added `lucide_icons_flutter` (pub.dev) as a dependency: a modern, clean
+  line-icon set (a Flutter port of lucide.dev), picked over `phosphor_flutter`
+  for being more actively maintained at the time of adding it. This is the
+  app's first non-Material icon source, available for other screens to
+  adopt next — this slice only touches the two Trips empty states, not a
+  full icon sweep.
+- Added a shared `_IconBadge` widget (icon centred in a soft 64px circular
+  tint) and used it for both of Past Trips' empty states: `_EmptyState`
+  ("No Trips yet") now shows `LucideIcons.route` on a tinted accent
+  circle, and `_NoMatches` ("No Trips match...") shows
+  `LucideIcons.searchX` on a tinted neutral circle, instead of a bare
+  Material glyph sitting on its own.
+- `_NoMatches` also gained a short explanatory line under the title and a
+  properly pill-shaped "Clear filters" button (filled, rounded, not a
+  bare `TextButton`) so it reads as a real action rather than a stray link.
+
+**Needs a `flutter pub get` (and the usual iOS `pod install` after) before
+it'll build** — this session has no Flutter/Dart toolchain to run that
+itself, so the new dependency is only declared in `pubspec.yaml`, not yet
+fetched or lock-filed.
+
+## Icon-font rendering fix + county search (2026-10-01, later same day)
+
+Two follow-ups from the first real device test of the icon/polish work above.
+
+**Lucide icons rendered as blank "tofu boxes"** on-device, instead of
+actual glyphs. `lucide_icons_flutter` resolved fine (`pubspec.lock` shows
+`3.1.21` fetched correctly), so this wasn't a missing dependency — it's an
+icon-font glyph not mapping to its codepoint at runtime, a class of bug
+that has bitten other Flutter icon-font packages after an SDK bump (seen
+in `phosphor_flutter`'s own issue tracker). With no Flutter/Dart
+toolchain available in this environment to actually debug the font at
+runtime, the robust fix was to stop depending on an icon font at all:
+- Removed the `lucide_icons_flutter` dependency entirely.
+- Added `assets/icons/route.svg` and `assets/icons/search_x.svg` —
+  hand-authored from Lucide's own published icon paths (ISC-licensed,
+  same visual source), as plain stroke-style SVGs (`viewBox 0 0 24 24`,
+  `stroke="currentColor"`).
+- `_IconBadge` now takes an `iconAsset` path and renders it with
+  `SvgPicture.asset` (`flutter_svg`, already a dependency and already
+  used elsewhere in the app for `onboarding.svg`) with a `colorFilter` to
+  tint it, instead of `Icon(IconData)`.
+- This sidesteps font/codepoint/SDK-compat risk completely: an SVG asset
+  either renders its vector paths or fails to load outright — it can't
+  render as a silently-wrong glyph.
+- Registered `assets/icons/` in `pubspec.yaml`. Needs a `flutter pub get`
+  before building (dependency removal + new asset folder).
+- Takeaway for later icon needs: prefer adding more hand-picked SVGs here
+  (or a battle-tested package in actual device-tested use elsewhere)
+  over another icon-font package, until one is confirmed fine on a real
+  build.
+
+**Search by county crossed.** Typing a county name (e.g. "Kiambu") now
+also matches any Trip whose route passed through it, not just its title
+or destination:
+- `JourneySummary` gained `countyNames` (`List<String>`, defaults to
+  `[]`).
+- `SupabaseJourneyRepository.history()` now reads `journey_counties`
+  (`journey_id, county_id`) alongside `journeys` in one `Future.wait`,
+  maps `county_id` -> name via the existing `CountyPaths.all` table (no
+  extra round-trip to the `counties` table), and attaches each Trip's
+  county names.
+- `_matches()` in `journey_history_section.dart` now also checks
+  `countyNames` after title/destination.
+- Journeys still waiting to upload, and any uploaded before the
+  `journey_counties` migration landed, simply have an empty list — they
+  just won't match on county, which is the correct fallback (no crash,
+  no guessing).
+- Scope: this only wires search. The RLS policy already restricts
+  `journey_counties` reads to the owner, so no new Supabase migration was
+  needed for this step — it only reads data `upload_journey` was already
+  writing.
+
+## Trips open to everyone, with a free monthly limit (2026-10-01)
+
+Trips were Pro-only; now every account can record one, but an account
+without Pro is capped at 3 saved Trips a month (resets the 1st, UTC). Pro
+stays unlimited. Decisions made with the user before building: the limit
+resets monthly (not a one-time lifetime trial), it's charged when a Trip
+is actually saved/uploaded (not when it's started, so an abandoned
+recording never costs a slot), and everyone starts at 0 — no retroactive
+penalty for Trips recorded before this shipped.
+
+**Server (new migration, undeployed along with the two from Steps 2/3):**
+- `journey_trial_usage (user_id, period_month, trips_used)` — a monotonic
+  per-month counter, not a count of `journeys` rows: deleting a past Trip
+  must never hand back a free slot. RLS lets a user read only their own
+  row; only `upload_journey` (security definer) ever writes it.
+- `my_trial_status()` — the signed-in user's usage this month, for
+  showing "2/3" before Start is even tapped.
+- `upload_journey` no longer hard-rejects a non-Pro upload. For an
+  account without Pro it now checks (and, on success, increments) this
+  month's count, locking the usage row (`for update`) so two concurrent
+  uploads can't both slip in as the 3rd. Rejection uses a distinct error
+  code (`75001`) so the client can tell "limit reached" apart from other
+  permanent failures.
+- Along the way, found and fixed a real bug in the still-undeployed Step
+  3 migration: it had redefined `upload_journey` with a 6-argument
+  signature, silently dropping `p_paused_ms`/`p_counties` (and the whole
+  county-split insert) because the app always calls the 8-argument
+  overload — the 6-arg version would have been permanently dead code.
+  Already caught and fixed by an earlier same-day migration
+  (`20261001000800_fix_journey_upload_stats_signature.sql`) before this
+  work started; the new trial-limit migration builds on that corrected,
+  full signature.
+
+**Client:**
+- `JourneyTrialStatus` (tripsUsed/tripLimit/resetsAt) and
+  `JourneyTrialExhausted` replace the old hard `JourneyStartDenied`.
+  `JourneyEntitlement.canStart()` now checks Pro first and only falls
+  back to the live trial-status RPC when Pro doesn't cover it; it always
+  either returns true or throws, never a bare `false`.
+- Trial status is held in a generated `@riverpod` notifier and reset when
+  the signed-in account changes. This follows the v2 architecture guide's
+  Riverpod code-generation requirement and prevents a previous account's
+  usage count flashing on a new account.
+- `JourneyStartCard` is now a single compact row (icon, title, a one-line
+  status, the usage pill, Start/Details) instead of the old icon-row +
+  paragraph + full-width-button stack — addresses the "this card eats too
+  much space" feedback at the same time, since the old copy explaining
+  Pro no longer applied anyway. The pill shows "PRO" for a Pro account,
+  "x/3" (turning the same warm amber as the PRO chip once it hits 3) for
+  a free one, refreshed best-effort on card mount and again after a Trip
+  finishes uploading. There is not yet a purchase flow; Details explains
+  the limit and reset date without implying an upgrade can be purchased.
+- A completed local Trip whose upload is rejected for the monthly limit
+  is tracked with a new `blocked_by_trial_limit` column (schema 7, same
+  raw-SQL-column pattern as `title`/`destination_*` — no codegen rerun
+  needed) and surfaces in the history list as "Free limit reached"
+  instead of the generic "Waiting to upload", so it doesn't read as stuck
+  or broken. The upload queue's existing day-later backoff for permanent
+  rejections is what naturally retries it once the month rolls over -
+  no special-cased scheduling needed for that part.

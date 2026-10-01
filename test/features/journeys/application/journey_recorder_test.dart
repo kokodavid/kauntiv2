@@ -43,6 +43,14 @@ class _FakeSource implements JourneyLocationSource {
 class _FakeCloud implements SupabaseJourneyRepository {
   ProStatus? status;
   Completer<ProStatus>? statusGate;
+
+  /// Defaults to plenty of free Trips left, so every existing Pro-path
+  /// test (which never looks at this) keeps working unchanged.
+  JourneyTrialStatus? trial = JourneyTrialStatus(
+    tripsUsed: 0,
+    tripLimit: 3,
+    resetsAt: DateTime.utc(2026, 10, 1),
+  );
   var offline = false;
   final cloudJourneys = <JourneySummary>[];
 
@@ -54,6 +62,12 @@ class _FakeCloud implements SupabaseJourneyRepository {
     if (offline) throw Exception('offline');
     if (statusGate case final gate?) return gate.future;
     return status!;
+  }
+
+  @override
+  Future<JourneyTrialStatus> trialStatus() async {
+    if (offline) throw Exception('offline');
+    return trial!;
   }
 
   @override
@@ -125,16 +139,41 @@ void main() {
     await db.close();
   });
 
-  test('without Pro a Journey cannot start', () async {
+  test('without Pro and the free Trip allowance used up, a Journey cannot '
+      'start', () async {
     cloud.status = ProStatus(active: false, checkedAt: now);
+    cloud.trial = JourneyTrialStatus(
+      tripsUsed: 3,
+      tripLimit: 3,
+      resetsAt: DateTime.utc(2026, 10, 1),
+    );
     final c = container();
     await expectLater(
       c.read(journeyRecorderProvider.notifier).start(now: now),
-      throwsA(isA<JourneyStartDenied>()),
+      throwsA(isA<JourneyTrialExhausted>()),
     );
     expect(c.read(journeyRecorderProvider), isNull);
     expect(source.started, isFalse);
   });
+
+  test(
+    'without Pro but with a free Trip left this month, a Journey starts',
+    () async {
+      cloud.status = ProStatus(active: false, checkedAt: now);
+      cloud.trial = JourneyTrialStatus(
+        tripsUsed: 2,
+        tripLimit: 3,
+        resetsAt: DateTime.utc(2026, 10, 1),
+      );
+      final c = container();
+      await c.read(journeyRecorderProvider.notifier).start(now: now);
+      expect(source.started, isTrue);
+      expect(
+        c.read(journeyRecorderProvider)?.recording.phase,
+        JourneyRecordingPhase.recording,
+      );
+    },
+  );
 
   test('with Pro it records, and finishing uploads it', () async {
     cloud.status = ProStatus(active: true, checkedAt: now);

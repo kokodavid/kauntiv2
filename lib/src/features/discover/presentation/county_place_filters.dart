@@ -29,9 +29,9 @@ class CountyPlaceFilters extends StatelessWidget {
   Widget build(BuildContext context) {
     int count(PlaceCategory c) => places.where((p) => p.category == c).length;
     final pills = <(String, PlaceCategory?)>[
-      ('ALL · ${places.length}', null),
+      ('All · ${places.length}', null),
       for (final category in categoriesIn(places))
-        ('${category.label.toUpperCase()} · ${count(category)}', category),
+        ('${category.label} · ${count(category)}', category),
     ];
 
     return SingleChildScrollView(

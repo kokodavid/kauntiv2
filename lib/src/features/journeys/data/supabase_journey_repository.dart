@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/domain/map_place.dart';
+import '../../../counties/county_paths.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
@@ -10,6 +11,8 @@ import '../domain/journey_summary.dart';
 import '../domain/pro_status.dart';
 import 'journey_county_split_resolver.dart';
 import 'journey_place_thumbnail.dart';
+
+part 'supabase_journey_repository_places.dart';
 
 /// Journeys in the cloud: the Pro check, the one upload RPC, and private
 /// history reads and deletion (RLS keeps every read to the owner).
@@ -23,6 +26,11 @@ class SupabaseJourneyRepository {
   /// Longer: a long Journey is a big payload.
   static const _uploadTimeout = Duration(seconds: 30);
 
+  Future<List<JourneyPlaceMark>> places(String userId) =>
+      _journeyPlaces(_client, _timeout, userId);
+
+  Future<List<MapPlace>> mapPlaces() => _journeyMapPlaces(_client, _timeout);
+
   String? get currentUserId => _client.auth.currentUser?.id;
 
   Future<ProStatus> proStatus() async {
@@ -34,6 +42,19 @@ class SupabaseJourneyRepository {
       active: row['active'] == true,
       activeUntil: until == null ? null : DateTime.parse(until),
       checkedAt: DateTime.parse(row['checked_at'] as String),
+    );
+  }
+
+  /// This month's free-Trip usage for an account without Pro (always
+  /// fetched live: the server is the only source of truth for the count).
+  Future<JourneyTrialStatus> trialStatus() async {
+    final row = await _client
+        .rpc<Map<String, dynamic>>('my_trial_status')
+        .timeout(_timeout);
+    return JourneyTrialStatus(
+      tripsUsed: (row['trips_used'] as num).toInt(),
+      tripLimit: (row['trip_limit'] as num).toInt(),
+      resetsAt: DateTime.parse(row['resets_at'] as String),
     );
   }
 
@@ -98,25 +119,58 @@ class SupabaseJourneyRepository {
   }
 
   Future<List<JourneySummary>> history() async {
-    final rows = await readAllPages(
-      (from, to) => _client
-          .from('journeys')
-          .select(
-            'id, title, started_at, ended_at, distance_m, paused_ms, '
-            'destination_place_id, destination_name, '
-            'destination_latitude, destination_longitude, '
-            'top_speed_mps, highest_elevation_m',
-          )
-          .order('started_at', ascending: false)
-          // postgrest-dart's order() is descending unless told otherwise.
-          .order('id', ascending: true)
-          .range(from, to)
-          .timeout(_timeout),
-    );
-    return [for (final row in rows) _summary(row)];
+    final results = await Future.wait([
+      readAllPages(
+        (from, to) => _client
+            .from('journeys')
+            .select(
+              'id, title, started_at, ended_at, distance_m, paused_ms, '
+              'destination_place_id, destination_name, '
+              'destination_latitude, destination_longitude, '
+              'top_speed_mps, highest_elevation_m',
+            )
+            .order('started_at', ascending: false)
+            // postgrest-dart's order() is descending unless told otherwise.
+            .order('id', ascending: true)
+            .range(from, to)
+            .timeout(_timeout),
+      ),
+      readAllPages(
+        (from, to) => _client
+            .from('journey_counties')
+            .select('journey_id, county_id')
+            .range(from, to)
+            .timeout(_timeout),
+      ),
+    ]);
+    final countyNames = _countyNamesByJourney(results[1]);
+    return [
+      for (final row in results[0])
+        _summary(row, countyNames[row['id']] ?? const []),
+    ];
   }
 
-  static JourneySummary _summary(Map<String, dynamic> row) => JourneySummary(
+  /// Maps `journey_id` -> the (deduped) county names a route crossed, from
+  /// [rows] of `journey_counties` (`journey_id, county_id`).
+  static Map<String, List<String>> _countyNamesByJourney(
+    List<Map<String, dynamic>> rows,
+  ) {
+    final namesByCode = {for (final c in CountyPaths.all) c.code: c.name};
+    final result = <String, List<String>>{};
+    for (final row in rows) {
+      final journeyId = row['journey_id'] as String?;
+      final code = (row['county_id'] as num?)?.toInt();
+      final name = code == null ? null : namesByCode[code];
+      if (journeyId == null || name == null) continue;
+      (result[journeyId] ??= []).add(name);
+    }
+    return result;
+  }
+
+  static JourneySummary _summary(
+    Map<String, dynamic> row, [
+    List<String> countyNames = const [],
+  ]) => JourneySummary(
     id: row['id'] as String,
     title: row['title'] as String,
     startedAt: DateTime.parse(row['started_at'] as String),
@@ -136,6 +190,7 @@ class SupabaseJourneyRepository {
           ),
     topSpeedMps: (row['top_speed_mps'] as num?)?.toDouble(),
     highestElevationMeters: (row['highest_elevation_m'] as num?)?.toDouble(),
+    countyNames: countyNames,
   );
 
   /// One uploaded Journey, or null if it's gone (deleted elsewhere).
@@ -213,81 +268,4 @@ class SupabaseJourneyRepository {
         params: {'p_user_id': userId, 'p_journey_id': id, 'p_title': title},
       )
       .timeout(_timeout);
-
-  /// Every place with coordinates, marked saved when on [userId]'s list,
-  /// for the places near a replayed route.
-  Future<List<JourneyPlaceMark>> places(String userId) async {
-    final results = await Future.wait([
-      readAllPages(
-        (from, to) => _client
-            .from('places')
-            .select(
-              'id, county_id, name, type, summary, lat, lng, '
-              'place_images(thumbnail_url, sort_order)',
-            )
-            .not('lat', 'is', null)
-            .order('id', ascending: true)
-            .range(from, to)
-            .timeout(_timeout),
-      ),
-      _client
-          .from('wishlist_items')
-          .select('place_id')
-          .eq('user_id', userId)
-          .timeout(_timeout),
-    ]);
-    final saved = {for (final row in results[1]) row['place_id']};
-    return [
-      for (final row in results[0])
-        if (row case {
-          'id': final String id,
-          'county_id': final int county,
-          'name': final String name,
-          'lat': final num lat,
-          'lng': final num lng,
-        })
-          JourneyPlaceMark(
-            id: id,
-            countyCode: county,
-            name: name,
-            latitude: lat.toDouble(),
-            longitude: lng.toDouble(),
-            saved: saved.contains(id),
-            categoryLabel: row['type'] as String?,
-            description: row['summary'] as String?,
-            thumbnailUrl: journeyPlaceThumbnail(row['place_images']),
-          ),
-    ];
-  }
-
-  /// Every place with coordinates, as map pins (same as Home's map), for
-  /// the map while recording.
-  Future<List<MapPlace>> mapPlaces() async {
-    final rows = await readAllPages(
-      (from, to) => _client
-          .from('places')
-          .select(
-            'id, name, type, summary, county_id, lat, lng, '
-            'place_images(thumbnail_url, sort_order)',
-          )
-          .not('lat', 'is', null)
-          .order('id', ascending: true)
-          .range(from, to)
-          .timeout(_timeout),
-    );
-    return [
-      for (final row in rows)
-        if (row['lat'] is num && row['lng'] is num)
-          MapPlace(
-            id: row['id'] as String,
-            name: row['name'] as String,
-            type: row['type'] as String,
-            countyCode: (row['county_id'] as num).toInt(),
-            lat: (row['lat'] as num).toDouble(),
-            lng: (row['lng'] as num).toDouble(),
-            summary: row['summary'] as String?,
-            thumbnailUrl: journeyPlaceThumbnail(row['place_images']),
-          ),
-    ];
-  }
 }

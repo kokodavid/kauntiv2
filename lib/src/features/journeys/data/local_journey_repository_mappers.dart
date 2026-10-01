@@ -1,16 +1,5 @@
 part of 'local_journey_repository.dart';
 
-extension _LocalJourneyRepositoryLookup on LocalJourneyRepository {
-  Future<LocalJourneySession> _owned(String id, String userId) async {
-    final row =
-        await (_db.select(_db.journeySessions)
-              ..where((t) => t.id.equals(id) & t.userId.equals(userId)))
-            .getSingleOrNull();
-    if (row == null) throw StateError('Journey not found for this account.');
-    return _session(row);
-  }
-}
-
 JourneyPoint _pointFromRow(Map<String, Object?> row) => JourneyPoint(
   recordedAt: DateTime.fromMillisecondsSinceEpoch(
     row['recorded_at_millis'] as int,

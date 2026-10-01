@@ -13,6 +13,8 @@ class JourneySummary {
     this.destination,
     this.topSpeedMps,
     this.highestElevationMeters,
+    this.countyNames = const [],
+    this.blockedByTrialLimit = false,
   });
 
   final String id;
@@ -40,6 +42,16 @@ class JourneySummary {
   /// the server on upload; null while waiting to upload or when no fix
   /// reported an altitude.
   final double? highestElevationMeters;
+
+  /// Counties the route crossed, from `journey_counties` (computed on
+  /// upload). Empty for a Journey still waiting to upload, and for one
+  /// uploaded before that table existed.
+  final List<String> countyNames;
+
+  /// True for a Journey still on this phone whose last upload attempt was
+  /// rejected because the free Trip allowance for that month was used up.
+  /// Always false once uploaded.
+  final bool blockedByTrialLimit;
 
   /// The average speed for the recorded time, in m/s; null once there is
   /// no recorded time or distance to divide.

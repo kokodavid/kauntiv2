@@ -142,13 +142,13 @@ abstract final class JourneyPlaceRoutes {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          error is JourneyStartDenied
-              ? JourneyMessages.proRequiredTitle
+          error is JourneyTrialExhausted
+              ? JourneyMessages.trialExhaustedTitle
               : "Couldn't record a Trip",
         ),
         content: Text(
-          error is JourneyStartDenied
-              ? JourneyMessages.proRequiredBody
+          error is JourneyTrialExhausted
+              ? JourneyMessages.trialExhaustedBody
               : JourneyMessages.forError(error) ?? 'Try again later.',
         ),
         actions: [

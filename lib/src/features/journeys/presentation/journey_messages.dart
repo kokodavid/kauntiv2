@@ -3,14 +3,15 @@ import '../domain/pro_status.dart';
 
 /// What to tell the user when a Journey can't start or resume.
 abstract final class JourneyMessages {
-  static const proRequiredTitle = 'Trips are part of Pro';
-  static const proRequiredBody =
-      'Recording your route needs an active Kaunti47 Pro plan. Your past '
-      'Trips stay yours to view and delete either way.';
+  static const trialExhaustedTitle = "You've used your free Trips";
+  static const trialExhaustedBody =
+      "You've recorded 3 Trips this month, the limit on the free plan. "
+      'Upgrade to Pro for unlimited Trips, or try again after it resets '
+      'on the 1st.';
 
-  /// Null for errors the screen handles itself ([JourneyStartDenied]).
+  /// Null for errors the screen handles itself ([JourneyTrialExhausted]).
   static String? forError(Object error) => switch (error) {
-    JourneyStartDenied() => null,
+    JourneyTrialExhausted() => null,
     JourneyProCheckUnavailable() => 'Connect to the internet to start a Trip.',
     JourneyTeardownException() =>
       'Location capture has not stopped yet. Please try again.',

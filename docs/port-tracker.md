@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store and native capture merged (#5-#7). Pro-gated start, upload queue, private history/delete, tab, live controls, recording/replay maps, and key moments. Reliability pass covers account-bound start, crash-duration correction, upload/delete coordination, location teardown, GPS gaps, and conservative replay crossings. Place Detail Get Route offers a Journey choice with a durable destination snapshot. Current branch adds Trip naming/rename, route stats, county splits, and repaired eight-argument upload RPC. Export, live boundary validation, long-route performance, and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats and county splits. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -31,6 +31,23 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2026-09-25 | 28 | `app.dart` state machine and the `ChangeNotifier` sign-in controller replaced (go_router work) |
 
 ## Feature notes
+
+### Journeys (#13)
+
+- Free accounts can save three uploaded Trips per UTC calendar month; Pro
+  accounts remain unlimited. The server counter is monotonic for each user
+  and month, so deleting a saved Trip does not restore usage. Offline Trips
+  are charged when they successfully upload.
+- `journey_trial_usage` is readable only by its owner. `upload_journey`
+  serializes monthly allowance checks and increments usage in the same
+  transaction as saving the Trip. Apply
+  `20261001010000_add_journey_free_trial.sql` before shipping this policy.
+- The app shows the usage count, explains the reset date when exhausted, and
+  keeps a locally recorded Trip available when the server refuses its upload
+  at the limit; the queue retries it later. Journey history search/date
+  filters appear after the list grows beyond eight entries.
+- Pending: a Pro purchase flow, migration deployment, device validation,
+  and large-route performance checks.
 
 ### Profile (#8)
 
@@ -382,6 +399,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-01 | codex/journey-place-handoff | 13 | Free monthly Trip allowance for non-Pro accounts, account-scoped usage state, Trip search/date filters and empty-state icons; serialize trial checks in the upload RPC and keep rejected recordings retryable. Version bumped to 1.3.2+11. |
 | 2026-10-01 | codex/journey-place-handoff | 7, 13 | Merge-preparation pass: Trip naming and rename, route stats, county splits, map and card polish; corrected the Journey upload RPC signature while retaining paused time and county data. Architecture, strict analysis, custom lint and full Flutter tests passed; SQL deployment and device transition checks remain pending. |
 | 2026-09-26 | codex/journey-place-handoff | 8 | Profile visual pass: pale-blue account band and v2 blue accents for profile actions; neutral information rows retained |
 | 2026-09-26 | codex/journey-place-handoff | 8 | First-release Profile from Home avatar with account-bound identity, county badges, live Pro status, Journeys, permission settings, privacy summary, and sign-out. Flutter/device verification pending; published policy, support and deletion workflow pending |

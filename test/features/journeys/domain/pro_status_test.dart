@@ -41,4 +41,24 @@ void main() {
       'Trip on 25 Sep 2026',
     );
   });
+
+  test('a free Trip allowance with slots left allows starting', () {
+    final trial = JourneyTrialStatus(
+      tripsUsed: 2,
+      tripLimit: 3,
+      resetsAt: DateTime.utc(2026, 10, 1),
+    );
+    expect(trial.hasRemaining, isTrue);
+    expect(trial.tripsRemaining, 1);
+  });
+
+  test('a free Trip allowance used up does not', () {
+    final trial = JourneyTrialStatus(
+      tripsUsed: 3,
+      tripLimit: 3,
+      resetsAt: DateTime.utc(2026, 10, 1),
+    );
+    expect(trial.hasRemaining, isFalse);
+    expect(trial.tripsRemaining, 0);
+  });
 }

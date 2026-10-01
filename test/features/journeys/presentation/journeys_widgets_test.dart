@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/config/app_config.dart';
 import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
+import 'package:kaunti47_v2/src/features/journeys/application/journey_entitlement.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_history.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_recorder.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
@@ -27,6 +28,15 @@ class _Recorder extends JourneyRecorder {
   @override
   Future<void> start({DateTime? now, JourneyDestination? destination}) async =>
       throw error;
+}
+
+class _TrialUsage extends JourneyTrialUsage {
+  @override
+  JourneyTrialStatus? build() => JourneyTrialStatus(
+    tripsUsed: 3,
+    tripLimit: 3,
+    resetsAt: DateTime.utc(2026, 11),
+  );
 }
 
 class _History extends JourneyHistoryList {
@@ -66,18 +76,42 @@ Widget _app<T>(Widget child, List<T> overrides) => ProviderScope(
 );
 
 void main() {
-  testWidgets('Start without Pro explains Pro', (tester) async {
+  testWidgets('an exhausted free account sees limit details, not checkout', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(const JourneyStartCard(), [
+        journeyTrialUsageProvider.overrideWith(_TrialUsage.new),
+      ]),
+    );
+    await tester.pump();
+
+    expect(find.text('Details'), findsOneWidget);
+    expect(find.text('Start Trip'), findsNothing);
+    await tester.tap(find.text('Details'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        "You've recorded 3 Trips this month, the limit on the free plan. Upgrade to Pro for unlimited Trips, or try again after it resets on 1 Nov.",
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Start with the free Trip limit used up explains it', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _app(const JourneyStartCard(), [
         journeyRecorderProvider.overrideWith(
-          () => _Recorder(const JourneyStartDenied()),
+          () => _Recorder(const JourneyTrialExhausted()),
         ),
       ]),
     );
     await tester.tap(find.text('Start Trip'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Trips are part of Pro'), findsOneWidget);
+    expect(find.text("You've used your free Trips"), findsOneWidget);
   });
 
   testWidgets('Start offline asks for a connection', (tester) async {

@@ -120,10 +120,14 @@ class _JourneyCardState extends State<JourneyCard> {
                             ),
                           ),
                           if (!journey.isUploaded)
-                            const Positioned(
+                            Positioned(
                               top: 10,
                               left: 10,
-                              child: AppPhotoPill(label: 'Waiting to upload'),
+                              child: AppPhotoPill(
+                                label: journey.blockedByTrialLimit
+                                    ? 'Free limit reached'
+                                    : 'Waiting to upload',
+                              ),
                             ),
                           Positioned(
                             left: 12,

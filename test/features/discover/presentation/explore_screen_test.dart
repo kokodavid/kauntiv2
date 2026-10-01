@@ -35,7 +35,7 @@ void main() {
     expect(find.byKey(const Key('explore-resolving-state')), findsOneWidget);
 
     await tester.pumpAndSettle();
-    expect(find.text('MINE · 1'), findsOneWidget);
+    expect(find.text('Mine · 1'), findsOneWidget);
     expect(find.text(CountyPaths.byCode[1]!.name), findsOneWidget);
   });
 
@@ -72,14 +72,14 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('UNCLAIMED · 1'), findsOneWidget);
+    expect(find.text('Unclaimed · 1'), findsOneWidget);
 
-    await tester.tap(find.text('UNCLAIMED · 1'));
+    await tester.tap(find.text('Unclaimed · 1'));
     await tester.pumpAndSettle();
     expect(find.text("CLOSEST ONE YOU DON'T HAVE"), findsOneWidget);
     expect(find.text(county.name), findsOneWidget);
 
-    await tester.tap(find.text('SAVED · 0'));
+    await tester.tap(find.text('Saved · 0'));
     await tester.pumpAndSettle();
     expect(find.text('Nothing saved yet'), findsOneWidget);
   });

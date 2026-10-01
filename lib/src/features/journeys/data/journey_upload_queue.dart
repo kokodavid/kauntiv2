@@ -81,9 +81,19 @@ class JourneyUploadQueue {
 
   static const _logger = AppLogger.journeys();
 
-  /// Postgres codes that won't succeed on retry: permission (no Pro, wrong
-  /// owner), invalid value / check / cast.
-  static const _permanentCodes = {'42501', '22023', '23514', '22007', '22P02'};
+  /// Postgres codes that won't succeed on retry: permission (wrong
+  /// owner), invalid value / check / cast, or the free Trip limit for
+  /// this month (which *will* succeed again once the month rolls over -
+  /// the day-later backoff below is what makes that happen on its own).
+  static const _trialLimitCode = '75001';
+  static const _permanentCodes = {
+    '42501',
+    '22023',
+    '23514',
+    '22007',
+    '22P02',
+    _trialLimitCode,
+  };
 
   Future<int>? _running;
   final Set<String> _deletingIds = {};
@@ -161,6 +171,13 @@ class JourneyUploadQueue {
         );
         final permanent =
             error is PostgrestException && _permanentCodes.contains(error.code);
+        final trialLimited =
+            error is PostgrestException && error.code == _trialLimitCode;
+        await _local.setBlockedByTrialLimit(
+          row.id,
+          userId,
+          blocked: trialLimited,
+        );
         await (_db.update(
           _db.journeySessions,
         )..where((t) => t.id.equals(row.id))).write(
@@ -229,6 +246,7 @@ class JourneyUploadQueue {
     );
     final destination = await _local.destination(row.id, row.userId);
     final customTitle = await _local.customTitle(row.id, row.userId);
+    final blocked = await _local.isBlockedByTrialLimit(row.id, row.userId);
     return JourneySummary(
       id: row.id,
       title:
@@ -244,6 +262,7 @@ class JourneyUploadQueue {
       pausedDuration: Duration(milliseconds: row.pausedTotalMillis),
       isUploaded: false,
       destination: destination,
+      blockedByTrialLimit: blocked,
     );
   }
 

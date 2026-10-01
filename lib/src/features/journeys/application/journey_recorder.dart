@@ -121,19 +121,16 @@ class JourneyRecorder extends _$JourneyRecorder {
     _set(session, userId);
   }
 
-  /// Starts a Journey. Throws [JourneyStartDenied] without Pro,
-  /// [JourneyProCheckUnavailable] when Pro can't be checked (offline) and
-  /// [JourneyLocationException] when the phone can't record.
+  /// Starts a Journey. Throws [JourneyTrialExhausted] when neither Pro
+  /// nor the free Trip allowance for this month permit it,
+  /// [JourneyProCheckUnavailable] when entitlement can't be checked
+  /// (offline) and [JourneyLocationException] when the phone can't record.
   Future<void> start({DateTime? now, JourneyDestination? destination}) async {
     if (state != null) throw StateError('A Journey is already in progress.');
     final userId = _userId();
     await _detachPreviousOwner(userId);
     final at = now ?? DateTime.now();
-    if (!await ref
-        .read(journeyEntitlementProvider.notifier)
-        .canStart(now: at)) {
-      throw const JourneyStartDenied();
-    }
+    await ref.read(journeyEntitlementProvider.notifier).canStart(now: at);
     if (!_stillOwnedBy(userId)) {
       throw StateError('Account changed while starting a Journey.');
     }
@@ -221,7 +218,18 @@ class JourneyRecorder extends _$JourneyRecorder {
     _set(null, null);
     if (!_stillOwnedBy(userId)) return;
     ref.invalidate(journeyHistoryListProvider);
-    unawaited(ref.read(journeySyncProvider.notifier).drain());
+    // Refreshed only after the drain finishes, so a just-recorded Trip's
+    // own upload has already had a chance to move the count before the
+    // Start card's usage pill re-reads it.
+    unawaited(
+      ref
+          .read(journeySyncProvider.notifier)
+          .drain()
+          .then(
+            (_) =>
+                ref.read(journeyEntitlementProvider.notifier).refreshAccess(),
+          ),
+    );
   }
 
   /// Ends the Journey without saving it: the route is deleted from this

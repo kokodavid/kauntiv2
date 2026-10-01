@@ -41,14 +41,14 @@ void main() {
       ),
     );
 
-    expect(find.text('ALL · 3'), findsOneWidget);
-    expect(find.text('PARK · 1'), findsOneWidget);
-    expect(find.text('STAY · 2'), findsOneWidget);
-    expect(find.text('SHORE · 0'), findsNothing);
+    expect(find.text('All · 3'), findsOneWidget);
+    expect(find.text('Park · 1'), findsOneWidget);
+    expect(find.text('Stay · 2'), findsOneWidget);
+    expect(find.text('Shore · 0'), findsNothing);
 
-    await tester.tap(find.text('STAY · 2'));
+    await tester.tap(find.text('Stay · 2'));
     expect(picked, PlaceCategory.stay);
-    await tester.tap(find.text('ALL · 3'));
+    await tester.tap(find.text('All · 3'));
     expect(picked, isNull);
   });
 }

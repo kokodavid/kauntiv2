@@ -6,6 +6,7 @@ import '../domain/journey_recording.dart';
 import 'journey_database.dart';
 
 part 'local_journey_repository_mappers.dart';
+part 'local_journey_repository_trip_metadata.dart';
 
 class LocalJourneySession {
   const LocalJourneySession({required this.id, required this.recording});
@@ -22,6 +23,27 @@ class LocalJourneyRepository {
   const LocalJourneyRepository(this._db);
 
   final JourneyDatabase _db;
+
+  Future<JourneyDestination?> destination(String id, String userId) =>
+      _destination(_db, id, userId);
+
+  Future<String?> customTitle(String id, String userId) =>
+      _customTitle(_db, id, userId);
+
+  Future<void> rename({
+    required String id,
+    required String userId,
+    required String title,
+  }) => _rename(_db, id, userId, title);
+
+  Future<bool> isBlockedByTrialLimit(String id, String userId) =>
+      _isBlockedByTrialLimit(_db, id, userId);
+
+  Future<void> setBlockedByTrialLimit(
+    String id,
+    String userId, {
+    required bool blocked,
+  }) => _setBlockedByTrialLimit(_db, id, userId, blocked);
 
   Future<LocalJourneySession?> activeSession(String userId) async {
     final row =
@@ -88,65 +110,6 @@ class LocalJourneyRepository {
     return LocalJourneySession(id: id, recording: recording);
   });
 
-  Future<JourneyDestination?> destination(String id, String userId) async {
-    final rows = await _db
-        .customSelect(
-          'SELECT destination_place_id, destination_name, '
-          'destination_latitude, destination_longitude FROM journey_sessions '
-          'WHERE id = ? AND user_id = ?',
-          variables: [Variable.withString(id), Variable.withString(userId)],
-          readsFrom: {_db.journeySessions},
-        )
-        .get();
-    if (rows.isEmpty) return null;
-    final row = rows.single.data;
-    final placeId = row['destination_place_id'] as String?;
-    final name = row['destination_name'] as String?;
-    if (placeId == null || name == null) return null;
-    return JourneyDestination(
-      placeId: placeId,
-      name: name,
-      latitude: (row['destination_latitude'] as num?)?.toDouble(),
-      longitude: (row['destination_longitude'] as num?)?.toDouble(),
-    );
-  }
-
-  /// The name the user gave this Trip, overriding the default "Trip on
-  /// ..."/"Trip to ..." title; null until it's renamed.
-  Future<String?> customTitle(String id, String userId) async {
-    final rows = await _db
-        .customSelect(
-          'SELECT title FROM journey_sessions WHERE id = ? AND user_id = ?',
-          variables: [Variable.withString(id), Variable.withString(userId)],
-          readsFrom: {_db.journeySessions},
-        )
-        .get();
-    if (rows.isEmpty) return null;
-    return rows.single.data['title'] as String?;
-  }
-
-  /// Sets this Trip's name, overriding its default title.
-  Future<void> rename({
-    required String id,
-    required String userId,
-    required String title,
-  }) async {
-    final trimmed = title.trim();
-    if (trimmed.isEmpty || trimmed.length > 120) {
-      throw ArgumentError('A Trip name needs 1-120 characters.');
-    }
-    await _owned(id, userId);
-    await _db.customUpdate(
-      'UPDATE journey_sessions SET title = ? WHERE id = ? AND user_id = ?',
-      variables: [
-        Variable.withString(trimmed),
-        Variable.withString(id),
-        Variable.withString(userId),
-      ],
-      updates: {_db.journeySessions},
-    );
-  }
-
   Future<LocalJourneySession> pause({
     required String id,
     required String userId,
@@ -176,7 +139,7 @@ class LocalJourneyRepository {
     String userId,
     JourneyRecording Function(JourneyRecording) apply,
   ) => _db.transaction(() async {
-    final current = await _owned(id, userId);
+    final current = await _owned(_db, id, userId);
     final next = apply(current.recording);
     await (_db.update(
       _db.journeySessions,
@@ -198,7 +161,7 @@ class LocalJourneyRepository {
     required String userId,
     required JourneyPoint point,
   }) => _db.transaction(() async {
-    final session = (await _owned(id, userId)).recording;
+    final session = (await _owned(_db, id, userId)).recording;
     if (session.phase != JourneyRecordingPhase.recording ||
         point.segmentNumber != session.segmentNumber ||
         point.recordedAt.isBefore(session.lastChangedAt!)) {
@@ -245,7 +208,7 @@ class LocalJourneyRepository {
   });
 
   Future<List<JourneyPoint>> points(String id, String userId) async {
-    await _owned(id, userId);
+    await _owned(_db, id, userId);
     final rows = await _db
         .customSelect(
           'SELECT segment_number, recorded_at_millis, latitude, longitude, '
@@ -259,7 +222,7 @@ class LocalJourneyRepository {
   }
 
   Future<DateTime?> lastPointAt(String id, String userId) async {
-    await _owned(id, userId);
+    await _owned(_db, id, userId);
     final row =
         await (_db.select(_db.journeySamples)
               ..where((t) => t.journeyId.equals(id))
@@ -275,7 +238,7 @@ class LocalJourneyRepository {
   }
 
   Future<void> discard(String id, String userId) => _db.transaction(() async {
-    await _owned(id, userId);
+    await _owned(_db, id, userId);
     await (_db.delete(
       _db.journeySamples,
     )..where((t) => t.journeyId.equals(id))).go();

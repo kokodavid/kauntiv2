@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_history.dart';
 import '../domain/journey_summary.dart';
 import 'journey_card.dart';
 import 'journey_card_skeleton.dart';
+import 'journey_history_empty_states.dart';
+import 'journey_history_filters.dart';
 import 'journey_rename_dialog.dart';
 
 /// Opens a past Journey; supplied by `app/` (the `/journey/:id` route).
@@ -16,13 +17,60 @@ typedef OpenJourney = void Function(BuildContext context, String id);
 /// upload) and the private cloud history, grouped by month so the list
 /// reads like a travelogue rather than a flat log. Tap one to replay it;
 /// delete it here. Available with or without Pro.
-class JourneyHistorySection extends ConsumerWidget {
+class JourneyHistorySection extends ConsumerStatefulWidget {
   const JourneyHistorySection({super.key, this.onOpen});
 
   final OpenJourney? onOpen;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JourneyHistorySection> createState() =>
+      _JourneyHistorySectionState();
+}
+
+class _JourneyHistorySectionState extends ConsumerState<JourneyHistorySection> {
+  static const _searchThreshold = 8;
+
+  String _query = '';
+  final _queryController = TextEditingController();
+  JourneyDateFilter _dateFilter = JourneyDateFilter.all;
+
+  void _clearFilters() => setState(() {
+    _queryController.clear();
+    _query = '';
+    _dateFilter = JourneyDateFilter.all;
+  });
+
+  @override
+  void dispose() {
+    _queryController.dispose();
+    super.dispose();
+  }
+
+  bool _matches(JourneySummary journey) {
+    if (_dateFilter != JourneyDateFilter.all) {
+      final label = JourneyTitles.monthLabel(journey.startedAt);
+      final wanted = _dateFilter == JourneyDateFilter.thisMonth
+          ? 'This month'
+          : 'Last month';
+      if (label != wanted) return false;
+    }
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) return true;
+    if (journey.title.toLowerCase().contains(query)) return true;
+    final destination = journey.destination?.name;
+    if (destination != null && destination.toLowerCase().contains(query)) {
+      return true;
+    }
+    // Counties the route crossed (e.g. typing "kiambu" surfaces a Trip
+    // that passed through it, even if it wasn't the destination). Empty
+    // for a Trip still waiting to upload, so it just won't match here.
+    return journey.countyNames.any(
+      (name) => name.toLowerCase().contains(query),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final history = ref.watch(journeyHistoryListProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,7 +78,7 @@ class JourneyHistorySection extends ConsumerWidget {
         const Text('Past Trips', style: AppTypeScale.sectionTitle),
         const SizedBox(height: 8),
         switch (history) {
-          AsyncValue(:final value?) => _List(history: value, onOpen: onOpen),
+          AsyncValue(:final value?) => _buildList(value),
           AsyncValue(hasError: true) => _Retry(
             onRetry: () => ref.invalidate(journeyHistoryListProvider),
           ),
@@ -39,20 +87,60 @@ class JourneyHistorySection extends ConsumerWidget {
       ],
     );
   }
+
+  Widget _buildList(JourneyHistory history) {
+    final all = history.journeys;
+    final showSearch = all.length > _searchThreshold;
+    final journeys = showSearch
+        ? [
+            for (final journey in all)
+              if (_matches(journey)) journey,
+          ]
+        : all;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (showSearch) ...[
+          JourneyHistorySearchField(
+            controller: _queryController,
+            onChanged: (value) => setState(() => _query = value),
+          ),
+          const SizedBox(height: 10),
+          JourneyHistoryDateFilters(
+            selected: _dateFilter,
+            onSelected: (filter) => setState(() => _dateFilter = filter),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (all.isNotEmpty && journeys.isEmpty)
+          JourneyHistoryNoMatches(query: _query, onClear: _clearFilters)
+        else
+          _List(
+            journeys: journeys,
+            cloudUnavailable: history.cloudUnavailable,
+            onOpen: widget.onOpen,
+          ),
+      ],
+    );
+  }
 }
 
 class _List extends StatelessWidget {
-  const _List({required this.history, this.onOpen});
+  const _List({
+    required this.journeys,
+    required this.cloudUnavailable,
+    this.onOpen,
+  });
 
-  final JourneyHistory history;
+  final List<JourneySummary> journeys;
+  final bool cloudUnavailable;
   final OpenJourney? onOpen;
 
   @override
   Widget build(BuildContext context) {
     final open = onOpen;
-    final journeys = history.journeys;
     final children = <Widget>[
-      if (history.cloudUnavailable)
+      if (cloudUnavailable)
         const Padding(
           padding: EdgeInsets.only(bottom: 8),
           child: Text(
@@ -60,7 +148,7 @@ class _List extends StatelessWidget {
             style: AppTypeScale.small,
           ),
         ),
-      if (journeys.isEmpty) const _EmptyState(),
+      if (journeys.isEmpty) const JourneyHistoryEmptyState(),
     ];
 
     String? lastLabel;
@@ -90,37 +178,6 @@ class _List extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: children,
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.cardBorder),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.explore_outlined, size: 32, color: AppColors.accent),
-          SizedBox(height: 10),
-          Text('No Trips yet', style: AppTypeScale.cardTitle),
-          SizedBox(height: 6),
-          Text(
-            'Start one above and every county you pass through will show '
-            'up here, mapped out as you go.',
-            textAlign: TextAlign.center,
-            style: AppTypeScale.body,
-          ),
-        ],
       ),
     );
   }

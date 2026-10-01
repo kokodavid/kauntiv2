@@ -15,13 +15,13 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 (rules, polygons, local store, sync queue, native geofencing, foreground cycle, background-permission pause, arrival sheet) coded; needs a device test. Needs a real-device test |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
-| 7 | Badges + tiers | `features/badges` | Not started | | |
-| 8 | Profile, Settings, Data & Privacy | `features/profile` | Not started | | v1 profile screen is 1,339 lines |
-| 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | |
+| 7 | Badges + tiers | `features/badges` | In progress | codex/badges | [Plan](badges-port-plan.md). Step 1: Badges tab on the new design (Figma 491:1394, star-less badge 277:19839): title + tier pill, claimed hero with 47-segment bar, collection grid with depth rings (county_visits + county_depth_ranks). "Since reset", the activity card, avatar and saved-data time wait on product rules. |
+| 8 | Profile, Settings, Data & Privacy | `features/profile` | In progress | codex/journey-place-handoff | First-release account overview from Home avatar: auth identity, home county, badges, live Pro status, Journeys link, OS location settings, privacy summary and sign-out (removes native county geofences first). Full settings, published policy/support links and account deletion remain. |
+| 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | Tab hidden from the bottom nav until ported (`AppFeatureFlags.ranks`, `--dart-define=RANKS_ENABLED=true` to show it). |
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journeys-native-capture | [Plan](journeys-plan.md). Private cloud schema, local store and native capture adapter added; Pro start, sync, UI and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats and county splits. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -31,6 +31,41 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2026-09-25 | 28 | `app.dart` state machine and the `ChangeNotifier` sign-in controller replaced (go_router work) |
 
 ## Feature notes
+
+### Journeys (#13)
+
+- Free accounts can save three uploaded Trips per UTC calendar month; Pro
+  accounts remain unlimited. The server counter is monotonic for each user
+  and month, so deleting a saved Trip does not restore usage. Offline Trips
+  are charged when they successfully upload.
+- `journey_trial_usage` is readable only by its owner. `upload_journey`
+  serializes monthly allowance checks and increments usage in the same
+  transaction as saving the Trip. Apply
+  `20261001010000_add_journey_free_trial.sql` before shipping this policy.
+- The app shows the usage count, explains the reset date when exhausted, and
+  keeps a locally recorded Trip available when the server refuses its upload
+  at the limit; the queue retries it later. Journey history search/date
+  filters appear after the list grows beyond eight entries.
+- Pending: a Pro purchase flow, migration deployment, device validation,
+  and large-route performance checks.
+
+### Profile (#8)
+
+- Home avatar opens an account-bound Profile route. Until auth resolves (and
+  the stream ID matches the current user), it shows a neutral state rather
+  than any previous account's identity or progress.
+- Name/email come from the signed-in user, home county from onboarding state,
+  earned count from Badges, and Pro status from the live entitlement RPC.
+  Links open the existing Badges/Journeys tabs and device location settings.
+- Data and privacy explains the data this build stores. Sign-out blocks while
+  a Journey is active, removes native county geofences, then resets the
+  startup route. A failed sign-out resumes detection for the still-signed-in
+  account.
+- The account header uses v2's light-blue band and blue action accents; the
+  information rows remain neutral for scanning.
+- Pending before release: published policy/support destinations, a real
+  account-deletion workflow, app-version display, and device-level transition
+  checks. The in-app summary is not a substitute for the privacy policy.
 
 ### Map Home (#4)
 
@@ -298,11 +333,64 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Restart recovery pauses an active session; Resume creates a new segment so
   missing points are never drawn as a straight route. Timestamps preserve
   milliseconds for closely spaced fixes.
+- Recovery excludes the process-down interval from recorded time, using the
+  last stored fix. Long gaps between accepted fixes also start new segments.
+- Stop/Discard do not report success if native location teardown is still
+  unconfirmed; a paused session remains available for retry.
+- Android's location plugin reports `false` after a successful background-mode
+  disable, so stop now waits for the call rather than treating that value as a
+  failure. A timed-out stream cancellation is retried before native stop.
+- Unexpected location-stream failure pauses the notifier-visible session, so
+  the UI does not continue to claim it is recording.
+
+**Built in the entitlement and sync slice**
+
+- `pro_entitlement_periods` (admin-granted until billing), `my_pro_status()`
+  and the `upload_journey` RPC (owner, Pro-at-start, timing and point checks;
+  distance computed server-side; idempotent). SQL test in
+  `supabase/tests/journey_upload.sql`.
+- `JourneyRecorder` (start needs a live Pro check, recover after
+  restart), `JourneyUploadQueue` (backoff, local copy deleted after
+  upload), `JourneyHistoryList` (local waiting + cloud, delete). Local
+  Journey database schema 2.
+- Start/recovery recheck account ownership after asynchronous work. Deleting
+  a pending Journey coordinates with in-flight upload and removes any cloud
+  copy created during that race.
+
+**Built in the UI slice**
+
+- Full-screen recording map with place pins and floating controls; Journey
+  list with previews; full-screen replay and key moments. Replay crossings
+  use the same 500 m inside-boundary margin as detection and appear only at
+  the confirming point. The recording map waits for its first fix rather
+  than briefly opening over the default Kenya camera.
+
+**Built in the place handoff slice**
+
+- Place Detail Get Route, Home map place pins and the Home promoted-place card
+  offer Record as a Journey or Directions only when Journeys are enabled.
+  The choice sheet opens over the shell navigation with Directions only as a
+  visible primary action, including on smaller phones.
+  County-only Route buttons still open directions without a place association.
+  Recording starts and passes entitlement/location checks before external
+  directions launch; a failed launch discards that new Journey where native
+  teardown succeeds.
+- The chosen place ID, name and optional coordinates persist in local schema 4
+  and upload privately through `upload_journey_to_place`. Pending and synced
+  history retain the destination, including after a place listing changes.
+- Planned routes and travel itineraries are not implemented. A Journey remains
+  the actual recorded route, and the user stops it explicitly.
 
 **Pending**
 
-- Server-verified Pro start, cloud upload, Journey tab/history/replay, privacy
-  copy and real-device locked-screen tests. No app-facing Start action yet.
+- Validate native stop and locked-screen recording on devices, including
+  process death, permission changes and account switches. Compare the county
+  geometry with the Mapbox base map; live geofence no-fix callbacks can still
+  announce early crossings.
+- Profile multi-hour route rendering and place-pin loading; add export and
+  update privacy/store copy before release.
+- Decide and implement a server-enforced limited free Journey allowance.
+- Admin dashboard screen for granting Pro periods (until billing, #12).
 - Subcounty tracking follows Journeys in a later feature.
 
 ## Progress log
@@ -311,6 +399,29 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-01 | codex/journey-place-handoff | 13 | Free monthly Trip allowance for non-Pro accounts, account-scoped usage state, Trip search/date filters and empty-state icons; serialize trial checks in the upload RPC and keep rejected recordings retryable. Version bumped to 1.3.2+11. |
+| 2026-10-01 | codex/journey-place-handoff | 7, 13 | Merge-preparation pass: Trip naming and rename, route stats, county splits, map and card polish; corrected the Journey upload RPC signature while retaining paused time and county data. Architecture, strict analysis, custom lint and full Flutter tests passed; SQL deployment and device transition checks remain pending. |
+| 2026-09-26 | codex/journey-place-handoff | 8 | Profile visual pass: pale-blue account band and v2 blue accents for profile actions; neutral information rows retained |
+| 2026-09-26 | codex/journey-place-handoff | 8 | First-release Profile from Home avatar with account-bound identity, county badges, live Pro status, Journeys, permission settings, privacy summary, and sign-out. Flutter/device verification pending; published policy, support and deletion workflow pending |
+| 2026-09-26 | codex/journey-place-handoff | 3 | Launcher icon is the splash mark (gradient + white Kenya) on iOS and Android, with an Android 8+ adaptive icon; Map tab icon is Kenya's outline instead of a house |
+| 2026-09-26 | codex/journey-place-handoff | 7, 13 | Repaired Journey stream filtering and destination-era test signatures; cleaned up visible badge analyzer lints. Flutter analysis and device verification pending |
+| 2026-09-26 | codex/journey-place-handoff | 13 | Fixed Android Journey stop: accept the plugin's disable response and retry pending stream cancellation before background-mode shutdown; device verification pending |
+| 2026-09-26 | codex/journey-place-handoff | 13 | Route choice sheet moved above floating bottom navigation; Directions only is a full-width primary action with small-screen coverage |
+| 2026-09-26 | codex/journey-place-handoff | 3, 7 | Badges tab titled Collection: slider of claimed + Tiers card (medals, expandable progress to the next), 'Badges' grid with tap hint; medal art mapped to the right tier; Ranks tab hidden behind `RANKS_ENABLED` |
+| 2026-09-26 | codex/journey-place-handoff | 13 | Place Detail, Home pin and promoted-place Route choice; background Journey start before external directions, durable destination snapshot and private upload migration; device validation and migration deployment pending |
+| 2026-09-26 | codex/badges | 7, 13 | Badge sheet: 'Your time in <county>' (visits, months, last visit, Journeys + km) replaces the place cards; Journeys record the counties they cross (`journey_counties`, `upload_journey` p_counties) |
+| 2026-09-26 | codex/badges | 7 | Badge sheet: earned date, next-depth progress, saved places / county coverage, share card (share_plus), how-to-earn + places for locked; `county_badge_detail` RPC |
+| 2026-09-26 | codex/badges | 7 | Badges tab: tier pill, claimed hero, collection grid of star-less badges with depth rings; tap opens County Detail |
+| 2026-09-26 | codex/journeys-ui | 13 | Reliability pass: account-switch guards, recovery duration, pending delete/upload race, native stop retry state, stream-failure status, GPS-gap segments, replay crossing confirmation, and initial map camera; device verification pending |
+| 2026-09-25 | codex/journeys-ui | 13 | Journeys tab behind `JOURNEYS_ENABLED`: start, live route and controls, history, detail with replay and delete |
+| 2026-09-25 | codex/journeys-ui | 13 | Recording on a full-screen map with Home's place pins (tap for the place sheet), follow / re-centre, floating controls; Start opens it; place map pieces moved to core |
+| 2026-09-25 | codex/journeys-ui | 13 | Live clock stands still while paused; recorded time (minus pauses) kept locally (schema 3) and uploaded (`journeys.paused_ms`, `upload_journey` p_paused_ms); Stop can discard |
+| 2026-09-25 | codex/journeys-ui | 13 | Past Journeys as place-style cards over a Mapbox static-map route preview (thinned, encoded polyline) with Replay and delete |
+| 2026-09-25 | codex/journeys-ui | 13 | Replay moments include every Kaunti47 place within 10 km of the route (saved ones marked), openable and savable from the card |
+| 2026-09-25 | codex/journeys-ui | 13 | Journey detail page removed: a Journey opens straight into the full-screen replay (summary in the card); delete moved to the list |
+| 2026-09-25 | codex/journeys-ui | 13 | Full-screen replay with floating controls; pauses at key moments (breaks, long stops, county crossings, saved places) |
+| 2026-09-25 | codex/journeys-ui | 13 | Smooth replay: interpolated marker on a frame ticker, played line over a faded route, map layers split out |
+| 2026-09-25 | codex/journeys-sync | 13 | Pro entitlement periods, `upload_journey` RPC, Pro-gated start, upload queue and private history |
 | 2026-09-25 | codex/journeys-native-capture | 13 | Device location adapter, local capture coordinator, restart gap handling and millisecond fixes |
 | 2026-09-25 | codex/journeys-recorder | 13 | Durable local Journey sessions and point queue with recovery and ownership tests |
 | 2026-09-25 | codex/journeys-foundation | 13 | Private Journey schema, recording domain and phased implementation plan |

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/services/app_current_location.dart';
 import '../../../services/app_logger.dart';
+import '../../auth/application/auth_providers.dart';
 import '../../discover/application/explore_providers.dart';
 import '../data/detection_repository.dart';
 import '../data/geofence_service.dart';
@@ -67,13 +70,42 @@ class DetectionSnapshot {
 class DetectionController extends _$DetectionController {
   static const _logger = AppLogger.detection();
   bool _running = false;
+  bool _suspended = false;
+  Completer<void>? _cycleDone;
 
   @override
-  DetectionSnapshot build() => const DetectionSnapshot();
+  DetectionSnapshot build() {
+    ref.listen(authUserIdProvider, (previous, next) {
+      if (next.hasValue &&
+          next.value != null &&
+          next.value != previous?.value) {
+        _suspended = false;
+      }
+    });
+    return const DetectionSnapshot();
+  }
+
+  /// Remove OS geofences before the account is detached. An in-flight cycle
+  /// may finish its current read, but cannot register another window.
+  Future<void> suspendForSignOut() async {
+    _suspended = true;
+    final cycle = _cycleDone;
+    if (cycle != null) await cycle.future;
+    final geofences = ref.read(geofenceServiceProvider);
+    await geofences.initialize();
+    await geofences.removeAll();
+    state = const DetectionSnapshot();
+  }
+
+  void resumeAfterSignOutFailure() {
+    if (ref.read(currentUserIdProvider)() != null) _suspended = false;
+  }
 
   Future<void> runCycle({int? homeCountyCode}) async {
-    if (_running) return;
+    if (_running || _suspended) return;
     _running = true;
+    final cycleDone = Completer<void>();
+    _cycleDone = cycleDone;
     try {
       final repository = ref.read(detectionRepositoryProvider);
       final geofences = ref.read(geofenceServiceProvider);
@@ -82,6 +114,7 @@ class DetectionController extends _$DetectionController {
         return;
       }
       final fix = await ref.read(detectionLocationReaderProvider)();
+      if (_suspended) return;
 
       final bootstrapped = await _bootstrapIfNeeded(
         repository,
@@ -98,6 +131,7 @@ class DetectionController extends _$DetectionController {
       final resolved = await repository.checkStillActiveCandidates();
 
       await ref.read(visitSyncProvider.notifier).drain();
+      if (_suspended) return;
 
       final current = await repository.currentCountyCode();
       if (current != null) {
@@ -124,6 +158,8 @@ class DetectionController extends _$DetectionController {
       );
     } finally {
       _running = false;
+      _cycleDone = null;
+      cycleDone.complete();
     }
   }
 

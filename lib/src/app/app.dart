@@ -13,6 +13,7 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       title: ref.watch(appConfigProvider).appName,
       theme: ThemeData(
         fontFamily: 'Inter',

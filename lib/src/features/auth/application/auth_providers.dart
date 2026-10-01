@@ -19,3 +19,19 @@ String? Function() currentUserId(Ref ref) {
   final auth = ref.watch(authServiceProvider);
   return () => auth.currentUser?.id;
 }
+
+/// The signed-in user's id as it changes (sign-in, sign-out, a different
+/// account, session loss). Emits the current id first. Null without
+/// Supabase.
+@Riverpod(keepAlive: true)
+Stream<String?> authUserId(Ref ref) async* {
+  final client = ref.watch(supabaseClientProvider);
+  if (client == null) {
+    yield null;
+    return;
+  }
+  yield client.auth.currentUser?.id;
+  yield* client.auth.onAuthStateChange
+      .map((change) => change.session?.user.id)
+      .distinct();
+}

@@ -3,20 +3,6 @@ import 'package:location/location.dart';
 
 import '../domain/journey_fix.dart';
 
-enum JourneyLocationFailure {
-  servicesDisabled,
-  permissionDenied,
-  backgroundPermissionDenied,
-  backgroundModeUnavailable,
-  settingsUnavailable,
-}
-
-class JourneyLocationException implements Exception {
-  const JourneyLocationException(this.reason);
-
-  final JourneyLocationFailure reason;
-}
-
 /// Continuous fixes only for a user-started Journey. Geofencing stays separate.
 class DeviceJourneyLocationSource implements JourneyLocationSource {
   DeviceJourneyLocationSource({Location? location})
@@ -26,12 +12,10 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
   bool _started = false;
 
   @override
-  Stream<JourneyFix> get fixes async* {
-    await for (final data in _location.onLocationChanged) {
-      final fix = usableFix(data);
-      if (fix != null) yield fix;
-    }
-  }
+  Stream<JourneyFix> get fixes => _location.onLocationChanged
+      .map(usableFix)
+      .where((fix) => fix != null)
+      .map((fix) => fix!);
 
   @override
   Future<void> start() async {
@@ -64,8 +48,8 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       await _location.changeNotificationOptions(
-        channelName: 'Journey recording',
-        title: 'Recording your Journey',
+        channelName: 'Trip recording',
+        title: 'Recording your Trip',
         description:
             'Kaunti47 is saving your route. Open the app to pause or stop.',
         onTapBringToFront: true,
@@ -82,8 +66,9 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
   @override
   Future<void> stop() async {
     if (!_started) return;
-    _started = false;
+    // The plugin returns false for a successful disable on Android.
     await _location.enableBackgroundMode(enable: false);
+    _started = false;
   }
 
   static JourneyFix? usableFix(LocationData data) {
@@ -98,6 +83,14 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
         data.isMock == true) {
       return null;
     }
+    final rawAltitude = data.altitude;
+    final altitude = (rawAltitude != null && rawAltitude.isFinite)
+        ? rawAltitude
+        : null;
+    final rawSpeed = data.speed;
+    final speed = (rawSpeed != null && rawSpeed.isFinite && rawSpeed >= 0)
+        ? rawSpeed
+        : null;
     try {
       return JourneyFix(
         recordedAt: DateTime.fromMillisecondsSinceEpoch(
@@ -107,6 +100,8 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
         latitude: latitude,
         longitude: longitude,
         accuracyMeters: accuracy,
+        altitudeMeters: altitude,
+        speedMetersPerSecond: speed,
       );
     } on ArgumentError {
       return null;

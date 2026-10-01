@@ -1,6 +1,7 @@
+import '../../../core/domain/county_tier.dart';
+import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/map_home_models.dart';
-import '../domain/map_place.dart';
 
 abstract interface class MapHomeRepository {
   Future<MapHomeBoardData> loadBoard({CountyPath? homeCounty});
@@ -38,7 +39,7 @@ class MockMapHomeRepository implements MapHomeRepository {
   Future<MapHomeBoardData> loadBoard({CountyPath? homeCounty}) async {
     final resolvedHomeCounty = homeCounty ?? CountyPaths.bySlug['nairobi'];
     return MapHomeBoardData(
-      tierLabel: 'MZURURAJI',
+      tier: CountyTier.mzururaji,
       totalCounties: 47,
       homeCounty: resolvedHomeCounty,
       countyBadges: [

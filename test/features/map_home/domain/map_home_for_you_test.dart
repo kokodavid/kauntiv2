@@ -16,7 +16,7 @@ MapHomeBoardData _board({
   List<MapHomeSuggestion> unclaimed = const [],
   MapHomePromotedPlace? promotion,
 }) => MapHomeBoardData(
-  tierLabel: 'MGENI',
+  tier: null,
   totalCounties: 47,
   countyBadges: const [],
   homeCounty: null,

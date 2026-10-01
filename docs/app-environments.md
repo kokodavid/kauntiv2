@@ -168,6 +168,13 @@ configurations:
 
 Builds require a Mac with Xcode signing configured for `com.giglab.kaunti47.app`.
 
+When archiving directly in Xcode, select the `dev` or `prod` scheme. The
+Flutter build phase loads the corresponding local `dart_defines/<flavor>.json`
+and entry point (`lib/main_<flavor>.dart`). It fails the build if the file or
+required Supabase/Google values are missing; the `Runner` scheme cannot make a
+release archive. Keep the filled JSON files local and out of Git. This also
+prevents Xcode from archiving `lib/main.dart` without server configuration.
+
 Run dev:
 
 ```bash

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
+import '../../widgets/app_county_shape.dart';
+import '../domain/app_feature_flags.dart';
 
-enum AppNavTab { map, badges, ranks, explore }
+enum AppNavTab { map, badges, ranks, explore, journeys }
 
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({
@@ -18,14 +20,18 @@ class AppBottomNav extends StatelessWidget {
   final ValueChanged<AppNavTab> onSelect;
 
   static const _tabs = [
-    (tab: AppNavTab.map, icon: Icons.home_rounded, label: 'Map'),
+    // Null icon: the Map tab draws Kenya's outline.
+    (tab: AppNavTab.map, icon: null, label: 'Map'),
     (
       tab: AppNavTab.badges,
       icon: Icons.workspace_premium_outlined,
       label: 'Badges',
     ),
-    (tab: AppNavTab.ranks, icon: Icons.bar_chart_rounded, label: 'Ranks'),
+    if (AppFeatureFlags.ranks)
+      (tab: AppNavTab.ranks, icon: Icons.bar_chart_rounded, label: 'Ranks'),
     (tab: AppNavTab.explore, icon: Icons.travel_explore, label: 'Explore'),
+    if (AppFeatureFlags.journeys)
+      (tab: AppNavTab.journeys, icon: Icons.route_rounded, label: 'Trips'),
   ];
 
   @override
@@ -38,7 +44,8 @@ class AppBottomNav extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 300),
+            // Wider when the fifth (Journeys) tab is on.
+            constraints: BoxConstraints(maxWidth: _tabs.length > 4 ? 360 : 300),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: AppColors.tabBarShell,
@@ -80,7 +87,7 @@ class _NavTabButton extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final IconData? icon;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
@@ -102,7 +109,13 @@ class _NavTabButton extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: color),
+            if (icon case final icon?)
+              Icon(icon, size: 16, color: color)
+            else
+              SizedBox.square(
+                dimension: 16,
+                child: AppCountryShape(fill: color),
+              ),
             const SizedBox(height: 2),
             Text(
               label,

@@ -1,4 +1,5 @@
 import '../../../core/domain/app_stat_format.dart';
+import '../../../core/domain/county_tier.dart';
 import '../../../counties/county_paths.dart';
 import 'county_badge_state.dart';
 import 'map_home_promotion.dart';
@@ -86,7 +87,7 @@ enum MapHomeSuggestionReason { depthRank, savedHere, unclaimed }
 
 class MapHomeBoardData {
   const MapHomeBoardData({
-    required this.tierLabel,
+    required this.tier,
     required this.totalCounties,
     required this.countyBadges,
     required this.homeCounty,
@@ -96,7 +97,8 @@ class MapHomeBoardData {
     this.unclaimedCount = 0,
   });
 
-  final String tierLabel;
+  /// The medal earned; null before the first (the chip hides).
+  final CountyTier? tier;
   final int totalCounties;
   final List<MapHomeCountyBadge> countyBadges;
   final CountyPath? homeCounty;

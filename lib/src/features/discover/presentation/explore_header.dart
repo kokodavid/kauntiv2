@@ -91,9 +91,9 @@ class ExploreTabChips extends StatelessWidget {
   final ValueChanged<ExploreTab> onSelected;
 
   static const _labels = {
-    ExploreTab.mine: 'MINE',
-    ExploreTab.unclaimed: 'UNCLAIMED',
-    ExploreTab.saved: 'SAVED',
+    ExploreTab.mine: 'Mine',
+    ExploreTab.unclaimed: 'Unclaimed',
+    ExploreTab.saved: 'Saved',
   };
 
   // v1 widths: the pills share the row roughly 22 / 45 / 27.

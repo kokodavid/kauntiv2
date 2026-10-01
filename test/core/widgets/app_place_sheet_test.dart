@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kaunti47_v2/src/features/map_home/domain/map_place.dart';
-import 'package:kaunti47_v2/src/features/map_home/presentation/real_map_place_sheet.dart';
+import 'package:kaunti47_v2/src/core/domain/map_place.dart';
+import 'package:kaunti47_v2/src/core/widgets/app_place_sheet.dart';
 
 const _hellsGate = MapPlace(
   id: 'hg',
@@ -21,7 +21,7 @@ Future<void> _pump(
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: RealMapPlaceSheet(
+        body: AppPlaceSheet(
           place: _hellsGate,
           onOpen: onOpen,
           onRoute: onRoute,
@@ -54,5 +54,36 @@ void main() {
     await tester.pump();
     expect(destinations, ['-0.91,36.31']);
     expect(find.text('View place'), findsNothing);
+  });
+
+  testWidgets('place route closes the pin sheet before opening the handoff', (
+    tester,
+  ) async {
+    final selected = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => AppPlaceSheet.show(
+                context,
+                _hellsGate,
+                onRoute: (_) async => fail('Directions bypassed the handoff'),
+                onPlaceRoute: (context, place) async {
+                  selected.add(place.id);
+                },
+              ),
+              child: const Text('Open place'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open place'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Route'));
+    await tester.pumpAndSettle();
+    expect(selected, ['hg']);
+    expect(find.text("Hell's Gate National Park"), findsNothing);
   });
 }

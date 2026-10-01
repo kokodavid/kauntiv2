@@ -1,30 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/map/map_place_types.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
-
-/// Pin colour and label per place type, shared by the map layer, the
-/// legend and the place sheet.
-abstract final class RealMapPlaceTypes {
-  static const known = <String, (String, Color)>{
-    'park': ('Parks', AppColors.placePark),
-    'museum': ('Museums', AppColors.placeMuseum),
-    'culture': ('Culture', AppColors.placeCulture),
-    'heritage': ('Heritage', AppColors.placeHeritage),
-    'shore': ('Shores', AppColors.placeShore),
-  };
-
-  static Color colorFor(String type) => known[type]?.$2 ?? AppColors.placeOther;
-
-  static IconData iconFor(String type) => switch (type) {
-    'park' => Icons.forest,
-    'museum' => Icons.museum,
-    'culture' => Icons.theater_comedy,
-    'heritage' => Icons.account_balance,
-    'shore' => Icons.beach_access,
-    _ => Icons.place,
-  };
-}
 
 /// Compact legend for the place pins.
 class RealMapPlaceLegend extends StatelessWidget {
@@ -44,7 +22,7 @@ class RealMapPlaceLegend extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final entry in RealMapPlaceTypes.known.values)
+            for (final entry in MapPlaceTypes.known.values)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(

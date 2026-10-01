@@ -13,7 +13,7 @@ import '../application/real_map_start_focus.dart';
 /// foreground-only).
 abstract final class RealMapFocus {
   /// Close enough to see nearby places as photo markers; zooming out past
-  /// `RealMapLayers.markerMinZoom` turns them back into the Kenya-wide dots.
+  /// `MapPlaceLayers.markerMinZoom` turns them back into the Kenya-wide dots.
   static const localZoom = 8.5;
 
   static CameraViewportState kenya(double pitch) => CameraViewportState(

@@ -1,0 +1,183 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/design/app_type_scale.dart';
+import '../../../core/domain/county_tier.dart';
+import '../../../core/widgets/app_tier_medal.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
+import '../application/badges_providers.dart';
+import '../domain/badge_collection.dart';
+import 'badge_detail_sheet.dart';
+import 'badge_grid_cell.dart';
+import 'badges_hero_card.dart';
+import 'badges_loading.dart';
+import 'badges_medals_card.dart';
+import 'badges_summary_slider.dart';
+
+/// The Badges tab (Figma 491:1394), titled "Collection": the medal once
+/// earned, a slider of counties claimed and the tiers, and every county's
+/// badge with its depth ring. Tapping a badge opens its sheet.
+class BadgesScreen extends ConsumerWidget {
+  const BadgesScreen({super.key, this.onOpenCounty, this.onOpenPlace});
+
+  final OpenBadgeCounty? onOpenCounty;
+  final OpenBadgePlace? onOpenPlace;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final collection = ref.watch(badgeCollectionProvider);
+    return Scaffold(
+      backgroundColor: AppColors.pageBackground,
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: () => ref.refresh(badgeCollectionProvider.future),
+          child: switch (collection) {
+            AsyncValue(:final value?) => _Content(
+              collection: value,
+              onOpenCounty: onOpenCounty,
+              onOpenPlace: onOpenPlace,
+            ),
+            AsyncValue(hasError: true) => const _Message(
+              text: "Couldn't load your badges. Pull down to try again.",
+            ),
+            _ => const BadgesLoading(),
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _Content extends StatelessWidget {
+  const _Content({
+    required this.collection,
+    this.onOpenCounty,
+    this.onOpenPlace,
+  });
+
+  final BadgeCollection collection;
+  final OpenBadgeCounty? onOpenCounty;
+  final OpenBadgePlace? onOpenPlace;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          sliver: SliverList.list(
+            children: [
+              _Header(tier: collection.tier),
+              const SizedBox(height: 14),
+              BadgesSummarySlider(
+                pages: [
+                  BadgesHeroCard(collection: collection),
+                  BadgesMedalsCard(claimed: collection.claimed),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _Eyebrow('ALL ${collection.total} COUNTIES'),
+              const Text('Badges', style: AppTextStyles.headingForeground),
+              const SizedBox(height: 2),
+              const Text(
+                'Tap a badge to see your insights for that county.',
+                style: TextStyle(
+                  fontFamily: AppTypeScale.family,
+                  fontSize: 13,
+                  height: 20 / 13,
+                  color: AppColors.mutedForeground,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+        SliverPadding(
+          // Room for the floating tab bar.
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+          sliver: SliverGrid.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+            ),
+            itemCount: collection.badges.length,
+            itemBuilder: (context, i) {
+              final badge = collection.badges[i];
+              return BadgeGridCell(
+                badge: badge,
+                onTap: () => BadgeDetailSheet.show(
+                  context,
+                  badge: badge,
+                  collection: collection,
+                  onOpenCounty: onOpenCounty,
+                  onOpenPlace: onOpenPlace,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Eyebrow extends StatelessWidget {
+  const _Eyebrow(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontFamily: AppTypeScale.family,
+        fontSize: 12,
+        height: 20 / 12,
+        color: AppColors.accent,
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({required this.tier});
+
+  /// Null until the first medal: nothing shows.
+  final CountyTier? tier;
+
+  @override
+  Widget build(BuildContext context) {
+    final tier = this.tier;
+    return Row(
+      children: [
+        const Expanded(
+          child: Text('Collection', style: AppTextStyles.headingForeground),
+        ),
+        if (tier != null) AppTierPill(tier: tier),
+      ],
+    );
+  }
+}
+
+class _Message extends StatelessWidget {
+  const _Message({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    // Scrollable so pull-to-refresh works.
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(24, 120, 24, 24),
+      children: [
+        Text(text, textAlign: TextAlign.center, style: AppTypeScale.body),
+      ],
+    );
+  }
+}

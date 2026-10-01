@@ -1,15 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-// Mapbox exports its own `Size`; this file means Flutter's.
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
+import '../../../core/domain/map_place.dart';
+import '../../../core/map/map_places_layer.dart';
 import '../../../core/services/app_current_location.dart';
 import '../../../core/services/app_mapbox_telemetry.dart';
+import '../../../core/widgets/app_place_sheet.dart';
 import '../../../services/app_location_permission_service.dart';
 import '../application/real_map_start_focus.dart';
 import '../domain/map_home_models.dart';
-import '../domain/map_place.dart';
 import 'county_peek_sheet.dart';
 import 'map_home_links.dart';
 import 'map_home_map_overlays.dart';
@@ -19,8 +20,6 @@ import 'real_map_county_source.dart';
 import 'real_map_focus.dart';
 import 'real_map_layers.dart';
 import 'real_map_load_watch.dart';
-import 'real_map_place_sheet.dart';
-import 'real_map_places_layer.dart';
 
 /// Home's default map: the county map on a real Mapbox base map, edge to
 /// edge behind Home's header, sheet and nav. Same badges and colours as the
@@ -40,6 +39,7 @@ class RealMapView extends StatefulWidget {
     this.onOpenCounty,
     this.onOpenPlace,
     this.onRoute,
+    this.onPlaceRoute,
   });
 
   final String accessToken;
@@ -49,8 +49,7 @@ class RealMapView extends StatefulWidget {
   /// Loads the pins for `places`; null shows counties only.
   final Future<List<MapPlace>> Function()? loadPlaces;
 
-  /// How far down Home's header covers the map; controls and county
-  /// framing stay below it.
+  /// Header inset for controls and county camera framing.
   final double topInset;
 
   final VoidCallback? onReady;
@@ -58,6 +57,7 @@ class RealMapView extends StatefulWidget {
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
   final OpenDirections? onRoute;
+  final OpenPlaceDirections? onPlaceRoute;
 
   @override
   State<RealMapView> createState() => _RealMapViewState();
@@ -81,13 +81,13 @@ class _RealMapViewState extends State<RealMapView> {
   RealMapBaseStyle _baseStyle = RealMapBaseStyle.outdoors;
   MapHomeCountyBadge? _selected;
   Size _mapSize = Size.zero;
-  late final RealMapPlacesLayer _placesLayer;
+  late final MapPlacesLayer _placesLayer;
 
   @override
   void initState() {
     super.initState();
     MapboxOptions.setAccessToken(widget.accessToken);
-    _placesLayer = RealMapPlacesLayer(widget.loadPlaces?.call());
+    _placesLayer = MapPlacesLayer(widget.loadPlaces?.call());
     unawaited(_focusOnStart());
     _load = RealMapLoadWatch(
       onReady: () => widget.onReady?.call(),
@@ -169,11 +169,12 @@ class _RealMapViewState extends State<RealMapView> {
     final place = _placesLayer.placeFor(id);
     if (place == null) return;
     unawaited(
-      RealMapPlaceSheet.show(
+      AppPlaceSheet.show(
         context,
         place,
         onOpenPlace: widget.onOpenPlace,
         onRoute: widget.onRoute,
+        onPlaceRoute: widget.onPlaceRoute,
       ),
     );
   }

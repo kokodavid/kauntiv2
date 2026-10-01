@@ -3,18 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
+import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
+import '../features/journeys/presentation/journey_recording_screen.dart';
+import '../features/journeys/presentation/journey_replay_screen.dart';
+import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
 import '../features/map_home/data/supabase_map_home_repository.dart';
 import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/profile/presentation/profile_screen.dart';
 import '../services/app_supabase.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
 import 'detail_routes.dart';
+import 'journey_place_routes.dart';
 import 'startup_pages.dart';
 
 part 'router.g.dart';
@@ -51,6 +58,17 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: AppRoutes.badges,
+                builder: (context, state) => BadgesScreen(
+                  onOpenCounty: DetailRoutes.openCounty,
+                  onOpenPlace: DetailRoutes.openPlace,
+                ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: AppRoutes.explore,
                 builder: (context, state) => ExploreScreen(
                   onOpenCounty: DetailRoutes.openCounty,
@@ -60,7 +78,50 @@ GoRouter appRouter(Ref ref) {
               ),
             ],
           ),
+          if (AppFeatureFlags.journeys)
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.journeys,
+                  builder: (context, state) => JourneysScreen(
+                    onOpenJourney: (context, id) =>
+                        context.push(AppRoutes.journey(id)),
+                    onOpenSettings: DetailRoutes.openAppSettings,
+                    onOpenRecording: (context) =>
+                        context.push(AppRoutes.journeyRecording),
+                  ),
+                ),
+              ],
+            ),
         ],
+      ),
+      if (AppFeatureFlags.journeys)
+        GoRoute(
+          path: AppRoutes.journeyRecording,
+          builder: (context, state) => JourneyRecordingScreen(
+            onOpenSettings: DetailRoutes.openAppSettings,
+            onOpenPlace: DetailRoutes.openPlace,
+            onRoute: DetailRoutes.openDirections,
+            onPlaceRoute: JourneyPlaceRoutes.openMapPlace,
+          ),
+        ),
+      if (AppFeatureFlags.journeys)
+        GoRoute(
+          path: '/journey/:id',
+          builder: (context, state) => JourneyReplayScreen(
+            journeyId: state.pathParameters['id']!,
+            onOpenPlace: DetailRoutes.openPlace,
+          ),
+        ),
+      GoRoute(
+        path: AppRoutes.profile,
+        builder: (context, state) => ProfileScreen(
+          onOpenBadges: () => context.go(AppRoutes.badges),
+          onOpenJourneys: AppFeatureFlags.journeys
+              ? () => context.go(AppRoutes.journeys)
+              : null,
+          onOpenSettings: DetailRoutes.openAppSettings,
+        ),
       ),
       GoRoute(
         path: '/county/:code',
@@ -75,6 +136,7 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => PlaceDetailScreen(
           placeId: state.pathParameters['id']!,
           actions: DetailRoutes.actions!,
+          onGetRoute: JourneyPlaceRoutes.open,
         ),
       ),
     ],
@@ -110,7 +172,10 @@ class _MapTab extends ConsumerWidget {
       onOpenCounty: DetailRoutes.openCounty,
       onOpenPlace: DetailRoutes.openPlace,
       onRoute: DetailRoutes.openDirections,
+      onPlaceRoute: JourneyPlaceRoutes.openMapPlace,
+      onPromotedPlaceRoute: JourneyPlaceRoutes.openPromotion,
       onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
+      onOpenProfile: () => context.push(AppRoutes.profile),
       loader: AppSupabase.isInitialized
           ? MapHomeBoardLoader(
               repository: SupabaseMapHomeRepository(AppSupabase.client),

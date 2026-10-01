@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../counties/county_paths.dart';
 import '../domain/map_home_models.dart';
@@ -15,8 +14,8 @@ import 'map_home_map_overlays.dart';
 /// pinch-zoom (1x-4x) with an animated reset, and a touch halo for tiny
 /// counties.
 ///
-/// Until County Detail is ported, both tap and long-press open the peek
-/// sheet (v1: tap opens County Detail, long-press opens the peek).
+/// A tap always opens the peek sheet, matching the real (Mapbox) map;
+/// County Detail is reached from the sheet's own Open action.
 class MapHomeCountyMap extends StatefulWidget {
   const MapHomeCountyMap({
     super.key,
@@ -168,7 +167,7 @@ class _MapHomeCountyMapState extends State<MapHomeCountyMap>
     final map = Semantics(
       label:
           "Interactive map of Kenya's 47 counties, shaded by badge status. "
-          'Tap or press and hold a county to preview it.',
+          'Tap a county to preview it.',
       button: true,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -192,18 +191,6 @@ class _MapHomeCountyMapState extends State<MapHomeCountyMap>
                   _setPressedCounty(null);
                   return;
                 }
-                final openDetail = _openDetailFor(badge);
-                if (openDetail == null) {
-                  unawaited(_openPeek(badge));
-                } else {
-                  _setPressedCounty(null);
-                  openDetail();
-                }
-              },
-              onLongPressStart: (details) {
-                final badge = _badgeAt(details.localPosition, size);
-                if (badge == null) return;
-                unawaited(HapticFeedback.selectionClick());
                 unawaited(_openPeek(badge));
               },
               child: CustomPaint(

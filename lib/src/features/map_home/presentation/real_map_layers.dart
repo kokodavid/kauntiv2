@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
+import '../../../core/map/map_place_layers.dart';
 import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_county_map_painter.dart';
-import 'real_map_place_widgets.dart';
 
 /// Base styles the real map offers (style button). Terrain is the default;
 /// satellite and 3D are candidates for Pro later.
@@ -80,71 +80,6 @@ abstract final class RealMapLayers {
     );
   }
 
-  static const placesSourceId = 'kaunti47-places';
-  static const placeDotLayerId = 'kaunti47-places-dot';
-  static const placeMarkerLayerId = 'kaunti47-places-marker';
-
-  /// Zoom at which dots hand over to photo/badge markers.
-  static const markerMinZoom = 6.0;
-
-  /// Zoomed out: small dots coloured by type. From [markerMinZoom]: photo or
-  /// badge markers (style images from `RealMapPlaceMarkers`) with the name
-  /// underneath; overlapping markers hide, photos win over badges.
-  static Future<void> addPlacesTo(StyleManager style, String geoJson) async {
-    await style.addSource(GeoJsonSource(id: placesSourceId, data: geoJson));
-    await style.addLayer(
-      CircleLayer(
-        id: placeDotLayerId,
-        sourceId: placesSourceId,
-        maxZoom: markerMinZoom,
-        circleColorExpression: [
-          'match',
-          ['get', 'type'],
-          for (final entry in RealMapPlaceTypes.known.entries) ...[
-            entry.key,
-            _hex(entry.value.$2),
-          ],
-          _hex(RealMapPlaceTypes.colorFor('')),
-        ],
-        circleRadius: 4,
-        circleStrokeColor: Colors.white.toARGB32(),
-        circleStrokeWidth: 1.5,
-      ),
-    );
-    await style.addLayer(
-      SymbolLayer(
-        id: placeMarkerLayerId,
-        sourceId: placesSourceId,
-        minZoom: markerMinZoom,
-        iconImageExpression: ['get', 'marker'],
-        iconAnchor: IconAnchor.BOTTOM,
-        iconSizeExpression: [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          markerMinZoom,
-          0.75,
-          10,
-          1.0,
-        ],
-        symbolSortKeyExpression: [
-          'case',
-          ['get', 'hasPhoto'],
-          0,
-          1,
-        ],
-        textFieldExpression: ['get', 'name'],
-        textSize: 11,
-        textAnchor: TextAnchor.TOP,
-        textOffset: [0, 0.2],
-        textOptional: true,
-        textColor: const Color(0xFF22291F).toARGB32(),
-        textHaloColor: Colors.white.toARGB32(),
-        textHaloWidth: 1.2,
-      ),
-    );
-  }
-
   static const demSourceId = 'mapbox-dem';
   static const skyLayerId = 'kaunti47-sky';
   static const terrainExaggeration = 1.5;
@@ -204,15 +139,7 @@ abstract final class RealMapLayers {
       interactionID: 'kaunti47-county-tap',
     );
     // Added after the county tap so a pin wins over the county under it.
-    for (final layerId in [placeDotLayerId, placeMarkerLayerId]) {
-      map.addInteraction(
-        TapInteraction(
-          FeaturesetDescriptor(layerId: layerId),
-          (feature, _) => onPlace(feature.properties['id']),
-        ),
-        interactionID: 'kaunti47-place-tap-$layerId',
-      );
-    }
+    MapPlaceLayers.addTapHandler(map, onPlace);
   }
 
   /// Outline only the county with [code]; null outlines nothing.

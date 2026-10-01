@@ -10,11 +10,13 @@ import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart'
 
 class FakeJourneyLocationSource implements JourneyLocationSource {
   final controller = StreamController<JourneyFix>.broadcast(sync: true);
+  Stream<JourneyFix>? overrideFixes;
   bool started = false;
   bool failStart = false;
+  bool hangOnStop = false;
 
   @override
-  Stream<JourneyFix> get fixes => controller.stream;
+  Stream<JourneyFix> get fixes => overrideFixes ?? controller.stream;
 
   @override
   Future<void> start() async {
@@ -23,7 +25,11 @@ class FakeJourneyLocationSource implements JourneyLocationSource {
   }
 
   @override
-  Future<void> stop() async => started = false;
+  Future<void> stop() {
+    if (hangOnStop) return Completer<void>().future;
+    started = false;
+    return Future.value();
+  }
 
   Future<void> dispose() => controller.close();
 }
@@ -71,6 +77,25 @@ void main() {
     expect((await repository.points('one', 'alice')).length, 1);
   });
 
+  test('a long gap in valid fixes starts a new route segment', () async {
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await capture.attachStarted(session: session, userId: 'alice');
+    for (final seconds in [5, 190]) {
+      source.controller.add(
+        JourneyFix(
+          recordedAt: t0.add(Duration(seconds: seconds)),
+          latitude: -1.28 + seconds / 10000,
+          longitude: 36.82,
+          accuracyMeters: 7,
+        ),
+      );
+    }
+    now = t0.add(const Duration(minutes: 4));
+    await capture.pause();
+    final points = await repository.points('one', 'alice');
+    expect(points.map((point) => point.segmentNumber), [0, 1]);
+  });
+
   test('restart pauses old session and Resume creates a route gap', () async {
     await repository.start(id: 'one', userId: 'alice', at: t0);
     now = t0.add(const Duration(minutes: 3));
@@ -90,9 +115,33 @@ void main() {
       ),
     );
     now = t0.add(const Duration(minutes: 6));
-    await capture.finish();
+    final finished = await capture.finish();
     expect(source.started, isFalse);
     expect((await repository.points('one', 'alice')).single.segmentNumber, 1);
+    expect(finished.recording.recordedTime(now), const Duration(minutes: 1));
+  });
+
+  test('restart counts only time through the last saved fix', () async {
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await capture.attachStarted(session: session, userId: 'alice');
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(minutes: 1)),
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await pumpEventQueue();
+    expect(await repository.points('one', 'alice'), hasLength(1));
+    now = t0.add(const Duration(hours: 2));
+    final restarted = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+    );
+    final recovered = await restarted.recover('alice');
+    expect(recovered?.recording.recordedTime(now), const Duration(minutes: 1));
   });
 
   test('failed native start leaves the saved Journey paused', () async {
@@ -125,5 +174,61 @@ void main() {
     expect(capture.lastError, isA<StateError>());
     expect(capture.session?.recording.phase, JourneyRecordingPhase.paused);
     expect(source.started, isFalse);
+  });
+
+  test('Stop waits for confirmed native shutdown and can be retried', () async {
+    final hanging = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+      teardownTimeout: const Duration(milliseconds: 50),
+    );
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await hanging.attachStarted(session: session, userId: 'alice');
+    source.hangOnStop = true;
+    now = t0.add(const Duration(minutes: 1));
+
+    await expectLater(
+      hanging.finish(),
+      throwsA(isA<JourneyTeardownException>()),
+    );
+    expect(hanging.session?.recording.phase, JourneyRecordingPhase.paused);
+    source.hangOnStop = false;
+    final finished = await hanging.finish();
+    expect(finished.recording.phase, JourneyRecordingPhase.completed);
+    expect(source.started, isFalse);
+    expect(hanging.session, isNull);
+  });
+
+  test('waits for stream cancellation before native stop', () async {
+    final cancelGate = Completer<void>();
+    var cancelCalls = 0;
+    final slowStream = StreamController<JourneyFix>(
+      onCancel: () {
+        cancelCalls++;
+        return cancelGate.future;
+      },
+    );
+    source.overrideFixes = slowStream.stream;
+    addTearDown(slowStream.close);
+    final slow = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+      teardownTimeout: const Duration(milliseconds: 50),
+    );
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await slow.attachStarted(session: session, userId: 'alice');
+    now = t0.add(const Duration(minutes: 1));
+
+    await expectLater(slow.finish(), throwsA(isA<JourneyTeardownException>()));
+    expect(source.started, isTrue);
+    expect(cancelCalls, 1);
+    cancelGate.complete();
+
+    final finished = await slow.finish();
+    expect(finished.recording.phase, JourneyRecordingPhase.completed);
+    expect(source.started, isFalse);
+    expect(cancelCalls, 1);
   });
 }

@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_destination.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_point.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart';
 
@@ -27,6 +28,63 @@ void main() {
       repo = LocalJourneyRepository(db);
     });
     tearDown(() => db.close());
+
+    test('keeps a place destination across repository recreation', () async {
+      const destination = JourneyDestination(
+        placeId: 'place-1',
+        name: 'Nairobi National Museum',
+        latitude: -1.273,
+        longitude: 36.814,
+      );
+      await repo.start(
+        id: 'journey-1',
+        userId: 'alice',
+        at: started,
+        destination: destination,
+      );
+      final reopened = LocalJourneyRepository(db);
+      final stored = await reopened.destination('journey-1', 'alice');
+      expect(stored?.placeId, destination.placeId);
+      expect(stored?.name, destination.name);
+      expect(stored?.latitude, destination.latitude);
+      expect(stored?.longitude, destination.longitude);
+      expect(await reopened.destination('journey-1', 'bob'), isNull);
+    });
+
+    test('rejects a destination that cannot be uploaded', () async {
+      expect(
+        repo.start(
+          id: 'journey-1',
+          userId: 'alice',
+          at: started,
+          destination: const JourneyDestination(
+            placeId: 'place-1',
+            name: 'Museum',
+            latitude: 120,
+            longitude: 36.8,
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(await repo.activeSession('alice'), isNull);
+    });
+
+    test('keeps paused time across a restart', () async {
+      await repo.start(id: 'journey-p', userId: 'alice', at: started);
+      await repo.pause(
+        id: 'journey-p',
+        userId: 'alice',
+        at: started.add(const Duration(minutes: 5)),
+      );
+      await repo.resume(
+        id: 'journey-p',
+        userId: 'alice',
+        at: started.add(const Duration(minutes: 9)),
+      );
+      // A fresh repository reads it back from the database.
+      final saved = await LocalJourneyRepository(db).activeSession('alice');
+      expect(saved!.recording.pausedTotal, const Duration(minutes: 4));
+    });
 
     test('persists points and starts a new segment after pause', () async {
       await repo.start(id: 'journey-1', userId: 'alice', at: started);

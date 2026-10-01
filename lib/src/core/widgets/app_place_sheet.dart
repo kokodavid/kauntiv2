@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/design/app_type_scale.dart';
-import '../../../core/widgets/app_photo_parts.dart';
-import '../../../counties/county_paths.dart';
-import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
+import '../../counties/county_paths.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
+import '../design/app_type_scale.dart';
 import '../domain/map_place.dart';
-import 'map_home_links.dart';
+import 'app_photo_parts.dart';
 
-/// The sheet for a tapped place pin, in the feature-card style: the place
+/// Opens Place Detail for a place id. Supplied by `app/`.
+typedef AppOpenPlace = void Function(BuildContext context, String placeId);
+typedef AppOpenPlaceRoute =
+    Future<void> Function(BuildContext context, MapPlace place);
+
+/// The sheet for a tapped place pin (Home map, Journey recording), in the
+/// feature-card style: the place
 /// photo with its name, county and type, a Route button on the photo, the
 /// summary, and "View place".
-class RealMapPlaceSheet extends StatelessWidget {
-  const RealMapPlaceSheet({
+class AppPlaceSheet extends StatelessWidget {
+  const AppPlaceSheet({
     super.key,
     required this.place,
     this.onOpen,
     this.onRoute,
+    this.onPlaceRoute,
   });
 
   final MapPlace place;
@@ -26,13 +32,15 @@ class RealMapPlaceSheet extends StatelessWidget {
 
   /// Driving directions to the pin; null hides Route.
   final AppOpenDirections? onRoute;
+  final Future<void> Function()? onPlaceRoute;
 
   /// Shows the sheet; [onOpenPlace] runs with [context] after it closes.
   static Future<void> show(
     BuildContext context,
     MapPlace place, {
-    OpenPlaceDetail? onOpenPlace,
+    AppOpenPlace? onOpenPlace,
     AppOpenDirections? onRoute,
+    AppOpenPlaceRoute? onPlaceRoute,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -41,12 +49,18 @@ class RealMapPlaceSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.foreground.withValues(alpha: 0.28),
       isScrollControlled: true,
-      builder: (_) => RealMapPlaceSheet(
+      builder: (sheetContext) => AppPlaceSheet(
         place: place,
         onOpen: onOpenPlace == null
             ? null
             : () => onOpenPlace(context, place.id),
         onRoute: onRoute,
+        onPlaceRoute: onPlaceRoute == null
+            ? null
+            : () {
+                Navigator.of(sheetContext).pop();
+                return onPlaceRoute(context, place);
+              },
       ),
     );
   }
@@ -67,6 +81,7 @@ class RealMapPlaceSheet extends StatelessWidget {
     final county = CountyPaths.byCode[place.countyCode];
     final summary = place.summary?.trim();
     final route = onRoute;
+    final placeRoute = onPlaceRoute;
     final open = onOpen;
     return Container(
       width: double.infinity,
@@ -96,14 +111,16 @@ class RealMapPlaceSheet extends StatelessWidget {
                 imageUrl: place.thumbnailUrl,
                 height: 180,
                 topLeft: AppPhotoPill(label: typeLabel(place.type)),
-                bottomRight: route == null
+                bottomRight: route == null && placeRoute == null
                     ? null
                     : AppPhotoButton(
-                        onPressed: () => openRoute(
-                          context,
-                          '${place.lat},${place.lng}',
-                          route,
-                        ),
+                        onPressed: () => placeRoute != null
+                            ? placeRoute()
+                            : openRoute(
+                                context,
+                                '${place.lat},${place.lng}',
+                                route!,
+                              ),
                       ),
               ),
             )

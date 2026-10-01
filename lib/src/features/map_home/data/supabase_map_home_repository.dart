@@ -1,9 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/domain/county_tier.dart';
+import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
 import '../../../services/app_logger.dart';
 import '../domain/map_home_models.dart';
-import '../domain/map_place.dart';
 import 'map_home_county_reads.dart';
 import 'map_home_for_you_reads.dart';
 import 'map_home_repository.dart';
@@ -54,7 +55,7 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
     ).wait;
 
     return MapHomeBoardData(
-      tierLabel: _tierLabelFor(exploredCount),
+      tier: CountyTier.forClaimed(exploredCount),
       totalCounties: CountyPaths.all.length,
       homeCounty: resolvedHomeCounty,
       countyBadges: badges,
@@ -274,12 +275,5 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
     final km = meters / 1000;
     if (km < 10) return '${km.toStringAsFixed(1)} km away';
     return '${km.round()} km away';
-  }
-
-  String _tierLabelFor(int exploredCount) {
-    if (exploredCount >= 47) return 'MKENYA HALISI';
-    if (exploredCount >= 25) return 'MZURURAJI';
-    if (exploredCount >= 10) return 'MSAFIRI';
-    return 'MGENI';
   }
 }

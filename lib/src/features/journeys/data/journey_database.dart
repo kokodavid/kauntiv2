@@ -13,6 +13,13 @@ class JourneySessions extends Table {
   IntColumn get endedAtMillis => integer().nullable()();
   IntColumn get segmentNumber => integer()();
 
+  /// Upload bookkeeping for completed sessions (schema 2).
+  IntColumn get uploadAttempts => integer().withDefault(const Constant(0))();
+  IntColumn get nextUploadAtMillis => integer().nullable()();
+
+  /// Time spent paused so far, for the recorded-time clock (schema 3).
+  IntColumn get pausedTotalMillis => integer().withDefault(const Constant(0))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -37,5 +44,73 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 7;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+      await _addDestinationColumns();
+      await _addTitleColumn();
+      await _addSpeedElevationColumns();
+      await _addTrialLimitColumn();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.addColumn(journeySessions, journeySessions.uploadAttempts);
+        await m.addColumn(journeySessions, journeySessions.nextUploadAtMillis);
+      }
+      if (from < 3) {
+        await m.addColumn(journeySessions, journeySessions.pausedTotalMillis);
+      }
+      if (from < 4) await _addDestinationColumns();
+      if (from < 5) await _addTitleColumn();
+      if (from < 6) await _addSpeedElevationColumns();
+      if (from < 7) await _addTrialLimitColumn();
+    },
+  );
+
+  // Keep this optional metadata out of Drift's generated row mapping until
+  // code generation is next run; older recordings have NULL in all columns.
+  Future<void> _addDestinationColumns() async {
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN destination_place_id TEXT',
+    );
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN destination_name TEXT',
+    );
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN destination_latitude REAL',
+    );
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN destination_longitude REAL',
+    );
+  }
+
+  /// A user-set name overriding the default "Trip on ..."/"Trip to ..."
+  /// title (schema 5); NULL until the user renames it.
+  Future<void> _addTitleColumn() async {
+    await customStatement('ALTER TABLE journey_sessions ADD COLUMN title TEXT');
+  }
+
+  /// A fix's height above sea level and instantaneous speed, when the
+  /// device reported them (schema 6); NULL for older recordings.
+  Future<void> _addSpeedElevationColumns() async {
+    await customStatement(
+      'ALTER TABLE journey_samples ADD COLUMN altitude_meters REAL',
+    );
+    await customStatement(
+      'ALTER TABLE journey_samples ADD COLUMN speed_mps REAL',
+    );
+  }
+
+  /// Set (1) when this completed Trip's last upload attempt was rejected
+  /// because the free Trip allowance for that month was used up (schema
+  /// 7); NULL/0 otherwise. Lets the history list explain why a waiting
+  /// Trip isn't just "offline".
+  Future<void> _addTrialLimitColumn() async {
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN blocked_by_trial_limit INTEGER',
+    );
+  }
 }

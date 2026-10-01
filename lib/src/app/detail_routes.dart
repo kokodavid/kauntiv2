@@ -7,6 +7,7 @@ import '../features/discover/application/explore_providers.dart';
 import '../features/discover/data/directions_launcher.dart';
 import '../features/discover/data/supabase_discover_detail_repository.dart';
 import '../features/discover/domain/explore_board.dart';
+import '../services/app_location_permission_service.dart';
 import '../services/app_supabase.dart';
 import 'app_routes.dart';
 
@@ -38,6 +39,11 @@ abstract final class DetailRoutes {
       listen: false,
     ).read(exploreTabSelectionProvider.notifier).select(ExploreTab.unclaimed);
     context.go(AppRoutes.explore);
+  }
+
+  /// The OS settings for this app (location permission for Journeys).
+  static Future<void> openAppSettings() async {
+    await const AppLocationPermissionService().openSettings();
   }
 
   /// Driving directions to a text destination in the phone's maps app.

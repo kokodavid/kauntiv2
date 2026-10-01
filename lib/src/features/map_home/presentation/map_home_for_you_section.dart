@@ -18,6 +18,7 @@ class MapHomeForYouSection extends StatelessWidget {
     this.onOpenCounty,
     this.onOpenPlace,
     this.onRoute,
+    this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
   });
 
@@ -27,6 +28,7 @@ class MapHomeForYouSection extends StatelessWidget {
 
   /// Opens directions for the Route buttons; they're hidden when null.
   final OpenDirections? onRoute;
+  final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
 
   @override
@@ -48,6 +50,7 @@ class MapHomeForYouSection extends StatelessWidget {
               onOpenPlace: onOpenPlace,
               onOpenCounty: onOpenCounty,
               onRoute: onRoute,
+              onPlaceRoute: onPromotedPlaceRoute,
             )
           else
             mapHomeSuggestionCard(

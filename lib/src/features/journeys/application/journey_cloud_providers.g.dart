@@ -113,3 +113,56 @@ final class JourneyUploadQueueProvider
 
 String _$journeyUploadQueueHash() =>
     r'669c4617d9bb171d041095ceeee86bf2ac1866e2';
+
+/// Uploads captured Trip photos, or null without Supabase.
+
+@ProviderFor(journeyMediaUploadQueue)
+const journeyMediaUploadQueueProvider = JourneyMediaUploadQueueProvider._();
+
+/// Uploads captured Trip photos, or null without Supabase.
+
+final class JourneyMediaUploadQueueProvider
+    extends
+        $FunctionalProvider<
+          JourneyMediaUploadQueue?,
+          JourneyMediaUploadQueue?,
+          JourneyMediaUploadQueue?
+        >
+    with $Provider<JourneyMediaUploadQueue?> {
+  /// Uploads captured Trip photos, or null without Supabase.
+  const JourneyMediaUploadQueueProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'journeyMediaUploadQueueProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$journeyMediaUploadQueueHash();
+
+  @$internal
+  @override
+  $ProviderElement<JourneyMediaUploadQueue?> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  JourneyMediaUploadQueue? create(Ref ref) {
+    return journeyMediaUploadQueue(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(JourneyMediaUploadQueue? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<JourneyMediaUploadQueue?>(value),
+    );
+  }
+}
+
+String _$journeyMediaUploadQueueHash() =>
+    r'33c6b8c0c085d0b0d4effdfb79b9278b208abf45';

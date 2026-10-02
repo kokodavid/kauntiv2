@@ -99,6 +99,25 @@ Future<void> _setBlockedByTrialLimit(
   );
 }
 
+Future<JourneyTransportMode?> _transportMode(
+  JourneyDatabase db,
+  String id,
+  String userId,
+) async {
+  final rows = await db
+      .customSelect(
+        'SELECT transport_mode FROM journey_sessions '
+        'WHERE id = ? AND user_id = ?',
+        variables: [Variable.withString(id), Variable.withString(userId)],
+        readsFrom: {db.journeySessions},
+      )
+      .get();
+  if (rows.isEmpty) return null;
+  return JourneyTransportMode.fromStorage(
+    rows.single.data['transport_mode'] as String?,
+  );
+}
+
 Future<LocalJourneySession> _owned(
   JourneyDatabase db,
   String id,

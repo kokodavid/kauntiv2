@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -5,9 +6,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/journey_destination.dart';
-import '../domain/journey_moments.dart';
+import '../domain/journey_media_capture.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
+import '../domain/journey_transport_mode.dart';
 import '../domain/pro_status.dart';
 import 'journey_county_split_resolver.dart';
 import 'journey_place_thumbnail.dart';
@@ -25,9 +27,6 @@ class SupabaseJourneyRepository {
 
   /// Longer: a long Journey is a big payload.
   static const _uploadTimeout = Duration(seconds: 30);
-
-  Future<List<JourneyPlaceMark>> places(String userId) =>
-      _journeyPlaces(_client, _timeout, userId);
 
   Future<List<MapPlace>> mapPlaces() => _journeyMapPlaces(_client, _timeout);
 
@@ -74,6 +73,7 @@ class SupabaseJourneyRepository {
     required List<JourneyPoint> points,
     Duration pausedDuration = Duration.zero,
     JourneyDestination? destination,
+    JourneyTransportMode? transportMode,
   }) async {
     // County lookups over a long route are real work: off the UI isolate.
     final counties = await Isolate.run(() => splitJourneyCounties(points));
@@ -87,6 +87,7 @@ class SupabaseJourneyRepository {
             'p_started_at': startedAt.toUtc().toIso8601String(),
             'p_ended_at': endedAt.toUtc().toIso8601String(),
             'p_paused_ms': pausedDuration.inMilliseconds,
+            'p_transport_mode': transportMode?.storageValue,
             'p_counties': [
               for (final MapEntry(key: code, value: meters) in counties.entries)
                 {
@@ -127,7 +128,7 @@ class SupabaseJourneyRepository {
               'id, title, started_at, ended_at, distance_m, paused_ms, '
               'destination_place_id, destination_name, '
               'destination_latitude, destination_longitude, '
-              'top_speed_mps, highest_elevation_m',
+              'top_speed_mps, highest_elevation_m, transport_mode',
             )
             .order('started_at', ascending: false)
             // postgrest-dart's order() is descending unless told otherwise.
@@ -191,6 +192,9 @@ class SupabaseJourneyRepository {
     topSpeedMps: (row['top_speed_mps'] as num?)?.toDouble(),
     highestElevationMeters: (row['highest_elevation_m'] as num?)?.toDouble(),
     countyNames: countyNames,
+    transportMode: JourneyTransportMode.fromStorage(
+      row['transport_mode'] as String?,
+    ),
   );
 
   /// One uploaded Journey, or null if it's gone (deleted elsewhere).
@@ -201,7 +205,7 @@ class SupabaseJourneyRepository {
           'id, title, started_at, ended_at, distance_m, paused_ms, '
           'destination_place_id, destination_name, '
           'destination_latitude, destination_longitude, '
-          'top_speed_mps, highest_elevation_m',
+          'top_speed_mps, highest_elevation_m, transport_mode',
         )
         .eq('id', id)
         .maybeSingle()
@@ -268,4 +272,76 @@ class SupabaseJourneyRepository {
         params: {'p_user_id': userId, 'p_journey_id': id, 'p_title': title},
       )
       .timeout(_timeout);
+
+  static const _mediaBucket = 'journey-media';
+
+  /// Uploads one Trip photo to the private `journey-media` bucket and
+  /// records it in `journey_media`. RLS on both (storage objects keyed by
+  /// a `<user_id>/...` folder, the table by `user_id`) is what actually
+  /// enforces ownership; [userId] here only shapes the storage path.
+  /// [id] is the local capture's id, reused as the stored object's name
+  /// so a retried upload after a lost response overwrites the same
+  /// object rather than leaving an orphan copy.
+  Future<void> uploadMedia({
+    required String userId,
+    required String journeyId,
+    required String id,
+    required String localPath,
+    required DateTime capturedAt,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final extension = localPath.contains('.')
+        ? localPath.substring(localPath.lastIndexOf('.'))
+        : '.jpg';
+    final storagePath = '$userId/$journeyId/$id$extension';
+    await _client.storage
+        .from(_mediaBucket)
+        .upload(
+          storagePath,
+          File(localPath),
+          fileOptions: const FileOptions(upsert: true),
+        )
+        .timeout(_uploadTimeout);
+    await _client
+        .from('journey_media')
+        .upsert({
+          'journey_id': journeyId,
+          'user_id': userId,
+          'storage_path': storagePath,
+          'captured_at': capturedAt.toUtc().toIso8601String(),
+          'latitude': latitude,
+          'longitude': longitude,
+        }, onConflict: 'storage_path')
+        .timeout(_timeout);
+  }
+
+  /// This Trip's uploaded photos, oldest first, each with a signed URL
+  /// good for an hour - the bucket is private, so a plain public URL
+  /// won't load.
+  Future<List<JourneyMediaItem>> media(String journeyId) async {
+    final rows = await _client
+        .from('journey_media')
+        .select('id, storage_path, captured_at, latitude, longitude')
+        .eq('journey_id', journeyId)
+        .order('captured_at', ascending: true)
+        .timeout(_timeout);
+    final urls = await Future.wait([
+      for (final row in rows)
+        _client.storage
+            .from(_mediaBucket)
+            .createSignedUrl(row['storage_path'] as String, 3600)
+            .timeout(_timeout),
+    ]);
+    return [
+      for (var i = 0; i < rows.length; i++)
+        JourneyMediaItem(
+          id: rows[i]['id'] as String,
+          url: urls[i],
+          capturedAt: DateTime.parse(rows[i]['captured_at'] as String),
+          latitude: (rows[i]['latitude'] as num?)?.toDouble(),
+          longitude: (rows[i]['longitude'] as num?)?.toDouble(),
+        ),
+    ];
+  }
 }

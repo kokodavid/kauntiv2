@@ -7,6 +7,7 @@ import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_destination.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_point.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_transport_mode.dart';
 
 void main() {
   final started = DateTime.utc(2026, 9, 25, 10);
@@ -189,6 +190,111 @@ void main() {
         ]);
       },
     );
+
+    test('keeps the chosen transport mode across restarts', () async {
+      await repo.start(
+        id: 'journey-1',
+        userId: 'alice',
+        at: started,
+        mode: JourneyTransportMode.cycle,
+      );
+      expect(
+        await LocalJourneyRepository(db).transportMode('journey-1', 'alice'),
+        JourneyTransportMode.cycle,
+      );
+      expect(
+        await repo.transportMode('journey-1', 'bob'),
+        isNull,
+      );
+    });
+
+    test('a Trip with no mode on record skips the speed check', () async {
+      await repo.start(id: 'journey-1', userId: 'alice', at: started);
+      // ~833 km in one minute - absurd for any mode, but there is none on
+      // record, so the existing (older) behaviour is left untouched.
+      await repo.appendPoint(
+        id: 'journey-1',
+        userId: 'alice',
+        point: point(0, 0),
+      );
+      await repo.appendPoint(
+        id: 'journey-1',
+        userId: 'alice',
+        point: JourneyPoint(
+          recordedAt: started.add(const Duration(minutes: 1)),
+          latitude: -1.286389,
+          longitude: 44,
+          accuracyMeters: 8,
+          segmentNumber: 0,
+        ),
+      );
+      expect((await repo.points('journey-1', 'alice')).length, 2);
+    });
+
+    test(
+      'rejects a point implying a speed no Walk could actually reach',
+      () async {
+        await repo.start(
+          id: 'journey-1',
+          userId: 'alice',
+          at: started,
+          mode: JourneyTransportMode.walk,
+        );
+        await repo.appendPoint(
+          id: 'journey-1',
+          userId: 'alice',
+          point: point(0, 0),
+        );
+        // About 1.1 km in one minute (~18.5 m/s): far beyond a walking
+        // pace, so the jump is dropped rather than accepted as a very
+        // fast walk.
+        expect(
+          repo.appendPoint(
+            id: 'journey-1',
+            userId: 'alice',
+            point: JourneyPoint(
+              recordedAt: started.add(const Duration(minutes: 1)),
+              latitude: -1.286389,
+              longitude: 36.827223,
+              accuracyMeters: 8,
+              segmentNumber: 0,
+            ),
+          ),
+          throwsA(isA<JourneyPointRejected>()),
+        );
+        expect((await repo.points('journey-1', 'alice')).length, 1);
+      },
+    );
+
+    test('accepts a plausible Drive point a Walk would have rejected', () async {
+      await repo.start(
+        id: 'journey-1',
+        userId: 'alice',
+        at: started,
+        mode: JourneyTransportMode.drive,
+      );
+      await repo.appendPoint(
+        id: 'journey-1',
+        userId: 'alice',
+        point: point(0, 0),
+      );
+      // The same ~1.1 km-in-a-minute jump as above, but now a plausible
+      // driving speed (well under the Drive ceiling), so it is kept.
+      expect(
+        await repo.appendPoint(
+          id: 'journey-1',
+          userId: 'alice',
+          point: JourneyPoint(
+            recordedAt: started.add(const Duration(minutes: 1)),
+            latitude: -1.286389,
+            longitude: 36.827223,
+            accuracyMeters: 8,
+            segmentNumber: 0,
+          ),
+        ),
+        1,
+      );
+    });
   });
 
   test(

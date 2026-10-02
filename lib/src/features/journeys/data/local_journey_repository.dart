@@ -3,6 +3,8 @@ import 'package:drift/drift.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_recording.dart';
+import '../domain/journey_route.dart';
+import '../domain/journey_transport_mode.dart';
 import 'journey_database.dart';
 
 part 'local_journey_repository_mappers.dart';
@@ -45,6 +47,12 @@ class LocalJourneyRepository {
     required bool blocked,
   }) => _setBlockedByTrialLimit(_db, id, userId, blocked);
 
+  /// How this Trip is being travelled (Drive/Walk/Cycle); null for a Trip
+  /// recorded before this existed, or started without a repository call
+  /// that set one.
+  Future<JourneyTransportMode?> transportMode(String id, String userId) =>
+      _transportMode(_db, id, userId);
+
   Future<LocalJourneySession?> activeSession(String userId) async {
     final row =
         await (_db.select(_db.journeySessions)
@@ -63,6 +71,7 @@ class LocalJourneyRepository {
     required String userId,
     required DateTime at,
     JourneyDestination? destination,
+    JourneyTransportMode? mode,
   }) => _db.transaction(() async {
     if (id.isEmpty || userId.isEmpty) {
       throw ArgumentError('A Journey needs an id and an owner.');
@@ -101,6 +110,18 @@ class LocalJourneyRepository {
           Variable.withString(destination.name),
           Variable<double>(destination.latitude),
           Variable<double>(destination.longitude),
+          Variable.withString(id),
+          Variable.withString(userId),
+        ],
+        updates: {_db.journeySessions},
+      );
+    }
+    if (mode != null) {
+      await _db.customUpdate(
+        'UPDATE journey_sessions SET transport_mode = ? '
+        'WHERE id = ? AND user_id = ?',
+        variables: [
+          Variable.withString(mode.storageValue),
           Variable.withString(id),
           Variable.withString(userId),
         ],
@@ -177,6 +198,38 @@ class LocalJourneyRepository {
         point.recordedAt.millisecondsSinceEpoch <= previous.recordedAtMillis) {
       throw const JourneyPointRejected();
     }
+    if (previous != null && previous.segmentNumber == point.segmentNumber) {
+      // A mode-appropriate sanity check: a fix implying a speed no one
+      // actually travelling that way could reach is almost always a GPS
+      // jump, not a faster Trip - dropped so it never corrupts the route.
+      // Skipped when the Trip has no mode on record (recorded before this
+      // existed), so older/unset Trips keep their previous behaviour.
+      final mode = await _transportMode(_db, id, userId);
+      if (mode != null) {
+        final elapsedSeconds =
+            (point.recordedAt.millisecondsSinceEpoch -
+                previous.recordedAtMillis) /
+            1000;
+        if (elapsedSeconds > 0) {
+          final distance = JourneyRoute.haversineMeters(
+            JourneyPoint(
+              recordedAt: DateTime.fromMillisecondsSinceEpoch(
+                previous.recordedAtMillis,
+                isUtc: true,
+              ),
+              latitude: previous.latitude,
+              longitude: previous.longitude,
+              accuracyMeters: previous.accuracyMeters,
+              segmentNumber: previous.segmentNumber,
+            ),
+            point,
+          );
+          if (distance / elapsedSeconds > mode.maxSpeedMetersPerSecond) {
+            throw const JourneyPointRejected();
+          }
+        }
+      }
+    }
     final sequence = (previous?.sequenceNumber ?? -1) + 1;
     await _db
         .into(_db.journeySamples)
@@ -235,6 +288,23 @@ class LocalJourneyRepository {
             row.recordedAtMillis,
             isUtc: true,
           );
+  }
+
+  /// The most recent fix, for tagging a photo captured just now with
+  /// where the Trip was - cheaper than reading the whole route just for
+  /// its last point.
+  Future<JourneyPoint?> lastPoint(String id, String userId) async {
+    await _owned(_db, id, userId);
+    final rows = await _db
+        .customSelect(
+          'SELECT segment_number, recorded_at_millis, latitude, longitude, '
+          'accuracy_meters, altitude_meters, speed_mps FROM journey_samples '
+          'WHERE journey_id = ? ORDER BY sequence_number DESC LIMIT 1',
+          variables: [Variable.withString(id)],
+          readsFrom: {_db.journeySamples},
+        )
+        .get();
+    return rows.isEmpty ? null : _pointFromRow(rows.single.data);
   }
 
   Future<void> discard(String id, String userId) => _db.transaction(() async {

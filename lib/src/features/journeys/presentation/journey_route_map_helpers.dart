@@ -12,9 +12,6 @@ extension _JourneyRouteMapHelpers on _JourneyRouteMapState {
 
   String _routeJson() => jsonEncode(widget.route.toGeoJson());
 
-  double get _routeOpacity =>
-      widget.played == null ? 1 : JourneyMapLayers.fadedOpacity;
-
   String _playedJson() {
     final played = widget.played;
     return played == null

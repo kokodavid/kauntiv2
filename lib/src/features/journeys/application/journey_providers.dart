@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../data/device_journey_location_source.dart';
 import '../data/journey_database.dart';
+import '../data/local_journey_media_repository.dart';
 import '../data/local_journey_repository.dart';
 import '../domain/journey_fix.dart';
 import 'journey_capture.dart';
@@ -18,6 +19,10 @@ JourneyDatabase journeyDatabase(Ref ref) {
 @Riverpod(keepAlive: true)
 LocalJourneyRepository localJourneyRepository(Ref ref) =>
     LocalJourneyRepository(ref.watch(journeyDatabaseProvider));
+
+@Riverpod(keepAlive: true)
+LocalJourneyMediaRepository localJourneyMediaRepository(Ref ref) =>
+    LocalJourneyMediaRepository(ref.watch(journeyDatabaseProvider));
 
 @Riverpod(keepAlive: true)
 JourneyLocationSource journeyLocationSource(Ref ref) =>

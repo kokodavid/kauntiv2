@@ -99,6 +99,55 @@ final class LocalJourneyRepositoryProvider
 String _$localJourneyRepositoryHash() =>
     r'583107c14dc3117ce8c25e67c3cbecd701ae626a';
 
+@ProviderFor(localJourneyMediaRepository)
+const localJourneyMediaRepositoryProvider =
+    LocalJourneyMediaRepositoryProvider._();
+
+final class LocalJourneyMediaRepositoryProvider
+    extends
+        $FunctionalProvider<
+          LocalJourneyMediaRepository,
+          LocalJourneyMediaRepository,
+          LocalJourneyMediaRepository
+        >
+    with $Provider<LocalJourneyMediaRepository> {
+  const LocalJourneyMediaRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localJourneyMediaRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localJourneyMediaRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<LocalJourneyMediaRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  LocalJourneyMediaRepository create(Ref ref) {
+    return localJourneyMediaRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LocalJourneyMediaRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LocalJourneyMediaRepository>(value),
+    );
+  }
+}
+
+String _$localJourneyMediaRepositoryHash() =>
+    r'5554c4831eb68008d74d4b0eca83890ec6eda7f8';
+
 @ProviderFor(journeyLocationSource)
 const journeyLocationSourceProvider = JourneyLocationSourceProvider._();
 

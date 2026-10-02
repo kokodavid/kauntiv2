@@ -1,89 +1,144 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
-import '../../../core/widgets/app_place_row.dart';
 import '../../../design/app_colors.dart';
-import '../../discover/application/explore_providers.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_route.dart';
+import 'journey_media_strip.dart' show openJourneyPhoto;
 
-/// Opens Place Detail; supplied by `app/` (the `/place/:id` route).
-typedef OpenJourneyPlace = void Function(BuildContext context, String id);
-
-/// One key moment in the replay card. Place moments open the place and
-/// can be saved (shared with Explore's saved state).
-class JourneyMomentRow extends ConsumerWidget {
-  const JourneyMomentRow({
+/// One row in the replay timeline: an icon on the connecting line, the
+/// time and what happened, and - for a photo - the photo itself, shown
+/// full-width rather than as a small thumbnail.
+///
+/// [isCurrent] lights the row up (the moment replay is paused at right
+/// now); every other moment, past or still ahead, uses the same default
+/// styling, so the whole Trip stays visible as one continuous story.
+class JourneyTimelineMomentRow extends StatelessWidget {
+  const JourneyTimelineMomentRow({
     super.key,
     required this.moment,
     required this.time,
-    this.onOpenPlace,
+    required this.isCurrent,
+    required this.isLast,
+    required this.onTap,
   });
 
   final JourneyMoment moment;
 
   /// When it happened on the Journey.
   final DateTime? time;
-  final OpenJourneyPlace? onOpenPlace;
 
-  /// Closer than this reads as "on your route".
-  static const _onRouteMeters = 300.0;
+  /// Whether replay is paused here right now.
+  final bool isCurrent;
+
+  /// Whether this is the timeline's last row (no connecting line below).
+  final bool isLast;
+
+  /// Jumps replay to this moment's point in the route.
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final place = moment.place;
-    final open = onOpenPlace;
-    if (place != null) {
-      return _PlaceMomentRow(moment: moment, place: place, onOpenPlace: open);
-    }
+  Widget build(BuildContext context) {
+    final photo = moment.photo;
     final (icon, title, detail) = _describe(moment);
     final at = time == null
         ? null
         : TimeOfDay.fromDateTime(time!.toLocal()).format(context);
-    final row = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: AppColors.lockedFill,
-            foregroundColor: AppColors.accent,
-            child: Icon(icon, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypeScale.itemTitle,
-                ),
-                Text(
-                  at == null ? detail : '$at · $detail',
-                  style: AppTypeScale.small.copyWith(
-                    color: AppColors.mutedForeground,
+    final circleColor = isCurrent ? AppColors.accent : AppColors.noteBackground;
+    final iconColor = isCurrent ? Colors.white : AppColors.mutedForeground;
+    final titleStyle = AppTypeScale.itemTitle.copyWith(
+      fontWeight: FontWeight.w600,
+      color: isCurrent ? AppColors.accent : AppColors.foreground,
+    );
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: circleColor,
+                    foregroundColor: iconColor,
+                    child: Icon(icon, size: 16),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        color: AppColors.cardBorder,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (at != null)
+                        Text(
+                          at,
+                          style: AppTypeScale.meta.copyWith(
+                            color: AppColors.mutedForeground,
+                          ),
+                        ),
+                      const SizedBox(height: 2),
+                      Text(title, style: titleStyle),
+                      if (detail.isNotEmpty) ...[
+                        const SizedBox(height: 1),
+                        Text(
+                          detail,
+                          style: AppTypeScale.small.copyWith(
+                            color: AppColors.mutedForeground,
+                          ),
+                        ),
+                      ],
+                      if (photo != null) ...[
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () => openJourneyPhoto(context, photo),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 10,
+                              child: Image.network(
+                                photo.url,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stack) =>
+                                    const ColoredBox(
+                                      color: AppColors.lockedFill,
+                                      child: Icon(
+                                        Icons.broken_image_outlined,
+                                      ),
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
-    return row;
   }
 
   static (IconData, String, String) _describe(JourneyMoment moment) {
     final duration = moment.duration;
     final took = duration == null ? null : JourneyFormat.duration(duration);
-    final meters = moment.distanceMeters;
-    final away = meters == null || meters < _onRouteMeters
-        ? 'On your route'
-        : '${JourneyFormat.distance(meters)} from your route';
     return switch (moment.kind) {
       JourneyMomentKind.recordingBreak => (
         Icons.pause_circle_outline,
@@ -93,70 +148,20 @@ class JourneyMomentRow extends ConsumerWidget {
       JourneyMomentKind.longStop => (
         Icons.schedule,
         took == null ? 'A long stop' : 'Stopped for $took',
-        'Long stop',
+        '',
       ),
       JourneyMomentKind.countyCrossing => (
         Icons.flag_outlined,
         'Entered ${moment.name ?? 'a new county'}',
-        'County crossing',
+        '',
       ),
-      JourneyMomentKind.savedPlace => (
-        Icons.bookmark_outline,
-        moment.name ?? 'A saved place',
-        'Saved · $away',
-      ),
-      JourneyMomentKind.nearbyPlace => (
-        Icons.place_outlined,
-        moment.name ?? 'A place nearby',
-        away,
+      // "Photo taken" headers the row; the photo itself renders below it.
+      JourneyMomentKind.photo => (Icons.photo_camera_outlined, 'Photo taken', ''),
+      JourneyMomentKind.elevationPeak => (
+        Icons.terrain,
+        'Highest point · ${JourneyFormat.elevation(moment.elevationMeters)}',
+        '',
       ),
     };
-  }
-}
-
-/// A place visited along the route, shown as the same place row Explore
-/// uses, so a place looks the same whether it's being browsed or replayed.
-class _PlaceMomentRow extends ConsumerWidget {
-  const _PlaceMomentRow({
-    required this.moment,
-    required this.place,
-    this.onOpenPlace,
-  });
-
-  final JourneyMoment moment;
-  final JourneyPlaceMark place;
-  final OpenJourneyPlace? onOpenPlace;
-
-  /// Closer than this reads as "on route" rather than a distance.
-  static const _onRouteMeters = 300.0;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final open = onOpenPlace;
-    final meters = moment.distanceMeters;
-    final distanceLabel = meters == null
-        ? null
-        : meters < _onRouteMeters
-        ? 'On route'
-        : JourneyFormat.distance(meters);
-    final saved =
-        ref.watch(exploreSavedPlacesProvider.select((s) => s[place.id])) ??
-        place.saved;
-    return AppPlaceRow(
-      title: place.name,
-      description: place.description ?? 'A place near your route.',
-      categoryLabel: place.categoryLabel ?? 'Place',
-      saved: saved,
-      thumbnailUrl: place.thumbnailUrl,
-      distanceLabel: distanceLabel,
-      onTap: open == null ? null : () => open(context, place.id),
-      onSaveChanged: (saved) => ref
-          .read(exploreSavedPlacesProvider.notifier)
-          .setSaved(
-            countyCode: place.countyCode,
-            placeId: place.id,
-            saved: saved,
-          ),
-    );
   }
 }

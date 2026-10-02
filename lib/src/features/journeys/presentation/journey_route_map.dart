@@ -43,9 +43,10 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
 
   final JourneyRoute route;
 
-  /// During replay: the part already played, drawn on top of a faded
-  /// [route], with a short line from its last point to [marker]. Null
-  /// draws [route] in full colour.
+  /// During replay: the part already played, drawn in the accent colour
+  /// on top of [route] (shown in a lighter upcoming-route colour), with a
+  /// short line from its last point to [marker]. Null draws [route] in
+  /// the played colour throughout.
   final JourneyRoute? played;
   final JourneyLatLng? marker;
 
@@ -112,15 +113,6 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     if (oldWidget.route.pointCount != widget.route.pointCount) {
       unawaited(_updateRoute());
     }
-    if ((oldWidget.played == null) != (widget.played == null)) {
-      unawaited(
-        _map?.style.setStyleLayerProperty(
-          JourneyMapLayers.routeLine,
-          'line-opacity',
-          _routeOpacity,
-        ),
-      );
-    }
     if (oldWidget.played?.pointCount != widget.played?.pointCount) {
       unawaited(_setSource(JourneyMapLayers.playedSource, _playedJson()));
     }
@@ -152,7 +144,6 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
       played: _playedJson(),
       marker: _markerJson(),
       endpoints: _endpointJson(),
-      routeOpacity: _routeOpacity,
     );
     _styleReady = true;
     if (widget.pulsing) _syncPulse();

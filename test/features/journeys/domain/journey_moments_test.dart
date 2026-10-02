@@ -1,13 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_media_capture.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_moments.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_point.dart';
 
-JourneyPoint _p(int minute, double lat, {int segment = 0}) => JourneyPoint(
+JourneyPoint _p(
+  int minute,
+  double lat, {
+  int segment = 0,
+  double? altitude,
+}) => JourneyPoint(
   recordedAt: DateTime.utc(2026, 9, 25, 10, minute),
   latitude: lat,
   longitude: 36.82,
   accuracyMeters: 5,
   segmentNumber: segment,
+  altitudeMeters: altitude,
 );
 
 void main() {
@@ -89,36 +96,59 @@ void main() {
     expect(moments.single.index, 6);
   });
 
-  test('places within 10 km show once, at the closest point', () {
-    JourneyPlaceMark place(String name, double lat, {bool saved = false}) =>
-        JourneyPlaceMark(
-          id: name,
-          countyCode: 47,
-          name: name,
-          latitude: lat,
-          longitude: 36.82,
-          saved: saved,
-        );
+  test('a photo lands at the point closest to when it was taken', () {
+    JourneyMediaItem photo(String id, int minute) => JourneyMediaItem(
+      id: id,
+      url: 'https://example.com/$id.jpg',
+      capturedAt: DateTime.utc(2026, 9, 25, 10, minute),
+    );
     final moments = JourneyMoments.find(
       [_p(0, -1.30), _p(1, -1.29), _p(2, -1.28), _p(3, -1.27)],
-      places: [
-        place('Near', -1.2805, saved: true), // ~55 m from point 2
-        place('Nearby', -1.20), // ~7.8 km past the last point
-        place('Far', -1.10), // ~19 km: too far
+      photos: [
+        photo('near-2', 2), // taken right at point 2
+        photo('between', 0), // taken before point 0, closest to point 0
       ],
     );
-    expect(moments.map((m) => m.name), ['Near', 'Nearby']);
-    expect(moments.first.kind, JourneyMomentKind.savedPlace);
-    expect(moments.first.index, 2);
-    expect(moments.first.distanceMeters, closeTo(56, 5));
-    expect(moments.last.kind, JourneyMomentKind.nearbyPlace);
-    expect(moments.last.index, 3);
+    expect(moments.map((m) => m.kind), [
+      JourneyMomentKind.photo,
+      JourneyMomentKind.photo,
+    ]);
+    final byId = {for (final m in moments) m.photo!.id: m};
+    expect(byId['near-2']!.index, 2);
+    expect(byId['between']!.index, 0);
+    expect(byId['near-2']!.isPhoto, isTrue);
+  });
+
+  test('the highest point becomes a moment there', () {
+    final moments = JourneyMoments.find([
+      _p(0, -1.30, altitude: 1600),
+      _p(1, -1.29, altitude: 1680), // the peak
+      _p(2, -1.28, altitude: 1650),
+      _p(3, -1.27, altitude: 1610),
+    ]);
+    expect(moments.map((m) => m.kind), [JourneyMomentKind.elevationPeak]);
+    expect(moments.single.index, 1);
+    expect(moments.single.elevationMeters, 1680);
+  });
+
+  test('a peak under the minimum gain is not a moment', () {
+    final moments = JourneyMoments.find([
+      _p(0, -1.30, altitude: 1600),
+      _p(1, -1.29, altitude: 1615), // only 15 m above the lowest: noise
+      _p(2, -1.28, altitude: 1605),
+    ]);
+    expect(moments, isEmpty);
+  });
+
+  test('no altitude data means no elevation-peak moment', () {
+    final moments = JourneyMoments.find([_p(0, -1.30), _p(1, -1.29)]);
+    expect(moments, isEmpty);
   });
 
   test('the next stop is strictly after the position', () {
     const moments = [
       JourneyMoment(kind: JourneyMomentKind.longStop, index: 2),
-      JourneyMoment(kind: JourneyMomentKind.savedPlace, index: 2, name: 'A'),
+      JourneyMoment(kind: JourneyMomentKind.recordingBreak, index: 2),
       JourneyMoment(kind: JourneyMomentKind.countyCrossing, index: 5),
     ];
     expect(JourneyMoments.nextStopAfter(0, moments), 2);

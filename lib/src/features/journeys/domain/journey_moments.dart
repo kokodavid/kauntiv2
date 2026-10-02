@@ -1,5 +1,4 @@
-import 'dart:math' as math;
-
+import 'journey_media_capture.dart';
 import 'journey_point.dart';
 import 'journey_route.dart';
 
@@ -8,8 +7,8 @@ enum JourneyMomentKind {
   recordingBreak,
   longStop,
   countyCrossing,
-  savedPlace,
-  nearbyPlace,
+  photo,
+  elevationPeak,
 }
 
 /// A key moment the replay pauses at: where along the route ([index], a
@@ -20,73 +19,41 @@ class JourneyMoment {
     required this.index,
     this.name,
     this.duration,
-    this.place,
-    this.distanceMeters,
+    this.photo,
+    this.elevationMeters,
   });
 
   final JourneyMomentKind kind;
   final int index;
 
-  /// The county entered or the place passed (null when unknown).
+  /// The county entered (null when unknown).
   final String? name;
 
   /// How long the recording was paused, or the stop lasted.
   final Duration? duration;
 
-  /// The place, for place moments.
-  final JourneyPlaceMark? place;
+  /// The photo, for photo moments.
+  final JourneyMediaItem? photo;
 
-  /// How far the place is from the route, for place moments.
-  final double? distanceMeters;
+  /// The altitude in metres, for the elevation-peak moment.
+  final double? elevationMeters;
 
-  bool get isPlace => place != null;
+  bool get isPhoto => photo != null;
 }
 
-/// A Kaunti47 place, as the replay looks for it near the route.
-class JourneyPlaceMark {
-  const JourneyPlaceMark({
-    required this.id,
-    required this.countyCode,
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-    this.saved = false,
-    this.categoryLabel,
-    this.description,
-    this.thumbnailUrl,
-  });
-
-  final String id;
-  final int countyCode;
-  final String name;
-  final double latitude;
-  final double longitude;
-
-  /// On the user's saved list when the replay loaded.
-  final bool saved;
-
-  /// The place's category (e.g. "Waterfall"), for showing it as an
-  /// Explore-style place row in the replay; null falls back to a generic
-  /// label.
-  final String? categoryLabel;
-
-  /// A one-line description, for the same place row; null when unknown.
-  final String? description;
-
-  final String? thumbnailUrl;
-}
-
-/// Finds a Journey's key moments: recording breaks, long stops, county
-/// crossings and places near the route, in route order.
+/// Finds a Journey's key moments: recording breaks, long stops and county
+/// crossings, in route order.
 abstract final class JourneyMoments {
+  /// The peak must stand at least this far above the route's lowest
+  /// point, so GPS altitude noise on an essentially flat Trip doesn't
+  /// produce a pointless "highest point" pause.
+  static const elevationPeakMinimumGainMeters = 30.0;
+
   /// A stop is staying within this distance…
   static const stopRadiusMeters = 100.0;
 
   /// …for at least this long.
   static const stopMinimum = Duration(minutes: 10);
-
-  /// Places within this distance of the route are shown.
-  static const placeRadiusMeters = 10000.0;
 
   /// A new county must hold for this many points in a row, so GPS jitter
   /// along a boundary doesn't read as crossings back and forth.
@@ -98,13 +65,14 @@ abstract final class JourneyMoments {
     List<JourneyPoint> points, {
     int? Function(double latitude, double longitude)? countyAt,
     String? Function(int code)? countyName,
-    List<JourneyPlaceMark> places = const [],
+    List<JourneyMediaItem> photos = const [],
   }) {
     final moments = [
       ..._breaks(points),
       ..._stops(points),
       if (countyAt != null) ..._counties(points, countyAt, countyName),
-      ..._places(points, places),
+      ..._photos(points, photos),
+      ..._elevationPeak(points),
     ];
     // Stable by kind within an index, so the order is predictable.
     moments.sort(
@@ -212,58 +180,57 @@ abstract final class JourneyMoments {
     }
   }
 
-  /// Each place within [placeRadiusMeters] once, at the route point
-  /// closest to it: saved places as such, the rest as nearby.
-  static Iterable<JourneyMoment> _places(
+  /// Each photo at the route point closest to when it was taken - time,
+  /// not distance: a phone can sit at one GPS fix for minutes while
+  /// several photos are taken, and `recordedAt` is what actually orders
+  /// the route the marker walks along.
+  static Iterable<JourneyMoment> _photos(
     List<JourneyPoint> points,
-    List<JourneyPlaceMark> places,
+    List<JourneyMediaItem> photos,
   ) sync* {
     if (points.isEmpty) return;
-    // Cheap box around the route first: most places are nowhere near.
-    var south = 90.0, north = -90.0, west = 180.0, east = -180.0;
-    for (final p in points) {
-      south = math.min(south, p.latitude);
-      north = math.max(north, p.latitude);
-      west = math.min(west, p.longitude);
-      east = math.max(east, p.longitude);
-    }
-    const padLat = placeRadiusMeters / 111000;
-    final widestLat = math.min(math.max(north.abs(), south.abs()), 89.0);
-    final padLng = padLat / math.cos(widestLat * math.pi / 180);
-    for (final place in places) {
-      if (place.latitude < south - padLat ||
-          place.latitude > north + padLat ||
-          place.longitude < west - padLng ||
-          place.longitude > east + padLng) {
-        continue;
-      }
-      final mark = JourneyPoint(
-        recordedAt: points.first.recordedAt,
-        latitude: place.latitude,
-        longitude: place.longitude,
-        accuracyMeters: 0,
-        segmentNumber: 0,
-      );
-      var best = -1;
-      var bestMeters = placeRadiusMeters;
-      for (var i = 0; i < points.length; i++) {
-        final meters = JourneyRoute.haversineMeters(points[i], mark);
-        if (meters <= bestMeters) {
+    for (final photo in photos) {
+      var best = 0;
+      var bestDiff = points.first.recordedAt.difference(photo.capturedAt).abs();
+      for (var i = 1; i < points.length; i++) {
+        final diff = points[i].recordedAt.difference(photo.capturedAt).abs();
+        if (diff < bestDiff) {
           best = i;
-          bestMeters = meters;
+          bestDiff = diff;
         }
       }
-      if (best >= 0) {
-        yield JourneyMoment(
-          kind: place.saved
-              ? JourneyMomentKind.savedPlace
-              : JourneyMomentKind.nearbyPlace,
-          index: best,
-          name: place.name,
-          place: place,
-          distanceMeters: bestMeters,
-        );
+      yield JourneyMoment(
+        kind: JourneyMomentKind.photo,
+        index: best,
+        photo: photo,
+      );
+    }
+  }
+
+  /// The single highest point of the route, if any point has altitude
+  /// data and it clears [elevationPeakMinimumGainMeters] above the
+  /// route's lowest known altitude.
+  static Iterable<JourneyMoment> _elevationPeak(
+    List<JourneyPoint> points,
+  ) sync* {
+    int? peakIndex;
+    double? peak;
+    double? lowest;
+    for (var i = 0; i < points.length; i++) {
+      final altitude = points[i].altitudeMeters;
+      if (altitude == null) continue;
+      if (lowest == null || altitude < lowest) lowest = altitude;
+      if (peak == null || altitude > peak) {
+        peak = altitude;
+        peakIndex = i;
       }
     }
+    if (peakIndex == null || peak == null || lowest == null) return;
+    if (peak - lowest < elevationPeakMinimumGainMeters) return;
+    yield JourneyMoment(
+      kind: JourneyMomentKind.elevationPeak,
+      index: peakIndex,
+      elevationMeters: peak,
+    );
   }
 }

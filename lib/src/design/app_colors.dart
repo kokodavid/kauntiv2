@@ -20,6 +20,9 @@ class AppColors {
   static const lockedFill = Color(0xFFF1F5F9);
   static const lockedStroke = Color(0xFFCBD5E1);
   static const legendVisited = Color(0xFF0A84FF);
+  // The Journey Replay map: the route ahead of the marker, a lighter
+  // blue than the accent used for the part already played.
+  static const routeUpcoming = Color(0xFFBBDDFF);
   static const legendPassed = Color(0xFFEAB308);
   static const pendingFill = Color(0xFFF59E0B);
   static const justUnlockedFill = Color(0xFFEF4444);
@@ -79,4 +82,25 @@ class AppColors {
   static const explorePromotionFill = Color(0xFFFFF2E4);
   static const explorePromotionText = Color(0xFFB45309);
   static const explorePhotoPlaceholder = Color(0xFFE8E8E8);
+
+  // "..." actions menu popover (Claude-Design "Menu" reference).
+  static const menuButtonPressed = Color(0xFFF1F1F2);
+  static const menuItemPressed = Color(0xFFF5F5F5);
+  static const menuDangerItemPressed = Color(0xFFFFF1F1);
+  static const menuDivider = Color(0xFFF1F1F1);
+
+  // Bottom-sheet dialogs (Claude-Design "03 - DIALOG" reference).
+  static const sheetBarrier = Color(0x6609090B);
+  static const dangerTint = Color(0xFFFFF1F1);
+
+  // Floating toast (Claude-Design "01 - TOAST" reference).
+  static const toastBackground = Color(0xFF18181B);
+  static const toastSubtitle = Color(0xFFA1A1AA);
+  static const toastActionBackground = Color(0x1AFFFFFF);
+  static const toastSuccessIcon = Color(0xFF16A34A);
+  static const toastWarningIcon = Color(0xFFF59E0B);
+  static const toastNeutralIcon = Color(0xFF3F3F46);
+
+  // Empty replay timeline (Claude-Design "Empty Timeline 2a/2b" reference).
+  static const emptyTimelineCardBackground = Color(0xFFF4F6F8);
 }

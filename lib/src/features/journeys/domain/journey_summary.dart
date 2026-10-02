@@ -1,4 +1,5 @@
 import 'journey_destination.dart';
+import 'journey_transport_mode.dart';
 
 /// One Journey in the history list.
 class JourneySummary {
@@ -15,6 +16,7 @@ class JourneySummary {
     this.highestElevationMeters,
     this.countyNames = const [],
     this.blockedByTrialLimit = false,
+    this.transportMode,
   });
 
   final String id;
@@ -52,6 +54,10 @@ class JourneySummary {
   /// rejected because the free Trip allowance for that month was used up.
   /// Always false once uploaded.
   final bool blockedByTrialLimit;
+
+  /// How this Trip was travelled; null for one recorded before transport
+  /// mode existed.
+  final JourneyTransportMode? transportMode;
 
   /// The average speed for the recorded time, in m/s; null once there is
   /// no recorded time or distance to divide.

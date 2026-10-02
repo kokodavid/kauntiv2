@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.3.2+11
+version: 1.3.4+13
 
 environment:
   sdk: ^3.11.4
@@ -76,6 +76,18 @@ dependencies:
   # Opt-in Journey route capture while the app process is alive. County
   # detection continues to use native_geofence, not this continuous stream.
   location: ^10.0.2
+
+  # Trip media: photo capture while actively recording a Trip.
+  image_picker: ^1.2.3
+  # Trip media: copies image_picker's cache file into a persistent app
+  # directory so the local upload queue can still find it after the OS
+  # clears its cache.
+  path_provider: ^2.1.5
+  # Trip media: scans the camera roll by timestamp to auto-match photos
+  # to a Trip's recorded span (Replay's empty-timeline "camera roll
+  # match" card) - image_picker's own picker can't query the library,
+  # only let the user browse it manually.
+  photo_manager: ^3.12.0
 
 
 dev_dependencies:

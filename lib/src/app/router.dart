@@ -110,7 +110,6 @@ GoRouter appRouter(Ref ref) {
           path: '/journey/:id',
           builder: (context, state) => JourneyReplayScreen(
             journeyId: state.pathParameters['id']!,
-            onOpenPlace: DetailRoutes.openPlace,
           ),
         ),
       GoRoute(

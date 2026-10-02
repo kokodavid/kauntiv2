@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/services/app_config_provider.dart';
 import '../../../core/widgets/app_photo_parts.dart';
+import '../../../design/app_actions_menu.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_views.dart';
 import '../domain/journey_point.dart';
@@ -108,7 +109,7 @@ class _JourneyCardState extends State<JourneyCard> {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          _RoutePreview(journeyId: journey.id),
+                          JourneyRoutePreview(journeyId: journey.id),
                           const DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -173,36 +174,19 @@ class _JourneyCardState extends State<JourneyCard> {
                             ),
                           ),
                         ),
-                        PopupMenuButton<_JourneyCardAction>(
+                        AppActionsMenuButton(
                           tooltip: 'Trip options',
-                          icon: const Icon(
-                            Icons.more_horiz,
-                            color: AppColors.mutedForeground,
-                          ),
-                          onSelected: (action) => switch (action) {
-                            _JourneyCardAction.rename => widget.onRename(),
-                            _JourneyCardAction.delete => widget.onDelete(),
-                          },
-                          itemBuilder: (context) => const [
-                            PopupMenuItem(
-                              value: _JourneyCardAction.rename,
-                              child: ListTile(
-                                leading: Icon(Icons.edit_outlined),
-                                title: Text('Rename'),
-                              ),
+                          actions: [
+                            AppMenuAction(
+                              label: 'Rename',
+                              icon: Icons.edit_outlined,
+                              onTap: widget.onRename,
                             ),
-                            PopupMenuItem(
-                              value: _JourneyCardAction.delete,
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.delete_outline,
-                                  color: AppColors.danger,
-                                ),
-                                title: Text(
-                                  'Delete',
-                                  style: TextStyle(color: AppColors.danger),
-                                ),
-                              ),
+                            AppMenuAction(
+                              label: 'Delete',
+                              icon: Icons.delete_outline,
+                              isDestructive: true,
+                              onTap: widget.onDelete,
                             ),
                           ],
                         ),
@@ -243,8 +227,6 @@ class _StackPeek extends StatelessWidget {
 
 /// Mapbox Static Images URLs for a route preview. The route's (thinned)
 /// coordinates go to Mapbox in the URL to draw it.
-enum _JourneyCardAction { rename, delete }
-
 abstract final class JourneyStaticMap {
   /// Mapbox caps static images at 1280 px a side; @2x doubles the size.
   static const _maxSide = 640;

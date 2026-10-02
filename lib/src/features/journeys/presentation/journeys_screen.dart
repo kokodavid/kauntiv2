@@ -47,10 +47,7 @@ class JourneysScreen extends ConsumerWidget {
               const JourneyHeroStats(),
               const SizedBox(height: 16),
               if (active)
-                JourneyLiveCard(
-                  onOpenSettings: onOpenSettings,
-                  onOpenMap: onOpenRecording,
-                )
+                JourneyLiveCard(onOpenMap: onOpenRecording)
               else
                 JourneyStartCard(
                   onOpenSettings: onOpenSettings,

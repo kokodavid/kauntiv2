@@ -38,8 +38,11 @@ class _FactsPill extends StatelessWidget {
 }
 
 /// Fades in the route's static map over a neutral fill when it loads.
-class _RoutePreview extends ConsumerWidget {
-  const _RoutePreview({required this.journeyId});
+/// Public (though this file is a `part of`) so other Trip-card styles -
+/// the grouped carousel tiles - can reuse the same Mapbox static preview
+/// instead of re-fetching the route themselves.
+class JourneyRoutePreview extends ConsumerWidget {
+  const JourneyRoutePreview({super.key, required this.journeyId});
 
   final String journeyId;
 

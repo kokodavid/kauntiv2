@@ -23,9 +23,6 @@ abstract final class JourneyMapLayers {
   static const playedSource = 'journey-played';
   static const routeLine = 'journey-route-line';
 
-  /// The full route fades while replay draws the played part over it.
-  static const fadedOpacity = 0.3;
-
   static const _empty = {'type': 'FeatureCollection', 'features': <Object>[]};
 
   /// An empty GeoJSON collection (nothing to draw).
@@ -93,33 +90,33 @@ abstract final class JourneyMapLayers {
     type,
   ];
 
-  /// Adds every source and layer, bottom to top: faded route, played line,
-  /// tip, lone-fix dots, pins (start, end, moments), marker.
+  /// Adds every source and layer, bottom to top: the route ahead (light
+  /// blue), the played line and tip (accent), lone-fix dots, pins (start,
+  /// end, moments), the marker's soft halo, then the marker itself.
   static Future<void> add(
     StyleManager style, {
     required String route,
     required String played,
     required String marker,
     required String endpoints,
-    required double routeOpacity,
   }) async {
     final accent = AppColors.accent.toARGB32();
+    final upcoming = AppColors.routeUpcoming.toARGB32();
     await style.addSource(GeoJsonSource(id: routeSource, data: route));
     await style.addSource(GeoJsonSource(id: playedSource, data: played));
     await style.addSource(GeoJsonSource(id: markerSource, data: marker));
     await style.addSource(GeoJsonSource(id: endpointSource, data: endpoints));
-    for (final (id, source, opacity, filter) in [
-      (routeLine, routeSource, routeOpacity, null),
-      ('journey-played-line', playedSource, 1.0, null),
-      ('journey-tip-line', markerSource, 1.0, _is('LineString')),
+    for (final (id, source, color, filter) in [
+      (routeLine, routeSource, upcoming, null),
+      ('journey-played-line', playedSource, accent, null),
+      ('journey-tip-line', markerSource, accent, _is('LineString')),
     ]) {
       await style.addLayer(
         LineLayer(
           id: id,
           sourceId: source,
           filter: filter,
-          lineColor: accent,
-          lineOpacity: opacity,
+          lineColor: color,
           lineWidth: 4.5,
           lineCap: LineCap.ROUND,
           lineJoin: LineJoin.ROUND,
@@ -131,7 +128,7 @@ abstract final class JourneyMapLayers {
         id: 'journey-route-dots',
         sourceId: routeSource,
         filter: _is('Point'),
-        circleColor: accent,
+        circleColor: upcoming,
         circleRadius: 4,
       ),
     );
@@ -159,15 +156,28 @@ abstract final class JourneyMapLayers {
         circleStrokeWidth: 2,
       ),
     );
+    // A soft halo behind the marker, matching the replay timeline's
+    // design: a solid dot with a lighter blue glow, not a white-centred
+    // ring.
+    await style.addLayer(
+      CircleLayer(
+        id: 'journey-marker-halo',
+        sourceId: markerSource,
+        filter: _is('Point'),
+        circleColor: upcoming,
+        circleOpacity: 0.55,
+        circleRadius: 14,
+      ),
+    );
     await style.addLayer(
       CircleLayer(
         id: 'journey-marker',
         sourceId: markerSource,
         filter: _is('Point'),
-        circleColor: Colors.white.toARGB32(),
+        circleColor: accent,
         circleRadius: 7,
-        circleStrokeColor: accent,
-        circleStrokeWidth: 3,
+        circleStrokeColor: Colors.white.toARGB32(),
+        circleStrokeWidth: 2,
       ),
     );
   }

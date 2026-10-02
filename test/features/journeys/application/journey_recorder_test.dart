@@ -24,7 +24,18 @@ class _FakeSource implements JourneyLocationSource {
   final controller = StreamController<JourneyFix>.broadcast(sync: true);
   var started = false;
   JourneyLocationException? failStart;
+
+  /// Fails the up-front guard Start checks before anything else -
+  /// distinct from [failStart], which simulates losing location access
+  /// in the gap between that guard and actually attaching.
+  JourneyLocationException? failEnsureAvailable;
   Completer<void>? startGate;
+  var autoEmitFix = true;
+
+  @override
+  Future<void> ensureAvailable() async {
+    if (failEnsureAvailable case final error?) throw error;
+  }
 
   @override
   Stream<JourneyFix> get fixes => controller.stream;
@@ -34,6 +45,25 @@ class _FakeSource implements JourneyLocationSource {
     if (failStart case final error?) throw error;
     if (startGate case final gate?) await gate.future;
     started = true;
+    // JourneyCapture.attachStarted now waits for an actual fix before
+    // Start completes (see journey_capture.dart/noFixReceived) - simulate
+    // a phone that gets a GPS lock right away, so the many tests below
+    // that just `await recorder.start(...)` keep working unchanged. Tests
+    // for a phone that never gets a fix belong in journey_capture_test.dart,
+    // which owns that behavior directly.
+    if (autoEmitFix) {
+      Timer(Duration.zero, () {
+        if (!controller.hasListener) return;
+        controller.add(
+          JourneyFix(
+            recordedAt: DateTime.now(),
+            latitude: -1.28,
+            longitude: 36.82,
+            accuracyMeters: 7,
+          ),
+        );
+      });
+    }
   }
 
   @override
@@ -53,12 +83,14 @@ class _FakeCloud implements SupabaseJourneyRepository {
   );
   var offline = false;
   final cloudJourneys = <JourneySummary>[];
+  var proStatusCalls = 0;
 
   @override
   String? get currentUserId => 'alice';
 
   @override
   Future<ProStatus> proStatus() async {
+    proStatusCalls++;
     if (offline) throw Exception('offline');
     if (statusGate case final gate?) return gate.future;
     return status!;
@@ -346,4 +378,27 @@ void main() {
       isNull,
     );
   });
+
+  test(
+    'a phone with no location access fails before the Pro/trial check or '
+    'any local session, not after',
+    () async {
+      source.failEnsureAvailable = const JourneyLocationException(
+        JourneyLocationFailure.servicesDisabled,
+      );
+      final c = container();
+      await expectLater(
+        c.read(journeyRecorderProvider.notifier).start(now: now),
+        throwsA(isA<JourneyLocationException>()),
+      );
+      expect(c.read(journeyRecorderProvider), isNull);
+      expect(source.started, isFalse);
+      // Never reached the live entitlement check or created a session.
+      expect(cloud.proStatusCalls, 0);
+      expect(
+        await c.read(localJourneyRepositoryProvider).activeSession('alice'),
+        isNull,
+      );
+    },
+  );
 }

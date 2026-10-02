@@ -12,6 +12,7 @@ class JourneyCapture {
     required JourneyLocationSource locationSource,
     DateTime Function()? clock,
     this.teardownTimeout = const Duration(seconds: 4),
+    this.firstFixTimeout = const Duration(seconds: 20),
   }) : _repository = repository,
        _locationSource = locationSource,
        _clock = clock ?? DateTime.now;
@@ -20,6 +21,13 @@ class JourneyCapture {
   /// without it. A native call that never returns must not leave the
   /// Journey stuck recording.
   final Duration teardownTimeout;
+
+  /// How long [attachStarted] waits for an actual GPS fix before giving
+  /// up. Permission/service checks alone aren't enough - a Simulator or a
+  /// phone with a poor signal can pass those and then never deliver a fix,
+  /// which is what left Recording running at 0m with no route (see
+  /// `JourneyLocationFailure.noFixReceived`).
+  final Duration firstFixTimeout;
 
   final LocalJourneyRepository _repository;
   final JourneyLocationSource _locationSource;
@@ -30,6 +38,7 @@ class JourneyCapture {
   LocalJourneySession? _session;
   String? _userId;
   StreamSubscription<JourneyFix>? _subscription;
+  Completer<void>? _firstFix;
   Future<void>? _canceling;
   Future<void> _writes = Future.value();
   DateTime? _lastRecordedAt;
@@ -79,6 +88,16 @@ class JourneyCapture {
     _session = session;
     try {
       await _startStream();
+      final firstFix = _firstFix = Completer<void>();
+      try {
+        await firstFix.future.timeout(firstFixTimeout);
+      } on TimeoutException {
+        throw const JourneyLocationException(
+          JourneyLocationFailure.noFixReceived,
+        );
+      } finally {
+        _firstFix = null;
+      }
     } catch (_) {
       try {
         await _subscription?.cancel();
@@ -190,6 +209,7 @@ class JourneyCapture {
   void _listen() {
     _closing = false;
     _subscription = _locationSource.fixes.listen((fix) {
+      if (!(_firstFix?.isCompleted ?? true)) _firstFix!.complete();
       if (_closing) return;
       final current = _session;
       final userId = _userId;

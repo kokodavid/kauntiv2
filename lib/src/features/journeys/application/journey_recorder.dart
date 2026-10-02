@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../services/app_logger.dart';
@@ -8,6 +10,7 @@ import '../data/local_journey_repository.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_fix.dart';
 import '../domain/journey_ids.dart';
+import '../domain/journey_transport_mode.dart';
 import '../domain/pro_status.dart';
 import 'journey_cloud_providers.dart';
 import 'journey_entitlement.dart';
@@ -121,14 +124,29 @@ class JourneyRecorder extends _$JourneyRecorder {
     _set(session, userId);
   }
 
-  /// Starts a Journey. Throws [JourneyTrialExhausted] when neither Pro
-  /// nor the free Trip allowance for this month permit it,
-  /// [JourneyProCheckUnavailable] when entitlement can't be checked
-  /// (offline) and [JourneyLocationException] when the phone can't record.
-  Future<void> start({DateTime? now, JourneyDestination? destination}) async {
+  /// Starts a Journey. Throws [JourneyLocationException] immediately
+  /// when the phone obviously can't record (location off, permission not
+  /// granted) - checked first, before the live Pro/trial check or
+  /// creating anything locally, so a dead-on-arrival Start doesn't also
+  /// cost a network round trip. Otherwise throws [JourneyTrialExhausted]
+  /// when neither Pro nor the free Trip allowance for this month permit
+  /// it, [JourneyProCheckUnavailable] when entitlement can't be checked
+  /// (offline), or [JourneyLocationException] again if location access
+  /// was lost in the gap between that check and actually attaching.
+  ///
+  /// [mode] is how the Trip is being travelled (Drive/Walk/Cycle); the
+  /// Start flow in the UI always asks for one before calling this, but it
+  /// stays optional here so a Trip can still start without one (tests,
+  /// and anything recorded before transport mode existed).
+  Future<void> start({
+    DateTime? now,
+    JourneyDestination? destination,
+    JourneyTransportMode? mode,
+  }) async {
     if (state != null) throw StateError('A Journey is already in progress.');
     final userId = _userId();
     await _detachPreviousOwner(userId);
+    await ref.read(journeyLocationSourceProvider).ensureAvailable();
     final at = now ?? DateTime.now();
     await ref.read(journeyEntitlementProvider.notifier).canStart(now: at);
     if (!_stillOwnedBy(userId)) {
@@ -141,6 +159,7 @@ class JourneyRecorder extends _$JourneyRecorder {
           userId: userId,
           at: at.toUtc(),
           destination: destination,
+          mode: mode,
         );
     if (!_stillOwnedBy(userId)) {
       await ref
@@ -247,8 +266,59 @@ class JourneyRecorder extends _$JourneyRecorder {
       _set(_stillOwnedBy(userId) ? capture.session : null, userId);
       rethrow;
     }
+    await ref
+        .read(localJourneyMediaRepositoryProvider)
+        .removeForJourney(session.id)
+        .then((paths) => Future.wait([for (final p in paths) _deleteQuietly(p)]));
     await ref.read(localJourneyRepositoryProvider).discard(session.id, userId);
     _set(null, null);
+  }
+
+  /// Saves [pickedPath] (an image_picker cache file) as a photo for the
+  /// active Trip: copied into app-persistent storage first, since the OS
+  /// can clear its cache before the upload queue gets to it.
+  Future<void> captureMedia(String pickedPath) async {
+    _requireOwner();
+    final session = state;
+    final userId = _owner;
+    if (session == null || userId == null) {
+      throw StateError('No Trip is being recorded.');
+    }
+    final persisted = await _persistPickedFile(session.id, pickedPath);
+    final fix = await ref
+        .read(localJourneyRepositoryProvider)
+        .lastPoint(session.id, userId);
+    await ref
+        .read(localJourneyMediaRepositoryProvider)
+        .add(
+          journeyId: session.id,
+          userId: userId,
+          localPath: persisted,
+          capturedAt: DateTime.now().toUtc(),
+          latitude: fix?.latitude,
+          longitude: fix?.longitude,
+        );
+  }
+
+  Future<String> _persistPickedFile(String journeyId, String pickedPath) async {
+    final directory = await getApplicationSupportDirectory();
+    final mediaDir = Directory('${directory.path}/journey_media/$journeyId');
+    if (!await mediaDir.exists()) await mediaDir.create(recursive: true);
+    final extension = pickedPath.contains('.')
+        ? pickedPath.substring(pickedPath.lastIndexOf('.'))
+        : '.jpg';
+    final destination = '${mediaDir.path}/${JourneyIds.newId()}$extension';
+    await File(pickedPath).copy(destination);
+    return destination;
+  }
+
+  Future<void> _deleteQuietly(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } on Object {
+      // Best-effort cleanup only.
+    }
   }
 }
 
@@ -260,12 +330,15 @@ class JourneySync extends _$JourneySync {
 
   Future<int> drain() async {
     final queue = ref.read(journeyUploadQueueProvider);
-    if (queue == null) return 0;
-    final uploaded = await queue.drain();
+    final uploaded = queue == null ? 0 : await queue.drain();
     if (uploaded > 0 && ref.mounted) {
       state = state + uploaded;
       ref.invalidate(journeyHistoryListProvider);
     }
+    // Photos wait on their own Trip's points, so this runs after the
+    // points drain above has had a chance to clear the way for them.
+    final mediaQueue = ref.read(journeyMediaUploadQueueProvider);
+    if (mediaQueue != null) await mediaQueue.drain();
     return uploaded;
   }
 }

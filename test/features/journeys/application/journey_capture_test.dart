@@ -15,6 +15,11 @@ class FakeJourneyLocationSource implements JourneyLocationSource {
   bool failStart = false;
   bool hangOnStop = false;
 
+  // JourneyCapture never calls this itself - only JourneyRecorder's
+  // up-front Start guard does, which these tests exercise separately.
+  @override
+  Future<void> ensureAvailable() async {}
+
   @override
   Stream<JourneyFix> get fixes => overrideFixes ?? controller.stream;
 
@@ -60,8 +65,8 @@ void main() {
 
   test('captures ordered fixes and stops source on pause', () async {
     final session = await repository.start(id: 'one', userId: 'alice', at: t0);
-    await capture.attachStarted(session: session, userId: 'alice');
-    expect(source.started, isTrue);
+    final attaching = capture.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
     source.controller.add(
       JourneyFix(
         recordedAt: t0.add(const Duration(milliseconds: 150)),
@@ -70,6 +75,8 @@ void main() {
         accuracyMeters: 7,
       ),
     );
+    await attaching;
+    expect(source.started, isTrue);
     now = t0.add(const Duration(seconds: 1));
     final paused = await capture.pause();
     expect(paused.recording.phase, JourneyRecordingPhase.paused);
@@ -79,17 +86,25 @@ void main() {
 
   test('a long gap in valid fixes starts a new route segment', () async {
     final session = await repository.start(id: 'one', userId: 'alice', at: t0);
-    await capture.attachStarted(session: session, userId: 'alice');
-    for (final seconds in [5, 190]) {
-      source.controller.add(
-        JourneyFix(
-          recordedAt: t0.add(Duration(seconds: seconds)),
-          latitude: -1.28 + seconds / 10000,
-          longitude: 36.82,
-          accuracyMeters: 7,
-        ),
-      );
-    }
+    final attaching = capture.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 5)),
+        latitude: -1.28 + 5 / 10000,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 190)),
+        latitude: -1.28 + 190 / 10000,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
     now = t0.add(const Duration(minutes: 4));
     await capture.pause();
     final points = await repository.points('one', 'alice');
@@ -123,7 +138,8 @@ void main() {
 
   test('restart counts only time through the last saved fix', () async {
     final session = await repository.start(id: 'one', userId: 'alice', at: t0);
-    await capture.attachStarted(session: session, userId: 'alice');
+    final attaching = capture.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
     source.controller.add(
       JourneyFix(
         recordedAt: t0.add(const Duration(minutes: 1)),
@@ -132,6 +148,7 @@ void main() {
         accuracyMeters: 7,
       ),
     );
+    await attaching;
     await pumpEventQueue();
     expect(await repository.points('one', 'alice'), hasLength(1));
     now = t0.add(const Duration(hours: 2));
@@ -160,7 +177,17 @@ void main() {
 
   test('a location stream failure pauses capture', () async {
     final session = await repository.start(id: 'one', userId: 'alice', at: t0);
-    await capture.attachStarted(session: session, userId: 'alice');
+    final attaching = capture.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0,
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
     now = t0.add(const Duration(seconds: 2));
     source.controller.addError(StateError('GPS stopped'));
     for (
@@ -184,7 +211,17 @@ void main() {
       teardownTimeout: const Duration(milliseconds: 50),
     );
     final session = await repository.start(id: 'one', userId: 'alice', at: t0);
-    await hanging.attachStarted(session: session, userId: 'alice');
+    final attaching = hanging.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0,
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
     source.hangOnStop = true;
     now = t0.add(const Duration(minutes: 1));
 
@@ -199,6 +236,39 @@ void main() {
     expect(source.started, isFalse);
     expect(hanging.session, isNull);
   });
+
+  test(
+    'a Start that never gets a GPS fix times out and leaves the Journey '
+    'paused, not stuck Recording',
+    () async {
+      final noFix = JourneyCapture(
+        repository: repository,
+        locationSource: source,
+        clock: () => now,
+        firstFixTimeout: const Duration(milliseconds: 20),
+      );
+      final session = await repository.start(
+        id: 'one',
+        userId: 'alice',
+        at: t0,
+      );
+      await expectLater(
+        noFix.attachStarted(session: session, userId: 'alice'),
+        throwsA(
+          isA<JourneyLocationException>().having(
+            (error) => error.reason,
+            'reason',
+            JourneyLocationFailure.noFixReceived,
+          ),
+        ),
+      );
+      expect(source.started, isFalse);
+      expect(
+        (await repository.activeSession('alice'))?.recording.phase,
+        JourneyRecordingPhase.paused,
+      );
+    },
+  );
 
   test('waits for stream cancellation before native stop', () async {
     final cancelGate = Completer<void>();
@@ -218,7 +288,17 @@ void main() {
       teardownTimeout: const Duration(milliseconds: 50),
     );
     final session = await repository.start(id: 'one', userId: 'alice', at: t0);
-    await slow.attachStarted(session: session, userId: 'alice');
+    final attaching = slow.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    slowStream.add(
+      JourneyFix(
+        recordedAt: t0,
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
     now = t0.add(const Duration(minutes: 1));
 
     await expectLater(slow.finish(), throwsA(isA<JourneyTeardownException>()));

@@ -18,8 +18,7 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
       .map((fix) => fix!);
 
   @override
-  Future<void> start() async {
-    if (_started) return;
+  Future<void> ensureAvailable() async {
     if (!await _location.serviceEnabled()) {
       throw const JourneyLocationException(
         JourneyLocationFailure.servicesDisabled,
@@ -36,6 +35,12 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
         JourneyLocationFailure.backgroundPermissionDenied,
       );
     }
+  }
+
+  @override
+  Future<void> start() async {
+    if (_started) return;
+    await ensureAvailable();
     if (!await _location.changeSettings(
       accuracy: LocationAccuracy.high,
       interval: 5000,

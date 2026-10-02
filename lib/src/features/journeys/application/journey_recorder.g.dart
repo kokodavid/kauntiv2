@@ -59,7 +59,7 @@ final class JourneyRecorderProvider
   }
 }
 
-String _$journeyRecorderHash() => r'd44aa6abceea0f463045bb6d5dba0bdeb1412961';
+String _$journeyRecorderHash() => r'35bab07b7eef63fe2f14661cb716879a391b3695';
 
 /// The active Journey for the signed-in account: Pro-gated start, pause,
 /// resume and finish, and recovery after a restart. Finishing queues upload.
@@ -122,7 +122,7 @@ final class JourneySyncProvider extends $NotifierProvider<JourneySync, int> {
   }
 }
 
-String _$journeySyncHash() => r'0edfa6e77ca098fbd991723b29426cb9cb31884c';
+String _$journeySyncHash() => r'088f31203aa67d87c2c4da79282473d07410dc34';
 
 /// Drains the Journey upload queue; the state counts uploads this session.
 

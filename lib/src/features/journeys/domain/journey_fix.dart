@@ -41,6 +41,16 @@ class JourneyFix {
 abstract interface class JourneyLocationSource {
   Stream<JourneyFix> get fixes;
 
+  /// Throws [JourneyLocationException] unless the phone can currently
+  /// support a Journey (location services on, permission granted).
+  /// Checked up front, before anything else a Start attempt would do
+  /// (the live Pro/trial check, creating the local session row), so a
+  /// phone that obviously can't record fails immediately instead of
+  /// after a network round trip. [start] checks this again itself -
+  /// permission can still be revoked or services turned off in the gap
+  /// between this call and the actual attach.
+  Future<void> ensureAvailable();
+
   Future<void> start();
   Future<void> stop();
 }
@@ -52,6 +62,12 @@ enum JourneyLocationFailure {
   backgroundPermissionDenied,
   backgroundModeUnavailable,
   settingsUnavailable,
+
+  /// Services were on and permission was granted, but no actual GPS fix
+  /// arrived before the wait in [JourneyCapture.attachStarted] timed out -
+  /// e.g. a Simulator with no location configured, or a phone indoors with
+  /// a poor signal.
+  noFixReceived,
 }
 
 class JourneyLocationException implements Exception {

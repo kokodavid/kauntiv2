@@ -25,6 +25,9 @@ abstract final class JourneyMessages {
       JourneyLocationFailure.backgroundModeUnavailable ||
       JourneyLocationFailure.settingsUnavailable =>
         "This phone couldn't start recording in the background.",
+      JourneyLocationFailure.noFixReceived =>
+        "Couldn't get a GPS signal. Move somewhere with a clearer view of "
+            'the sky and try again.',
     },
     _ => "Couldn't start the Trip. Try again.",
   };

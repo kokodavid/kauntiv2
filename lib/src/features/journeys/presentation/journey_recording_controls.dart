@@ -2,25 +2,42 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/design/app_type_scale.dart';
+import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
+import '../../../design/app_floating_toast.dart';
 import '../application/journey_recorder.dart';
 import '../application/journey_views.dart';
+import '../domain/journey_preview.dart';
 import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
+import '../domain/journey_summary.dart' show JourneyTitles;
 import 'journey_messages.dart';
 import 'journey_start_card.dart';
 import 'journey_stop_dialog.dart';
 
-/// The Journey in progress without its map: Recording / Paused, recorded
-/// time and distance, and Pause / Resume / Stop (save or discard). Shared
-/// by the full-screen recording map and the Journeys tab.
+/// The Journey in progress, collapsed to a glanceable bottom sheet over
+/// the map: status, the live clock, distance and county so far, with
+/// Photo / Pause-Resume / Stop as small round buttons - no text labels
+/// to read, just colour and icon. "Trip details" expands it in place to
+/// the Trip's name and the counties crossed so far. Shared by the
+/// full-screen recording map; the Journeys tab shows its own compact
+/// summary instead ([JourneyLiveCard]).
 class JourneyRecordingControls extends ConsumerStatefulWidget {
-  const JourneyRecordingControls({super.key, this.onOpenSettings});
+  const JourneyRecordingControls({
+    super.key,
+    this.onOpenSettings,
+    this.onExpandedChanged,
+  });
 
   final OpenAppSettings? onOpenSettings;
+
+  /// Reports the "Trip details" panel opening or closing, so the map
+  /// above can leave it more room and keep the live position in view.
+  final ValueChanged<bool>? onExpandedChanged;
 
   @override
   ConsumerState<JourneyRecordingControls> createState() =>
@@ -31,6 +48,7 @@ class _JourneyRecordingControlsState
     extends ConsumerState<JourneyRecordingControls> {
   Timer? _ticker;
   bool _busy = false;
+  bool _detailsExpanded = false;
 
   @override
   void initState() {
@@ -47,24 +65,28 @@ class _JourneyRecordingControlsState
     super.dispose();
   }
 
+  void _toggleDetails() {
+    setState(() => _detailsExpanded = !_detailsExpanded);
+    widget.onExpandedChanged?.call(_detailsExpanded);
+  }
+
   Future<void> _run(Future<void> Function(JourneyRecorder) action) async {
     if (_busy) return;
     setState(() => _busy = true);
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await action(ref.read(journeyRecorderProvider.notifier));
     } on Object catch (error) {
-      final message =
-          JourneyMessages.forError(error) ??
-          "Couldn't update the Trip. Try again.";
+      if (!mounted) return;
       final settings = widget.onOpenSettings;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(message),
-          action: settings != null && JourneyMessages.opensSettings(error)
-              ? SnackBarAction(label: 'Settings', onPressed: settings)
-              : null,
-        ),
+      final hasSettingsAction =
+          settings != null && JourneyMessages.opensSettings(error);
+      showAppToast(
+        context,
+        variant: AppToastVariant.error,
+        title: "Couldn't update the Trip",
+        message: JourneyMessages.forError(error) ?? 'Try again.',
+        actionLabel: hasSettingsAction ? 'Settings' : null,
+        onAction: hasSettingsAction ? settings : null,
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -84,6 +106,28 @@ class _JourneyRecordingControlsState
     }
   }
 
+  Future<void> _capturePhoto() async {
+    if (_busy) return;
+    final XFile? photo;
+    try {
+      photo = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+        maxWidth: 2048,
+        imageQuality: 85,
+      );
+    } on Object {
+      if (!mounted) return;
+      showAppToast(
+        context,
+        variant: AppToastVariant.error,
+        title: "Couldn't open the camera",
+      );
+      return;
+    }
+    if (photo == null || !mounted) return;
+    await _run((r) => r.captureMedia(photo!.path));
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(journeyRecorderProvider);
@@ -92,144 +136,374 @@ class _JourneyRecordingControlsState
     final isRecording = recording.phase == JourneyRecordingPhase.recording;
     final route =
         ref.watch(activeJourneyRouteProvider).value ?? JourneyRoute(const []);
+    final county = _countyName(route);
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _StatusRow(isRecording: isRecording),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            _Stat(
-              // Recorded time: stands still while paused.
-              value: JourneyFormat.clock(
-                recording.recordedTime(DateTime.now()),
-              ),
-              label: 'Elapsed',
+        Center(
+          child: Container(
+            width: 36,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: AppColors.cardBorder,
+              borderRadius: BorderRadius.circular(999),
             ),
-            const SizedBox(width: 24),
-            _Stat(
-              value: JourneyFormat.distance(route.distanceMeters),
-              label: 'Distance',
-            ),
-          ],
-        ),
-        if (!isRecording) ...[
-          const SizedBox(height: 10),
-          const Text(
-            "Paused. Anything between now and Resume isn't drawn, "
-            'including time the app was closed.',
-            style: AppTypeScale.small,
           ),
-        ],
-        const SizedBox(height: 14),
+        ),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: _ControlButton(
-                label: isRecording ? 'Pause' : 'Resume',
-                filled: !isRecording,
-                onPressed: _busy
-                    ? null
-                    : () => _run((r) => isRecording ? r.pause() : r.resume()),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: isRecording
+                              ? AppColors.danger
+                              : AppColors.mutedForeground,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isRecording ? 'RECORDING' : 'PAUSED',
+                        style: AppTypeScale.pill.copyWith(
+                          color: isRecording
+                              ? AppColors.danger
+                              : AppColors.mutedForeground,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    // Recorded time: stands still while paused.
+                    JourneyFormat.clock(
+                      recording.recordedTime(DateTime.now()),
+                    ),
+                    style: const TextStyle(
+                      fontFamily: AppTypeScale.family,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w700,
+                      height: 1.1,
+                      color: AppColors.foreground,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: JourneyFormat.distance(route.distanceMeters),
+                          style: AppTypeScale.body.copyWith(
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (county != null)
+                          TextSpan(
+                            text: ' · $county',
+                            style: AppTypeScale.body,
+                          ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (!isRecording) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Anything between now and Resume isn't drawn, "
+                      'including time the app was closed.',
+                      style: AppTypeScale.small,
+                    ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _ControlButton(
-                label: 'Stop',
-                filled: isRecording,
-                onPressed: _busy ? null : _confirmStop,
+            const SizedBox(width: 10),
+            if (isRecording) ...[
+              _RoundButton(
+                tooltip: 'Take a photo',
+                onPressed: _busy ? null : _capturePhoto,
+                background: AppColors.lockedFill,
+                foreground: AppColors.foreground,
+                icon: Icons.camera_alt_outlined,
               ),
+              const SizedBox(width: 10),
+            ],
+            _RoundButton(
+              tooltip: isRecording ? 'Pause' : 'Resume',
+              onPressed: _busy
+                  ? null
+                  : () => _run((r) => isRecording ? r.pause() : r.resume()),
+              background: isRecording
+                  ? const Color(0x1F0A84FF)
+                  : AppColors.accent,
+              foreground: isRecording ? AppColors.accent : Colors.white,
+              icon: isRecording
+                  ? Icons.pause_rounded
+                  : Icons.play_arrow_rounded,
+            ),
+            const SizedBox(width: 10),
+            _RoundButton(
+              tooltip: 'Stop',
+              onPressed: _busy ? null : _confirmStop,
+              background: const Color(0x1FFF383C),
+              foreground: AppColors.danger,
+              icon: Icons.stop_rounded,
             ),
           ],
         ),
-      ],
-    );
-  }
-}
-
-class _StatusRow extends StatelessWidget {
-  const _StatusRow({required this.isRecording});
-
-  final bool isRecording;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isRecording ? AppColors.danger : AppColors.mutedForeground;
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          isRecording ? 'Recording' : 'Paused',
-          style: AppTypeScale.itemTitle.copyWith(color: color),
+        const SizedBox(height: 14),
+        _TripDetailsToggle(expanded: _detailsExpanded, onTap: _toggleDetails),
+        AnimatedCrossFade(
+          firstChild: const SizedBox(width: double.infinity),
+          secondChild: _TripDetailsPanel(
+            startedAt: recording.startedAt,
+            route: route,
+          ),
+          crossFadeState: _detailsExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 220),
+          sizeCurve: Curves.easeOut,
         ),
       ],
     );
   }
-}
 
-class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(value, style: AppTypeScale.sectionTitle),
-        Text(label, style: AppTypeScale.statLabel),
-      ],
+  /// The county the live route's last recorded point is in, from the
+  /// bundled boundaries (so it works offline too) - null until there's a
+  /// fix, or outside every county's bounds. Never a fabricated
+  /// neighbourhood: that's not data the app actually has.
+  static String? _countyName(JourneyRoute route) {
+    final last = route.lastPoint;
+    if (last == null) return null;
+    final code = CountyBoundaryResolver.countyCodeFor(
+      latitude: last.latitude,
+      longitude: last.longitude,
     );
+    if (code == null) return null;
+    for (final county in CountyPaths.all) {
+      if (county.code == code) return county.name;
+    }
+    return null;
   }
 }
 
-class _ControlButton extends StatelessWidget {
-  const _ControlButton({
-    required this.label,
-    required this.filled,
+/// A small tinted circle button - Photo, Pause/Resume or Stop - with no
+/// text label, just an icon in its own colour over a soft tint of it.
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({
+    required this.tooltip,
     required this.onPressed,
+    required this.background,
+    required this.foreground,
+    required this.icon,
   });
 
-  final String label;
-  final bool filled;
+  final String tooltip;
   final VoidCallback? onPressed;
+  final Color background;
+  final Color foreground;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(24),
-    );
     return SizedBox(
-      height: 48,
-      child: filled
-          ? ElevatedButton(
-              onPressed: onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.accentForeground,
-                elevation: 0,
-                shape: shape,
+      width: 52,
+      height: 52,
+      child: IconButton.filled(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        style: IconButton.styleFrom(
+          backgroundColor: background,
+          foregroundColor: foreground,
+          disabledBackgroundColor: background,
+          disabledForegroundColor: foreground.withValues(alpha: 0.4),
+        ),
+        icon: Icon(icon, size: 24),
+      ),
+    );
+  }
+}
+
+/// The full-width pill under the status row: tap (or drag the handle
+/// above) to reveal the Trip's name and the counties crossed so far.
+class _TripDetailsToggle extends StatelessWidget {
+  const _TripDetailsToggle({required this.expanded, required this.onTap});
+
+  final bool expanded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: StadiumBorder(side: BorderSide(color: AppColors.cardBorder)),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Trip details',
+                style: AppTypeScale.itemTitle.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              child: Text(label, style: AppTextStyles.buttonLabel),
+              const SizedBox(width: 6),
+              Icon(
+                expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                size: 20,
+                color: AppColors.foreground,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The Trip's name and the counties crossed so far, read straight from
+/// the live route (thinned the same way a static preview is, so a long
+/// Trip stays cheap to scan). Renaming while recording and the photos
+/// pinned along the way aren't wired up yet - both need a little more
+/// plumbing than this screen alone should add.
+class _TripDetailsPanel extends StatelessWidget {
+  const _TripDetailsPanel({required this.startedAt, required this.route});
+
+  final DateTime? startedAt;
+  final JourneyRoute route;
+
+  @override
+  Widget build(BuildContext context) {
+    final started = startedAt;
+    final title = started == null
+        ? 'This Trip'
+        : JourneyTitles.defaultFor(started.toLocal());
+    final counties = _countiesSoFar(route);
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppTypeScale.cardTitle),
+          const SizedBox(height: 14),
+          const Text('COUNTIES SO FAR', style: AppTypeScale.sectionLabel),
+          const SizedBox(height: 8),
+          if (counties.isEmpty)
+            const Text(
+              'Waiting for your location…',
+              style: AppTypeScale.small,
             )
-          : OutlinedButton(
-              onPressed: onPressed,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.foreground,
-                side: const BorderSide(color: AppColors.cardBorder),
-                shape: shape,
-              ),
-              child: Text(label, style: AppTextStyles.buttonLabelSecondary),
+          else
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 8,
+              children: [
+                for (var i = 0; i < counties.length; i++) ...[
+                  if (i != 0)
+                    const Icon(
+                      Icons.arrow_forward,
+                      size: 14,
+                      color: AppColors.mutedForeground,
+                    ),
+                  _CountyChip(
+                    name: counties[i],
+                    isLatest: i == counties.length - 1,
+                  ),
+                ],
+              ],
             ),
+        ],
+      ),
+    );
+  }
+
+  /// Counties the route has crossed so far, in order, collapsing runs of
+  /// the same county into one entry. Mirrors the previous-county-first
+  /// check `journey_key_moments.dart` uses, so this stays cheap even over
+  /// a long Trip.
+  static List<String> _countiesSoFar(JourneyRoute route) {
+    if (route.isEmpty) return const [];
+    final names = {
+      for (final county in CountyPaths.all) county.code: county.name,
+    };
+    final result = <String>[];
+    int? last;
+    for (final segment in JourneyPreview.thin(route)) {
+      for (final point in segment) {
+        final previous = last;
+        int? code;
+        if (previous != null &&
+            CountyBoundaryResolver.countyCodeFor(
+                  latitude: point.latitude,
+                  longitude: point.longitude,
+                  countyCodes: [previous],
+                  minimumInsideDistanceMeters:
+                      CountyBoundaryResolver.boundaryHysteresisMeters,
+                ) ==
+                previous) {
+          code = previous;
+        } else {
+          code = CountyBoundaryResolver.countyCodeFor(
+            latitude: point.latitude,
+            longitude: point.longitude,
+            minimumInsideDistanceMeters:
+                CountyBoundaryResolver.boundaryHysteresisMeters,
+          );
+        }
+        if (code == null) continue;
+        last = code;
+        final name = names[code];
+        if (name != null && (result.isEmpty || result.last != name)) {
+          result.add(name);
+        }
+      }
+    }
+    return result;
+  }
+}
+
+class _CountyChip extends StatelessWidget {
+  const _CountyChip({required this.name, required this.isLatest});
+
+  final String name;
+  final bool isLatest;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isLatest ? AppColors.accent : AppColors.lockedFill,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        name,
+        style: AppTypeScale.meta.copyWith(
+          color: isLatest ? Colors.white : AppColors.foreground,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }

@@ -15,6 +15,10 @@ class JourneyRoute {
 
   bool get isEmpty => pointCount == 0;
 
+  /// The most recently recorded point, for a live "you are here" read -
+  /// null for an empty route.
+  JourneyPoint? get lastPoint => isEmpty ? null : segments.last.last;
+
   /// Distance within segments, in metres (the server computes the stored
   /// figure the same way on upload).
   double get distanceMeters {

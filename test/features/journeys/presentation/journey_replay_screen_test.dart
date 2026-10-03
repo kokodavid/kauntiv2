@@ -143,7 +143,12 @@ void main() {
       await tester.pump(const Duration(seconds: 12));
       expect(find.text('Photo taken'), findsOneWidget);
 
-      await tester.tap(find.byType(Image));
+      final photo = find.byKey(const ValueKey('journey-photo-p1'));
+      await tester.ensureVisible(photo);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.ancestor(of: photo, matching: find.byType(GestureDetector)).first,
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(InteractiveViewer), findsOneWidget);

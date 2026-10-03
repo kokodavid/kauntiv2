@@ -146,6 +146,7 @@ class JourneyTimelineMomentRow extends StatelessWidget {
                                 aspectRatio: 16 / 10,
                                 child: Image.network(
                                   photo.url,
+                                  key: ValueKey('journey-photo-${photo.id}'),
                                   fit: BoxFit.cover,
                                   // Rows are rebuilt with the same URL far
                                   // more often than they're actually

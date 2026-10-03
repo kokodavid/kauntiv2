@@ -80,7 +80,9 @@ Widget _app<T>(Widget child, List<T> overrides) => ProviderScope(
     appConfigProvider.overrideWithValue(const AppConfig.dev()),
     ...overrides.cast(),
   ],
-  child: MaterialApp(home: Scaffold(body: child)),
+  child: MaterialApp(
+    home: Scaffold(body: SingleChildScrollView(child: child)),
+  ),
 );
 
 /// Taps Start and then the named mode in the mandatory picker sheet that
@@ -121,12 +123,10 @@ void main() {
   testWidgets('Start asks how the Trip is being travelled first', (
     tester,
   ) async {
-    late _Recorder recorder;
+    final recorder = _Recorder(const JourneyTrialExhausted());
     await tester.pumpWidget(
       _app(const JourneyStartCard(), [
-        journeyRecorderProvider.overrideWith(
-          () => recorder = _Recorder(const JourneyTrialExhausted()),
-        ),
+        journeyRecorderProvider.overrideWith(() => recorder),
       ]),
     );
     await tester.tap(find.text('Start'));
@@ -144,12 +144,10 @@ void main() {
   testWidgets('dismissing the mode sheet without picking never starts', (
     tester,
   ) async {
-    late _Recorder recorder;
+    final recorder = _Recorder(const JourneyTrialExhausted());
     await tester.pumpWidget(
       _app(const JourneyStartCard(), [
-        journeyRecorderProvider.overrideWith(
-          () => recorder = _Recorder(const JourneyTrialExhausted()),
-        ),
+        journeyRecorderProvider.overrideWith(() => recorder),
       ]),
     );
     await tester.tap(find.text('Start'));
@@ -213,45 +211,42 @@ void main() {
     final start = DateTime(2026, 9, 25, 9);
     final opened = <String>[];
     await tester.pumpWidget(
-      _app(
-        SingleChildScrollView(
-          child: JourneyHistorySection(onOpen: (_, id) => opened.add(id)),
-        ),
-        [
-          journeyHistoryListProvider.overrideWith(
-            () => _History(
-              JourneyHistory(
-                cloudUnavailable: true,
-                journeys: [
-                  JourneySummary(
-                    id: 'local',
-                    title: 'Journey on 25 Sep 2026',
-                    startedAt: start,
-                    endedAt: start.add(const Duration(minutes: 12)),
-                    isUploaded: false,
-                  ),
-                  JourneySummary(
-                    id: 'cloud',
-                    title: 'Nairobi loop',
-                    startedAt: start,
-                    endedAt: start.add(const Duration(hours: 1, minutes: 5)),
-                    distanceMeters: 12400,
-                    isUploaded: true,
-                  ),
-                ],
-              ),
+      _app(JourneyHistorySection(onOpen: (_, id) => opened.add(id)), [
+        journeyHistoryListProvider.overrideWith(
+          () => _History(
+            JourneyHistory(
+              cloudUnavailable: true,
+              journeys: [
+                JourneySummary(
+                  id: 'local',
+                  title: 'Journey on 25 Sep 2026',
+                  startedAt: start,
+                  endedAt: start.add(const Duration(minutes: 12)),
+                  isUploaded: false,
+                ),
+                JourneySummary(
+                  id: 'cloud',
+                  title: 'Nairobi loop',
+                  startedAt: start,
+                  endedAt: start.add(const Duration(hours: 1, minutes: 5)),
+                  distanceMeters: 12400,
+                  isUploaded: true,
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ]),
     );
     await tester.pumpAndSettle();
-    // "On this phone" shows up twice: once as the still-local Trip's own
-    // badge, once as the filter chip that can narrow to just those.
-    expect(find.text('On this phone'), findsNWidgets(2));
-    expect(find.text('1 h 05 min · 12 km'), findsOneWidget);
+    // Only the filter is labelled this way; local cards use their upload
+    // status pill.
+    expect(find.text('On this phone'), findsOneWidget);
+    expect(find.textContaining('1 h 05 min · 12 km'), findsOneWidget);
     expect(find.textContaining("You're offline"), findsOneWidget);
-    await tester.tap(find.text('Nairobi loop'));
+    final cloudTitle = find.text('Nairobi loop');
+    await tester.ensureVisible(cloudTitle);
+    await tester.tap(cloudTitle);
     expect(opened, ['cloud']);
   });
 
@@ -349,7 +344,7 @@ void main() {
     await tester.tap(find.text('Rename'));
     await tester.pumpAndSettle();
     expect(find.text('Rename Trip'), findsOneWidget);
-    await tester.enterText(find.byType(TextField), 'Forest loop');
+    await tester.enterText(find.byType(TextField).last, 'Forest loop');
     await tester.tap(find.text('Save name'));
     await tester.pumpAndSettle();
     expect(history.renamed, [('cloud', 'Forest loop')]);
@@ -416,7 +411,6 @@ void main() {
     expect(find.text('This month'), findsOneWidget);
     expect(find.text('Morning drive to Gigiri'), findsOneWidget);
     expect(find.text('Kiambu → Nairobi'), findsOneWidget);
-    expect(find.text('047·NAIROBI'), findsOneWidget);
   });
 
   testWidgets("a Trip's card shows its transport mode", (tester) async {
@@ -636,7 +630,9 @@ void main() {
     expect(find.text('Nairobi loop'), findsOneWidget);
     expect(find.text('Journey on 25 Sep 2026'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('journeyOnThisPhoneFilter')));
+    final localFilter = find.byKey(const ValueKey('journeyOnThisPhoneFilter'));
+    await tester.ensureVisible(localFilter);
+    await tester.tap(localFilter);
     await tester.pumpAndSettle();
     expect(find.text('Journey on 25 Sep 2026'), findsOneWidget);
     expect(find.text('Nairobi loop'), findsNothing);

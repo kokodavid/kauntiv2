@@ -137,7 +137,11 @@ class _JourneyReplayTimelineState extends ConsumerState<JourneyReplayTimeline> {
 
   Future<void> _precacheOne(JourneyMediaItem photo) async {
     try {
-      await precacheImage(NetworkImage(photo.url), context);
+      await precacheImage(
+        NetworkImage(photo.url),
+        context,
+        onError: (error, stackTrace) {},
+      );
     } on Object {
       // A failed precache just means the row's own Image.network fetches
       // it normally when it scrolls into view (and shows its own

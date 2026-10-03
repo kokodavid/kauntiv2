@@ -37,6 +37,11 @@ class _FullScreenPhoto extends StatelessWidget {
                 item.url,
                 fit: BoxFit.contain,
                 gaplessPlayback: true,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.broken_image_outlined,
+                  color: Colors.white70,
+                  size: 48,
+                ),
               ),
             ),
           ),

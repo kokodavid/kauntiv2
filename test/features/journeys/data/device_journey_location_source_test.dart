@@ -60,7 +60,9 @@ void main() {
     await source.start();
     await source.stop();
     await source.stop();
-    expect(disableCalls, 2);
+    // Start first clears a service left alive from a previous process; both
+    // stop calls also disable it so recovery teardown remains idempotent.
+    expect(disableCalls, 3);
   });
 
   test('uses less frequent sampling for slower travel modes', () {

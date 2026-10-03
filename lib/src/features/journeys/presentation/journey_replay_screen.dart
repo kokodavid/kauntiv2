@@ -129,14 +129,9 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
     curve: Curves.easeOut,
   );
 
-  /// Position along the track in points, fractional between them. A
-  /// ValueNotifier, not a plain field: during playback or a scrub drag
-  /// this changes up to 60 times a second, and only the map marker and
-  /// the scrubber actually need to repaint that often. Routing every
-  /// change through setState instead would rebuild the whole screen -
-  /// map, stat bar, timeline (with every photo in it), buttons - on
-  /// every single frame, which is where the replay screen's jank was
-  /// Only the map and scrubber listen to this frame driver; the timeline
+  /// Position along the track in points, fractional between them. This
+  /// changes up to 60 times a second during playback or scrubbing, so only
+  /// the map marker and scrubber listen to this frame driver; the timeline
   /// rebuilds only for real state changes such as play/pause or key moments.
   late final AnimationController _positionController;
   double get _position => _positionController.value;

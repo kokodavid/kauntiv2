@@ -11,6 +11,7 @@ import '../domain/journey_point.dart';
 import '../domain/journey_preview.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
+import 'journey_transport_mode_ui.dart';
 import 'trip_share_card_thumbnail.dart';
 
 part 'journey_card_parts.dart';
@@ -187,6 +188,31 @@ class _JourneyCardState extends State<JourneyCard> {
                             ),
                           ],
                         ),
+                        if (journey.countyNames.isNotEmpty ||
+                            journey.transportMode != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              if (journey.countyNames.isNotEmpty)
+                                Expanded(
+                                  child: Text(
+                                    journey.countyNames.join(' → '),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTypeScale.small.copyWith(
+                                      color: AppColors.mutedForeground,
+                                    ),
+                                  ),
+                                ),
+                              if (journey.transportMode case final mode?)
+                                Icon(
+                                  journeyTransportModeIcon(mode),
+                                  size: 16,
+                                  color: AppColors.mutedForeground,
+                                ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),

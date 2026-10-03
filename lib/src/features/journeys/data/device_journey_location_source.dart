@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:location/location.dart';
 
 import '../domain/journey_fix.dart';
+import '../domain/journey_transport_mode.dart';
 
 /// Continuous fixes only for a user-started Journey. Geofencing stays separate.
 class DeviceJourneyLocationSource implements JourneyLocationSource {
@@ -18,8 +19,7 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
       .map((fix) => fix!);
 
   @override
-  Future<void> start() async {
-    if (_started) return;
+  Future<void> ensureAvailable() async {
     if (!await _location.serviceEnabled()) {
       throw const JourneyLocationException(
         JourneyLocationFailure.servicesDisabled,
@@ -36,11 +36,22 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
         JourneyLocationFailure.backgroundPermissionDenied,
       );
     }
+  }
+
+  @override
+  Future<void> start({JourneyTransportMode? mode}) async {
+    if (_started) return;
+    await ensureAvailable();
+    final sampling = samplingForMode(mode);
+    // Clear a service left alive across a process restart before configuring
+    // and starting this session's stream.
+    await _location.enableBackgroundMode(enable: false);
     if (!await _location.changeSettings(
       accuracy: LocationAccuracy.high,
-      interval: 5000,
-      distanceFilter: 10,
-      pausesLocationUpdatesAutomatically: false,
+      interval: sampling.intervalMs,
+      backgroundInterval: sampling.backgroundIntervalMs,
+      distanceFilter: sampling.distanceMeters,
+      pausesLocationUpdatesAutomatically: true,
     )) {
       throw const JourneyLocationException(
         JourneyLocationFailure.settingsUnavailable,
@@ -65,11 +76,30 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
 
   @override
   Future<void> stop() async {
-    if (!_started) return;
     // The plugin returns false for a successful disable on Android.
     await _location.enableBackgroundMode(enable: false);
     _started = false;
   }
+
+  static ({int intervalMs, int backgroundIntervalMs, double distanceMeters})
+  samplingForMode(JourneyTransportMode? mode) => switch (mode) {
+    JourneyTransportMode.drive => (
+      intervalMs: 5000,
+      backgroundIntervalMs: 8000,
+      distanceMeters: 25,
+    ),
+    JourneyTransportMode.cycle => (
+      intervalMs: 7500,
+      backgroundIntervalMs: 10000,
+      distanceMeters: 12,
+    ),
+    JourneyTransportMode.walk => (
+      intervalMs: 10000,
+      backgroundIntervalMs: 15000,
+      distanceMeters: 8,
+    ),
+    null => (intervalMs: 5000, backgroundIntervalMs: 8000, distanceMeters: 10),
+  };
 
   static JourneyFix? usableFix(LocationData data) {
     final latitude = data.latitude;

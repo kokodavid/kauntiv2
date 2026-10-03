@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/supabase_client_provider.dart';
+import '../data/journey_media_upload_queue.dart';
 import '../data/journey_upload_queue.dart';
 import '../data/supabase_journey_repository.dart';
 import 'journey_providers.dart';
@@ -21,3 +22,21 @@ JourneyUploadQueue? journeyUploadQueue(Ref ref) {
   if (cloud == null) return null;
   return JourneyUploadQueue.supabase(ref.watch(journeyDatabaseProvider), cloud);
 }
+
+/// Uploads captured Trip photos, or null without Supabase.
+@Riverpod(keepAlive: true)
+JourneyMediaUploadQueue? journeyMediaUploadQueue(Ref ref) {
+  final cloud = ref.watch(supabaseJourneyRepositoryProvider);
+  if (cloud == null) return null;
+  return JourneyMediaUploadQueue.supabase(
+    ref.watch(journeyDatabaseProvider),
+    cloud,
+  );
+}
+
+Future<void> updateJourneyCoverPhoto(
+  SupabaseJourneyRepository repository, {
+  required String userId,
+  required String id,
+  required String? mediaId,
+}) => repository.setCoverPhoto(userId: userId, id: id, mediaId: mediaId);

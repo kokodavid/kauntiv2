@@ -41,6 +41,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>instagram-stories</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
@@ -49,8 +53,12 @@
 	<string>Kaunti47 uses location at county boundaries to unlock badges. When you start a Journey, it also records your route while your phone is locked.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Kaunti47 uses your location to detect county entries for badges and, when you start a Journey, to record your route.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Kaunti47 uses your camera to add photos to a Trip while you're recording it.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Kaunti47 uses photos you select as Side Quest covers and gallery images.</string>
+	<string>Kaunti47 uses photos you select as Side Quest covers and gallery images, and - with your permission - looks for photos taken during a Trip so you can add them to its replay.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Kaunti47 saves a Trip's share image to Photos when you tap Save.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

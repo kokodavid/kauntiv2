@@ -1,0 +1,286 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
+
+part 'app_floating_toast_policy.dart';
+
+/// Tone for [showAppToast], matching the Claude-Design "01 · TOAST"
+/// reference ("Dark, floating, one line where possible"): a dark pill
+/// with a tinted icon circle, title, optional one-line subtitle, and an
+/// optional trailing pill action. Each tone picks its own icon, icon
+/// colour and how long it stays up by default - [success]/[warning]
+/// close themselves after 4s, [neutral] (e.g. "Trip deleted · Undo")
+/// stays 6s so there's time to act, and [error] stays until the user
+/// dismisses it or taps its action, per this app's rule that errors
+/// never disappear on their own.
+enum AppToastVariant { success, error, warning, neutral }
+
+/// Shows the dark floating toast matching the Claude-Design "01 · TOAST"
+/// reference. Use this in place of a [SnackBar] for anything that fits
+/// one short line - [variant] alone decides the icon, its colour and how
+/// long the toast stays up unless [duration] overrides it (`null` means
+/// "stays until dismissed").
+void showAppToast(
+  BuildContext context, {
+  required AppToastVariant variant,
+  required String title,
+  String? message,
+  IconData? icon,
+  String? actionLabel,
+  VoidCallback? onAction,
+  Duration? duration,
+}) {
+  // Replace whatever's already up - no ceremony, it's about to be
+  // covered by the new one anyway.
+  _activeToastKey?.currentState?.removeImmediately();
+  _activeToastKey = null;
+
+  // rootOverlay: true - same reasoning as this app's sheets and the "..."
+  // menu popover - so the toast floats above AppShell's bottom nav bar
+  // instead of ending up underneath it.
+  final overlay = Overlay.of(context, rootOverlay: true);
+  final key = GlobalKey<_FloatingToastState>();
+  late final OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (context) => _FloatingToast(
+      key: key,
+      variant: variant,
+      title: title,
+      message: message,
+      icon: icon ?? _defaultIcon(variant),
+      actionLabel: actionLabel,
+      onAction: onAction,
+      duration: duration ?? _defaultDuration(variant),
+      onRemove: () {
+        if (_activeToastKey == key) _activeToastKey = null;
+        entry.remove();
+      },
+    ),
+  );
+  _activeToastKey = key;
+  overlay.insert(entry);
+}
+
+class _FloatingToast extends StatefulWidget {
+  const _FloatingToast({
+    required super.key,
+    required this.variant,
+    required this.title,
+    required this.message,
+    required this.icon,
+    required this.actionLabel,
+    required this.onAction,
+    required this.duration,
+    required this.onRemove,
+  });
+
+  final AppToastVariant variant;
+  final String title;
+  final String? message;
+  final IconData icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final Duration? duration;
+  final VoidCallback onRemove;
+
+  @override
+  State<_FloatingToast> createState() => _FloatingToastState();
+}
+
+class _FloatingToastState extends State<_FloatingToast>
+    with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+    reverseDuration: const Duration(milliseconds: 160),
+  );
+  Timer? _timer;
+  bool _removed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_controller.forward());
+    final duration = widget.duration;
+    if (duration != null) {
+      _timer = Timer(duration, _close);
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _close() {
+    if (_removed) return;
+    _timer?.cancel();
+    unawaited(
+      _controller.reverse().whenComplete(() {
+        if (!_removed) {
+          _removed = true;
+          widget.onRemove();
+        }
+      }),
+    );
+  }
+
+  /// Used only when a new toast is about to replace this one - skips the
+  /// close animation since this toast is being covered immediately.
+  void removeImmediately() {
+    if (_removed) return;
+    _removed = true;
+    _timer?.cancel();
+    widget.onRemove();
+  }
+
+  void _handleAction() {
+    widget.onAction?.call();
+    _close();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final curved = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeIn,
+    );
+    return Positioned(
+      left: 16,
+      right: 16,
+      // 96 matches JourneyActiveBanner's own offset above AppBottomNav,
+      // so a toast never lands behind the floating tab bar.
+      bottom: 96 + bottomInset,
+      child: IgnorePointer(
+        ignoring: _removed,
+        child: AnimatedBuilder(
+          animation: curved,
+          builder: (context, child) => Opacity(
+            opacity: curved.value.clamp(0, 1),
+            child: Transform.translate(
+              offset: Offset(0, 16 * (1 - curved.value)),
+              child: child,
+            ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+              decoration: BoxDecoration(
+                color: AppColors.toastBackground,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x33000000),
+                    blurRadius: 24,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Tapping the icon/text (but not the action button below)
+                  // dismisses the toast - the only way to clear an [error]
+                  // toast, which otherwise stays until its action is used.
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _close,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 30,
+                            height: 30,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: _iconColor(widget.variant),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              widget.icon,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.floatingToastTitle,
+                                ),
+                                if (widget.message != null)
+                                  Text(
+                                    widget.message!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTextStyles.floatingToastMessage,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (widget.actionLabel != null) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 36,
+                      child: TextButton(
+                        onPressed: _handleAction,
+                        style: TextButton.styleFrom(
+                          backgroundColor: AppColors.toastActionBackground,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          shape: const StadiumBorder(),
+                        ),
+                        child: Text(
+                          widget.actionLabel!,
+                          style: AppTextStyles.toastActionLabel,
+                        ),
+                      ),
+                    ),
+                  ],
+                  // A visible close button, not just the body's tap-to-
+                  // dismiss gesture: that worked but had no on-screen
+                  // affordance, so an [error] toast - the one variant
+                  // that never times out on its own - could sit there
+                  // indefinitely (even across navigating to another
+                  // screen, since the overlay entry isn't tied to any
+                  // one route) with nothing visibly telling the user how
+                  // to get rid of it.
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _close,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Icon(
+                        Icons.close,
+                        size: 16,
+                        color: AppColors.toastSubtitle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

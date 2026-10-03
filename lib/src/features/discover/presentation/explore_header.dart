@@ -64,9 +64,24 @@ class _ExploreSearchFieldState extends State<ExploreSearchField> {
               onChanged: widget.onChanged,
               textInputAction: TextInputAction.search,
               style: AppTextStyles.searchInputText,
-              decoration: InputDecoration.collapsed(
+              // Plain InputDecoration, not `.collapsed()`: collapsed only
+              // clears the generic `border` field, so the app's global
+              // inputDecorationTheme (explicit enabledBorder/focusedBorder,
+              // filled white) still painted its own rounded border around
+              // the field -- a "search inside a search" nested pill inside
+              // this Container's own pill border. Zeroing every border
+              // variant here removes it.
+              decoration: InputDecoration(
+                isCollapsed: true,
                 hintText: 'Search...',
                 hintStyle: hint,
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
               ),
             ),
           ),

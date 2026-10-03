@@ -656,3 +656,209 @@ penalty for Trips recorded before this shipped.
   or broken. The upload queue's existing day-later backoff for permanent
   rejections is what naturally retries it once the month rolls over -
   no special-cased scheduling needed for that part.
+
+
+## Addendum (2026-10-01): Trip media - photo capture, upload, Replay
+
+Branch: `explore/trip-media`. Scope confirmed up front: photos only (no
+video for now), capturable only while actively recording (not from
+history or while paused), and a full vertical slice - capture, upload,
+and display in Replay - rather than a capture-only first cut.
+
+**Why genuinely new infrastructure, not an extension of the points
+pipeline:** Trips have never stored a local file before (no
+`dart:io` File usage, no `path_provider` anywhere in `lib/` before this),
+and binary uploads don't fit the RPC pattern `upload_journey` uses for
+points - Storage uploads go straight from the client, governed by RLS,
+not through a security-definer function.
+
+**New dependencies:** `image_picker: ^1.2.3` (camera capture only, via
+`ImagePicker().pickImage(source: ImageSource.camera)`) and
+`path_provider: ^2.1.5` (already present transitively through
+`drift_flutter`; added directly since new code now imports it) - to copy
+image_picker's cache file into the app's persistent support directory
+before the upload queue can rely on it still being there.
+
+**Local storage:** a new raw-SQL table, `journey_media_captures`
+(schema 7 -> 8, via `customStatement` like every other schema change in
+this file - no `build_runner` available, so no new typed Drift table
+either), holding the captured file's local path, capture time, and the
+last known fix's lat/lng. `LocalJourneyMediaRepository` mirrors
+`LocalJourneyRepository`'s raw-SQL query style for it.
+
+**Upload queue:** `JourneyMediaUploadQueue` mirrors `JourneyUploadQueue`'s
+drain/backoff shape, with one extra gate: a photo waits until its own
+Trip's points have finished uploading (checked via
+`journeyStillLocal` - whether a local `journey_sessions` row for that
+Trip id still exists), since `journey_media.journey_id` references
+`journeys` and would otherwise just fail the foreign key. No
+permanent-vs-transient split like the points queue has for the trial
+limit - there's no permanently-failing case for a photo upload, so any
+error just backs off and retries. `JourneySync.drain()` now runs the
+media drain right after the points drain, so every existing call site
+(periodic/resume sync, pull-to-refresh, a Trip's own `finish()`) picks up
+photo sync for free, with no new lifecycle wiring.
+
+**Cloud:** `20261001020000_add_journey_media.sql` adds a private
+`journey-media` Storage bucket (per-user folder RLS via
+`storage.foldername(name)`, unlike the public admin-gated
+`place-images` bucket) and a `journey_media` table (owner-only RLS, plus
+a check that the referenced Trip is also theirs). The client uploads
+directly via `client.storage.from('journey-media').upload(...)` and
+inserts/upserts the row itself - no RPC, since a Postgres function isn't
+a practical place to receive a binary upload. `SupabaseJourneyRepository`
+gained `uploadMedia()` and `media()` (the latter returns each photo with
+a fresh one-hour signed URL, since the bucket isn't public).
+
+**UI:** a camera button appears in `JourneyRecordingControls` only while
+actively recording (not paused, per the confirmed scope), opening the
+system camera via image_picker and handing the result to a new
+`JourneyRecorder.captureMedia()`. Replay shows a Trip's uploaded photos
+as a horizontal thumbnail strip (`JourneyMediaStrip`, new) near the top
+of the map, tappable for a full-screen pinch-to-zoom view; it renders
+nothing for the (expected to be most) Trips with no photos, so it costs
+no layout space for them. Discarding an in-progress Trip now also drops
+any photos captured for it (local row and file), matching how discarding
+already drops the Trip's points.
+
+**Not done, deliberately deferred:** media isn't woven into the
+point-by-point replay animation (no pins at capture locations, no
+pausing replay on arrival at a photo) - the strip is a simple top-level
+gallery instead, which covers "see the photos from this Trip" without
+the complexity of aligning arbitrary capture timestamps to route indices
+the way the existing key-moments system does for places. Also deferred:
+a thumbnail badge on Trip cards in history showing photo count.
+
+## Addendum (2026-10-01): fail fast when location isn't available
+
+`JourneyLocationSource` gained `ensureAvailable()` - the same services/
+permission/background-permission checks `start()` already did, pulled out
+so `JourneyRecorder.start()` can call them first, before the live Pro/
+trial check and before creating a local session row. Previously a phone
+with location off or permission denied still paid for a network round
+trip and a throwaway DB insert+delete before failing; now it fails
+immediately with the same `JourneyLocationException` (and the same
+"Turn on location services…" messaging `JourneyStartCard` already had).
+`start()` still calls `ensureAvailable()` again as part of actually
+attaching, since permission can still be revoked in the gap between the
+two checks - that existing race-handling path is unchanged.
+
+## Known issues / backlog
+
+- ~~No gate for a Trip that never gets a GPS fix.~~ **Fixed 2026-10-01.**
+  A Trip could sit in "Recording" indefinitely with 0 points and 0 m if
+  location never actually produced a fix after Start (confirmed on an iOS
+  Simulator run with no simulated location). The `ensureAvailable()` guard
+  added earlier the same day only checked that location services/
+  permissions were *granted*, not that a fix was actually arriving.
+
+  Went with Option 1 from the fork below: `JourneyCapture.attachStarted()`
+  now blocks until the first real fix arrives (reusing the existing single
+  `_subscription` via a `Completer<void>? _firstFix`, completed from
+  `_listen()`'s fix callback - a second listener isn't safe here, since
+  one existing test uses a single-subscription stream for `fixes`). A
+  `firstFixTimeout` constructor param (default 20s) bounds the wait; on
+  timeout, `attachStarted` throws `JourneyLocationException` with the new
+  `JourneyLocationFailure.noFixReceived` reason, which reuses the existing
+  failure-handling path in `JourneyRecorder.start()` (Journey discarded,
+  not left paused - same as any other `JourneyLocationException`) and has
+  its own message in `JourneyMessages.forError()` ("Couldn't get a GPS
+  signal..."). Tests that called `attachStarted()` then pushed a fix
+  afterward were rewritten to push the fix during the await instead (via
+  `pumpEventQueue()` then `source.controller.add(fix)` before awaiting the
+  pending `attachStarted()` future); `JourneyRecorder`'s own tests'
+  `_FakeSource.start()` now auto-emits a fix via a zero-duration `Timer`
+  so the many tests that just `await recorder.start(...)` keep working
+  unchanged.
+
+  <details>
+  <summary>Original fork (for history)</summary>
+
+  Two ways to fix it, not yet decided between:
+  1. Block Start until a first fix arrives (e.g. up to a ~20s timeout),
+     failing Start outright with the same location-error messaging if
+     none comes. Simpler mental model, but `JourneyCapture.attachStarted()`
+     currently resolves as soon as the stream is subscribed - every
+     existing test that calls `attachStarted()` then pushes a fix
+     afterward would need reworking to push the fix before/during the
+     await instead.
+  2. Let Start stay instant; if no fix arrives within a timeout while
+     "Recording", auto-pause or discard and surface an error. Needs the
+     UI to show an error for a pause it didn't initiate (today
+     `JourneyCapture.lastError`/`onUnexpectedPause` only updates state
+     silently, nothing reads `lastError` to show a message) - and still
+     leaves a window where the clock ticks with nothing recorded before
+     the timeout fires.
+
+  Whoever picks this up should settle that fork with the user first
+  rather than guessing.
+
+  </details>
+
+
+## Photos surface in Replay as the marker reaches them (2026-10-01)
+
+Trip photos used to only show as a static strip pinned over the map for
+the whole Replay. Now each photo is a key moment: the replay marker
+pauses at the route point closest to *when* the photo was taken (not
+where - `recordedAt` vs `capturedAt`, since a phone can sit at one GPS
+fix for minutes while several photos are taken, and `recordedAt` is what
+actually orders the route the marker walks along), shows it in the same
+paused-moment card as a recording break or a nearby place, and resumes
+on Play/Continue - exactly the existing `JourneyMoments` pause/resume
+mechanism, extended rather than replaced.
+
+- `JourneyMomentKind.photo` + a `JourneyMoment.photo` field
+  (`domain/journey_moments.dart`). `JourneyMoments.find()` takes a
+  `photos: List<JourneyMediaItem>` param; a new `_photos()` finder
+  matches each photo to the point with the closest `recordedAt`.
+- `journeyMoments` (`application/journey_key_moments.dart`) now also
+  watches `journeyMediaProvider(id)` and passes the photos through -
+  still computed off the UI isolate alongside the county lookups.
+- `JourneyMomentRow` (`presentation/journey_moment_row.dart`) renders a
+  photo moment as a thumbnail row ("Photo taken here · <time>"), tapping
+  opens it full screen. `journey_media_strip.dart`'s full-screen opener
+  was made public (`openJourneyPhoto`) so both the strip and the moment
+  row share it instead of duplicating the page route.
+- No change needed to the replay ticker itself
+  (`_Player._onTick`/`JourneyMoments.nextStopAfter`/`.at()`
+  in `journey_replay_screen.dart`): it already pauses at *any* moment in
+  `widget.moments` by index, so adding photo moments to that list was
+  enough. The map pin list (`_pinsFor`) already pins every non-place
+  moment too, so a photo's location gets a pin on the overview map for
+  free.
+- The static top strip (`JourneyMediaStrip`) is unchanged and still
+  shows all of a Trip's photos at once, independent of replay position -
+  useful for skimming before pressing Play.
+
+
+## An elevation-peak moment, single highest point only (2026-10-01)
+
+Elevation previously only showed as a Trip-wide stat pill ("Elev 1,234
+m", `JourneySummary.highestElevationMeters`), not tied to any point on
+the route. Added `JourneyMomentKind.elevationPeak`: the replay marker
+now also pauses once, at the single highest-altitude point of the route,
+showing "Highest point of the Trip · 1,680 m" (`JourneyMoment.elevationMeters`,
+formatted with the existing `JourneyFormat.elevation`).
+
+- `JourneyMoments._elevationPeak()` (`domain/journey_moments.dart`) scans
+  `JourneyPoint.altitudeMeters` (already recorded per fix, already synced
+  to Supabase as `altitude_m`) for the single max, and only yields a
+  moment if it clears `elevationPeakMinimumGainMeters` (30 m) above the
+  route's lowest known altitude - GPS altitude is noisier than
+  horizontal position, so a flat urban Trip shouldn't get a "highest
+  point" pause off a few metres of jitter. No moment at all when no
+  point on the route has altitude data.
+- Deliberately *not* built: per-climb detection (pausing at every
+  meaningful ascent, not just the single peak). That's a reasonable
+  follow-up for hiking-style Trips but needs its own threshold tuning;
+  left out for now at the user's instruction ("just the single high
+  point for now").
+- Same mechanism as the photo moments above: no changes needed to the
+  replay ticker, `nextStopAfter`/`.at()`, or the map-pin logic - adding
+  a new `JourneyMoment` to the list `journeyMoments` returns is already
+  enough for the marker to pause there and for `_pinsFor` to pin it.
+- `journey_moment_row.dart`'s `_describe` switch got an
+  `elevationPeak` case (icon `Icons.terrain`, matching the stats pill's
+  icon) rather than a bespoke row, since - unlike a photo - there's
+  nothing to show but text and nothing to tap through to.

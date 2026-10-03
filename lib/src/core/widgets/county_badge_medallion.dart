@@ -2,15 +2,20 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../core/design/app_type_scale.dart';
-import '../../../counties/county_paths.dart';
-import '../../../widgets/app_county_shape.dart';
-import '../../../widgets/app_svg_path.dart';
+import '../../counties/county_paths.dart';
+import '../../widgets/app_county_shape.dart';
+import '../../widgets/app_svg_path.dart';
+import '../design/app_type_scale.dart';
 
 /// A county badge (Figma "Badge", no stars): a glossy disc with the county
 /// name across the top and its silhouette in white. Blue once earned,
 /// grey otherwise. Drawn at any [size]; the design is 74 px. With [back]
 /// it's the coin's reverse: the same disc with the Kaunti47 mark.
+///
+/// Lives in `widgets/` rather than the Badges feature because Journeys'
+/// "Entered county" timeline card (`journey_county_moment_card.dart`)
+/// reuses it too - shared by two features, so it belongs in `core`, not
+/// either one (architecture.md §1).
 class CountyBadgeMedallion extends StatelessWidget {
   const CountyBadgeMedallion({
     super.key,

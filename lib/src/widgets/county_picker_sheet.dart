@@ -170,11 +170,25 @@ class _CountySearchField extends StatelessWidget {
               controller: controller,
               onChanged: onChanged,
               style: AppTextStyles.searchInputText,
-              decoration: InputDecoration.collapsed(
+              // See explore_header.dart's ExploreSearchField: `.collapsed()`
+              // doesn't clear enabledBorder/focusedBorder, so the app's
+              // global inputDecorationTheme border was still painting a
+              // second, nested box around the field inside this
+              // Container's own pill. Spelling out every border variant
+              // removes it.
+              decoration: InputDecoration(
+                isCollapsed: true,
                 hintText: 'Search...',
                 hintStyle: AppTextStyles.searchInputText.copyWith(
                   color: AppColors.mutedForeground,
                 ),
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
               ),
             ),
           ),

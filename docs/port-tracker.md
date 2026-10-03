@@ -13,7 +13,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | In progress | codex/go-router | go_router (`app/router.dart`, `appRouterProvider`); start-up gating is one redirect on `StartupFlow` (`features/onboarding`), the old `app.dart` state machine ported rule for rule; sign-in on a Riverpod notifier with error mapping in the data layer. Left: move the onboarding pages from `screens/` into `features/onboarding/presentation`, sign-out (with detection's local-state clearing), v1's 3 how-it-works intro screens |
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/go-router | `app/app_shell.dart` on a go_router `StatefulShellRoute.indexedStack`: tab branches keep their own stacks and state, built lazily (v1 parity). County / Place Detail are routes (`/county/:code`, `/place/:id`). Map + Explore live; Badges / Ranks show "coming next" |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
-| 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 (rules, polygons, local store, sync queue, native geofencing, foreground cycle, background-permission pause, arrival sheet) coded; needs a device test. Needs a real-device test |
+| 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 coded. Foreground local detection/dwell/sync checks run every 15 s, while hardware location is read on start/resume and at most every 2 min; background crossing relies on OS geofences. Dev-only opt-in diagnostics can log cycle/GPS-read counts and geofence transitions. Physical-device validation still needed. |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | In progress | codex/badges | [Plan](badges-port-plan.md). Step 1: Badges tab on the new design (Figma 491:1394, star-less badge 277:19839): title + tier pill, claimed hero with 47-segment bar, collection grid with depth rings (county_visits + county_depth_ranks). "Since reset", the activity card, avatar and saved-data time wait on product rules. |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | In progress | codex/journey-place-handoff | First-release account overview from Home avatar: auth identity, home county, badges, live Pro status, Journeys link, OS location settings, privacy summary and sign-out (removes native county geofences first). Full settings, published policy/support links and account deletion remain. |
@@ -48,6 +48,31 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   filters appear after the list grows beyond eight entries.
 - Pending: a Pro purchase flow, migration deployment, device validation,
   and large-route performance checks.
+- Battery pass: foreground detection keeps local dwell/sync work on a 15 s
+  cadence but limits GPS reconciliation to start/resume and every 2 min. Journey
+  capture uses mode-specific intervals/distance filters and enables platform
+  auto-pause; stale background location is stopped during recovery and every
+  capture teardown. Sampling values are initial profiles, not measured battery
+  guarantees. Verify battery use, route fidelity, lock-screen capture and
+  pause/resume behavior on physical iOS and Android devices before release.
+- Dev-only whole-app location diagnostics are documented in
+  [location-diagnostics.md](location-diagnostics.md). Local JSONL reports
+  include Detection lifecycle/cycle events, native geofence transitions,
+  battery samples, Journey start/stop, and existing segment-gap events; they
+  exclude coordinates and account identifiers. Reports are shared manually.
+
+### Dev Location Diagnostics
+
+- Dev-only compile gate (`LOCATION_DIAGNOSTICS` in `dart_defines/dev.json`)
+  and dev runtime check. Profile opens a local session recorder with start/stop,
+  JSONL share, text summary copy, and clear actions.
+- Reports sample native battery percentage at session start/stop and foreground
+  transitions; Detection cycles/GPS reads and OS geofence events; Journey
+  location start/stop and the existing segment-gap threshold events. No raw
+  coordinates, place names, account IDs, or automatic uploads.
+- Runbook: [location-diagnostics.md](location-diagnostics.md). Device profiling
+  with Xcode Energy Log / Android Battery Historian remains required; the
+  percentage delta is only a coarse whole-device signal.
 
 ### Profile (#8)
 
@@ -63,6 +88,12 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   account.
 - The account header uses v2's light-blue band and blue action accents; the
   information rows remain neutral for scanning.
+- Profile's compact redesign keeps the account-bound auth gate and live
+  entitlement behavior, adds the onboarding home-county chip and a live
+  47-county progress card, and previews earned counties with the shared
+  `CountyBadgeMedallion`. Membership, Trips and privacy use the existing
+  profile tile component in surface/dark variants; dev-only location
+  diagnostics, location settings and guarded sign-out remain available.
 - Pending before release: published policy/support destinations, a real
   account-deletion workflow, app-version display, and device-level transition
   checks. The in-app summary is not a substitute for the privacy policy.
@@ -399,6 +430,8 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-03 | working tree | 8 | Profile layout updated to the attached concept: identity/home county, live county progress, earned badge preview, membership, Trips and privacy shortcuts; retained location diagnostics and sign-out flows. Flutter/device visual verification pending. |
+| 2026-10-03 | working tree | 5, 13 | Dev-only opt-in location diagnostics: local JSONL report, native battery samples, Detection/geofence events, Journey segment-gap events and share/copy controls. Device validation pending. |
 | 2026-10-01 | codex/journey-place-handoff | 13 | Free monthly Trip allowance for non-Pro accounts, account-scoped usage state, Trip search/date filters and empty-state icons; serialize trial checks in the upload RPC and keep rejected recordings retryable. Version bumped to 1.3.2+11. |
 | 2026-10-01 | codex/journey-place-handoff | 7, 13 | Merge-preparation pass: Trip naming and rename, route stats, county splits, map and card polish; corrected the Journey upload RPC signature while retaining paused time and county data. Architecture, strict analysis, custom lint and full Flutter tests passed; SQL deployment and device transition checks remain pending. |
 | 2026-09-26 | codex/journey-place-handoff | 8 | Profile visual pass: pale-blue account band and v2 blue accents for profile actions; neutral information rows retained |

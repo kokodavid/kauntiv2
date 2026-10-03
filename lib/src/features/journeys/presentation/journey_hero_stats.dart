@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/app_type_scale.dart';
+import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
 import '../application/journey_history.dart';
 import '../domain/journey_route.dart';
 
 /// The exploring-so-far summary at the top of the Journeys tab: total
-/// distance travelled plus a couple of highlight stats, in the same
-/// gradient-panel language as Home's map stat card. Shown once there is at
-/// least one Journey; hidden while loading or empty, since the history
-/// list below already covers those states.
+/// distance, Trip count and counties explored, as three columns in one
+/// gradient panel (the Home map stat card's language). Shown once there
+/// is at least one Journey; hidden while loading or empty, since the
+/// history list below already covers those states.
 class JourneyHeroStats extends ConsumerWidget {
   const JourneyHeroStats({super.key});
 
@@ -20,28 +21,20 @@ class JourneyHeroStats extends ConsumerWidget {
     if (journeys == null || journeys.isEmpty) return const SizedBox.shrink();
 
     var totalMeters = 0.0;
-    double? longestMeters;
     var uploadedCount = 0;
-    var thisMonth = 0;
-    final now = DateTime.now();
+    final counties = <String>{};
     for (final journey in journeys) {
       final distance = journey.distanceMeters;
       if (distance != null) {
         uploadedCount++;
         totalMeters += distance;
-        if (longestMeters == null || distance > longestMeters) {
-          longestMeters = distance;
-        }
       }
-      final started = journey.startedAt.toLocal();
-      if (started.year == now.year && started.month == now.month) {
-        thisMonth++;
-      }
+      counties.addAll(journey.countyNames);
     }
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: AppColors.cardBorder),
@@ -53,36 +46,30 @@ class JourneyHeroStats extends ConsumerWidget {
           stops: [0.0, 0.85],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: uploadedCount == 0
-                    ? const Text(
-                        "You're exploring",
-                        style: AppTextStyles.statNumeralCompact,
-                      )
-                    : _DistanceHeadline(meters: totalMeters),
-              ),
-              const SizedBox(width: 12),
-              _CountPill(count: journeys.length),
-            ],
+          Expanded(
+            child: _Stat(
+              // Distance is only known once a Trip has uploaded; with
+              // none yet, show the dash rather than a misleading 0 km.
+              value: uploadedCount == 0
+                  ? '—'
+                  : JourneyFormat.distance(totalMeters),
+              label: uploadedCount == 0 ? 'SYNCING' : 'KM TRAVELLED',
+              accent: true,
+            ),
           ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                longestMeters == null
-                    ? 'SYNCING DISTANCE'
-                    : 'LONGEST ${JourneyFormat.distance(longestMeters).toUpperCase()}',
-                style: AppTextStyles.bodySmall,
-              ),
-              Text('$thisMonth THIS MONTH', style: AppTextStyles.bodySmall),
-            ],
+          const _Divider(),
+          Expanded(
+            child: _Stat(value: '${journeys.length}', label: 'TRIPS'),
+          ),
+          const _Divider(),
+          Expanded(
+            child: _Stat(
+              value: '${counties.length}',
+              valueSuffix: '/${CountyPaths.all.length}',
+              label: 'COUNTIES',
+            ),
           ),
         ],
       ),
@@ -90,51 +77,81 @@ class JourneyHeroStats extends ConsumerWidget {
   }
 }
 
-/// "128 km travelled", with the numeral in the Home stat card's numeral
-/// style and the unit/word as a caption beside it.
-class _DistanceHeadline extends StatelessWidget {
-  const _DistanceHeadline({required this.meters});
-
-  final double meters;
-
-  @override
-  Widget build(BuildContext context) {
-    final parts = JourneyFormat.distance(meters).split(' ');
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(parts.first, style: AppTextStyles.statNumeralCard),
-        const SizedBox(width: 4),
-        Flexible(
-          child: Text(
-            '${parts.length > 1 ? parts[1] : ''} travelled',
-            style: AppTextStyles.chipLabel,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CountPill extends StatelessWidget {
-  const _CountPill({required this.count});
-
-  final int count;
+class _Divider extends StatelessWidget {
+  const _Divider();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.accent,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        count == 1 ? '1 Trip' : '$count Trips',
-        style: AppTextStyles.buttonLabel,
-      ),
+      width: 1,
+      height: 34,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      color: AppColors.cardBorder,
+    );
+  }
+}
+
+/// A stat column: a big numeral (with an optional lighter "/47" suffix)
+/// over a small caps label, splitting a value like "834 km" so only the
+/// number itself takes the numeral style and the unit reads as a caption.
+class _Stat extends StatelessWidget {
+  const _Stat({
+    required this.value,
+    required this.label,
+    this.valueSuffix,
+    this.accent = false,
+  });
+
+  final String value;
+  final String label;
+  final String? valueSuffix;
+  final bool accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = value.split(' ');
+    final numeral = parts.first;
+    final unit = parts.length > 1 ? parts[1] : null;
+    final numeralStyle = AppTypeScale.compactTitle.copyWith(
+      fontSize: 22,
+      height: 26 / 22,
+      color: accent ? AppColors.accent : AppColors.foreground,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(numeral, style: numeralStyle),
+            if (valueSuffix != null)
+              Text(
+                valueSuffix!,
+                style: AppTypeScale.small.copyWith(
+                  color: AppColors.mutedForeground,
+                ),
+              ),
+            if (unit != null) ...[
+              const SizedBox(width: 3),
+              Text(
+                unit,
+                style: AppTypeScale.small.copyWith(
+                  color: AppColors.mutedForeground,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypeScale.statLabel,
+        ),
+      ],
     );
   }
 }

@@ -13,6 +13,8 @@ abstract final class AppRoutes {
   static const explore = '/explore';
   static const journeys = '/journeys';
   static const profile = '/profile';
+  static const settings = '/settings';
+  static const locationDiagnostics = '/location-diagnostics';
   static const journeyRecording = '/journey-recording';
 
   static String county(int code) => '/county/$code';

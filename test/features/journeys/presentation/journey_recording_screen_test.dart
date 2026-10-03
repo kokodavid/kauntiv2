@@ -23,6 +23,8 @@ class _Recorder extends JourneyRecorder {
 
 void main() {
   testWidgets('recording shows full screen with its controls', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     // Paused 10 minutes in: the clock shows 10 minutes, not the wall time.
     final start = DateTime.now().toUtc().subtract(const Duration(hours: 1));
     final recording = const JourneyRecording.idle()
@@ -44,20 +46,29 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Paused'), findsOneWidget);
+    expect(find.text('PAUSED'), findsOneWidget);
     expect(find.text('0:10:00'), findsOneWidget);
-    expect(find.text('Resume'), findsOneWidget);
-    expect(find.text('Stop'), findsOneWidget);
+    expect(find.byTooltip('Resume'), findsOneWidget);
+    expect(find.byTooltip('Stop'), findsOneWidget);
     expect(find.byTooltip('Minimise'), findsOneWidget);
-    expect(find.text('Waiting for your location…'), findsOneWidget);
+    expect(find.text('Waiting for your location…'), findsNWidgets(2));
 
     // Stop offers save or discard.
-    await tester.tap(find.text('Stop'));
+    await tester.tap(find.byTooltip('Stop'));
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Discard'), findsOneWidget);
     expect(find.text('Stop and save'), findsOneWidget);
-    await tester.tap(find.text('Keep going'));
+    final keepGoing = find.text('Keep going');
+    await tester.ensureVisible(keepGoing);
+    await tester.tap(keepGoing);
     await tester.pump(const Duration(milliseconds: 500));
+
+    // "Trip details" expands to the Trip's name.
+    final tripDetails = find.text('Trip details');
+    await tester.ensureVisible(tripDetails);
+    await tester.tap(tripDetails);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.textContaining('Trip on'), findsOneWidget);
 
     // Drop the tree so the clock's timer stops.
     await tester.pumpWidget(const SizedBox());

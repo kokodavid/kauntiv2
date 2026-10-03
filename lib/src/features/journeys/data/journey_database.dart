@@ -44,7 +44,7 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -54,6 +54,8 @@ class JourneyDatabase extends _$JourneyDatabase {
       await _addTitleColumn();
       await _addSpeedElevationColumns();
       await _addTrialLimitColumn();
+      await _createMediaCapturesTable();
+      await _addTransportModeColumn();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -67,6 +69,8 @@ class JourneyDatabase extends _$JourneyDatabase {
       if (from < 5) await _addTitleColumn();
       if (from < 6) await _addSpeedElevationColumns();
       if (from < 7) await _addTrialLimitColumn();
+      if (from < 8) await _createMediaCapturesTable();
+      if (from < 9) await _addTransportModeColumn();
     },
   );
 
@@ -111,6 +115,40 @@ class JourneyDatabase extends _$JourneyDatabase {
   Future<void> _addTrialLimitColumn() async {
     await customStatement(
       'ALTER TABLE journey_sessions ADD COLUMN blocked_by_trial_limit INTEGER',
+    );
+  }
+
+  /// A photo captured while actively recording a Trip, waiting to upload
+  /// (schema 8). Raw SQL, not a typed Drift table: build_runner isn't run
+  /// for this change, so a new table follows the same customStatement
+  /// pattern already used above for new columns.
+  ///
+  /// Gated on the parent Trip's own points already being uploaded (see
+  /// `JourneyMediaUploadQueue`): `journey_id` isn't a foreign key here,
+  /// it just names the still-local or already-uploaded Trip by its id.
+  Future<void> _createMediaCapturesTable() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS journey_media_captures (
+        id TEXT NOT NULL PRIMARY KEY,
+        journey_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        local_path TEXT NOT NULL,
+        captured_at_millis INTEGER NOT NULL,
+        latitude REAL,
+        longitude REAL,
+        upload_attempts INTEGER NOT NULL DEFAULT 0,
+        next_upload_at_millis INTEGER
+      )
+    ''');
+  }
+
+  /// How the Trip was travelled - 'drive', 'walk' or 'cycle' - chosen
+  /// before Start and used for the card icon and per-mode point-speed
+  /// sanity limits (schema 9); NULL for Trips recorded before this
+  /// existed.
+  Future<void> _addTransportModeColumn() async {
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN transport_mode TEXT',
     );
   }
 }

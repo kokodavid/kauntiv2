@@ -1,45 +1,11 @@
 part of 'journey_card.dart';
 
-/// Duration/distance on the photo, in a small translucent pill.
-class _FactsPill extends StatelessWidget {
-  const _FactsPill({required this.facts});
-
-  final String facts;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.route_rounded,
-            size: 13,
-            color: AppColors.heroSubheadingText,
-          ),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              facts,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypeScale.photoCaption,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Fades in the route's static map over a neutral fill when it loads.
-class _RoutePreview extends ConsumerWidget {
-  const _RoutePreview({required this.journeyId});
+/// Public (though this file is a `part of`) so other Trip-card styles -
+/// the grouped carousel tiles - can reuse the same Mapbox static preview
+/// instead of re-fetching the route themselves.
+class JourneyRoutePreview extends ConsumerWidget {
+  const JourneyRoutePreview({super.key, required this.journeyId});
 
   final String journeyId;
 

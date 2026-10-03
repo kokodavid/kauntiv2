@@ -5,10 +5,12 @@ import 'package:kaunti47_v2/src/config/app_config.dart';
 import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_key_moments.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_views.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_media_capture.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_moments.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_point.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_route.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_summary.dart';
+import 'package:kaunti47_v2/src/features/journeys/presentation/journey_replay_playback_bar.dart';
 import 'package:kaunti47_v2/src/features/journeys/presentation/journey_replay_screen.dart';
 
 JourneyPoint _p(int minute) => JourneyPoint(
@@ -68,9 +70,10 @@ void main() {
       ],
     );
     expect(find.text('0:00:00 · 0 m'), findsOneWidget);
-    // The Journey's summary rides in the overlay card.
     expect(find.text('Morning drive'), findsOneWidget);
-    expect(find.textContaining('10 min · Started'), findsOneWidget);
+    // The timeline lists every key moment from the start, not just the
+    // one replay happens to be paused at.
+    expect(find.text('Entered Kiambu'), findsOneWidget);
 
     await _play(tester, 'Play replay');
     // 11 points over the 30 s minimum at 1×: 3 s per point, so 12 s
@@ -80,7 +83,9 @@ void main() {
     expect(find.textContaining('0:03:00'), findsOneWidget);
 
     await _play(tester, 'Continue replay');
-    expect(find.text('Entered Kiambu'), findsNothing);
+    // Still listed - just no longer the "current" one - once replay
+    // moves on.
+    expect(find.text('Entered Kiambu'), findsOneWidget);
     await tester.pump(const Duration(seconds: 4));
     expect(find.textContaining('0:04:'), findsOneWidget);
     await tester.tap(find.byTooltip('Pause replay'));
@@ -89,7 +94,11 @@ void main() {
 
   testWidgets('4× plays four times as far in the same time', (tester) async {
     await _pump(tester);
-    await tester.tap(find.text('4×'));
+    // Speed is a single pill that cycles with each tap: 1× -> 2× -> 4×.
+    await tester.tap(find.text('1×'));
+    await tester.pump();
+    await tester.tap(find.text('2×'));
+    await tester.pump();
     await _play(tester, 'Play replay');
     await tester.pump(const Duration(seconds: 7));
     // 7 s at 4× glides past the ninth point (about 9:20).
@@ -100,56 +109,66 @@ void main() {
 
   testWidgets('scrubbing jumps and pauses; whole route resets', (tester) async {
     await _pump(tester);
-    await tester.drag(find.byType(Slider), const Offset(2000, 0));
+    await tester.drag(
+      find.byType(JourneyReplayScrubber),
+      const Offset(2000, 0),
+    );
     await tester.pump();
     expect(find.textContaining('0:10:00'), findsOneWidget);
     expect(find.byTooltip('Play replay'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Show whole route'));
+    await tester.tap(find.text('Whole route'));
     await tester.pump();
     expect(find.text('0:00:00 · 0 m'), findsOneWidget);
   });
 
-  testWidgets('a place near the route can be opened', (tester) async {
-    final opened = <String>[];
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          appConfigProvider.overrideWithValue(const AppConfig.dev()),
-          journeyDetailProvider('j').overrideWith((ref) async => _detail),
-          journeyMomentsProvider('j').overrideWith(
-            (ref) async => const [
-              JourneyMoment(
-                kind: JourneyMomentKind.nearbyPlace,
-                index: 2,
-                name: 'Karura Forest',
-                distanceMeters: 2400,
-                place: JourneyPlaceMark(
-                  id: 'karura',
-                  countyCode: 47,
-                  name: 'Karura Forest',
-                  latitude: -1.24,
-                  longitude: 36.83,
-                ),
-              ),
-            ],
+  testWidgets(
+    'a photo moment pauses the marker there and can be opened full screen',
+    (tester) async {
+      await _pump(
+        tester,
+        moments: [
+          JourneyMoment(
+            kind: JourneyMomentKind.photo,
+            index: 3,
+            photo: JourneyMediaItem(
+              id: 'p1',
+              url: 'https://example.com/p1.jpg',
+              capturedAt: DateTime.utc(2026, 9, 25, 10, 3),
+            ),
           ),
         ],
-        child: MaterialApp(
-          home: JourneyReplayScreen(
-            journeyId: 'j',
-            onOpenPlace: (_, id) => opened.add(id),
-          ),
+      );
+      await _play(tester, 'Play replay');
+      await tester.pump(const Duration(seconds: 12));
+      expect(find.text('Photo taken'), findsOneWidget);
+
+      final photo = find.byKey(const ValueKey('journey-photo-p1'));
+      await tester.ensureVisible(photo);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.ancestor(of: photo, matching: find.byType(GestureDetector)).first,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+    },
+  );
+
+  testWidgets('tapping a moment jumps replay there', (tester) async {
+    await _pump(
+      tester,
+      moments: const [
+        JourneyMoment(
+          kind: JourneyMomentKind.countyCrossing,
+          index: 6,
+          name: 'Nairobi',
         ),
-      ),
+      ],
     );
+    await tester.tap(find.text('Entered Nairobi'));
     await tester.pump();
-    await _play(tester, 'Play replay');
-    await tester.pump(const Duration(seconds: 10));
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Karura Forest'), findsOneWidget);
-    expect(find.textContaining('2.4 km'), findsOneWidget);
-    await tester.tap(find.text('Karura Forest'));
-    expect(opened, ['karura']);
+    expect(find.textContaining('0:06:00'), findsOneWidget);
+    expect(find.byTooltip('Continue replay'), findsOneWidget);
   });
 }

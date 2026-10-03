@@ -5,6 +5,7 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/journey_history.dart';
 import '../application/journey_recorder.dart';
+import '../application/journey_sync.dart';
 import 'journey_hero_stats.dart';
 import 'journey_history_section.dart';
 import 'journey_live_card.dart';
@@ -47,10 +48,7 @@ class JourneysScreen extends ConsumerWidget {
               const JourneyHeroStats(),
               const SizedBox(height: 16),
               if (active)
-                JourneyLiveCard(
-                  onOpenSettings: onOpenSettings,
-                  onOpenMap: onOpenRecording,
-                )
+                JourneyLiveCard(onOpenMap: onOpenRecording)
               else
                 JourneyStartCard(
                   onOpenSettings: onOpenSettings,

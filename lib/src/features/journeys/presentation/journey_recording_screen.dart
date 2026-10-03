@@ -23,9 +23,9 @@ typedef OpenJourneyRecording = void Function(BuildContext context);
 
 /// The Journey in progress on a full-screen map: the live route with
 /// Kaunti47 places pinned as on Home (tap one for its sheet), and the
-/// controls floating at the bottom. Dragging the map stops following;
-/// the re-centre button brings it back. Closes itself once the Journey
-/// is saved or discarded; minimising keeps it recording.
+/// controls sheet docked to the bottom edge. Dragging the map stops
+/// following; the re-centre button brings it back. Closes itself once
+/// the Journey is saved or discarded; minimising keeps it recording.
 class JourneyRecordingScreen extends ConsumerStatefulWidget {
   const JourneyRecordingScreen({
     super.key,
@@ -47,13 +47,18 @@ class JourneyRecordingScreen extends ConsumerStatefulWidget {
 
 class _JourneyRecordingScreenState
     extends ConsumerState<JourneyRecordingScreen> {
-  /// Room the camera leaves for the floating controls.
-  static const _controlsInset = 230.0;
+  /// Room the camera leaves for the collapsed sheet.
+  static const _controlsInset = 220.0;
+
+  /// Extra room once "Trip details" is open, so the live position stays
+  /// above the sheet as it grows rather than hidden behind it.
+  static const _detailsInset = 150.0;
 
   late final Future<List<MapPlace>> _places = ref.read(
     journeyMapPlacesProvider.future,
   );
   bool _following = true;
+  bool _detailsExpanded = false;
 
   void _showPlace(MapPlace place) => unawaited(
     AppPlaceSheet.show(
@@ -79,6 +84,8 @@ class _JourneyRecordingScreenState
     final route =
         ref.watch(activeJourneyRouteProvider).value ?? JourneyRoute(const []);
     final safeBottom = MediaQuery.paddingOf(context).bottom;
+    final bottomInset =
+        _controlsInset + (_detailsExpanded ? _detailsInset : 0) + safeBottom;
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: Stack(
@@ -90,18 +97,23 @@ class _JourneyRecordingScreenState
             JourneyRouteMap(
               route: route,
               follow: isRecording && _following,
-              bottomInset: _controlsInset + safeBottom,
+              bottomInset: bottomInset,
               places: _places,
               onPlaceTapped: _showPlace,
               onUserPan: () {
                 if (_following) setState(() => _following = false);
               },
             ),
-          JourneyMapButton(
-            alignment: Alignment.topLeft,
-            onPressed: () => Navigator.of(context).maybePop(),
-            tooltip: 'Minimise',
-            icon: Icons.keyboard_arrow_down,
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: _MinimiseButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
+              ),
+            ),
           ),
           if (!_following && !route.isEmpty)
             JourneyMapButton(
@@ -122,31 +134,79 @@ class _JourneyRecordingScreenState
             ),
           Align(
             alignment: Alignment.bottomCenter,
-            child: SafeArea(
-              top: false,
-              minimum: const EdgeInsets.all(12),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x29000000),
-                      blurRadius: 24,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
-                ),
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x29000000),
+                    blurRadius: 24,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
                   child: JourneyRecordingControls(
                     onOpenSettings: widget.onOpenSettings,
+                    onExpandedChanged: (expanded) =>
+                        setState(() => _detailsExpanded = expanded),
                   ),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The top-left "Minimise" pill: unlike [JourneyMapButton]'s icon-only
+/// round shape, this one carries its own label so it reads as the way
+/// back to the Trips tab rather than a settings toggle.
+class _MinimiseButton extends StatelessWidget {
+  const _MinimiseButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Minimise',
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: onPressed,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 18,
+                  color: AppColors.foreground,
+                ),
+                SizedBox(width: 4),
+                Text(
+                  'Minimise',
+                  style: TextStyle(
+                    fontFamily: AppTypeScale.family,
+                    fontSize: AppTypeScale.actionSize,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.foreground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

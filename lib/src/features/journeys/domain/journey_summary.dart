@@ -1,4 +1,5 @@
 import 'journey_destination.dart';
+import 'journey_transport_mode.dart';
 
 /// One Journey in the history list.
 class JourneySummary {
@@ -15,6 +16,8 @@ class JourneySummary {
     this.highestElevationMeters,
     this.countyNames = const [],
     this.blockedByTrialLimit = false,
+    this.transportMode,
+    this.coverMediaId,
   });
 
   final String id;
@@ -52,6 +55,18 @@ class JourneySummary {
   /// rejected because the free Trip allowance for that month was used up.
   /// Always false once uploaded.
   final bool blockedByTrialLimit;
+
+  /// How this Trip was travelled; null for one recorded before transport
+  /// mode existed.
+  final JourneyTransportMode? transportMode;
+
+  /// The `journey_media.id` chosen (via `set_trip_cover_photo`) to
+  /// represent this Trip in its history card and share image. Null means
+  /// no explicit choice has been made: callers fall back to the Trip's
+  /// earliest photo (see `journeyMediaProvider`), and to the no-photo
+  /// brand treatment when it has none at all. Always null for a Trip
+  /// still waiting to upload - its photos aren't synced yet either.
+  final String? coverMediaId;
 
   /// The average speed for the recorded time, in m/s; null once there is
   /// no recorded time or distance to divide.

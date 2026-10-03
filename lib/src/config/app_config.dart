@@ -52,6 +52,8 @@ class AppConfig {
 
   bool get hasMapboxConfig => mapboxAccessToken.isNotEmpty;
 
+  bool get isDev => environment == AppEnvironment.dev;
+
   bool get hasSupabaseConfig =>
       supabaseUrl.isNotEmpty && supabasePublishableKey.isNotEmpty;
 }

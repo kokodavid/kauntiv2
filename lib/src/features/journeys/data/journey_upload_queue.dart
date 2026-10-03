@@ -8,6 +8,7 @@ import '../../../services/app_logger.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
+import '../domain/journey_transport_mode.dart';
 import 'journey_database.dart';
 import 'local_journey_repository.dart';
 import 'supabase_journey_repository.dart';
@@ -23,6 +24,7 @@ typedef UploadJourney =
       required Duration pausedDuration,
       required List<JourneyPoint> points,
       JourneyDestination? destination,
+      JourneyTransportMode? transportMode,
     });
 
 /// Uploads completed local Journeys for the signed-in account, oldest
@@ -62,6 +64,7 @@ class JourneyUploadQueue {
           required pausedDuration,
           required points,
           destination,
+          transportMode,
         }) => cloud.upload(
           userId: userId,
           id: id,
@@ -71,6 +74,7 @@ class JourneyUploadQueue {
           pausedDuration: pausedDuration,
           points: points,
           destination: destination,
+          transportMode: transportMode,
         ),
   );
 
@@ -155,6 +159,7 @@ class JourneyUploadQueue {
           pausedDuration: summary.pausedDuration,
           points: points,
           destination: summary.destination,
+          transportMode: summary.transportMode,
         );
         // Stored under [userId] on the server; the local copy is theirs.
         await _removeLocal(row.id);
@@ -247,6 +252,7 @@ class JourneyUploadQueue {
     final destination = await _local.destination(row.id, row.userId);
     final customTitle = await _local.customTitle(row.id, row.userId);
     final blocked = await _local.isBlockedByTrialLimit(row.id, row.userId);
+    final transportMode = await _local.transportMode(row.id, row.userId);
     return JourneySummary(
       id: row.id,
       title:
@@ -263,6 +269,7 @@ class JourneyUploadQueue {
       isUploaded: false,
       destination: destination,
       blockedByTrialLimit: blocked,
+      transportMode: transportMode,
     );
   }
 

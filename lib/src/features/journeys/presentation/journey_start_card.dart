@@ -4,23 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_floating_toast.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/journey_entitlement.dart';
 import '../application/journey_recorder.dart';
 import '../domain/pro_status.dart';
 import 'journey_messages.dart';
+import 'journey_transport_mode_ui.dart';
 
 /// Opens the OS settings (location permission); supplied by `app/`.
 typedef OpenAppSettings = Future<void> Function();
 
-/// "Record a Trip" and the Start button, compact enough to sit above the
-/// history list without dominating the page: an icon, title and a short
-/// status line on the left, a usage pill (PRO, or "x/3 this month" for a
-/// free account) and the Start button on the right. Every reason Start
-/// can fail is explained: the free Trip allowance is used up for this
-/// month, offline (entitlement needs a live check) or location the phone
-/// won't give.
+/// "Record a Trip" and the Start button, as a solid accent-coloured
+/// widget: a title and a short status line in white on the left, and a
+/// white Start button (a small red "record" dot + the label) on the
+/// right. Every reason Start can fail is explained: the free Trip
+/// allowance is used up for this month, offline (entitlement needs a
+/// live check) or location the phone won't give.
 class JourneyStartCard extends ConsumerStatefulWidget {
   const JourneyStartCard({super.key, this.onOpenSettings, this.onStarted});
 
@@ -39,15 +40,19 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
   @override
   void initState() {
     super.initState();
-    // Best-effort: shows an accurate usage pill before Start is even
+    // Best-effort: shows an accurate status line before Start is even
     // tapped. canStart() at the actual Start time is still authoritative.
     unawaited(ref.read(journeyEntitlementProvider.notifier).refreshAccess());
   }
 
   Future<void> _start() async {
+    // Mandatory every time: dismissing without choosing leaves Start
+    // untouched rather than falling back to some assumed mode.
+    final mode = await JourneyTransportModePicker.choose(context);
+    if (mode == null || !mounted) return;
     setState(() => _starting = true);
     try {
-      await ref.read(journeyRecorderProvider.notifier).start();
+      await ref.read(journeyRecorderProvider.notifier).start(mode: mode);
       if (mounted) widget.onStarted?.call(context);
     } on Object catch (error) {
       if (!mounted) return;
@@ -106,16 +111,16 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
     final message = JourneyMessages.forError(error);
     if (message == null) return;
     final settings = widget.onOpenSettings;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          action: settings != null && JourneyMessages.opensSettings(error)
-              ? SnackBarAction(label: 'Settings', onPressed: settings)
-              : null,
-        ),
-      );
+    final hasSettingsAction =
+        settings != null && JourneyMessages.opensSettings(error);
+    showAppToast(
+      context,
+      variant: AppToastVariant.error,
+      title: "Couldn't start the Trip",
+      message: message,
+      actionLabel: hasSettingsAction ? 'Settings' : null,
+      onAction: hasSettingsAction ? settings : null,
+    );
   }
 
   @override
@@ -126,64 +131,45 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
     final exhausted = !isPro && trial != null && !trial.hasRemaining;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.cardBorder),
+        color: AppColors.accent,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: Color(0x1F0A84FF), // accent at 12% opacity
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.route_rounded,
-              color: AppColors.accent,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const Flexible(
-                      child: Text(
-                        'Record a Trip',
-                        style: AppTypeScale.cardTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    if (isPro)
-                      const _ProChip()
-                    else if (trial != null)
-                      _TrialPill(trial: trial),
-                  ],
+                Text(
+                  'Record a Trip',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypeScale.sectionTitle.copyWith(
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  isPro
-                      ? 'Recorded privately, even with your phone locked.'
-                      : trial == null
-                      ? 'Even with your phone locked.'
+                  // A prompt to act, not a feature description - what
+                  // "Recorded privately, even with your phone locked."
+                  // used to be. The trial-aware lines stay informational
+                  // since they're explaining a constraint, not selling
+                  // the feature.
+                  isPro || trial == null
+                      ? 'Tap Start to begin recording'
                       : exhausted
-                      ? 'Resets ${_resetDay(trial.resetsAt)}.'
+                      ? 'Free limit reached · resets '
+                            '${_resetDay(trial.resetsAt)}'
                       : '${trial.tripsRemaining} of ${trial.tripLimit} free '
-                            'Trips left this month.',
+                            'Trips left this month',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypeScale.small,
+                  style: AppTypeScale.meta.copyWith(
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
                 ),
               ],
             ),
@@ -198,84 +184,46 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
                   ? _showTrialExhausted
                   : _start,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.accentForeground,
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.accent,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                shape: const StadiumBorder(),
               ),
               child: _starting
                   ? const SizedBox.square(
                       dimension: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.accentForeground,
+                        color: AppColors.accent,
                       ),
                     )
-                  : Text(
-                      exhausted ? 'Details' : 'Start Trip',
-                      style: AppTextStyles.buttonLabel,
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!exhausted) ...[
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: AppColors.danger,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Text(
+                          exhausted ? 'Details' : 'Start',
+                          style: AppTextStyles.buttonLabel.copyWith(
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProChip extends StatelessWidget {
-  const _ProChip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.explorePromotionFill,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        'PRO',
-        style: AppTypeScale.meta.copyWith(
-          color: AppColors.explorePromotionText,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-/// This month's free-Trip usage ("2/3"), neutral while Trips remain and
-/// switching to the same warm tone as [_ProChip] once they're used up, so
-/// the one moment that actually needs attention is the one that stands
-/// out.
-class _TrialPill extends StatelessWidget {
-  const _TrialPill({required this.trial});
-
-  final JourneyTrialStatus trial;
-
-  @override
-  Widget build(BuildContext context) {
-    final exhausted = !trial.hasRemaining;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: exhausted
-            ? AppColors.explorePromotionFill
-            : AppColors.lockedFill,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        '${trial.tripsUsed}/${trial.tripLimit}',
-        style: AppTypeScale.meta.copyWith(
-          color: exhausted
-              ? AppColors.explorePromotionText
-              : AppColors.mutedForeground,
-          fontWeight: FontWeight.w600,
-        ),
       ),
     );
   }

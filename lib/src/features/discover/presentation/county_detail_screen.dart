@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_county_shape.dart';
@@ -255,7 +256,7 @@ class _CountyPhotoChrome extends StatelessWidget {
               ),
               Align(
                 alignment: Alignment.centerLeft,
-                child: DetailBackButton(
+                child: AppBackButton(
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
               ),

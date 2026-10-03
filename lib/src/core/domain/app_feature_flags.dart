@@ -9,4 +9,9 @@ abstract final class AppFeatureFlags {
   /// The Ranks tab (leaderboards). Hidden from the tab bar until the
   /// screen is ported.
   static const ranks = bool.fromEnvironment('RANKS_ENABLED');
+
+  /// Local location and battery diagnostics for dev builds only.
+  static const locationDiagnostics = bool.fromEnvironment(
+    'LOCATION_DIAGNOSTICS',
+  );
 }

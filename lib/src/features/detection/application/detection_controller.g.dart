@@ -68,15 +68,16 @@ String _$detectionLocationReaderHash() =>
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
 /// of the widget): run on start, on resume and every 15 s while the app is
-/// in front. Each run:
+/// in front. Hardware location is reconciled less often by the lifecycle.
+/// Each run:
 ///
-/// 1. reads one fix and, the first time, seeds the current county from it
-///    (else the home county) and registers geofences;
-/// 2. reconciles the current county from the fix (a crossing the OS
-///    missed becomes a normal exit / enter);
+/// 1. optionally reads a fix and, the first time, seeds the current county
+///    from it (else the home county) and registers geofences;
+/// 2. when a fix was read, reconciles the current county (an OS-missed
+///    crossing becomes a normal exit / enter);
 /// 3. captures active candidates, then resolves any past the 2 h dwell;
 /// 4. uploads the queue;
-/// 5. re-registers the geofence window around the current county;
+/// 5. refreshes the geofence window when a hardware fix was reconciled;
 /// 6. offers the newest unseen crossing to the arrival sheet.
 ///
 /// Before any of that it checks background location. Without it the
@@ -91,15 +92,16 @@ const detectionControllerProvider = DetectionControllerProvider._();
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
 /// of the widget): run on start, on resume and every 15 s while the app is
-/// in front. Each run:
+/// in front. Hardware location is reconciled less often by the lifecycle.
+/// Each run:
 ///
-/// 1. reads one fix and, the first time, seeds the current county from it
-///    (else the home county) and registers geofences;
-/// 2. reconciles the current county from the fix (a crossing the OS
-///    missed becomes a normal exit / enter);
+/// 1. optionally reads a fix and, the first time, seeds the current county
+///    from it (else the home county) and registers geofences;
+/// 2. when a fix was read, reconciles the current county (an OS-missed
+///    crossing becomes a normal exit / enter);
 /// 3. captures active candidates, then resolves any past the 2 h dwell;
 /// 4. uploads the queue;
-/// 5. re-registers the geofence window around the current county;
+/// 5. refreshes the geofence window when a hardware fix was reconciled;
 /// 6. offers the newest unseen crossing to the arrival sheet.
 ///
 /// Before any of that it checks background location. Without it the
@@ -112,15 +114,16 @@ final class DetectionControllerProvider
     extends $NotifierProvider<DetectionController, DetectionSnapshot> {
   /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
   /// of the widget): run on start, on resume and every 15 s while the app is
-  /// in front. Each run:
+  /// in front. Hardware location is reconciled less often by the lifecycle.
+  /// Each run:
   ///
-  /// 1. reads one fix and, the first time, seeds the current county from it
-  ///    (else the home county) and registers geofences;
-  /// 2. reconciles the current county from the fix (a crossing the OS
-  ///    missed becomes a normal exit / enter);
+  /// 1. optionally reads a fix and, the first time, seeds the current county
+  ///    from it (else the home county) and registers geofences;
+  /// 2. when a fix was read, reconciles the current county (an OS-missed
+  ///    crossing becomes a normal exit / enter);
   /// 3. captures active candidates, then resolves any past the 2 h dwell;
   /// 4. uploads the queue;
-  /// 5. re-registers the geofence window around the current county;
+  /// 5. refreshes the geofence window when a hardware fix was reconciled;
   /// 6. offers the newest unseen crossing to the arrival sheet.
   ///
   /// Before any of that it checks background location. Without it the
@@ -157,19 +160,20 @@ final class DetectionControllerProvider
 }
 
 String _$detectionControllerHash() =>
-    r'dc3afb18b8f4ca9d2c6bde587c478abb045655bf';
+    r'ef6f5185f28fef2cc6424a1b221b5b9bbc4ba5b7';
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
 /// of the widget): run on start, on resume and every 15 s while the app is
-/// in front. Each run:
+/// in front. Hardware location is reconciled less often by the lifecycle.
+/// Each run:
 ///
-/// 1. reads one fix and, the first time, seeds the current county from it
-///    (else the home county) and registers geofences;
-/// 2. reconciles the current county from the fix (a crossing the OS
-///    missed becomes a normal exit / enter);
+/// 1. optionally reads a fix and, the first time, seeds the current county
+///    from it (else the home county) and registers geofences;
+/// 2. when a fix was read, reconciles the current county (an OS-missed
+///    crossing becomes a normal exit / enter);
 /// 3. captures active candidates, then resolves any past the 2 h dwell;
 /// 4. uploads the queue;
-/// 5. re-registers the geofence window around the current county;
+/// 5. refreshes the geofence window when a hardware fix was reconciled;
 /// 6. offers the newest unseen crossing to the arrival sheet.
 ///
 /// Before any of that it checks background location. Without it the

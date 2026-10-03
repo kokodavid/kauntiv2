@@ -1,6 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../auth/application/auth_providers.dart';
+import '../data/local_journey_repository.dart';
+import '../data/supabase_journey_repository.dart';
+import '../domain/journey_media_capture.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
 import 'journey_cloud_providers.dart';
@@ -59,4 +62,18 @@ Future<JourneyDetail> journeyDetail(Ref ref, String id) async {
     summary: summary,
     route: JourneyRoute(await cloud.points(id)),
   );
+}
+
+/// A Trip's uploaded photos, for Replay - empty (not an error) once the
+/// Trip itself is still only on this phone, since its photos haven't had
+/// anything to upload against yet either.
+@riverpod
+Future<List<JourneyMediaItem>> journeyMedia(Ref ref, String id) async {
+  final cloud = ref.watch(supabaseJourneyRepositoryProvider);
+  if (cloud == null) return const [];
+  try {
+    return await cloud.media(id);
+  } on Object {
+    return const [];
+  }
 }

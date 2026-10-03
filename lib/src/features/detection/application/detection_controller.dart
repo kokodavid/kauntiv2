@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
+import '../../../core/domain/app_feature_flags.dart';
+import '../../../core/services/app_config_provider.dart';
 import '../../../core/services/app_current_location.dart';
+import '../../../core/services/location_diagnostics.dart';
 import '../../../services/app_logger.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../discover/application/explore_providers.dart';
@@ -49,15 +52,16 @@ class DetectionSnapshot {
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
 /// of the widget): run on start, on resume and every 15 s while the app is
-/// in front. Each run:
+/// in front. Hardware location is reconciled less often by the lifecycle.
+/// Each run:
 ///
-/// 1. reads one fix and, the first time, seeds the current county from it
-///    (else the home county) and registers geofences;
-/// 2. reconciles the current county from the fix (a crossing the OS
-///    missed becomes a normal exit / enter);
+/// 1. optionally reads a fix and, the first time, seeds the current county
+///    from it (else the home county) and registers geofences;
+/// 2. when a fix was read, reconciles the current county (an OS-missed
+///    crossing becomes a normal exit / enter);
 /// 3. captures active candidates, then resolves any past the 2 h dwell;
 /// 4. uploads the queue;
-/// 5. re-registers the geofence window around the current county;
+/// 5. refreshes the geofence window when a hardware fix was reconciled;
 /// 6. offers the newest unseen crossing to the arrival sheet.
 ///
 /// Before any of that it checks background location. Without it the
@@ -101,19 +105,34 @@ class DetectionController extends _$DetectionController {
     if (ref.read(currentUserIdProvider)() != null) _suspended = false;
   }
 
-  Future<void> runCycle({int? homeCountyCode}) async {
+  Future<void> runCycle({
+    int? homeCountyCode,
+    bool refreshLocation = true,
+  }) async {
     if (_running || _suspended) return;
     _running = true;
+    final cycleStartedAt = DateTime.now();
+    var permissionGranted = true;
+    var enteredCounty = false;
+    var resolvedCount = 0;
+    final diagnosticsEnabled =
+        AppFeatureFlags.locationDiagnostics &&
+        LocationDiagnostics.enabledFor(
+          isDev: ref.read(appConfigProvider).isDev,
+        );
     final cycleDone = Completer<void>();
     _cycleDone = cycleDone;
     try {
       final repository = ref.read(detectionRepositoryProvider);
       final geofences = ref.read(geofenceServiceProvider);
       if (!await ref.read(detectionPermissionProvider).backgroundGranted()) {
+        permissionGranted = false;
         await _pause(geofences);
         return;
       }
-      final fix = await ref.read(detectionLocationReaderProvider)();
+      final fix = refreshLocation
+          ? await ref.read(detectionLocationReaderProvider)()
+          : null;
       if (_suspended) return;
 
       final bootstrapped = await _bootstrapIfNeeded(
@@ -127,16 +146,18 @@ class DetectionController extends _$DetectionController {
               latitude: fix.latitude,
               longitude: fix.longitude,
             );
+      enteredCounty = entered != null;
       final candidates = await repository.activeArrivalCandidates();
       final resolved = await repository.checkStillActiveCandidates();
+      resolvedCount = resolved.length;
 
       await ref.read(visitSyncProvider.notifier).drain();
       if (_suspended) return;
 
       final current = await repository.currentCountyCode();
-      if (current != null) {
+      if (current != null && refreshLocation && !bootstrapped) {
         await geofences.initialize();
-        if (!bootstrapped) await geofences.registerWindowFor(current);
+        await geofences.registerWindowFor(current);
       }
       if (entered != null || resolved.isNotEmpty) {
         ref.invalidate(exploreBoardProvider);
@@ -157,6 +178,19 @@ class DetectionController extends _$DetectionController {
         stackTrace: stackTrace,
       );
     } finally {
+      if (diagnosticsEnabled) {
+        unawaited(
+          LocationDiagnostics.record('detection_cycle', {
+            'duration_ms': DateTime.now()
+                .difference(cycleStartedAt)
+                .inMilliseconds,
+            'gps_read': refreshLocation,
+            'permission_granted': permissionGranted,
+            'crossing_reconciled': enteredCounty,
+            'visits_resolved': resolvedCount,
+          }),
+        );
+      }
       _running = false;
       _cycleDone = null;
       cycleDone.complete();

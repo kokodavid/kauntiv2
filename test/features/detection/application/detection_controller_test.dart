@@ -112,6 +112,33 @@ void main() {
     expect(geofences.registered, isEmpty);
   });
 
+  test('local detection cycle can skip a hardware location read', () async {
+    await repo.seedCurrentCounty(22);
+    var locationReads = 0;
+    final c = ProviderContainer(
+      overrides: [
+        detectionRepositoryProvider.overrideWithValue(repo),
+        geofenceServiceProvider.overrideWithValue(geofences),
+        detectionPermissionProvider.overrideWithValue(permission),
+        visitSyncQueueProvider.overrideWithValue(null),
+        detectionLocationReaderProvider.overrideWithValue(() async {
+          locationReads++;
+          return _nairobi;
+        }),
+      ],
+    );
+    addTearDown(c.dispose);
+
+    await c
+        .read(detectionControllerProvider.notifier)
+        .runCycle(refreshLocation: false);
+
+    expect(locationReads, 0);
+    expect(await repo.currentCountyCode(), 22);
+    expect(c.read(detectionControllerProvider).currentCounty, 22);
+    expect(geofences.registered, isEmpty);
+  });
+
   test('losing background location pauses detection once', () async {
     await repo.seedCurrentCounty(22);
     permission.granted = false;

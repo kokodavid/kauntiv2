@@ -1,6 +1,7 @@
 import 'package:native_geofence/native_geofence.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
+import '../../../core/services/location_diagnostics.dart';
 import '../../../services/app_logger.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
@@ -24,6 +25,10 @@ Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
   final kind = params.event == GeofenceEvent.exit
       ? CrossingKind.exit
       : CrossingKind.enter;
+  await LocationDiagnostics.record('geofence_transition', {
+    'kind': kind.name,
+    'geofence_count': params.geofences.length,
+  });
 
   final db = DetectionDatabase();
   final repository = DetectionRepository(

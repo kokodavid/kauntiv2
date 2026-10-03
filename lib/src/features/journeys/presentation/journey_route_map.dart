@@ -18,7 +18,8 @@ import '../../../design/app_colors.dart';
 import '../domain/journey_route.dart';
 import 'journey_map_layers.dart';
 
-export 'journey_map_layers.dart' show JourneyLatLng, JourneyMapPin;
+export 'journey_map_layers.dart'
+    show JourneyLatLng, JourneyMapMoment, JourneyMapMomentKind, JourneyMapPin;
 
 part 'journey_route_map_helpers.dart';
 
@@ -31,7 +32,8 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
     this.marker,
     this.start,
     this.end,
-    this.pins = const [],
+    this.moments = const [],
+    this.currentIndex,
     this.follow = false,
     this.animateFollow = true,
     this.bottomInset = 0,
@@ -43,18 +45,27 @@ class JourneyRouteMap extends ConsumerStatefulWidget {
 
   final JourneyRoute route;
 
-  /// During replay: the part already played, drawn on top of a faded
-  /// [route], with a short line from its last point to [marker]. Null
-  /// draws [route] in full colour.
+  /// During replay: the part already played, drawn in the accent colour
+  /// on top of [route] (shown in a lighter upcoming-route colour), with a
+  /// short line from its last point to [marker]. Null draws [route] in
+  /// the played colour throughout.
   final JourneyRoute? played;
   final JourneyLatLng? marker;
 
-  /// Where the Journey began (green) and ended (red).
+  /// Where the Journey began (solid accent blue) and ended (near-black),
+  /// both white-ringed (Claude-Design colour key).
   final JourneyLatLng? start;
   final JourneyLatLng? end;
 
-  /// Key moments along the route.
-  final List<JourneyLatLng> pins;
+  /// Key moments along the route - each a photo or a "note" (every other
+  /// moment kind), coloured by whether [currentIndex] has passed it yet.
+  final List<JourneyMapMoment> moments;
+
+  /// The replay playhead's current route-point index, null before replay
+  /// has a position (nothing passed yet). Drives [moments]' pending vs.
+  /// passed colouring - see [JourneyMapLayers.endpointsJson].
+  final int? currentIndex;
+
   final bool follow;
 
   /// Ease live updates; replay frames jump to the next position.
@@ -112,22 +123,14 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
     if (oldWidget.route.pointCount != widget.route.pointCount) {
       unawaited(_updateRoute());
     }
-    if ((oldWidget.played == null) != (widget.played == null)) {
-      unawaited(
-        _map?.style.setStyleLayerProperty(
-          JourneyMapLayers.routeLine,
-          'line-opacity',
-          _routeOpacity,
-        ),
-      );
-    }
     if (oldWidget.played?.pointCount != widget.played?.pointCount) {
       unawaited(_setSource(JourneyMapLayers.playedSource, _playedJson()));
     }
     if (oldWidget.marker != widget.marker) unawaited(_updateMarker());
     if (oldWidget.start != widget.start ||
         oldWidget.end != widget.end ||
-        !listEquals(oldWidget.pins, widget.pins)) {
+        oldWidget.currentIndex != widget.currentIndex ||
+        !listEquals(oldWidget.moments, widget.moments)) {
       unawaited(_setSource(JourneyMapLayers.endpointSource, _endpointJson()));
     }
     // Leaving replay: frame the whole route; re-centring: back on it.
@@ -152,7 +155,6 @@ class _JourneyRouteMapState extends ConsumerState<JourneyRouteMap> {
       played: _playedJson(),
       marker: _markerJson(),
       endpoints: _endpointJson(),
-      routeOpacity: _routeOpacity,
     );
     _styleReady = true;
     if (widget.pulsing) _syncPulse();

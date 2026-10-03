@@ -234,4 +234,60 @@ abstract final class AppTextStyles {
     height: 24 / 16,
     color: AppColors.detailStatValue,
   );
+
+  // "..." actions menu popover row label (Claude-Design "Menu" reference).
+  static const menuItemLabel = TextStyle(
+    fontFamily: _inter,
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+    height: 20 / 15,
+    color: AppColors.buttonForeground,
+  );
+
+  // Bottom-sheet dialogs (Claude-Design "03 - DIALOG" reference).
+  static const confirmSheetTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 19,
+    fontWeight: FontWeight.w600,
+    color: AppColors.buttonForeground,
+  );
+
+  static const confirmSheetBody = TextStyle(
+    fontFamily: _inter,
+    fontSize: 13.5,
+    fontWeight: FontWeight.w400,
+    height: 1.5,
+    color: AppColors.mutedForeground,
+  );
+
+  static const confirmSheetButtonLabel = TextStyle(
+    fontFamily: _inter,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
+
+  // Floating toast (Claude-Design "01 - TOAST" reference). Distinct
+  // from toastTitle/toastMessage above, which belong to the older
+  // white inline AppToast banner and keep their own sizing.
+  static const floatingToastTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
+
+  static const floatingToastMessage = TextStyle(
+    fontFamily: _inter,
+    fontSize: 12.5,
+    fontWeight: FontWeight.w400,
+    color: AppColors.toastSubtitle,
+  );
+
+  static const toastActionLabel = TextStyle(
+    fontFamily: _inter,
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
 }

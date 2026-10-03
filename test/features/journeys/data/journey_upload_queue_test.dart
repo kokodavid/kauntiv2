@@ -7,6 +7,7 @@ import 'package:kaunti47_v2/src/features/journeys/data/journey_upload_queue.dart
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_destination.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_point.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_transport_mode.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -17,6 +18,7 @@ void main() {
   late Exception? Function(String id) failWith;
   late void Function(String id) onUpload;
   late JourneyDestination? uploadedDestination;
+  late JourneyTransportMode? uploadedMode;
   String? user = 'alice';
 
   JourneyUploadQueue queue() => JourneyUploadQueue(
@@ -32,6 +34,7 @@ void main() {
           required pausedDuration,
           required points,
           destination,
+          transportMode,
         }) async {
           expect(userId, 'alice');
           onUpload(id);
@@ -45,6 +48,7 @@ void main() {
                 : 'Trip to ${destination.name}',
           );
           uploadedDestination = destination;
+          uploadedMode = transportMode;
           uploaded.add(id);
         },
   );
@@ -53,6 +57,7 @@ void main() {
     String id, {
     int offsetMinutes = 0,
     JourneyDestination? destination,
+    JourneyTransportMode? mode,
   }) async {
     final start = t0.add(Duration(minutes: offsetMinutes));
     await local.start(
@@ -60,6 +65,7 @@ void main() {
       userId: 'alice',
       at: start,
       destination: destination,
+      mode: mode,
     );
     await local.appendPoint(
       id: id,
@@ -86,6 +92,7 @@ void main() {
     failWith = (_) => null;
     onUpload = (_) {};
     uploadedDestination = null;
+    uploadedMode = null;
     user = 'alice';
   });
   tearDown(() => db.close());
@@ -104,6 +111,15 @@ void main() {
     expect(pending.single.title, 'Trip to Nairobi National Museum');
     expect(await q.drain(now: t0.add(const Duration(hours: 1))), 1);
     expect(uploadedDestination?.placeId, destination.placeId);
+  });
+
+  test('uploads the chosen transport mode', () async {
+    await completed('a', mode: JourneyTransportMode.cycle);
+    final q = queue();
+    final pending = await q.pending('alice');
+    expect(pending.single.transportMode, JourneyTransportMode.cycle);
+    expect(await q.drain(now: t0.add(const Duration(hours: 1))), 1);
+    expect(uploadedMode, JourneyTransportMode.cycle);
   });
 
   test('uploads completed Journeys oldest first and deletes them', () async {
@@ -237,6 +253,7 @@ void main() {
             required pausedDuration,
             required points,
             destination,
+            transportMode,
           }) async {
             uploadStarted.complete();
             await releaseUpload.future;

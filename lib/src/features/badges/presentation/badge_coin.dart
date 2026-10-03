@@ -3,8 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/county_badge_medallion.dart';
 import '../domain/badge_collection.dart';
-import 'county_badge_medallion.dart';
 
 /// The badge as a coin that can spin: a few fast turns about its vertical
 /// axis, slowing to land on its front (with a little lift as it starts).

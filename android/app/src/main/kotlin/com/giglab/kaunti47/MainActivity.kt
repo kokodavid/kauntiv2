@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -38,6 +39,18 @@ class MainActivity : FlutterActivity() {
     ).setMethodCallHandler { call, result ->
       when (call.method) {
         "applyTelemetryDefault" -> result.success(applyMapboxTelemetryDefault())
+        else -> result.notImplemented()
+      }
+    }
+    MethodChannel(
+      flutterEngine.dartExecutor.binaryMessenger,
+      "com.giglab.kaunti47/location_diagnostics",
+    ).setMethodCallHandler { call, result ->
+      when (call.method) {
+        "batteryPercent" -> {
+          val battery = getSystemService(BATTERY_SERVICE) as BatteryManager
+          result.success(battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
+        }
         else -> result.notImplemented()
       }
     }

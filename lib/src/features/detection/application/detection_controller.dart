@@ -115,7 +115,8 @@ class DetectionController extends _$DetectionController {
     var permissionGranted = true;
     var enteredCounty = false;
     var resolvedCount = 0;
-    final diagnosticsEnabled = AppFeatureFlags.locationDiagnostics &&
+    final diagnosticsEnabled =
+        AppFeatureFlags.locationDiagnostics &&
         LocationDiagnostics.enabledFor(
           isDev: ref.read(appConfigProvider).isDev,
         );
@@ -180,7 +181,9 @@ class DetectionController extends _$DetectionController {
       if (diagnosticsEnabled) {
         unawaited(
           LocationDiagnostics.record('detection_cycle', {
-            'duration_ms': DateTime.now().difference(cycleStartedAt).inMilliseconds,
+            'duration_ms': DateTime.now()
+                .difference(cycleStartedAt)
+                .inMilliseconds,
             'gps_read': refreshLocation,
             'permission_granted': permissionGranted,
             'crossing_reconciled': enteredCounty,

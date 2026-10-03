@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
+import '../core/services/location_diagnostics.dart';
 import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
@@ -12,7 +13,6 @@ import '../features/discover/presentation/place_detail_screen.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
-import '../core/services/location_diagnostics.dart';
 import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
 import '../features/map_home/data/supabase_map_home_repository.dart';
@@ -113,6 +113,8 @@ GoRouter appRouter(Ref ref) {
           path: '/journey/:id',
           builder: (context, state) => JourneyReplayScreen(
             journeyId: state.pathParameters['id']!,
+            onOpenCounty: (code) =>
+                DetailRoutes.openCounty?.call(context, code),
           ),
         ),
       GoRoute(

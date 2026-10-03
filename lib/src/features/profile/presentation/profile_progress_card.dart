@@ -64,9 +64,7 @@ class ProfileProgressCard extends StatelessWidget {
 
   Widget _error() => Row(
     children: [
-      const Expanded(
-        child: Text('County progress is unavailable right now.'),
-      ),
+      const Expanded(child: Text('County progress is unavailable right now.')),
       TextButton(onPressed: onRetry, child: const Text('Retry')),
     ],
   );
@@ -87,44 +85,45 @@ class ProfileProgressCard extends StatelessWidget {
     return '$untilNext more ${untilNext == 1 ? 'county' : 'counties'} to ${next.label}';
   }
 
-  Widget _progress(BadgeCollection value, AsyncValue<TripStats> stats) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _Header(trailing: value.tier?.label ?? 'KEEP EXPLORING'),
-      const SizedBox(height: 8),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
+  Widget _progress(BadgeCollection value, AsyncValue<TripStats> stats) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${value.claimed}',
-            style: const TextStyle(
-              color: AppColors.accent,
-              fontSize: 42,
-              height: 1,
-              fontWeight: FontWeight.w700,
-            ),
+          _Header(trailing: value.tier?.label ?? 'KEEP EXPLORING'),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '${value.claimed}',
+                style: const TextStyle(
+                  color: AppColors.accent,
+                  fontSize: 42,
+                  height: 1,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '/ ${value.total} counties',
+                style: AppTypeScale.sectionTitle.copyWith(
+                  fontSize: 15,
+                  color: AppColors.mutedForeground,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 6),
-          Text(
-            '/ ${value.total} counties',
-            style: AppTypeScale.sectionTitle.copyWith(
-              fontSize: 15,
-              color: AppColors.mutedForeground,
-            ),
-          ),
+          const SizedBox(height: 14),
+          _Segments(filled: value.claimed, total: value.total),
+          const SizedBox(height: 10),
+          Text(_caption(value), style: AppTypeScale.meta),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          const SizedBox(height: 14),
+          _TripStatsRow(stats: stats),
         ],
-      ),
-      const SizedBox(height: 14),
-      _Segments(filled: value.claimed, total: value.total),
-      const SizedBox(height: 10),
-      Text(_caption(value), style: AppTypeScale.meta),
-      const SizedBox(height: 14),
-      const Divider(height: 1, color: Color(0xFFE5E7EB)),
-      const SizedBox(height: 14),
-      _TripStatsRow(stats: stats),
-    ],
-  );
+      );
 }
 
 class _TripStatsRow extends StatelessWidget {
@@ -138,7 +137,10 @@ class _TripStatsRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _Stat(value: value == null ? '—' : '${value.tripCount}', label: 'Trips'),
+          child: _Stat(
+            value: value == null ? '—' : '${value.tripCount}',
+            label: 'Trips',
+          ),
         ),
         const _StatDivider(),
         Expanded(
@@ -201,7 +203,10 @@ class _Stat extends StatelessWidget {
             const SizedBox(width: 2),
             Text(
               unit!,
-              style: const TextStyle(fontSize: 11, color: AppColors.mutedForeground),
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.mutedForeground,
+              ),
             ),
           ],
         ],

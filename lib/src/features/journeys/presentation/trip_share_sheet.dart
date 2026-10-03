@@ -1,24 +1,23 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/services/app_instagram_stories.dart';
+import '../../../core/services/app_media_picker.dart';
 import '../../../core/services/app_share.dart';
+import '../../../core/widgets/app_floating_toast.dart';
+import '../../../core/widgets/app_glyph_icon.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_floating_toast.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../services/app_logger.dart';
-import '../../../widgets/app_glyph_icon.dart';
 import '../../auth/application/auth_providers.dart';
 import '../application/journey_cloud_providers.dart';
 import '../application/journey_views.dart';
-import '../data/trip_share_card_cache.dart';
+import '../application/trip_share_card_cache_provider.dart';
 import '../domain/journey_media_capture.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
@@ -30,8 +29,20 @@ import 'trip_share_card_renderer.dart';
 /// card's own thumbnail shape isn't offered here; it's generated and
 /// cached separately (see [TripShareCardThumbnail]).
 enum _ShareShape {
-  feed(width: 360, height: 450, label: 'Feed', ratioLabel: '4:5', cacheSuffix: '_feed'),
-  story(width: 360, height: 640, label: 'Story', ratioLabel: '9:16', cacheSuffix: '_story');
+  feed(
+    width: 360,
+    height: 450,
+    label: 'Feed',
+    ratioLabel: '4:5',
+    cacheSuffix: '_feed',
+  ),
+  story(
+    width: 360,
+    height: 640,
+    label: 'Story',
+    ratioLabel: '9:16',
+    cacheSuffix: '_story',
+  );
 
   const _ShareShape({
     required this.width,
@@ -59,17 +70,19 @@ void showTripShareSheet(
   required JourneySummary summary,
   required JourneyRoute route,
 }) {
-  showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.white,
-    barrierColor: AppColors.sheetBarrier,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+  unawaited(
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      barrierColor: AppColors.sheetBarrier,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) =>
+          _TripShareSheet(journeyId: summary.id, route: route),
     ),
-    builder: (context) =>
-        _TripShareSheet(journeyId: summary.id, route: route),
   );
 }
 
@@ -104,7 +117,7 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
 
   /// Picked via "From phone"; overrides [_selectedMediaId] when set -
   /// only one of the two is ever the active choice.
-  XFile? _localPhoto;
+  Uint8List? _localPhoto;
 
   var _sharing = false;
   var _saving = false;
@@ -139,7 +152,10 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final summary = ref.watch(journeyDetailProvider(widget.journeyId)).value?.summary;
+    final summary = ref
+        .watch(journeyDetailProvider(widget.journeyId))
+        .value
+        ?.summary;
     final media =
         ref.watch(journeyMediaProvider(widget.journeyId)).value ?? const [];
 
@@ -156,7 +172,8 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
       );
     }
 
-    final defaultCover = TripShareCardCache.resolveCoverPhoto(summary, media);
+    final cache = ref.read(tripShareCardCacheAccessProvider);
+    final defaultCover = cache.resolveCoverPhoto(summary, media);
     final selected = _resolveSelected(media, defaultCover);
     final photo = _effectivePhoto(selected);
     final previewWidth = _previewHeight / _shape.height * _shape.width;
@@ -186,8 +203,11 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
               ),
               Row(
                 children: [
-                  Expanded(
-                    child: Text('Share trip', style: AppTextStyles.confirmSheetTitle),
+                  const Expanded(
+                    child: Text(
+                      'Share trip',
+                      style: AppTextStyles.confirmSheetTitle,
+                    ),
                   ),
                   _CloseButton(onTap: () => Navigator.of(context).maybePop()),
                 ],
@@ -248,9 +268,7 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
                           routePoints: photo != null
                               ? const []
                               : TripShareCard.normalizeRoute(
-                                  TripShareCardCache.mainRoutePoints(
-                                    widget.route,
-                                  ),
+                                  cache.mainRoutePoints(widget.route),
                                 ),
                         ),
                       ),
@@ -264,12 +282,14 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text(
+                  const Text(
                     'Photos from this trip',
                     style: _Styles.stripHeading,
                   ),
                   Text(
-                    media.length == 1 ? '1 in timeline' : '${media.length} in timeline',
+                    media.length == 1
+                        ? '1 in timeline'
+                        : '${media.length} in timeline',
                     style: _Styles.stripCount,
                   ),
                 ],
@@ -331,7 +351,9 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(
                                 Icons.camera_alt_rounded,
@@ -406,7 +428,7 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
 
   ImageProvider? _effectivePhoto(JourneyMediaItem? selected) {
     final local = _localPhoto;
-    if (local != null) return FileImage(File(local.path));
+    if (local != null) return MemoryImage(local);
     return selected == null ? null : NetworkImage(selected.url);
   }
 
@@ -418,7 +440,10 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
   /// selection - this sheet's own preview is already showing the right
   /// photo either way, only the history card's thumbnail would miss the
   /// update, so it's logged rather than surfaced as an error.
-  Future<void> _selectMedia(JourneySummary summary, JourneyMediaItem item) async {
+  Future<void> _selectMedia(
+    JourneySummary summary,
+    JourneyMediaItem item,
+  ) async {
     setState(() {
       _selectedMediaId = item.id;
       _localPhoto = null;
@@ -427,8 +452,14 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
     final cloud = ref.read(supabaseJourneyRepositoryProvider);
     if (userId == null || cloud == null) return;
     try {
-      await cloud.setCoverPhoto(userId: userId, id: widget.journeyId, mediaId: item.id);
-      await TripShareCardCache.invalidate(widget.journeyId);
+      await cloud.setCoverPhoto(
+        userId: userId,
+        id: widget.journeyId,
+        mediaId: item.id,
+      );
+      await ref
+          .read(tripShareCardCacheAccessProvider)
+          .invalidate(widget.journeyId);
       ref.invalidate(journeyDetailProvider(widget.journeyId));
     } on Object catch (error, stackTrace) {
       _logger.warning(
@@ -440,10 +471,10 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
   }
 
   Future<void> _pickFromPhone() async {
-    final XFile? picked;
+    final AppPickedImage? picked;
     try {
-      picked = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
+      picked = await AppMediaPicker.pickImage(
+        source: AppImageSource.gallery,
         maxWidth: 2048,
         imageQuality: 85,
       );
@@ -457,8 +488,10 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
       return;
     }
     if (picked == null || !mounted) return;
+    final bytes = await picked.readAsBytes();
+    if (!mounted) return;
     setState(() {
-      _localPhoto = picked;
+      _localPhoto = bytes;
       _selectedMediaId = null;
     });
   }
@@ -534,9 +567,9 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
         stackTrace: stackTrace,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Couldn't open Instagram.")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Couldn't open Instagram.")));
     } finally {
       if (mounted) setState(() => _sharingInstagram = false);
     }
@@ -546,7 +579,10 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
   /// the OS share sheet - the left-hand button next to Share
   /// (Claude-Design "Share Sheet 3a" reference: "Save (left) writes the
   /// image to Photos without the share sheet").
-  Future<void> _saveToPhotos(JourneySummary summary, ImageProvider? photo) async {
+  Future<void> _saveToPhotos(
+    JourneySummary summary,
+    ImageProvider? photo,
+  ) async {
     setState(() => _saving = true);
     try {
       final bytes = await _renderBytes(summary, photo);
@@ -556,7 +592,8 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
       // handles that, not a null check here.
       await PhotoManager.editor.saveImage(
         bytes,
-        filename: 'kaunti47_${summary.id}${_shape.cacheSuffix}_'
+        filename:
+            'kaunti47_${summary.id}${_shape.cacheSuffix}_'
             '${DateTime.now().millisecondsSinceEpoch}.png',
       );
       if (!mounted) return;
@@ -599,7 +636,9 @@ class _TripShareSheetState extends ConsumerState<_TripShareSheet> {
 
     final routePoints = photo == null
         ? TripShareCard.normalizeRoute(
-            TripShareCardCache.mainRoutePoints(widget.route),
+            ref
+                .read(tripShareCardCacheAccessProvider)
+                .mainRoutePoints(widget.route),
           )
         : const <Offset>[];
 
@@ -643,7 +682,11 @@ class _CloseButton extends StatelessWidget {
           color: AppColors.lockedFill,
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.close_rounded, size: 16, color: AppColors.mutedForeground),
+        child: const Icon(
+          Icons.close_rounded,
+          size: 16,
+          color: AppColors.mutedForeground,
+        ),
       ),
     );
   }
@@ -718,7 +761,9 @@ class _ShapeChip extends StatelessWidget {
             Text(
               shape.label,
               style: _Styles.shapeLabel.copyWith(
-                color: selected ? AppColors.buttonForeground : AppColors.mutedForeground,
+                color: selected
+                    ? AppColors.buttonForeground
+                    : AppColors.mutedForeground,
               ),
             ),
             const SizedBox(width: 6),
@@ -796,7 +841,9 @@ class _PhotoThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = TimeOfDay.fromDateTime(item.capturedAt.toLocal()).format(context);
+    final time = TimeOfDay.fromDateTime(
+      item.capturedAt.toLocal(),
+    ).format(context);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -844,7 +891,11 @@ class _PhotoThumb extends StatelessWidget {
                           BorderSide(color: Colors.white, width: 2),
                         ),
                       ),
-                      child: const Icon(Icons.check, size: 10, color: Colors.white),
+                      child: const Icon(
+                        Icons.check,
+                        size: 10,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
               ],
@@ -887,7 +938,7 @@ class _FromPhoneTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text('From phone', style: _Styles.thumbTimeSelected),
+          const Text('From phone', style: _Styles.thumbTimeSelected),
         ],
       ),
     );

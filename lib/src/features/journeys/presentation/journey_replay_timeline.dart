@@ -7,12 +7,12 @@ import 'package:photo_manager/photo_manager.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/services/camera_roll_matcher.dart';
+import '../../../core/widgets/app_floating_toast.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_floating_toast.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../application/journey_key_moments.dart';
-import '../data/camera_roll_matcher.dart';
 import '../domain/journey_county_moment_facts.dart';
 import '../domain/journey_media_capture.dart';
 import '../domain/journey_moments.dart';
@@ -33,6 +33,7 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
     required this.moments,
     required this.currentMoments,
     required this.onJumpTo,
+    this.onOpenCounty,
     this.momentsLoading = false,
     this.topPadding = 0,
     this.bottomPadding = 0,
@@ -53,6 +54,7 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
 
   /// Jumps the replay to a moment's point in the route.
   final ValueChanged<int> onJumpTo;
+  final ValueChanged<int>? onOpenCounty;
 
   final double topPadding;
   final double bottomPadding;
@@ -67,7 +69,7 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
 /// [noAccess] covers both "never asked" and "denied" - the empty-timeline
 /// card treats them the same (offer to ask), and [CameraRollMatcher]
 /// itself is what actually distinguishes them when asked to request.
-enum _CameraRollStatus { idle, scanning, noAccess, noMatches, matchesFound }
+enum _CameraRollStatus { idle, noAccess, noMatches, matchesFound }
 
 class _CameraRollScan {
   const _CameraRollScan(this.status, [this.matches = const []]);
@@ -76,8 +78,7 @@ class _CameraRollScan {
   final List<CameraRollMatch> matches;
 }
 
-class _JourneyReplayTimelineState
-    extends ConsumerState<JourneyReplayTimeline> {
+class _JourneyReplayTimelineState extends ConsumerState<JourneyReplayTimeline> {
   // Keyed by (index, kind, photo id) rather than index alone: several
   // moments can share a route point (a photo taken exactly where a
   // county is crossed, say) - and, per [JourneyMoments._photos]'s own
@@ -160,7 +161,7 @@ class _JourneyReplayTimelineState
   }
 
   GlobalKey _keyFor(JourneyMoment moment) =>
-      _rowKeys.putIfAbsent(_keyTuple(moment), () => GlobalKey());
+      _rowKeys.putIfAbsent(_keyTuple(moment), GlobalKey.new);
 
   @override
   void didUpdateWidget(JourneyReplayTimeline oldWidget) {
@@ -177,11 +178,13 @@ class _JourneyReplayTimelineState
     if (targetContext == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!targetContext.mounted) return;
-      Scrollable.ensureVisible(
-        targetContext,
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOut,
-        alignment: 0.15,
+      unawaited(
+        Scrollable.ensureVisible(
+          targetContext,
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOut,
+          alignment: 0.15,
+        ),
       );
     });
   }
@@ -203,9 +206,8 @@ class _JourneyReplayTimelineState
     if (!mounted) return;
     if (!state.hasAccess) {
       setState(
-        () => _cameraRollScan = const _CameraRollScan(
-          _CameraRollStatus.noAccess,
-        ),
+        () =>
+            _cameraRollScan = const _CameraRollScan(_CameraRollStatus.noAccess),
       );
       return;
     }
@@ -382,6 +384,10 @@ class _JourneyReplayTimelineState
                 countyFacts: moment.countyCode == null
                     ? null
                     : countyFacts[moment.countyCode],
+                onOpenCounty:
+                    widget.onOpenCounty == null || moment.countyCode == null
+                    ? null
+                    : () => widget.onOpenCounty!(moment.countyCode!),
               ),
             );
           }
@@ -404,8 +410,7 @@ class _JourneyReplayTimelineState
     );
   }
 
-  DateTime? _timeAt(int index) =>
-      index >= 0 && index < widget.points.length
+  DateTime? _timeAt(int index) => index >= 0 && index < widget.points.length
       ? widget.points[index].recordedAt
       : null;
 }
@@ -552,7 +557,9 @@ class _EmptyTimelineBody extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      endCounty == null ? 'Trip ended' : 'Arrived in $endCounty',
+                      endCounty == null
+                          ? 'Trip ended'
+                          : 'Arrived in $endCounty',
                       style: titleStyle,
                     ),
                   ],
@@ -631,7 +638,10 @@ class _AddMomentsCard extends StatelessWidget {
                             radius: 7,
                           ),
                         )
-                      : const Icon(Icons.add_photo_alternate_outlined, size: 16),
+                      : const Icon(
+                          Icons.add_photo_alternate_outlined,
+                          size: 16,
+                        ),
                   label: Text(addingPhotos ? 'Adding…' : 'Add photos'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
@@ -675,12 +685,15 @@ class _AddMomentsCard extends StatelessWidget {
             const SizedBox(height: 10),
             GestureDetector(
               onTap: onFindPhotos,
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.search, size: 14, color: AppColors.accent),
-                  const SizedBox(width: 4),
-                  Text('Find photos from this trip', style: AppTypeScale.action),
+                  Icon(Icons.search, size: 14, color: AppColors.accent),
+                  SizedBox(width: 4),
+                  Text(
+                    'Find photos from this trip',
+                    style: AppTypeScale.action,
+                  ),
                 ],
               ),
             ),
@@ -799,7 +812,10 @@ class _CameraRollMatchCard extends StatelessWidget {
                           : '${matches.length} photos taken on this route',
                       style: pillLabelStyle,
                     ),
-                    Text('Found in your camera roll', style: AppTypeScale.body),
+                    const Text(
+                      'Found in your camera roll',
+                      style: AppTypeScale.body,
+                    ),
                   ],
                 ),
               ),

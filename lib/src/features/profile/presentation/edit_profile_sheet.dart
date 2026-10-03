@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/app_media_picker.dart';
 import '../../../design/app_colors.dart';
 import '../application/public_profile_providers.dart';
 import '../domain/public_profile.dart';
@@ -24,8 +24,12 @@ class EditProfileSheet extends ConsumerStatefulWidget {
 }
 
 class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
-  late final _nameController = TextEditingController(text: widget.profile.displayName);
-  late final _handleController = TextEditingController(text: widget.profile.handle);
+  late final _nameController = TextEditingController(
+    text: widget.profile.displayName,
+  );
+  late final _handleController = TextEditingController(
+    text: widget.profile.handle,
+  );
   String? _avatarUrl;
   bool _savingPhoto = false;
   bool _saving = false;
@@ -45,15 +49,16 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
     super.dispose();
   }
 
-  bool get _handleLooksValid => isValidHandle(_handleController.text.trim().toLowerCase());
+  bool get _handleLooksValid =>
+      isValidHandle(_handleController.text.trim().toLowerCase());
   bool get _handleUnchanged =>
       _handleController.text.trim().toLowerCase() == widget.profile.handle;
 
   Future<void> _changePhoto() async {
     final repository = ref.read(publicProfileRepositoryProvider);
     if (repository == null) return;
-    final picked = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
+    final picked = await AppMediaPicker.pickImage(
+      source: AppImageSource.gallery,
       maxWidth: 1024,
       maxHeight: 1024,
       imageQuality: 85,
@@ -72,7 +77,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
     } on Object {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't update your photo. Try again.")),
+          const SnackBar(
+            content: Text("Couldn't update your photo. Try again."),
+          ),
         );
       }
     } finally {
@@ -98,7 +105,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
       ref.invalidate(myPublicProfileProvider);
       if (mounted) Navigator.of(context).pop();
     } on HandleAlreadyTakenException {
-      if (mounted) setState(() => _handleError = 'That handle is already taken');
+      if (mounted) {
+        setState(() => _handleError = 'That handle is already taken');
+      }
     } on Object {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -129,8 +138,12 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                 ),
                 FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-                  onPressed: _saving || _savingPhoto ? null : () => unawaited(_save()),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                  ),
+                  onPressed: _saving || _savingPhoto
+                      ? null
+                      : () => unawaited(_save()),
                   child: _saving
                       ? const SizedBox.square(
                           dimension: 16,
@@ -170,7 +183,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                     foregroundColor: AppColors.accent,
                     side: const BorderSide(color: AppColors.accent),
                   ),
-                  onPressed: _savingPhoto ? null : () => unawaited(_changePhoto()),
+                  onPressed: _savingPhoto
+                      ? null
+                      : () => unawaited(_changePhoto()),
                   icon: const Icon(Icons.camera_alt_outlined, size: 18),
                   label: const Text('Change photo'),
                 ),

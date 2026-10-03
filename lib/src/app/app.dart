@@ -43,7 +43,10 @@ class App extends ConsumerWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(12)),
-            borderSide: BorderSide(color: AppColors.inputFocusedBorder, width: 1.5),
+            borderSide: BorderSide(
+              color: AppColors.inputFocusedBorder,
+              width: 1.5,
+            ),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(12)),

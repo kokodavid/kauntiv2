@@ -25,7 +25,11 @@ class SettingsSideQuestsSection extends StatelessWidget {
         'Side quests',
         trailing: Text(
           'Coming soon',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accent),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.accent,
+          ),
         ),
       ),
       SettingsCard(
@@ -42,7 +46,10 @@ class SettingsSideQuestsSection extends StatelessWidget {
                 const SizedBox(height: 2),
                 const Text(
                   'Of where you are when the feed opens',
-                  style: TextStyle(fontSize: 12.5, color: AppColors.mutedForeground),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.mutedForeground,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 SettingsSegmented<int>(

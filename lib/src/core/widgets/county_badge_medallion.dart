@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../core/design/app_type_scale.dart';
-import '../counties/county_paths.dart';
-import 'app_county_shape.dart';
-import 'app_svg_path.dart';
+import '../../counties/county_paths.dart';
+import '../../widgets/app_county_shape.dart';
+import '../../widgets/app_svg_path.dart';
+import '../design/app_type_scale.dart';
 
 /// A county badge (Figma "Badge", no stars): a glossy disc with the county
 /// name across the top and its silhouette in white. Blue once earned,

@@ -9,7 +9,10 @@ import 'settings_widgets.dart';
 /// `LocationDiagnostics.enabledFor(...)` (same gate the router uses),
 /// so this section renders nothing in a release build.
 class SettingsDeveloperSection extends StatelessWidget {
-  const SettingsDeveloperSection({super.key, required this.onOpenLocationDiagnostics});
+  const SettingsDeveloperSection({
+    super.key,
+    required this.onOpenLocationDiagnostics,
+  });
 
   final VoidCallback? onOpenLocationDiagnostics;
 
@@ -24,7 +27,11 @@ class SettingsDeveloperSection extends StatelessWidget {
           'Developer',
           trailing: Text(
             'Dev build only',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFB45309)),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFFB45309),
+            ),
           ),
         ),
         SettingsCard(

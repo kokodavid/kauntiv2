@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
@@ -15,7 +14,9 @@ import 'package:flutter/services.dart';
 /// there - TikTok's own Stories integration is a separate, larger piece
 /// of work (its own SDK and developer registration) not covered here.
 abstract final class AppInstagramStories {
-  static const _channel = MethodChannel('com.giglab.kaunti47/instagram_stories');
+  static const _channel = MethodChannel(
+    'com.giglab.kaunti47/instagram_stories',
+  );
 
   /// Whether Instagram is installed and able to accept a Stories share.
   /// Cheap enough to call from `build()`/`initState` to decide whether
@@ -48,11 +49,9 @@ abstract final class AppInstagramStories {
     try {
       return await _channel.invokeMethod<bool>('share', {
             'image': image,
-            if (backgroundTopColor != null)
-              'backgroundTopColor': backgroundTopColor,
-            if (backgroundBottomColor != null)
-              'backgroundBottomColor': backgroundBottomColor,
-            if (attributionLink != null) 'attributionLink': attributionLink,
+            'backgroundTopColor': ?backgroundTopColor,
+            'backgroundBottomColor': ?backgroundBottomColor,
+            'attributionLink': ?attributionLink,
           }) ??
           false;
     } on PlatformException {

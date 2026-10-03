@@ -202,10 +202,7 @@ void main() {
         await LocalJourneyRepository(db).transportMode('journey-1', 'alice'),
         JourneyTransportMode.cycle,
       );
-      expect(
-        await repo.transportMode('journey-1', 'bob'),
-        isNull,
-      );
+      expect(await repo.transportMode('journey-1', 'bob'), isNull);
     });
 
     test('a Trip with no mode on record skips the speed check', () async {
@@ -266,35 +263,38 @@ void main() {
       },
     );
 
-    test('accepts a plausible Drive point a Walk would have rejected', () async {
-      await repo.start(
-        id: 'journey-1',
-        userId: 'alice',
-        at: started,
-        mode: JourneyTransportMode.drive,
-      );
-      await repo.appendPoint(
-        id: 'journey-1',
-        userId: 'alice',
-        point: point(0, 0),
-      );
-      // The same ~1.1 km-in-a-minute jump as above, but now a plausible
-      // driving speed (well under the Drive ceiling), so it is kept.
-      expect(
+    test(
+      'accepts a plausible Drive point a Walk would have rejected',
+      () async {
+        await repo.start(
+          id: 'journey-1',
+          userId: 'alice',
+          at: started,
+          mode: JourneyTransportMode.drive,
+        );
         await repo.appendPoint(
           id: 'journey-1',
           userId: 'alice',
-          point: JourneyPoint(
-            recordedAt: started.add(const Duration(minutes: 1)),
-            latitude: -1.286389,
-            longitude: 36.827223,
-            accuracyMeters: 8,
-            segmentNumber: 0,
+          point: point(0, 0),
+        );
+        // The same ~1.1 km-in-a-minute jump as above, but now a plausible
+        // driving speed (well under the Drive ceiling), so it is kept.
+        expect(
+          await repo.appendPoint(
+            id: 'journey-1',
+            userId: 'alice',
+            point: JourneyPoint(
+              recordedAt: started.add(const Duration(minutes: 1)),
+              latitude: -1.286389,
+              longitude: 36.827223,
+              accuracyMeters: 8,
+              segmentNumber: 0,
+            ),
           ),
-        ),
-        1,
-      );
-    });
+          1,
+        );
+      },
+    );
   });
 
   test(

@@ -127,7 +127,7 @@ void main() {
     (tester) async {
       await _pump(
         tester,
-        moments:  [
+        moments: [
           JourneyMoment(
             kind: JourneyMomentKind.photo,
             index: 3,

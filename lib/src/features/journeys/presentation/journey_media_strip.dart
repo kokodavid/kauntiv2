@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../domain/journey_media_capture.dart';
@@ -5,12 +7,14 @@ import '../domain/journey_media_capture.dart';
 /// Opens [item] full screen over a black backdrop - shared by every
 /// photo moment in the replay timeline.
 void openJourneyPhoto(BuildContext context, JourneyMediaItem item) {
-  Navigator.of(context).push(
-    PageRouteBuilder<void>(
-      opaque: false,
-      barrierColor: Colors.black,
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          _FullScreenPhoto(item: item),
+  unawaited(
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        opaque: false,
+        barrierColor: Colors.black,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            _FullScreenPhoto(item: item),
+      ),
     ),
   );
 }

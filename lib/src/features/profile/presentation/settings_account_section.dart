@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/services/app_external_links.dart';
 import '../../journeys/domain/pro_status.dart';
 import '../domain/public_profile.dart';
 import 'settings_widgets.dart';
@@ -27,10 +27,7 @@ class SettingsAccountSection extends StatelessWidget {
 
   Future<void> _openPrivacyPolicy() async {
     try {
-      await launchUrl(
-        Uri.parse('https://kaunti47.com/privacy'),
-        mode: LaunchMode.externalApplication,
-      );
+      await AppExternalLinks.openPrivacyPolicy();
     } on Object {
       // Best effort external link; no in-app fallback.
     }

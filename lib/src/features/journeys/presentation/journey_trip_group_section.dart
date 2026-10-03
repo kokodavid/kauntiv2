@@ -26,9 +26,7 @@ class JourneyTripGroupSection extends StatelessWidget {
     final open = onOpen;
     final uploadedCount = group.journeys.where((j) => j.isUploaded).length;
     final totals = [
-      group.journeys.length == 1
-          ? '1 trip'
-          : '${group.journeys.length} trips',
+      group.journeys.length == 1 ? '1 trip' : '${group.journeys.length} trips',
       if (uploadedCount > 0) JourneyFormat.distance(group.totalMeters),
     ].join(' · ');
 
@@ -38,7 +36,10 @@ class JourneyTripGroupSection extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text(group.title.toUpperCase(), style: AppTypeScale.sectionLabel),
+              child: Text(
+                group.title.toUpperCase(),
+                style: AppTypeScale.sectionLabel,
+              ),
             ),
             Text(totals, style: AppTypeScale.small),
           ],

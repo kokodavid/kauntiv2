@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/county_badge_medallion.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/county_badge_medallion.dart';
 import '../../map_home/domain/county_badge_state.dart';
 import '../domain/badge_collection.dart';
 

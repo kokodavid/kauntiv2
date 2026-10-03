@@ -16,6 +16,8 @@ class SupabaseAccountDeletionRepository implements AccountDeletionRepository {
 
   @override
   Future<void> deleteAccount() async {
-    await client.rpc<void>('delete_account').timeout(const Duration(seconds: 15));
+    await client
+        .rpc<void>('delete_account')
+        .timeout(const Duration(seconds: 15));
   }
 }

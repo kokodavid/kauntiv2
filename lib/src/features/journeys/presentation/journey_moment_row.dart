@@ -25,6 +25,7 @@ class JourneyTimelineMomentRow extends StatelessWidget {
     required this.isLast,
     required this.onTap,
     this.countyFacts,
+    this.onOpenCounty,
   });
 
   final JourneyMoment moment;
@@ -45,6 +46,7 @@ class JourneyTimelineMomentRow extends StatelessWidget {
 
   /// Jumps replay to this moment's point in the route.
   final VoidCallback onTap;
+  final VoidCallback? onOpenCounty;
 
   /// Decode target in physical pixels - comfortably covers this row's
   /// own display width (full card width, 16:10) even at a 3x device
@@ -56,7 +58,8 @@ class JourneyTimelineMomentRow extends StatelessWidget {
     final photo = moment.photo;
     final (icon, title, detail) = _describe(moment);
     final countyCode = moment.countyCode;
-    final county = moment.kind == JourneyMomentKind.countyCrossing && countyCode != null
+    final county =
+        moment.kind == JourneyMomentKind.countyCrossing && countyCode != null
         ? CountyPaths.byCode[countyCode]
         : null;
     final at = time == null
@@ -119,6 +122,7 @@ class JourneyTimelineMomentRow extends StatelessWidget {
                           child: JourneyCountyMomentCard(
                             county: county,
                             facts: countyFacts,
+                            onOpenCounty: onOpenCounty,
                           ),
                         )
                       else ...[
@@ -201,7 +205,11 @@ class JourneyTimelineMomentRow extends StatelessWidget {
         '',
       ),
       // "Photo taken" headers the row; the photo itself renders below it.
-      JourneyMomentKind.photo => (Icons.photo_camera_outlined, 'Photo taken', ''),
+      JourneyMomentKind.photo => (
+        Icons.photo_camera_outlined,
+        'Photo taken',
+        '',
+      ),
       JourneyMomentKind.elevationPeak => (
         Icons.terrain,
         'Highest point · ${JourneyFormat.elevation(moment.elevationMeters)}',

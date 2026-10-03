@@ -7,7 +7,11 @@ import '../domain/profile_settings.dart';
 import 'settings_widgets.dart';
 
 class SettingsPrivacySection extends ConsumerWidget {
-  const SettingsPrivacySection({super.key, required this.settings, required this.notifier});
+  const SettingsPrivacySection({
+    super.key,
+    required this.settings,
+    required this.notifier,
+  });
 
   final ProfileSettings settings;
   final ProfileSettingsControllerRef notifier;

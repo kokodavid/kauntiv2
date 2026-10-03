@@ -34,10 +34,8 @@ class JourneyMonthGroup {
   final String title;
   final List<JourneySummary> journeys;
 
-  double get totalMeters => journeys.fold(
-    0,
-    (sum, journey) => sum + (journey.distanceMeters ?? 0),
-  );
+  double get totalMeters =>
+      journeys.fold(0, (sum, journey) => sum + (journey.distanceMeters ?? 0));
 }
 
 /// Buckets already-filtered, newest-first [journeys] by the month they

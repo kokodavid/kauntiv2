@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../design/app_colors.dart';
+import '../../design/app_colors.dart';
 
 /// The app's one back button: a white rounded-square with an
 /// `arrow_back` glyph. Originally County/Place Detail's floated photo

@@ -1,17 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 
-import '../../../design/app_floating_toast.dart';
+import '../../../core/services/app_media_picker.dart';
+import '../../../core/services/camera_roll_matcher.dart';
+import '../../../core/widgets/app_floating_toast.dart';
 import '../../auth/application/auth_providers.dart';
 import '../application/journey_cloud_providers.dart';
 import '../application/journey_providers.dart';
 import '../application/journey_views.dart';
-import '../data/camera_roll_matcher.dart';
-import '../domain/journey_ids.dart';
 import '../domain/journey_summary.dart';
 
 /// Lets the user fill a Trip's empty timeline with photos from their own
@@ -33,9 +29,12 @@ Future<void> addJourneyPhotosToTrip(
   WidgetRef ref,
   JourneySummary journey,
 ) async {
-  final List<XFile> picked;
+  late final List<AppPickedImage> picked;
   try {
-    picked = await ImagePicker().pickMultiImage(maxWidth: 2048, imageQuality: 85);
+    picked = await AppMediaPicker.pickMultiImage(
+      maxWidth: 2048,
+      imageQuality: 85,
+    );
   } on Object {
     if (!context.mounted) return;
     showAppToast(
@@ -45,7 +44,8 @@ Future<void> addJourneyPhotosToTrip(
     );
     return;
   }
-  if (picked.isEmpty || !context.mounted) return;
+  if (picked.isEmpty) return;
+  if (!context.mounted) return;
 
   final userId = ref.read(currentUserIdProvider)();
   if (userId == null) return;
@@ -54,7 +54,10 @@ Future<void> addJourneyPhotosToTrip(
   final span = journey.endedAt.difference(journey.startedAt);
   try {
     for (final (i, photo) in picked.indexed) {
-      final localPath = await _persistPickedFile(journey.id, photo.path);
+      final localPath = await repository.persistPickedFile(
+        journey.id,
+        photo.path,
+      );
       final fraction = (i + 1) / (picked.length + 1);
       await repository.add(
         journeyId: journey.id,
@@ -74,6 +77,7 @@ Future<void> addJourneyPhotosToTrip(
     return;
   }
 
+  if (!context.mounted) return;
   await _uploadAndNotify(context, ref, journey.id, picked.length);
 }
 
@@ -99,7 +103,10 @@ Future<void> addCameraRollMatchesToTrip(
     for (final match in matches) {
       final file = await match.asset.file;
       if (file == null) continue;
-      final localPath = await _persistPickedFile(journey.id, file.path);
+      final localPath = await repository.persistPickedFile(
+        journey.id,
+        file.path,
+      );
       final location = await match.asset.latlngAsync();
       await repository.add(
         journeyId: journey.id,
@@ -133,6 +140,7 @@ Future<void> addCameraRollMatchesToTrip(
     return;
   }
 
+  if (!context.mounted) return;
   await _uploadAndNotify(context, ref, journey.id, added);
 }
 
@@ -165,19 +173,4 @@ Future<void> _uploadAndNotify(
         ? 'Photo added to the Trip'
         : '$addedCount photos added to the Trip',
   );
-}
-
-/// Copies a picked file into the app's own persistent storage, the same
-/// way a live in-trip camera capture does - so it survives past the
-/// picker's own cache and can be queued for upload like any other photo.
-Future<String> _persistPickedFile(String journeyId, String pickedPath) async {
-  final directory = await getApplicationSupportDirectory();
-  final mediaDir = Directory('${directory.path}/journey_media/$journeyId');
-  if (!await mediaDir.exists()) await mediaDir.create(recursive: true);
-  final extension = pickedPath.contains('.')
-      ? pickedPath.substring(pickedPath.lastIndexOf('.'))
-      : '.jpg';
-  final destination = '${mediaDir.path}/${JourneyIds.newId()}$extension';
-  await File(pickedPath).copy(destination);
-  return destination;
 }

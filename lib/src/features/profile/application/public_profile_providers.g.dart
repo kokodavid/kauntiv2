@@ -62,7 +62,7 @@ final class PublicProfileRepositoryProvider
 }
 
 String _$publicProfileRepositoryHash() =>
-    r'3a8f6c1d9e2b4057a6c1f0e3d8b7a5c4f1e0d9b2';
+    r'80c4eee6f85080de7a063f33dcba088b2dc3ac16';
 
 /// The signed-in account's display name, handle and avatar. Reloads when
 /// the account changes; Edit Profile invalidates this after a successful
@@ -112,5 +112,4 @@ final class MyPublicProfileProvider
   }
 }
 
-String _$myPublicProfileHash() =>
-    r'7d2e9a4c6f1b3058d4a7c2e9f6b1038a5c2e9f4b';
+String _$myPublicProfileHash() => r'19bd47c647f678dd79fa80430c94b721abd39721';

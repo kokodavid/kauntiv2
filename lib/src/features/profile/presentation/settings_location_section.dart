@@ -42,7 +42,8 @@ class SettingsLocationSection extends StatelessWidget {
                 const SizedBox(height: 10),
                 SettingsSegmented<LocationMode>(
                   options: LocationMode.values,
-                  labelOf: (v) => v == LocationMode.automatic ? 'Automatic' : 'Manual',
+                  labelOf: (v) =>
+                      v == LocationMode.automatic ? 'Automatic' : 'Manual',
                   value: settings.locationMode,
                   onChanged: (v) => unawaited(notifier.setLocationMode(v)),
                 ),

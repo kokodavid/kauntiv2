@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../services/app_logger.dart';
@@ -266,10 +264,8 @@ class JourneyRecorder extends _$JourneyRecorder {
       _set(_stillOwnedBy(userId) ? capture.session : null, userId);
       rethrow;
     }
-    await ref
-        .read(localJourneyMediaRepositoryProvider)
-        .removeForJourney(session.id)
-        .then((paths) => Future.wait([for (final p in paths) _deleteQuietly(p)]));
+    final media = ref.read(localJourneyMediaRepositoryProvider);
+    await media.deleteLocalFiles(await media.removeForJourney(session.id));
     await ref.read(localJourneyRepositoryProvider).discard(session.id, userId);
     _set(null, null);
   }
@@ -284,7 +280,9 @@ class JourneyRecorder extends _$JourneyRecorder {
     if (session == null || userId == null) {
       throw StateError('No Trip is being recorded.');
     }
-    final persisted = await _persistPickedFile(session.id, pickedPath);
+    final persisted = await ref
+        .read(localJourneyMediaRepositoryProvider)
+        .persistPickedFile(session.id, pickedPath);
     final fix = await ref
         .read(localJourneyRepositoryProvider)
         .lastPoint(session.id, userId);
@@ -298,27 +296,6 @@ class JourneyRecorder extends _$JourneyRecorder {
           latitude: fix?.latitude,
           longitude: fix?.longitude,
         );
-  }
-
-  Future<String> _persistPickedFile(String journeyId, String pickedPath) async {
-    final directory = await getApplicationSupportDirectory();
-    final mediaDir = Directory('${directory.path}/journey_media/$journeyId');
-    if (!await mediaDir.exists()) await mediaDir.create(recursive: true);
-    final extension = pickedPath.contains('.')
-        ? pickedPath.substring(pickedPath.lastIndexOf('.'))
-        : '.jpg';
-    final destination = '${mediaDir.path}/${JourneyIds.newId()}$extension';
-    await File(pickedPath).copy(destination);
-    return destination;
-  }
-
-  Future<void> _deleteQuietly(String path) async {
-    try {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
-    } on Object {
-      // Best-effort cleanup only.
-    }
   }
 }
 

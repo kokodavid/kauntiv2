@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../services/app_logger.dart';
 import '../application/journey_views.dart';
-import '../data/trip_share_card_cache.dart';
+import '../application/trip_share_card_cache_provider.dart';
 import '../domain/journey_media_capture.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
@@ -51,7 +51,8 @@ class _TripShareCardThumbnailState
       return JourneyRoutePreview(journeyId: widget.journeyId);
     }
 
-    final cover = TripShareCardCache.resolveCoverPhoto(summary, media);
+    final cache = ref.read(tripShareCardCacheAccessProvider);
+    final cover = cache.resolveCoverPhoto(summary, media);
     // No synced photo to build a share card from: the generated
     // no-photo variant (route line over a flat colour fill) read as a
     // plain blue block at thumbnail size, worse than just showing the
@@ -74,10 +75,11 @@ class _TripShareCardThumbnailState
     return LayoutBuilder(
       builder: (context, constraints) {
         final renderSize = constraints.biggest;
-        final signature = TripShareCardCache.signatureFor(
+        final signature = cache.signatureFor(
           summary,
           cover,
-          renderSize: renderSize,
+          renderWidth: renderSize.width,
+          renderHeight: renderSize.height,
         );
 
         final needsGeneration =
@@ -89,9 +91,7 @@ class _TripShareCardThumbnailState
           final route = detail.route;
           SchedulerBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
-            unawaited(
-              _generate(summary, cover, signature, route, renderSize),
-            );
+            unawaited(_generate(summary, cover, signature, route, renderSize));
           });
         }
 
@@ -125,12 +125,10 @@ class _TripShareCardThumbnailState
     Size renderSize,
   ) async {
     try {
-      final cachedFile = await TripShareCardCache.readIfFresh(
-        widget.journeyId,
-        signature,
-      );
-      if (cachedFile != null) {
-        _settle(cached: cachedFile, signature: signature);
+      final cache = ref.read(tripShareCardCacheAccessProvider);
+      final cachedPath = await cache.readIfFresh(widget.journeyId, signature);
+      if (cachedPath != null) {
+        _settle(cached: File(cachedPath), signature: signature);
         return;
       }
 
@@ -141,9 +139,7 @@ class _TripShareCardThumbnailState
       if (!mounted) return;
 
       final routePoints = photo == null
-          ? TripShareCard.normalizeRoute(
-              TripShareCardCache.mainRoutePoints(route),
-            )
+          ? TripShareCard.normalizeRoute(cache.mainRoutePoints(route))
           : const <Offset>[];
 
       final bytes = await captureTripShareCard(
@@ -165,12 +161,8 @@ class _TripShareCardThumbnailState
           routePoints: routePoints,
         ),
       );
-      final file = await TripShareCardCache.write(
-        widget.journeyId,
-        signature,
-        bytes,
-      );
-      _settle(cached: file, signature: signature);
+      final path = await cache.write(widget.journeyId, signature, bytes);
+      _settle(cached: File(path), signature: signature);
     } on Object catch (error, stackTrace) {
       _logger.warning(
         'Trip share card thumbnail generation failed for '

@@ -3,8 +3,8 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import '../../../services/app_logger.dart';
-import 'local_journey_media_repository.dart';
 import 'journey_database.dart';
+import 'local_journey_media_repository.dart';
 import 'supabase_journey_repository.dart';
 
 /// Uploads one captured Trip photo; resolves once it's stored in the
@@ -33,12 +33,12 @@ typedef UploadJourneyMedia =
 /// just backs off and is retried later.
 class JourneyMediaUploadQueue {
   JourneyMediaUploadQueue(
-    this._db, {
+    JourneyDatabase db, {
     required String? Function() currentUserId,
     required UploadJourneyMedia upload,
   }) : _currentUserId = currentUserId,
        _upload = upload,
-       _local = LocalJourneyMediaRepository(_db);
+       _local = LocalJourneyMediaRepository(db);
 
   factory JourneyMediaUploadQueue.supabase(
     JourneyDatabase db,
@@ -66,7 +66,6 @@ class JourneyMediaUploadQueue {
         ),
   );
 
-  final JourneyDatabase _db;
   final LocalJourneyMediaRepository _local;
   final String? Function() _currentUserId;
   final UploadJourneyMedia _upload;
@@ -131,7 +130,7 @@ class JourneyMediaUploadQueue {
   Future<void> _deleteFileQuietly(String path) async {
     try {
       final file = File(path);
-      if (await file.exists()) await file.delete();
+      if (file.existsSync()) await file.delete();
     } on Object catch (error, stackTrace) {
       _logger.warning(
         'Could not remove an uploaded Trip photo from local storage.',

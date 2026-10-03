@@ -55,7 +55,7 @@ final class TripStatsRepositoryProvider
 }
 
 String _$tripStatsRepositoryHash() =>
-    r'1c4e8b2f9a6d3057c1e4b8f2a9d6c3057e1b4f82';
+    r'a82f774879ded32cbf3933f4a3c89414e5570b65';
 
 /// The signed-in account's Trip count / distance stats, for Profile's
 /// progress card. Reloads when the account changes.
@@ -68,7 +68,11 @@ const tripStatsProvider = TripStatsProvider._();
 
 final class TripStatsProvider
     extends
-        $FunctionalProvider<AsyncValue<TripStats>, TripStats, FutureOr<TripStats>>
+        $FunctionalProvider<
+          AsyncValue<TripStats>,
+          TripStats,
+          FutureOr<TripStats>
+        >
     with $FutureModifier<TripStats>, $FutureProvider<TripStats> {
   /// The signed-in account's Trip count / distance stats, for Profile's
   /// progress card. Reloads when the account changes.
@@ -88,9 +92,8 @@ final class TripStatsProvider
 
   @$internal
   @override
-  $FutureProviderElement<TripStats> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  $FutureProviderElement<TripStats> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
   FutureOr<TripStats> create(Ref ref) {
@@ -98,4 +101,4 @@ final class TripStatsProvider
   }
 }
 
-String _$tripStatsHash() => r'9b3d6f1a8c4e2057b3d6f1a8c4e2957b3d6f1a8';
+String _$tripStatsHash() => r'0c564bdd8914bd9f3b03762e5083918181eea6e6';

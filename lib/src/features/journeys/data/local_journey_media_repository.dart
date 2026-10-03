@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../domain/journey_ids.dart';
 import '../domain/journey_media_capture.dart';
@@ -28,6 +31,29 @@ class LocalJourneyMediaRepository {
   const LocalJourneyMediaRepository(this._db);
 
   final JourneyDatabase _db;
+
+  Future<String> persistPickedFile(String journeyId, String pickedPath) async {
+    final directory = await getApplicationSupportDirectory();
+    final mediaDir = Directory('${directory.path}/journey_media/$journeyId');
+    if (!mediaDir.existsSync()) await mediaDir.create(recursive: true);
+    final extension = pickedPath.contains('.')
+        ? pickedPath.substring(pickedPath.lastIndexOf('.'))
+        : '.jpg';
+    final destination = '${mediaDir.path}/${JourneyIds.newId()}$extension';
+    await File(pickedPath).copy(destination);
+    return destination;
+  }
+
+  Future<void> deleteLocalFiles(Iterable<String> paths) async {
+    for (final path in paths) {
+      try {
+        final file = File(path);
+        if (file.existsSync()) await file.delete();
+      } on Object {
+        // Local cleanup is best effort after its database row is removed.
+      }
+    }
+  }
 
   static const _columns =
       'id, journey_id, user_id, local_path, captured_at_millis, '

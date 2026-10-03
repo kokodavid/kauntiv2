@@ -51,10 +51,13 @@ class _TransportModeSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('How are you travelling?', style: AppTypeScale.sectionTitle),
+            const Text(
+              'How are you travelling?',
+              style: AppTypeScale.sectionTitle,
+            ),
             const SizedBox(height: 4),
             Text(
-              "Pick a mode for this Trip - it sharpens the route and "
+              'Pick a mode for this Trip - it sharpens the route and '
               "shows on the Trip's card.",
               style: AppTypeScale.meta.copyWith(
                 color: AppColors.mutedForeground,
@@ -94,10 +97,7 @@ class _ModeTile extends StatelessWidget {
               const SizedBox(width: 14),
               Text(mode.label, style: AppTypeScale.cardTitle),
               const Spacer(),
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.mutedForeground,
-              ),
+              const Icon(Icons.chevron_right, color: AppColors.mutedForeground),
             ],
           ),
         ),

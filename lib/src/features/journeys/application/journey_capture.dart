@@ -30,8 +30,7 @@ class JourneyCapture {
   /// `JourneyLocationFailure.noFixReceived`).
   final Duration firstFixTimeout;
 
-  final Future<void> Function(String, Map<String, Object?>)?
-  onDiagnosticEvent;
+  final Future<void> Function(String, Map<String, Object?>)? onDiagnosticEvent;
 
   final LocalJourneyRepository _repository;
   final JourneyLocationSource _locationSource;
@@ -235,9 +234,7 @@ class JourneyCapture {
       // screen - on a fix that was never actually going to end up in the
       // route, leaving "Waiting for your location" stuck with nothing to
       // clear it until a genuinely fresh fix happened to arrive.
-      final isStale = fix.recordedAt.isBefore(
-        current.recording.lastChangedAt!,
-      );
+      final isStale = fix.recordedAt.isBefore(current.recording.lastChangedAt!);
       if (!isStale && !(_firstFix?.isCompleted ?? true)) {
         _firstFix!.complete();
       }

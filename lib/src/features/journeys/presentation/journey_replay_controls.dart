@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_glyph_icon.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/app_glyph_icon.dart';
 
 part 'journey_replay_controls_parts.dart';
 
@@ -104,11 +104,7 @@ class JourneyWholeRoutePill extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.zoom_out_map,
-                      size: 16,
-                      color: AppColors.accent,
-                    ),
+                    Icon(Icons.zoom_out_map, size: 16, color: AppColors.accent),
                     SizedBox(width: 6),
                     Text(
                       'Whole route',

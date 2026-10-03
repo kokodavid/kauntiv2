@@ -15,12 +15,15 @@ import 'confirm_dialog.dart';
 /// Trips, handle and photo are removed for good"), so this asks for
 /// confirmation first via the shared stacked-confirm dialog shape (also
 /// used by Sign out), with the danger color as its primary button.
-Future<void> showDeleteAccountDialog(BuildContext context, WidgetRef ref) async {
+Future<void> showDeleteAccountDialog(
+  BuildContext context,
+  WidgetRef ref,
+) async {
   final confirmed = await showStackedConfirmDialog(
     context,
     title: 'Delete your account?',
     body:
-        "Your badges, Trips, handle and photo are removed for good. "
+        'Your badges, Trips, handle and photo are removed for good. '
         "This can't be undone.",
     primaryLabel: 'Delete account',
     primaryColor: AppColors.danger,
@@ -57,7 +60,9 @@ Future<void> showDeleteAccountDialog(BuildContext context, WidgetRef ref) async 
     if (context.mounted) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Couldn't delete your account. Try again.")),
+        const SnackBar(
+          content: Text("Couldn't delete your account. Try again."),
+        ),
       );
     }
   }

@@ -55,7 +55,7 @@ final class ProfileSettingsRepositoryProvider
 }
 
 String _$profileSettingsRepositoryHash() =>
-    r'4e1b7c3a9f2d6058c4e1b7c3a9f2d6058c4e1b7';
+    r'a3212e96751cc3362f6c49924fde4335008e67d7';
 
 /// Settings screen state: the six preference columns on `profiles`,
 /// updated optimistically (each setter flips the toggle immediately, then
@@ -92,7 +92,11 @@ final class ProfileSettingsControllerProvider
 }
 
 String _$profileSettingsControllerHash() =>
-    r'8a5c2e0f6b3d9157a5c2e0f6b3d9157a5c2e0f6';
+    r'87ea6c07e5d3aab95a8bc318926991791dee38be';
+
+/// Settings screen state: the six preference columns on `profiles`,
+/// updated optimistically (each setter flips the toggle immediately, then
+/// persists, reverting on failure) so switches feel instant.
 
 abstract class _$ProfileSettingsController
     extends $AsyncNotifier<ProfileSettings> {

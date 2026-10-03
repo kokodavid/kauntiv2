@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/county_badge_medallion.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
-import '../../../widgets/county_badge_medallion.dart';
 import '../../badges/domain/badge_collection.dart';
 
 class ProfileCountyBadges extends StatelessWidget {
@@ -87,8 +87,7 @@ class ProfileCountyBadges extends StatelessWidget {
               return ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: display.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(width: 10),
+                separatorBuilder: (context, index) => const SizedBox(width: 10),
                 itemBuilder: (context, index) {
                   final badge = display.elementAt(index);
                   return SizedBox(
@@ -108,7 +107,9 @@ class ProfileCountyBadges extends StatelessWidget {
                           style: TextStyle(
                             color: badge.isEarned
                                 ? AppColors.mutedForeground
-                                : AppColors.mutedForeground.withValues(alpha: 0.7),
+                                : AppColors.mutedForeground.withValues(
+                                    alpha: 0.7,
+                                  ),
                             fontSize: 10,
                           ),
                         ),

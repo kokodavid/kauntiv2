@@ -57,7 +57,9 @@ class JourneyReplayStatBar extends StatelessWidget {
                     color: AppColors.cardBorder,
                   ),
                 ),
-              Expanded(child: _StatTile(value: entry.$1, label: entry.$2)),
+              Expanded(
+                child: _StatTile(value: entry.$1, label: entry.$2),
+              ),
             ],
           ],
         ),

@@ -104,7 +104,7 @@ class _JourneyLiveCardState extends ConsumerState<JourneyLiveCard> {
                 Text(
                   [
                     '${JourneyFormat.distance(route.distanceMeters)} so far',
-                    if (county != null) county,
+                    ?county,
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

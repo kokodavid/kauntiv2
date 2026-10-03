@@ -73,9 +73,12 @@ class _JourneyStopSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-            Text('Stop this Trip?', style: AppTextStyles.confirmSheetTitle),
+            const Text(
+              'Stop this Trip?',
+              style: AppTextStyles.confirmSheetTitle,
+            ),
             const SizedBox(height: 6),
-            Text(
+            const Text(
               'Save it to your Trips and upload it to your account, or '
               "discard it: the route is deleted from this phone and can't "
               'be recovered.',
@@ -94,7 +97,7 @@ class _JourneyStopSheet extends StatelessWidget {
                   elevation: 0,
                   shape: const StadiumBorder(),
                 ),
-                child: Text(
+                child: const Text(
                   'Stop and save',
                   style: AppTextStyles.confirmSheetButtonLabel,
                 ),

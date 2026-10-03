@@ -3,19 +3,15 @@ import 'package:kaunti47_v2/src/features/journeys/domain/journey_media_capture.d
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_moments.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_point.dart';
 
-JourneyPoint _p(
-  int minute,
-  double lat, {
-  int segment = 0,
-  double? altitude,
-}) => JourneyPoint(
-  recordedAt: DateTime.utc(2026, 9, 25, 10, minute),
-  latitude: lat,
-  longitude: 36.82,
-  accuracyMeters: 5,
-  segmentNumber: segment,
-  altitudeMeters: altitude,
-);
+JourneyPoint _p(int minute, double lat, {int segment = 0, double? altitude}) =>
+    JourneyPoint(
+      recordedAt: DateTime.utc(2026, 9, 25, 10, minute),
+      latitude: lat,
+      longitude: 36.82,
+      accuracyMeters: 5,
+      segmentNumber: segment,
+      altitudeMeters: altitude,
+    );
 
 void main() {
   test('a recording break is a moment at the last point before it', () {

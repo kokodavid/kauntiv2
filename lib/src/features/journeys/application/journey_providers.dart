@@ -36,8 +36,7 @@ JourneyCapture journeyCapture(Ref ref) => JourneyCapture(
   repository: ref.watch(localJourneyRepositoryProvider),
   locationSource: ref.watch(journeyLocationSourceProvider),
   onDiagnosticEvent:
-      AppFeatureFlags.locationDiagnostics &&
-          ref.watch(appConfigProvider).isDev
-      ? (event, data) => LocationDiagnostics.record(event, data)
+      AppFeatureFlags.locationDiagnostics && ref.watch(appConfigProvider).isDev
+      ? LocationDiagnostics.record
       : null,
 );

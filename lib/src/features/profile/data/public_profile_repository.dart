@@ -52,8 +52,8 @@ class SupabasePublicProfileRepository implements PublicProfileRepository {
     final owner = _owner();
     final payload = <String, dynamic>{
       'updated_at': DateTime.now().toUtc().toIso8601String(),
-      if (displayName != null) 'display_name': displayName,
-      if (handle != null) 'handle': handle,
+      'display_name': ?displayName,
+      'handle': ?handle,
     };
     try {
       final row = await client
@@ -88,7 +88,10 @@ class SupabasePublicProfileRepository implements PublicProfileRepository {
         .uploadBinary(
           path,
           bytes,
-          fileOptions: FileOptions(upsert: true, contentType: 'image/$extension'),
+          fileOptions: FileOptions(
+            upsert: true,
+            contentType: 'image/$extension',
+          ),
         )
         .timeout(const Duration(seconds: 30));
     // Cache-bust: the path never changes, so a plain public URL would be

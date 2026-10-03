@@ -98,11 +98,7 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
       backgroundIntervalMs: 15000,
       distanceMeters: 8,
     ),
-    null => (
-      intervalMs: 5000,
-      backgroundIntervalMs: 8000,
-      distanceMeters: 10,
-    ),
+    null => (intervalMs: 5000, backgroundIntervalMs: 8000, distanceMeters: 10),
   };
 
   static JourneyFix? usableFix(LocationData data) {

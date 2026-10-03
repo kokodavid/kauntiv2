@@ -9,7 +9,7 @@ abstract final class LocationDiagnosticsStore {
   static Future<Directory> _directory() async {
     final support = await getApplicationSupportDirectory();
     final directory = Directory('${support.path}/location_diagnostics');
-    if (!await directory.exists()) await directory.create(recursive: true);
+    if (!directory.existsSync()) await directory.create(recursive: true);
     return directory;
   }
 
@@ -21,9 +21,7 @@ abstract final class LocationDiagnosticsStore {
     final id = DateTime.now().toUtc().microsecondsSinceEpoch.toString();
     final log = File('${directory.path}/$id.jsonl');
     await log.create();
-    await _append(log, 'session_started', {
-      'battery_percent': batteryPercent,
-    });
+    await _append(log, 'session_started', {'battery_percent': batteryPercent});
     await (await _activeFile()).writeAsString(
       jsonEncode({'id': id, 'path': log.path}),
     );
@@ -41,7 +39,7 @@ abstract final class LocationDiagnosticsStore {
   static Future<void> stop({required int batteryPercent}) async {
     await record('session_stopped', {'battery_percent': batteryPercent});
     final active = await _activeFile();
-    if (await active.exists()) await active.delete();
+    if (active.existsSync()) await active.delete();
   }
 
   static Future<bool> isActive() async => await _activePath() != null;
@@ -96,12 +94,12 @@ abstract final class LocationDiagnosticsStore {
   static Future<void> clear() async {
     await _writes;
     final directory = await _directory();
-    if (await directory.exists()) await directory.delete(recursive: true);
+    if (directory.existsSync()) await directory.delete(recursive: true);
   }
 
   static Future<String?> _activePath() async {
     final file = await _activeFile();
-    if (!await file.exists()) return null;
+    if (!file.existsSync()) return null;
     final row = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
     return row['path'] as String?;
   }
@@ -113,11 +111,7 @@ abstract final class LocationDiagnosticsStore {
   ) {
     final write = _writes.then((_) async {
       await file.writeAsString(
-        '${jsonEncode({
-          'at': DateTime.now().toUtc().toIso8601String(),
-          'event': event,
-          'data': data,
-        })}\n',
+        '${jsonEncode({'at': DateTime.now().toUtc().toIso8601String(), 'event': event, 'data': data})}\n',
         mode: FileMode.append,
         flush: false,
       );

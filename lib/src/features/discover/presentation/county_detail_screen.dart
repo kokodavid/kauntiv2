@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
-import '../../../widgets/app_back_button.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../application/discover_detail_actions.dart';
 import '../domain/county_detail.dart';

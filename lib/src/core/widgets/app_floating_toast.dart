@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
-import 'app_text_styles.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
 
 /// Tone for [showAppToast], matching the Claude-Design "01 · TOAST"
 /// reference ("Dark, floating, one line where possible"): a dark pill
@@ -127,7 +127,7 @@ class _FloatingToastState extends State<_FloatingToast>
   @override
   void initState() {
     super.initState();
-    _controller.forward();
+    unawaited(_controller.forward());
     final duration = widget.duration;
     if (duration != null) {
       _timer = Timer(duration, _close);
@@ -144,12 +144,14 @@ class _FloatingToastState extends State<_FloatingToast>
   void _close() {
     if (_removed) return;
     _timer?.cancel();
-    _controller.reverse().whenComplete(() {
-      if (!_removed) {
-        _removed = true;
-        widget.onRemove();
-      }
-    });
+    unawaited(
+      _controller.reverse().whenComplete(() {
+        if (!_removed) {
+          _removed = true;
+          widget.onRemove();
+        }
+      }),
+    );
   }
 
   /// Used only when a new toast is about to replace this one - skips the

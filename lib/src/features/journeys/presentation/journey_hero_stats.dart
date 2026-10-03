@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../counties/county_paths.dart';
 import '../../../core/design/app_type_scale.dart';
+import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_history.dart';
 import '../domain/journey_route.dart';
@@ -59,11 +59,11 @@ class JourneyHeroStats extends ConsumerWidget {
               accent: true,
             ),
           ),
-          _Divider(),
+          const _Divider(),
           Expanded(
             child: _Stat(value: '${journeys.length}', label: 'TRIPS'),
           ),
-          _Divider(),
+          const _Divider(),
           Expanded(
             child: _Stat(
               value: '${counties.length}',

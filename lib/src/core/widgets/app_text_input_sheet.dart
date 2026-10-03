@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
-import 'app_text_styles.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
 
 /// A bottom-sheet text prompt, matching the Claude-Design "Rename Trip"
 /// reference: a title, one accent-bordered text field prefilled with the

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
-import 'app_text_styles.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
 
 /// A bottom-sheet confirm dialog, matching the Claude-Design "03 · DIALOG"
 /// reference ("Bottom sheet: icon, title, one line, stacked buttons"): a

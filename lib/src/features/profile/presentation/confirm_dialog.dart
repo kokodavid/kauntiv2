@@ -70,17 +70,25 @@ class _StackedConfirmDialog extends StatelessWidget {
                 backgroundColor: primaryColor,
                 shape: const StadiumBorder(),
               ),
-              child: Text(primaryLabel, style: AppTextStyles.confirmSheetButtonLabel),
+              child: Text(
+                primaryLabel,
+                style: AppTextStyles.confirmSheetButtonLabel,
+              ),
             ),
           ),
           SizedBox(
             width: double.infinity,
             child: TextButton(
               onPressed: () => Navigator.pop(context, false),
-              style: TextButton.styleFrom(foregroundColor: AppColors.foreground),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.foreground,
+              ),
               child: Text(
                 cancelLabel,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),

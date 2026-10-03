@@ -191,9 +191,8 @@ class JourneyHistoryFilterBar extends StatelessWidget {
             _FilterPill(
               label: bucket.title,
               selected: bucket == lengthFilter,
-              onTap: () => onLengthSelected(
-                bucket == lengthFilter ? null : bucket,
-              ),
+              onTap: () =>
+                  onLengthSelected(bucket == lengthFilter ? null : bucket),
             ),
           ],
           if (toggleOnThisPhone != null) ...[

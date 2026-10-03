@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_glyph_icon.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/app_glyph_icon.dart';
 import '../application/journey_key_moments.dart';
 import '../application/journey_views.dart';
 import '../domain/journey_moments.dart';
@@ -24,9 +24,14 @@ import 'trip_share_sheet.dart';
 /// scene, a timeline of its key moments tells it below, and a floating
 /// transport bar drives the replay through both.
 class JourneyReplayScreen extends ConsumerWidget {
-  const JourneyReplayScreen({super.key, required this.journeyId});
+  const JourneyReplayScreen({
+    super.key,
+    required this.journeyId,
+    this.onOpenCounty,
+  });
 
   final String journeyId;
+  final ValueChanged<int>? onOpenCounty;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,6 +52,7 @@ class JourneyReplayScreen extends ConsumerWidget {
               route: route,
               moments: moments ?? const [],
               momentsLoading: momentsLoading,
+              onOpenCounty: onOpenCounty,
             )
           : Stack(
               fit: StackFit.expand,
@@ -90,6 +96,7 @@ class _Player extends StatefulWidget {
     required this.route,
     required this.moments,
     required this.momentsLoading,
+    this.onOpenCounty,
   });
 
   final JourneySummary summary;
@@ -100,6 +107,7 @@ class _Player extends StatefulWidget {
   /// indicator instead of "No key moments on this Trip yet." while
   /// `journeyMomentsProvider` is still computing its first value.
   final bool momentsLoading;
+  final ValueChanged<int>? onOpenCounty;
 
   @override
   State<_Player> createState() => _PlayerState();
@@ -128,12 +136,11 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
   /// change through setState instead would rebuild the whole screen -
   /// map, stat bar, timeline (with every photo in it), buttons - on
   /// every single frame, which is where the replay screen's jank was
-  /// coming from. Only the two ValueListenableBuilders in [build] listen
-  /// to this directly; everything else only rebuilds on the real state
-  /// changes below (play/pause, a moment becoming current, scrub start).
-  final ValueNotifier<double> _positionNotifier = ValueNotifier(0);
-  double get _position => _positionNotifier.value;
-  set _position(double value) => _positionNotifier.value = value;
+  /// Only the map and scrubber listen to this frame driver; the timeline
+  /// rebuilds only for real state changes such as play/pause or key moments.
+  late final AnimationController _positionController;
+  double get _position => _positionController.value;
+  set _position(double value) => _positionController.value = value;
 
   JourneyReplaySpeed _speed = JourneyReplaySpeed.x1;
 
@@ -154,6 +161,17 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
   bool get _playing => _ticker.isActive;
 
   @override
+  void initState() {
+    super.initState();
+    _positionController = AnimationController(
+      vsync: this,
+      lowerBound: 0,
+      upperBound: _track.lastIndex.toDouble(),
+      value: 0,
+    );
+  }
+
+  @override
   void didUpdateWidget(_Player oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.moments, widget.moments)) {
@@ -165,7 +183,7 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
   void dispose() {
     _ticker.dispose();
     _enterController.dispose();
-    _positionNotifier.dispose();
+    _positionController.dispose();
     super.dispose();
   }
 
@@ -198,15 +216,15 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
       // A real state change beyond the raw position - pausing playback
       // and/or lighting up a moment in the timeline - needs setState so
       // the timeline and playback bar's play/pause icon pick it up. An
-      // ordinary mid-flight tick only moves _positionNotifier, without
+      // ordinary mid-flight tick only moves the frame driver, without
       // touching setState or rebuilding the rest of the screen.
       setState(() {
-        _positionNotifier.value = next;
+        _positionController.value = next;
         if (hitStop) _showing = JourneyMoments.at(stop, widget.moments);
         _ticker.stop();
       });
     } else {
-      _positionNotifier.value = next;
+      _positionController.value = next;
     }
   }
 
@@ -251,7 +269,7 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
 
   /// Cycles 1x -> 2x -> 4x -> 1x with one tap, rather than three chips.
   void _cycleSpeed() => setState(() {
-    final values = JourneyReplaySpeed.values;
+    const values = JourneyReplaySpeed.values;
     _speed = values[(values.indexOf(_speed) + 1) % values.length];
   });
 
@@ -298,9 +316,10 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
                 left: 0,
                 right: 0,
                 height: mapHeight,
-                child: ValueListenableBuilder<double>(
-                  valueListenable: _positionNotifier,
-                  builder: (context, position, _) {
+                child: AnimatedBuilder(
+                  animation: _positionController,
+                  builder: (context, _) {
+                    final position = _position;
                     final index = position.floor().clamp(0, _track.lastIndex);
                     return JourneyRouteMap(
                       route: widget.route,
@@ -327,6 +346,7 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
                   momentsLoading: widget.momentsLoading,
                   currentMoments: _showing,
                   onJumpTo: _jumpTo,
+                  onOpenCounty: widget.onOpenCounty,
                   topPadding: overlap + 16,
                   bottomPadding: 104 + safeBottom,
                 ),
@@ -381,12 +401,12 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
                     begin: const Offset(0, 0.15),
                     end: Offset.zero,
                   ).animate(_enterCurve),
-                  child: ValueListenableBuilder<double>(
-                    valueListenable: _positionNotifier,
-                    builder: (context, position, _) => JourneyReplayPlaybackBar(
+                  child: AnimatedBuilder(
+                    animation: _positionController,
+                    builder: (context, _) => JourneyReplayPlaybackBar(
                       playing: _playing,
                       pausedAtMoment: _showing.isNotEmpty,
-                      position: position,
+                      position: _position,
                       lastIndex: _track.lastIndex,
                       moments: widget.moments,
                       readout: _readout,

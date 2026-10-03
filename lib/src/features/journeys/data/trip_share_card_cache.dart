@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' show Size;
 
 import 'package:path_provider/path_provider.dart';
 
@@ -23,7 +22,7 @@ abstract final class TripShareCardCache {
   static Future<Directory> _directory() async {
     final support = await getApplicationSupportDirectory();
     final dir = Directory('${support.path}/trip_share_cards');
-    if (!await dir.exists()) {
+    if (!dir.existsSync()) {
       await dir.create(recursive: true);
     }
     return dir;
@@ -79,7 +78,8 @@ abstract final class TripShareCardCache {
   static String signatureFor(
     JourneySummary summary,
     JourneyMediaItem? cover, {
-    Size? renderSize,
+    double? renderWidth,
+    double? renderHeight,
   }) {
     return [
       _renderVersion,
@@ -93,8 +93,8 @@ abstract final class TripShareCardCache {
       summary.highestElevationMeters?.toString() ?? '-',
       summary.countyNames.join('|'),
       cover?.id ?? '-',
-      if (renderSize != null)
-        '${renderSize.width.round()}x${renderSize.height.round()}',
+      if (renderWidth != null && renderHeight != null)
+        '${renderWidth.round()}x${renderHeight.round()}',
     ].join('::');
   }
 
@@ -105,9 +105,7 @@ abstract final class TripShareCardCache {
   static List<(double, double)> mainRoutePoints(JourneyRoute route) {
     final segments = JourneyPreview.thin(route);
     if (segments.isEmpty) return const [];
-    final largest = segments.reduce(
-      (a, b) => a.length >= b.length ? a : b,
-    );
+    final largest = segments.reduce((a, b) => a.length >= b.length ? a : b);
     return [for (final p in largest) (p.latitude, p.longitude)];
   }
 
@@ -124,11 +122,11 @@ abstract final class TripShareCardCache {
     String suffix = '',
   }) async {
     final sig = await _sigFile(journeyId, suffix);
-    if (!await sig.exists()) return null;
+    if (!sig.existsSync()) return null;
     final stored = await sig.readAsString();
     if (stored != signature) return null;
     final png = await _pngFile(journeyId, suffix);
-    if (!await png.exists()) return null;
+    if (!png.existsSync()) return null;
     return png;
   }
 
@@ -151,7 +149,7 @@ abstract final class TripShareCardCache {
   static Future<void> invalidate(String journeyId) async {
     for (final suffix in const ['', '_feed', '_story']) {
       final sig = await _sigFile(journeyId, suffix);
-      if (await sig.exists()) await sig.delete();
+      if (sig.existsSync()) await sig.delete();
     }
   }
 }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/detail_routes.dart';
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/county_badge_medallion.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/county_badge_medallion.dart';
 import '../../badges/domain/badge_collection.dart';
 import '../domain/journey_county_moment_facts.dart';
 
@@ -21,6 +20,7 @@ class JourneyCountyMomentCard extends StatefulWidget {
     super.key,
     required this.county,
     required this.facts,
+    this.onOpenCounty,
   });
 
   final CountyPath county;
@@ -29,6 +29,7 @@ class JourneyCountyMomentCard extends StatefulWidget {
   /// county has no row in `counties` yet - the card still shows, just
   /// with the name and coin only.
   final JourneyCountyMomentFacts? facts;
+  final VoidCallback? onOpenCounty;
 
   @override
   State<JourneyCountyMomentCard> createState() =>
@@ -39,9 +40,7 @@ class _JourneyCountyMomentCardState extends State<JourneyCountyMomentCard> {
   var _pressed = false;
 
   void _open() {
-    final open = DetailRoutes.openCounty;
-    if (open == null) return;
-    open(context, widget.county.code);
+    widget.onOpenCounty?.call();
   }
 
   @override

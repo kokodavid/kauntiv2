@@ -68,7 +68,9 @@ Future<Uint8List> captureTripShareCard({
       }
     }
     if (boundary == null) {
-      throw StateError('Trip share card never finished a paint pass to capture.');
+      throw StateError(
+        'Trip share card never finished a paint pass to capture.',
+      );
     }
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     try {

@@ -27,7 +27,7 @@ class SettingsSectionLabel extends StatelessWidget {
             color: AppColors.mutedForeground,
           ),
         ),
-        if (trailing != null) trailing!,
+        ?trailing,
       ],
     ),
   );
@@ -81,17 +81,27 @@ class SettingsToggleRow extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 12.5, color: AppColors.mutedForeground),
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: AppColors.mutedForeground,
+                    ),
                   ),
                 ],
               ),
             ),
-            Switch(value: value, onChanged: onChanged, activeTrackColor: AppColors.accent),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeTrackColor: AppColors.accent,
+            ),
           ],
         ),
       ),
@@ -134,7 +144,9 @@ class SettingsActionRow extends StatelessWidget {
           ),
         ),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 12.5)),
-        trailing: trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
+        trailing:
+            trailing ??
+            (onTap != null ? const Icon(Icons.chevron_right) : null),
       ),
     ],
   );
@@ -172,7 +184,11 @@ class SettingsSegmented<T> extends StatelessWidget {
 }
 
 class _Pill extends StatelessWidget {
-  const _Pill({required this.label, required this.selected, required this.onTap});
+  const _Pill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;

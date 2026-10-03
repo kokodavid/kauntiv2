@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/services/app_media_picker.dart';
+import '../../../core/widgets/app_floating_toast.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_floating_toast.dart';
 import '../application/journey_recorder.dart';
 import '../application/journey_views.dart';
 import '../domain/journey_preview.dart';
@@ -108,10 +108,10 @@ class _JourneyRecordingControlsState
 
   Future<void> _capturePhoto() async {
     if (_busy) return;
-    final XFile? photo;
+    final AppPickedImage? photo;
     try {
-      photo = await ImagePicker().pickImage(
-        source: ImageSource.camera,
+      photo = await AppMediaPicker.pickImage(
+        source: AppImageSource.camera,
         maxWidth: 2048,
         imageQuality: 85,
       );
@@ -188,9 +188,7 @@ class _JourneyRecordingControlsState
                   const SizedBox(height: 2),
                   Text(
                     // Recorded time: stands still while paused.
-                    JourneyFormat.clock(
-                      recording.recordedTime(DateTime.now()),
-                    ),
+                    JourneyFormat.clock(recording.recordedTime(DateTime.now())),
                     style: const TextStyle(
                       fontFamily: AppTypeScale.family,
                       fontSize: 34,
@@ -351,7 +349,7 @@ class _TripDetailsToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      shape: StadiumBorder(side: BorderSide(color: AppColors.cardBorder)),
+      shape: const StadiumBorder(side: BorderSide(color: AppColors.cardBorder)),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,
@@ -409,10 +407,7 @@ class _TripDetailsPanel extends StatelessWidget {
           const Text('COUNTIES SO FAR', style: AppTypeScale.sectionLabel),
           const SizedBox(height: 8),
           if (counties.isEmpty)
-            const Text(
-              'Waiting for your location…',
-              style: AppTypeScale.small,
-            )
+            const Text('Waiting for your location…', style: AppTypeScale.small)
           else
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,

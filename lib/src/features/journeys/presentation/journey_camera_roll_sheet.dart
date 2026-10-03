@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/services/camera_roll_matcher.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
-import '../data/camera_roll_matcher.dart';
 
 /// Lets the user pick which of the camera-roll photos matched to this
 /// Trip actually get added, rather than all-or-nothing via "Add to
@@ -77,9 +77,12 @@ class _CameraRollMatchPickerState extends State<_CameraRollMatchPicker> {
                   ),
                 ),
               ),
-              Text('Choose photos', style: AppTextStyles.confirmSheetTitle),
+              const Text(
+                'Choose photos',
+                style: AppTextStyles.confirmSheetTitle,
+              ),
               const SizedBox(height: 4),
-              Text(
+              const Text(
                 'Found in your camera roll during this Trip. Tap to '
                 'leave one out.',
                 style: AppTypeScale.body,
@@ -89,12 +92,11 @@ class _CameraRollMatchPickerState extends State<_CameraRollMatchPicker> {
                 child: GridView.builder(
                   shrinkWrap: true,
                   padding: EdgeInsets.zero,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
                   itemCount: widget.matches.length,
                   itemBuilder: (context, index) {
                     final match = widget.matches[index];

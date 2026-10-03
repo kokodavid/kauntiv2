@@ -163,8 +163,7 @@ class JourneyReplayScrubber extends StatelessWidget {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapDown: (details) => handle(details.localPosition.dx),
-          onHorizontalDragUpdate: (details) =>
-              handle(details.localPosition.dx),
+          onHorizontalDragUpdate: (details) => handle(details.localPosition.dx),
           child: SizedBox(
             height: 20,
             width: double.infinity,

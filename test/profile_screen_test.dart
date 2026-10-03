@@ -7,6 +7,7 @@ import 'package:kaunti47_v2/src/core/services/supabase_client_provider.dart';
 import 'package:kaunti47_v2/src/design/app_colors.dart';
 import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
 import 'package:kaunti47_v2/src/features/badges/domain/badge_collection.dart';
+import 'package:kaunti47_v2/src/features/profile/domain/trip_stats.dart';
 import 'package:kaunti47_v2/src/features/profile/presentation/profile_header.dart';
 import 'package:kaunti47_v2/src/features/profile/presentation/profile_progress_card.dart';
 import 'package:kaunti47_v2/src/features/profile/presentation/profile_screen.dart';
@@ -15,12 +16,16 @@ import 'package:kaunti47_v2/src/features/profile/presentation/profile_tiles.dart
 void main() {
   testWidgets('Profile header uses the v2 blue treatment', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Scaffold(
           body: ProfileHeader(
             name: 'David',
-            email: 'david@example.com',
+            handle: 'david',
+            avatarUrl: null,
             homeCounty: 'Nairobi',
+            isPro: false,
+            onOpenSettings: () {},
+            onEditProfile: () {},
           ),
         ),
       ),
@@ -46,7 +51,9 @@ void main() {
     );
   });
 
-  testWidgets('profile progress uses current county collection', (tester) async {
+  testWidgets('profile progress uses current county collection', (
+    tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(390, 240));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final collection = BadgeCollection.from(
@@ -60,6 +67,7 @@ void main() {
           body: ProfileProgressCard(
             collection: AsyncData<BadgeCollection>(collection),
             onRetry: () {},
+            tripStats: const AsyncData(TripStats.zero),
           ),
         ),
       ),

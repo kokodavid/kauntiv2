@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
-import 'app_text_styles.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
 
 /// One row in an [AppActionsMenuButton]'s popover - a label with a
 /// leading icon, optionally styled red for a destructive action (Delete).
@@ -109,13 +111,13 @@ class _AppActionsMenuButtonState extends State<AppActionsMenuButton>
     );
     overlay.insert(_entry!);
     setState(() => _open = true);
-    _controller.forward(from: 0);
+    unawaited(_controller.forward(from: 0));
   }
 
   void _close() {
     if (!_open) return;
     setState(() => _open = false);
-    _controller.reverse().whenComplete(_removeEntry);
+    unawaited(_controller.reverse().whenComplete(_removeEntry));
   }
 
   @override
@@ -204,7 +206,10 @@ class _ActionsMenuOverlay extends StatelessWidget {
                   ),
                 );
               },
-              child: _ActionsMenuSurface(actions: actions, onSelected: onSelected),
+              child: _ActionsMenuSurface(
+                actions: actions,
+                onSelected: onSelected,
+              ),
             ),
           ),
         ),
@@ -297,7 +302,10 @@ class _ActionsMenuRow extends StatelessWidget {
               children: [
                 Icon(action.icon, size: 18, color: color),
                 const SizedBox(width: 12),
-                Text(action.label, style: AppTextStyles.menuItemLabel.copyWith(color: color)),
+                Text(
+                  action.label,
+                  style: AppTextStyles.menuItemLabel.copyWith(color: color),
+                ),
               ],
             ),
           ),

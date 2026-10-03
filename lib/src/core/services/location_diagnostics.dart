@@ -17,9 +17,7 @@ abstract final class LocationDiagnostics {
 
   static Future<void> stop() async {
     if (!AppFeatureFlags.locationDiagnostics) return;
-    await LocationDiagnosticsStore.stop(
-      batteryPercent: await batteryPercent(),
-    );
+    await LocationDiagnosticsStore.stop(batteryPercent: await batteryPercent());
   }
 
   static Future<void> record(

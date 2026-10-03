@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/app_back_button.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../detection/application/detection_controller.dart';
@@ -49,7 +49,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (ref.read(journeyRecorderProvider) != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Finish or discard your active Trip before signing out.'),
+          content: Text(
+            'Finish or discard your active Trip before signing out.',
+          ),
         ),
       );
       return;
@@ -122,7 +124,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           alignment: Alignment.centerLeft,
           child: Padding(
             padding: const EdgeInsets.only(left: 16),
-            child: AppBackButton(onPressed: () => Navigator.of(context).maybePop()),
+            child: AppBackButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
           ),
         ),
       ),
@@ -133,7 +137,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           error: (error, stackTrace) => Center(
             child: TextButton(
-              onPressed: () => ref.invalidate(profileSettingsControllerProvider),
+              onPressed: () =>
+                  ref.invalidate(profileSettingsControllerProvider),
               child: const Text('Settings are unavailable. Retry.'),
             ),
           ),
@@ -144,7 +149,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // removed -- `settings_privacy_section.dart` and
               // `settings_side_quests_section.dart` are still there to
               // bring back).
-              SettingsNotificationsSection(settings: settings, notifier: notifier),
+              SettingsNotificationsSection(
+                settings: settings,
+                notifier: notifier,
+              ),
               const SizedBox(height: 18),
               SettingsLocationSection(
                 settings: settings,
@@ -181,10 +189,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     builder: (_) => const ProfilePrivacySheet(),
                   ),
                 ),
-                onDeleteAccount: () => unawaited(showDeleteAccountDialog(context, ref)),
+                onDeleteAccount: () =>
+                    unawaited(showDeleteAccountDialog(context, ref)),
               ),
               const SizedBox(height: 18),
-              SettingsDeveloperSection(onOpenLocationDiagnostics: widget.onOpenLocationDiagnostics),
+              SettingsDeveloperSection(
+                onOpenLocationDiagnostics: widget.onOpenLocationDiagnostics,
+              ),
               const SizedBox(height: 4),
               OutlinedButton.icon(
                 onPressed: _signingOut ? null : () => unawaited(_signOut()),

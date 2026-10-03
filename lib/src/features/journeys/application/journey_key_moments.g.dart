@@ -123,7 +123,7 @@ final class JourneyMomentsProvider
   }
 }
 
-String _$journeyMomentsHash() => r'a90795c8081acb44e9e38cde1d89c68ba88264c6';
+String _$journeyMomentsHash() => r'e2c3723341ef87d0850f067e31b82c78ab10928f';
 
 /// A Journey's key moments, in replay order: recording breaks, long stops,
 /// county crossings (from the bundled boundaries, so offline too), photos
@@ -208,7 +208,7 @@ final class JourneyCountyFactsRepositoryProvider
 }
 
 String _$journeyCountyFactsRepositoryHash() =>
-    r'c1f4a9c6e5b8d2a3f0e7b6c5d4a3f2e1d0c9b8a7';
+    r'34fc2717690359911a364d9aa314ea55d9e2decc';
 
 /// The "Entered county" card's data for every county this Trip crossed,
 /// keyed by county code. Static facts and the visit count come from one
@@ -286,7 +286,7 @@ final class JourneyCountyMomentFactsProvider
 }
 
 String _$journeyCountyMomentFactsHash() =>
-    r'd2e5b0a7c6f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5';
+    r'1b9c02dc884c6211789043b19d913f6c14c7c8ed';
 
 /// The "Entered county" card's data for every county this Trip crossed,
 /// keyed by county code. Static facts and the visit count come from one

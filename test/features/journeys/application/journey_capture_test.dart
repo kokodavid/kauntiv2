@@ -242,38 +242,31 @@ void main() {
     expect(hanging.session, isNull);
   });
 
-  test(
-    'a Start that never gets a GPS fix times out and leaves the Journey '
-    'paused, not stuck Recording',
-    () async {
-      final noFix = JourneyCapture(
-        repository: repository,
-        locationSource: source,
-        clock: () => now,
-        firstFixTimeout: const Duration(milliseconds: 20),
-      );
-      final session = await repository.start(
-        id: 'one',
-        userId: 'alice',
-        at: t0,
-      );
-      await expectLater(
-        noFix.attachStarted(session: session, userId: 'alice'),
-        throwsA(
-          isA<JourneyLocationException>().having(
-            (error) => error.reason,
-            'reason',
-            JourneyLocationFailure.noFixReceived,
-          ),
+  test('a Start that never gets a GPS fix times out and leaves the Journey '
+      'paused, not stuck Recording', () async {
+    final noFix = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+      firstFixTimeout: const Duration(milliseconds: 20),
+    );
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    await expectLater(
+      noFix.attachStarted(session: session, userId: 'alice'),
+      throwsA(
+        isA<JourneyLocationException>().having(
+          (error) => error.reason,
+          'reason',
+          JourneyLocationFailure.noFixReceived,
         ),
-      );
-      expect(source.started, isFalse);
-      expect(
-        (await repository.activeSession('alice'))?.recording.phase,
-        JourneyRecordingPhase.paused,
-      );
-    },
-  );
+      ),
+    );
+    expect(source.started, isFalse);
+    expect(
+      (await repository.activeSession('alice'))?.recording.phase,
+      JourneyRecordingPhase.paused,
+    );
+  });
 
   test('waits for stream cancellation before native stop', () async {
     final cancelGate = Completer<void>();
@@ -317,14 +310,21 @@ void main() {
     expect(cancelCalls, 1);
   });
 
-  test('recovery stops a background service left alive by process death', () async {
-    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
-    source.started = true;
+  test(
+    'recovery stops a background service left alive by process death',
+    () async {
+      final session = await repository.start(
+        id: 'one',
+        userId: 'alice',
+        at: t0,
+      );
+      source.started = true;
 
-    final recovered = await capture.recover('alice');
+      final recovered = await capture.recover('alice');
 
-    expect(recovered?.id, session.id);
-    expect(recovered?.recording.phase, JourneyRecordingPhase.paused);
-    expect(source.started, isFalse);
-  });
+      expect(recovered?.id, session.id);
+      expect(recovered?.recording.phase, JourneyRecordingPhase.paused);
+      expect(source.started, isFalse);
+    },
+  );
 }

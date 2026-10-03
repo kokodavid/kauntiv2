@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/app_back_button.dart';
 import 'profile_tiles.dart';
 
 /// Full-width account band: back + Settings row, then avatar (with a
@@ -61,7 +61,11 @@ class ProfileHeader extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Avatar(name: name, avatarUrl: avatarUrl, onEdit: onEditProfile),
+                _Avatar(
+                  name: name,
+                  avatarUrl: avatarUrl,
+                  onEdit: onEditProfile,
+                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -88,7 +92,9 @@ class ProfileHeader extends StatelessWidget {
                           '@$handle',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: AppColors.mutedForeground),
+                          style: const TextStyle(
+                            color: AppColors.mutedForeground,
+                          ),
                         ),
                       const SizedBox(height: 8),
                       Wrap(
@@ -114,7 +120,11 @@ class ProfileHeader extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.name, required this.avatarUrl, required this.onEdit});
+  const _Avatar({
+    required this.name,
+    required this.avatarUrl,
+    required this.onEdit,
+  });
 
   final String name;
   final String? avatarUrl;
@@ -226,7 +236,11 @@ class _ProPill extends StatelessWidget {
 }
 
 class _PillButton extends StatelessWidget {
-  const _PillButton({required this.icon, required this.label, required this.onTap});
+  const _PillButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String label;

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
-import '../../../widgets/app_back_button.dart';
 import '../application/discover_detail_actions.dart';
 import '../domain/place_category.dart';
 import '../domain/place_detail.dart';

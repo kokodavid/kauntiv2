@@ -16,6 +16,7 @@ import 'package:kaunti47_v2/src/features/journeys/data/supabase_journey_reposito
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_summary.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_transport_mode.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/pro_status.dart';
 
 class _FakeSource implements JourneyLocationSource {
@@ -144,6 +145,7 @@ void main() {
                   required pausedDuration,
                   required points,
                   destination,
+                  transportMode,
                 }) async {
                   if (uploadsFail) throw Exception('offline');
                   uploads.add(id);
@@ -379,26 +381,23 @@ void main() {
     );
   });
 
-  test(
-    'a phone with no location access fails before the Pro/trial check or '
-    'any local session, not after',
-    () async {
-      source.failEnsureAvailable = const JourneyLocationException(
-        JourneyLocationFailure.servicesDisabled,
-      );
-      final c = container();
-      await expectLater(
-        c.read(journeyRecorderProvider.notifier).start(now: now),
-        throwsA(isA<JourneyLocationException>()),
-      );
-      expect(c.read(journeyRecorderProvider), isNull);
-      expect(source.started, isFalse);
-      // Never reached the live entitlement check or created a session.
-      expect(cloud.proStatusCalls, 0);
-      expect(
-        await c.read(localJourneyRepositoryProvider).activeSession('alice'),
-        isNull,
-      );
-    },
-  );
+  test('a phone with no location access fails before the Pro/trial check or '
+      'any local session, not after', () async {
+    source.failEnsureAvailable = const JourneyLocationException(
+      JourneyLocationFailure.servicesDisabled,
+    );
+    final c = container();
+    await expectLater(
+      c.read(journeyRecorderProvider.notifier).start(now: now),
+      throwsA(isA<JourneyLocationException>()),
+    );
+    expect(c.read(journeyRecorderProvider), isNull);
+    expect(source.started, isFalse);
+    // Never reached the live entitlement check or created a session.
+    expect(cloud.proStatusCalls, 0);
+    expect(
+      await c.read(localJourneyRepositoryProvider).activeSession('alice'),
+      isNull,
+    );
+  });
 }

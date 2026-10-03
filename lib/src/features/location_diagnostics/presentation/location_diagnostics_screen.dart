@@ -45,6 +45,7 @@ class _LocationDiagnosticsScreenState extends State<LocationDiagnosticsScreen> {
   Future<void> _share(BuildContext context) async {
     try {
       final path = await LocationDiagnostics.reportPath();
+      if (!context.mounted) return;
       if (path == null) {
         _message(context, 'Record a session first.');
         return;
@@ -57,6 +58,7 @@ class _LocationDiagnosticsScreenState extends State<LocationDiagnosticsScreen> {
 
   Future<void> _copy(BuildContext context) async {
     final summary = await LocationDiagnostics.summary();
+    if (!context.mounted) return;
     if (summary == null) {
       _message(context, 'Record a session first.');
       return;
@@ -118,7 +120,9 @@ class _LocationDiagnosticsScreenState extends State<LocationDiagnosticsScreen> {
                         FilledButton.icon(
                           onPressed: () => unawaited(_toggle(context, active)),
                           icon: Icon(active ? Icons.stop : Icons.play_arrow),
-                          label: Text(active ? 'Stop session' : 'Start session'),
+                          label: Text(
+                            active ? 'Stop session' : 'Start session',
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Row(

@@ -6,28 +6,9 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
 import '../../../design/app_colors.dart';
 import '../../map_home/application/county_camera_fit.dart';
+import 'journey_map_types.dart';
 
-/// A position on the map.
-typedef JourneyLatLng = ({double latitude, double longitude});
-
-/// A pin on the route: `start`, `end`, or a free-form `kind` string for
-/// anything whose GeoJSON `properties.kind` a style layer matches on
-/// (the replay marker uses this for its own `marker`/`tip` features).
-typedef JourneyMapPin = ({String kind, JourneyLatLng at});
-
-/// A key moment pin: a photo (drawn a little larger) or a "note" - every
-/// other moment kind (a county crossing, a stop, an elevation peak) -
-/// at the route point [index] it belongs to. [index] is what lets
-/// [JourneyMapLayers.endpointsJson] tell whether replay has passed it
-/// yet, per the Claude-Design colour key: pending until the playhead
-/// reaches it, then flips to its "passed" colour.
-enum JourneyMapMomentKind { photo, note }
-
-typedef JourneyMapMoment = ({
-  JourneyLatLng at,
-  JourneyMapMomentKind kind,
-  int index,
-});
+export 'journey_map_types.dart';
 
 /// The sources and layers a Journey map draws with, and the GeoJSON that
 /// feeds them. Kept apart from the widget so the map stays about camera

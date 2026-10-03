@@ -33,3 +33,10 @@ JourneyMediaUploadQueue? journeyMediaUploadQueue(Ref ref) {
     cloud,
   );
 }
+
+Future<void> updateJourneyCoverPhoto(
+  SupabaseJourneyRepository repository, {
+  required String userId,
+  required String id,
+  required String? mediaId,
+}) => repository.setCoverPhoto(userId: userId, id: id, mediaId: mediaId);

@@ -10,10 +10,11 @@ import '../domain/journey_fix.dart';
 import '../domain/journey_ids.dart';
 import '../domain/journey_transport_mode.dart';
 import '../domain/pro_status.dart';
-import 'journey_cloud_providers.dart';
+import 'journey_capture.dart';
 import 'journey_entitlement.dart';
 import 'journey_history.dart';
 import 'journey_providers.dart';
+import 'journey_sync.dart';
 
 part 'journey_recorder.g.dart';
 
@@ -249,30 +250,7 @@ class JourneyRecorder extends _$JourneyRecorder {
     );
   }
 
-  /// Ends the Journey without saving it: the route is deleted from this
-  /// phone and nothing is uploaded.
-  Future<void> discard() async {
-    _requireOwner();
-    final session = state;
-    final userId = _owner;
-    if (session == null || userId == null) return;
-    final capture = ref.read(journeyCaptureProvider);
-    try {
-      // Do not erase the route until native background capture has stopped.
-      await capture.detach();
-    } on JourneyTeardownException {
-      _set(_stillOwnedBy(userId) ? capture.session : null, userId);
-      rethrow;
-    }
-    final media = ref.read(localJourneyMediaRepositoryProvider);
-    await media.deleteLocalFiles(await media.removeForJourney(session.id));
-    await ref.read(localJourneyRepositoryProvider).discard(session.id, userId);
-    _set(null, null);
-  }
-
-  /// Saves [pickedPath] (an image_picker cache file) as a photo for the
-  /// active Trip: copied into app-persistent storage first, since the OS
-  /// can clear its cache before the upload queue gets to it.
+  /// Saves a picked image in persistent storage before it can be uploaded.
   Future<void> captureMedia(String pickedPath) async {
     _requireOwner();
     final session = state;
@@ -297,25 +275,25 @@ class JourneyRecorder extends _$JourneyRecorder {
           longitude: fix?.longitude,
         );
   }
-}
 
-/// Drains the Journey upload queue; the state counts uploads this session.
-@Riverpod(keepAlive: true)
-class JourneySync extends _$JourneySync {
-  @override
-  int build() => 0;
-
-  Future<int> drain() async {
-    final queue = ref.read(journeyUploadQueueProvider);
-    final uploaded = queue == null ? 0 : await queue.drain();
-    if (uploaded > 0 && ref.mounted) {
-      state = state + uploaded;
-      ref.invalidate(journeyHistoryListProvider);
+  /// Ends the Journey without saving it: the route is deleted from this
+  /// phone and nothing is uploaded.
+  Future<void> discard() async {
+    _requireOwner();
+    final session = state;
+    final userId = _owner;
+    if (session == null || userId == null) return;
+    final capture = ref.read(journeyCaptureProvider);
+    try {
+      // Do not erase the route until native background capture has stopped.
+      await capture.detach();
+    } on JourneyTeardownException {
+      _set(_stillOwnedBy(userId) ? capture.session : null, userId);
+      rethrow;
     }
-    // Photos wait on their own Trip's points, so this runs after the
-    // points drain above has had a chance to clear the way for them.
-    final mediaQueue = ref.read(journeyMediaUploadQueueProvider);
-    if (mediaQueue != null) await mediaQueue.drain();
-    return uploaded;
+    final media = ref.read(localJourneyMediaRepositoryProvider);
+    await media.deleteLocalFiles(await media.removeForJourney(session.id));
+    await ref.read(localJourneyRepositoryProvider).discard(session.id, userId);
+    _set(null, null);
   }
 }

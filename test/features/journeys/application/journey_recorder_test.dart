@@ -9,6 +9,7 @@ import 'package:kaunti47_v2/src/features/journeys/application/journey_entitlemen
 import 'package:kaunti47_v2/src/features/journeys/application/journey_history.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_providers.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_recorder.dart';
+import 'package:kaunti47_v2/src/features/journeys/application/journey_sync.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_upload_queue.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';

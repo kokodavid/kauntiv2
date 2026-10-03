@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../auth/application/auth_providers.dart';
+import '../data/local_journey_repository.dart';
+import '../data/supabase_journey_repository.dart';
 import '../domain/journey_media_capture.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';

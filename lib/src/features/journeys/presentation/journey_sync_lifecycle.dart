@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../services/app_logger.dart';
 import '../application/journey_recorder.dart';
+import '../application/journey_sync.dart';
 
 /// Keeps Journeys moving without the Journeys tab open:
 ///

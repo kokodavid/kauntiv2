@@ -15,6 +15,7 @@ import 'journey_county_split_resolver.dart';
 import 'journey_place_thumbnail.dart';
 
 part 'supabase_journey_repository_places.dart';
+part 'supabase_journey_repository_media.dart';
 
 /// Journeys in the cloud: the Pro check, the one upload RPC, and private
 /// history reads and deletion (RLS keeps every read to the owner).
@@ -293,95 +294,4 @@ class SupabaseJourneyRepository {
         params: {'p_user_id': userId, 'p_journey_id': id, 'p_title': title},
       )
       .timeout(_timeout);
-
-  /// Sets (or clears, with [mediaId] null) the photo representing this
-  /// Trip in its history card and share image. The server checks
-  /// [mediaId] actually belongs to this Trip - `set_trip_cover_photo` is
-  /// the only write path, mirroring [rename].
-  Future<void> setCoverPhoto({
-    required String userId,
-    required String id,
-    required String? mediaId,
-  }) => _client
-      .rpc<Object?>(
-        'set_trip_cover_photo',
-        params: {
-          'p_user_id': userId,
-          'p_journey_id': id,
-          'p_media_id': mediaId,
-        },
-      )
-      .timeout(_timeout);
-
-  static const _mediaBucket = 'journey-media';
-
-  /// Uploads one Trip photo to the private `journey-media` bucket and
-  /// records it in `journey_media`. RLS on both (storage objects keyed by
-  /// a `<user_id>/...` folder, the table by `user_id`) is what actually
-  /// enforces ownership; [userId] here only shapes the storage path.
-  /// [id] is the local capture's id, reused as the stored object's name
-  /// so a retried upload after a lost response overwrites the same
-  /// object rather than leaving an orphan copy.
-  Future<void> uploadMedia({
-    required String userId,
-    required String journeyId,
-    required String id,
-    required String localPath,
-    required DateTime capturedAt,
-    double? latitude,
-    double? longitude,
-  }) async {
-    final extension = localPath.contains('.')
-        ? localPath.substring(localPath.lastIndexOf('.'))
-        : '.jpg';
-    final storagePath = '$userId/$journeyId/$id$extension';
-    await _client.storage
-        .from(_mediaBucket)
-        .upload(
-          storagePath,
-          File(localPath),
-          fileOptions: const FileOptions(upsert: true),
-        )
-        .timeout(_uploadTimeout);
-    await _client
-        .from('journey_media')
-        .upsert({
-          'journey_id': journeyId,
-          'user_id': userId,
-          'storage_path': storagePath,
-          'captured_at': capturedAt.toUtc().toIso8601String(),
-          'latitude': latitude,
-          'longitude': longitude,
-        }, onConflict: 'storage_path')
-        .timeout(_timeout);
-  }
-
-  /// This Trip's uploaded photos, oldest first, each with a signed URL
-  /// good for an hour - the bucket is private, so a plain public URL
-  /// won't load.
-  Future<List<JourneyMediaItem>> media(String journeyId) async {
-    final rows = await _client
-        .from('journey_media')
-        .select('id, storage_path, captured_at, latitude, longitude')
-        .eq('journey_id', journeyId)
-        .order('captured_at', ascending: true)
-        .timeout(_timeout);
-    final urls = await Future.wait([
-      for (final row in rows)
-        _client.storage
-            .from(_mediaBucket)
-            .createSignedUrl(row['storage_path'] as String, 3600)
-            .timeout(_timeout),
-    ]);
-    return [
-      for (var i = 0; i < rows.length; i++)
-        JourneyMediaItem(
-          id: rows[i]['id'] as String,
-          url: urls[i],
-          capturedAt: DateTime.parse(rows[i]['captured_at'] as String),
-          latitude: (rows[i]['latitude'] as num?)?.toDouble(),
-          longitude: (rows[i]['longitude'] as num?)?.toDouble(),
-        ),
-    ];
-  }
 }

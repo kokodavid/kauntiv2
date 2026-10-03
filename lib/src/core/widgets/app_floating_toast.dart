@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
 
+part 'app_floating_toast_policy.dart';
+
 /// Tone for [showAppToast], matching the Claude-Design "01 · TOAST"
 /// reference ("Dark, floating, one line where possible"): a dark pill
 /// with a tinted icon circle, title, optional one-line subtitle, and an
@@ -15,32 +17,6 @@ import '../../design/app_text_styles.dart';
 /// dismisses it or taps its action, per this app's rule that errors
 /// never disappear on their own.
 enum AppToastVariant { success, error, warning, neutral }
-
-IconData _defaultIcon(AppToastVariant variant) => switch (variant) {
-  AppToastVariant.success => Icons.check,
-  AppToastVariant.error => Icons.priority_high,
-  AppToastVariant.warning => Icons.wifi_off,
-  AppToastVariant.neutral => Icons.delete_outline,
-};
-
-Color _iconColor(AppToastVariant variant) => switch (variant) {
-  AppToastVariant.success => AppColors.toastSuccessIcon,
-  AppToastVariant.error => AppColors.danger,
-  AppToastVariant.warning => AppColors.toastWarningIcon,
-  AppToastVariant.neutral => AppColors.toastNeutralIcon,
-};
-
-Duration? _defaultDuration(AppToastVariant variant) => switch (variant) {
-  AppToastVariant.success => const Duration(seconds: 4),
-  AppToastVariant.warning => const Duration(seconds: 4),
-  AppToastVariant.neutral => const Duration(seconds: 6),
-  AppToastVariant.error => null,
-};
-
-/// The toast currently on screen, if any - so a new one replaces it
-/// outright instead of stacking, per the design system's "one at a time;
-/// a new one replaces the old" rule.
-GlobalKey<_FloatingToastState>? _activeToastKey;
 
 /// Shows the dark floating toast matching the Claude-Design "01 · TOAST"
 /// reference. Use this in place of a [SnackBar] for anything that fits

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/device_journey_location_source.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_transport_mode.dart';
 import 'package:location/location.dart';
 
 void main() {
@@ -59,6 +60,19 @@ void main() {
     await source.start();
     await source.stop();
     await source.stop();
-    expect(disableCalls, 1);
+    expect(disableCalls, 2);
+  });
+
+  test('uses less frequent sampling for slower travel modes', () {
+    final drive = DeviceJourneyLocationSource.samplingForMode(
+      JourneyTransportMode.drive,
+    );
+    final walk = DeviceJourneyLocationSource.samplingForMode(
+      JourneyTransportMode.walk,
+    );
+
+    expect(walk.intervalMs, greaterThan(drive.intervalMs));
+    expect(walk.backgroundIntervalMs, greaterThan(drive.backgroundIntervalMs));
+    expect(walk.distanceMeters, lessThan(drive.distanceMeters));
   });
 }

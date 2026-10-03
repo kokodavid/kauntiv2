@@ -194,7 +194,7 @@ class _FloatingToastState extends State<_FloatingToast>
           child: Material(
             color: Colors.transparent,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
+              padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
               decoration: BoxDecoration(
                 color: AppColors.toastBackground,
                 borderRadius: BorderRadius.circular(18),
@@ -276,6 +276,27 @@ class _FloatingToastState extends State<_FloatingToast>
                       ),
                     ),
                   ],
+                  // A visible close button, not just the body's tap-to-
+                  // dismiss gesture: that worked but had no on-screen
+                  // affordance, so an [error] toast - the one variant
+                  // that never times out on its own - could sit there
+                  // indefinitely (even across navigating to another
+                  // screen, since the overlay entry isn't tied to any
+                  // one route) with nothing visibly telling the user how
+                  // to get rid of it.
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _close,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Icon(
+                        Icons.close,
+                        size: 16,
+                        color: AppColors.toastSubtitle,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

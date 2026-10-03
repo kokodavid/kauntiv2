@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../domain/journey_county_moment_facts.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_route.dart';
+import 'journey_county_moment_card.dart';
 import 'journey_media_strip.dart' show openJourneyPhoto;
 
 /// One row in the replay timeline: an icon on the connecting line, the
@@ -21,12 +24,18 @@ class JourneyTimelineMomentRow extends StatelessWidget {
     required this.isCurrent,
     required this.isLast,
     required this.onTap,
+    this.countyFacts,
   });
 
   final JourneyMoment moment;
 
   /// When it happened on the Journey.
   final DateTime? time;
+
+  /// The crossed county's card data, for a `countyCrossing` row - null
+  /// while still loading, or when this county has no row in `counties`
+  /// yet. Unused for every other kind.
+  final JourneyCountyMomentFacts? countyFacts;
 
   /// Whether replay is paused here right now.
   final bool isCurrent;
@@ -37,10 +46,19 @@ class JourneyTimelineMomentRow extends StatelessWidget {
   /// Jumps replay to this moment's point in the route.
   final VoidCallback onTap;
 
+  /// Decode target in physical pixels - comfortably covers this row's
+  /// own display width (full card width, 16:10) even at a 3x device
+  /// pixel ratio, well below a full camera photo's native resolution.
+  static const _photoCacheWidth = 900;
+
   @override
   Widget build(BuildContext context) {
     final photo = moment.photo;
     final (icon, title, detail) = _describe(moment);
+    final countyCode = moment.countyCode;
+    final county = moment.kind == JourneyMomentKind.countyCrossing && countyCode != null
+        ? CountyPaths.byCode[countyCode]
+        : null;
     final at = time == null
         ? null
         : TimeOfDay.fromDateTime(time!.toLocal()).format(context);
@@ -92,38 +110,65 @@ class JourneyTimelineMomentRow extends StatelessWidget {
                           ),
                         ),
                       const SizedBox(height: 2),
-                      Text(title, style: titleStyle),
-                      if (detail.isNotEmpty) ...[
-                        const SizedBox(height: 1),
-                        Text(
-                          detail,
-                          style: AppTypeScale.small.copyWith(
-                            color: AppColors.mutedForeground,
+                      if (county != null)
+                        // Only the row body changes for a county crossing
+                        // - the leading circle/line above stay the same
+                        // as every other moment kind.
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: JourneyCountyMomentCard(
+                            county: county,
+                            facts: countyFacts,
                           ),
-                        ),
-                      ],
-                      if (photo != null) ...[
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () => openJourneyPhoto(context, photo),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: AspectRatio(
-                              aspectRatio: 16 / 10,
-                              child: Image.network(
-                                photo.url,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stack) =>
-                                    const ColoredBox(
-                                      color: AppColors.lockedFill,
-                                      child: Icon(
-                                        Icons.broken_image_outlined,
+                        )
+                      else ...[
+                        Text(title, style: titleStyle),
+                        if (detail.isNotEmpty) ...[
+                          const SizedBox(height: 1),
+                          Text(
+                            detail,
+                            style: AppTypeScale.small.copyWith(
+                              color: AppColors.mutedForeground,
+                            ),
+                          ),
+                        ],
+                        if (photo != null) ...[
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: () => openJourneyPhoto(context, photo),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: AspectRatio(
+                                aspectRatio: 16 / 10,
+                                child: Image.network(
+                                  photo.url,
+                                  fit: BoxFit.cover,
+                                  // Rows are rebuilt with the same URL far
+                                  // more often than they're actually
+                                  // scrolled away and back (replay jumping
+                                  // between moments, the row becoming
+                                  // "current"), so keep showing the last
+                                  // frame instead of flashing back to
+                                  // nothing while a stream briefly
+                                  // re-resolves. cacheWidth decodes at
+                                  // roughly this row's own display size
+                                  // instead of the original full-resolution
+                                  // photo - a real memory/jank win when a
+                                  // Trip has several of these in the list.
+                                  gaplessPlayback: true,
+                                  cacheWidth: _photoCacheWidth,
+                                  errorBuilder: (context, error, stack) =>
+                                      const ColoredBox(
+                                        color: AppColors.lockedFill,
+                                        child: Icon(
+                                          Icons.broken_image_outlined,
+                                        ),
                                       ),
-                                    ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ],
                   ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -10,7 +11,10 @@ import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_floating_toast.dart';
 import '../../../widgets/app_progress_indicator.dart';
+import '../application/journey_key_moments.dart';
 import '../data/camera_roll_matcher.dart';
+import '../domain/journey_county_moment_facts.dart';
+import '../domain/journey_media_capture.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
@@ -74,15 +78,21 @@ class _CameraRollScan {
 
 class _JourneyReplayTimelineState
     extends ConsumerState<JourneyReplayTimeline> {
-  // Keyed by (index, kind) rather than index alone: several moments can
-  // share a route point (a photo taken exactly where a county is
-  // crossed, say), and each still needs its own stable GlobalKey.
-  final _rowKeys = <(int, JourneyMomentKind), GlobalKey>{};
+  // Keyed by (index, kind, photo id) rather than index alone: several
+  // moments can share a route point (a photo taken exactly where a
+  // county is crossed, say) - and, per [JourneyMoments._photos]'s own
+  // doc comment, several *photos* can share one too (a phone sitting at
+  // one GPS fix while several are taken), which (index, kind) alone
+  // can't tell apart. Each still needs its own stable GlobalKey.
+  final _rowKeys = <(int, JourneyMomentKind, String?), GlobalKey>{};
 
-  // Computed once, not on every rebuild - this widget rebuilds every
-  // replay tick, but the route's endpoints never change. Only good
-  // enough to label the empty-timeline's start/end pins ("Started in
-  // Nairobi"); not a replacement for a real reverse-geocoded place name.
+  (int, JourneyMomentKind, String?) _keyTuple(JourneyMoment moment) =>
+      (moment.index, moment.kind, moment.photo?.id);
+
+  // Computed once, not on every rebuild - the route's endpoints never
+  // change. Only good enough to label the empty-timeline's start/end
+  // pins ("Started in Nairobi"); not a replacement for a real
+  // reverse-geocoded place name.
   late final String? _startCounty = _countyAt(
     widget.points.isEmpty ? null : widget.points.first,
   );
@@ -100,6 +110,40 @@ class _JourneyReplayTimelineState
     _CameraRollStatus.idle,
   );
 
+  /// Photo ids already handed to [precacheImage] - a Trip's photo moments
+  /// don't change while Replay is open, so this is only ever a one-time
+  /// cost per photo rather than something repeated on every rebuild.
+  final _precachedPhotoIds = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _precachePhotos();
+    });
+  }
+
+  /// Decodes every photo moment's image up front, off the scroll path -
+  /// by the time the user scrolls a photo row into view it's already in
+  /// Flutter's image cache, instead of popping in only once it's visible.
+  void _precachePhotos() {
+    for (final moment in widget.moments) {
+      final photo = moment.photo;
+      if (photo == null || !_precachedPhotoIds.add(photo.id)) continue;
+      unawaited(_precacheOne(photo));
+    }
+  }
+
+  Future<void> _precacheOne(JourneyMediaItem photo) async {
+    try {
+      await precacheImage(NetworkImage(photo.url), context);
+    } on Object {
+      // A failed precache just means the row's own Image.network fetches
+      // it normally when it scrolls into view (and shows its own
+      // errorBuilder if that fails too) - nothing to surface here.
+    }
+  }
+
   static String? _countyAt(JourneyPoint? point) {
     if (point == null) return null;
     final code = CountyBoundaryResolver.countyCodeFor(
@@ -115,20 +159,21 @@ class _JourneyReplayTimelineState
     return null;
   }
 
-  GlobalKey _keyFor(JourneyMoment moment) => _rowKeys.putIfAbsent(
-    (moment.index, moment.kind),
-    () => GlobalKey(),
-  );
+  GlobalKey _keyFor(JourneyMoment moment) =>
+      _rowKeys.putIfAbsent(_keyTuple(moment), () => GlobalKey());
 
   @override
   void didUpdateWidget(JourneyReplayTimeline oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.moments, widget.moments)) {
+      _precachePhotos();
+    }
     if (widget.currentMoments.isEmpty ||
         identical(oldWidget.currentMoments, widget.currentMoments)) {
       return;
     }
     final current = widget.currentMoments.first;
-    final targetContext = _rowKeys[(current.index, current.kind)]?.currentContext;
+    final targetContext = _rowKeys[_keyTuple(current)]?.currentContext;
     if (targetContext == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!targetContext.mounted) return;
@@ -236,6 +281,12 @@ class _JourneyReplayTimelineState
 
   @override
   Widget build(BuildContext context) {
+    // Watched here, once, rather than inside each row - the batched query
+    // covers every crossing in the Trip at once either way, so there's no
+    // per-row cost to sharing one result.
+    final countyFacts =
+        ref.watch(journeyCountyMomentFactsProvider(widget.summary.id)).value ??
+        const <int, JourneyCountyMomentFacts>{};
     final currentIndex = widget.currentMoments.isEmpty
         ? null
         : widget.currentMoments.first.index;
@@ -248,78 +299,107 @@ class _JourneyReplayTimelineState
     if (!hasPhotos && !widget.momentsLoading) {
       _ensureCameraRollScanStarted();
     }
+    final momentCount = showEmptyBody ? 0 : widget.moments.length;
+    final hasFooter = !showEmptyBody && showInlineSuggestion;
+    // Index 0 is always the header (date/title/empty-body card); then one
+    // item per moment; then an optional footer. A single flat,
+    // lazily-built ListView rather than a CustomScrollView of grouped
+    // slivers (SliverMainAxisGroup) - that combination, with this list's
+    // GlobalKey-keyed rows, was tripping a Flutter framework semantics
+    // assertion ('!semantics.parentDataDirty') while the screen's
+    // ticker-driven map/scrubber rebuilt nearby. ListView.builder is the
+    // standard, well-tested virtualization path and keeps the same lazy,
+    // don't-build-offscreen-photos behavior.
+    final itemCount = 1 + momentCount + (hasFooter ? 1 : 0);
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: ListView(
+      child: ListView.builder(
         padding: EdgeInsets.fromLTRB(
           20,
           widget.topPadding,
           20,
           widget.bottomPadding,
         ),
-        children: [
-          Text(
-            _dateRange(widget.summary.startedAt, widget.summary.endedAt),
-            style: AppTypeScale.meta.copyWith(
-              color: AppColors.accent,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            widget.summary.title,
-            style: AppTypeScale.sectionTitle.copyWith(fontSize: 22),
-          ),
-          if (!widget.summary.isUploaded) ...[
-            const SizedBox(height: 4),
-            Text(
-              'On this phone, waiting to upload to your account.',
-              style: AppTypeScale.small.copyWith(color: AppColors.pendingFill),
-            ),
-          ],
-          const SizedBox(height: 16),
-          if (showEmptyBody)
-            _EmptyTimelineBody(
-              loading: widget.momentsLoading,
-              startedAt: widget.summary.startedAt,
-              endedAt: widget.summary.endedAt,
-              startCounty: _startCounty,
-              endCounty: _endCounty,
-              addingPhotos: _addingPhotos,
-              onAddPhotosManually: _addPhotosManually,
+        itemCount: itemCount,
+        itemBuilder: (context, i) {
+          if (i == 0) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _dateRange(widget.summary.startedAt, widget.summary.endedAt),
+                  style: AppTypeScale.meta.copyWith(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.summary.title,
+                  style: AppTypeScale.sectionTitle.copyWith(fontSize: 22),
+                ),
+                if (!widget.summary.isUploaded) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'On this phone, waiting to upload to your account.',
+                    style: AppTypeScale.small.copyWith(
+                      color: AppColors.pendingFill,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                if (showEmptyBody)
+                  _EmptyTimelineBody(
+                    loading: widget.momentsLoading,
+                    startedAt: widget.summary.startedAt,
+                    endedAt: widget.summary.endedAt,
+                    startCounty: _startCounty,
+                    endCounty: _endCounty,
+                    addingPhotos: _addingPhotos,
+                    onAddPhotosManually: _addPhotosManually,
+                    cameraRoll: _cameraRollScan,
+                    onFindPhotos: _requestCameraRollAccess,
+                    onAddAllMatches: _addAllMatches,
+                    onChooseMatches: _chooseMatches,
+                  ),
+              ],
+            );
+          }
+          final bodyIndex = i - 1;
+          if (bodyIndex < momentCount) {
+            final moment = widget.moments[bodyIndex];
+            return KeyedSubtree(
+              key: _keyFor(moment),
+              child: JourneyTimelineMomentRow(
+                moment: moment,
+                time: _timeAt(moment.index),
+                isCurrent: moment.index == currentIndex,
+                isLast: bodyIndex == momentCount - 1,
+                onTap: () => widget.onJumpTo(moment.index),
+                countyFacts: moment.countyCode == null
+                    ? null
+                    : countyFacts[moment.countyCode],
+              ),
+            );
+          }
+          // The only slot left once the header and every moment are
+          // accounted for is the footer - only reachable when hasFooter
+          // made itemCount include it.
+          return Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: _InlineCameraRollSuggestion(
               cameraRoll: _cameraRollScan,
+              addingPhotos: _addingPhotos,
+              onAddPhotos: _addPhotosManually,
               onFindPhotos: _requestCameraRollAccess,
               onAddAllMatches: _addAllMatches,
               onChooseMatches: _chooseMatches,
-            )
-          else ...[
-            for (final (i, moment) in widget.moments.indexed)
-              KeyedSubtree(
-                key: _keyFor(moment),
-                child: JourneyTimelineMomentRow(
-                  moment: moment,
-                  time: _timeAt(moment.index),
-                  isCurrent: moment.index == currentIndex,
-                  isLast: i == widget.moments.length - 1,
-                  onTap: () => widget.onJumpTo(moment.index),
-                ),
-              ),
-            if (showInlineSuggestion) ...[
-              const SizedBox(height: 16),
-              _InlineCameraRollSuggestion(
-                cameraRoll: _cameraRollScan,
-                addingPhotos: _addingPhotos,
-                onAddPhotos: _addPhotosManually,
-                onFindPhotos: _requestCameraRollAccess,
-                onAddAllMatches: _addAllMatches,
-                onChooseMatches: _chooseMatches,
-              ),
-            ],
-          ],
-        ],
+            ),
+          );
+        },
       ),
     );
   }

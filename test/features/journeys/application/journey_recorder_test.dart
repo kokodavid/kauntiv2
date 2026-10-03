@@ -41,7 +41,7 @@ class _FakeSource implements JourneyLocationSource {
   Stream<JourneyFix> get fixes => controller.stream;
 
   @override
-  Future<void> start() async {
+  Future<void> start({JourneyTransportMode? mode}) async {
     if (failStart case final error?) throw error;
     if (startGate case final gate?) await gate.future;
     started = true;

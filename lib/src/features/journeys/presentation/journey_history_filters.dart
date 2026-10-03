@@ -86,9 +86,23 @@ class JourneyHistorySearchField extends StatelessWidget {
               onChanged: onChanged,
               textInputAction: TextInputAction.search,
               style: AppTypeScale.body,
-              decoration: InputDecoration.collapsed(
+              // See explore_header.dart's ExploreSearchField: `.collapsed()`
+              // doesn't clear enabledBorder/focusedBorder, so the app's
+              // global inputDecorationTheme border was still painting a
+              // second, nested box around the field inside this
+              // Container's own pill. Spelling out every border variant
+              // removes it.
+              decoration: InputDecoration(
+                isCollapsed: true,
                 hintText: 'Search trips, places, counties',
                 hintStyle: hint,
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
               ),
             ),
           ),

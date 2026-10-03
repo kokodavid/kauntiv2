@@ -29,11 +29,12 @@ extension _JourneyRouteMapHelpers on _JourneyRouteMapState {
     );
   }
 
-  String _endpointJson() => JourneyMapLayers.pinsJson([
-    for (final at in widget.pins) (kind: 'moment', at: at),
-    if (widget.start case final at?) (kind: 'start', at: at),
-    if (widget.end case final at?) (kind: 'end', at: at),
-  ]);
+  String _endpointJson() => JourneyMapLayers.endpointsJson(
+    start: widget.start,
+    end: widget.end,
+    moments: widget.moments,
+    currentIndex: widget.currentIndex,
+  );
 
   /// Keeps the marker's pulse in sync with the current replay state.
   void _syncPulse() {

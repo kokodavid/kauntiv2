@@ -7,6 +7,7 @@ import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_transport_mode.dart';
 
 class FakeJourneyLocationSource implements JourneyLocationSource {
   final controller = StreamController<JourneyFix>.broadcast(sync: true);
@@ -24,7 +25,7 @@ class FakeJourneyLocationSource implements JourneyLocationSource {
   Stream<JourneyFix> get fixes => overrideFixes ?? controller.stream;
 
   @override
-  Future<void> start() async {
+  Future<void> start({JourneyTransportMode? mode}) async {
     if (failStart) throw StateError('Location unavailable');
     started = true;
   }
@@ -46,16 +47,19 @@ void main() {
   late FakeJourneyLocationSource source;
   late DateTime now;
   late JourneyCapture capture;
+  late List<String> diagnosticEvents;
 
   setUp(() {
     db = JourneyDatabase.forTesting(NativeDatabase.memory());
     repository = LocalJourneyRepository(db);
     source = FakeJourneyLocationSource();
     now = t0;
+    diagnosticEvents = [];
     capture = JourneyCapture(
       repository: repository,
       locationSource: source,
       clock: () => now,
+      onDiagnosticEvent: (event, data) async => diagnosticEvents.add(event),
     );
   });
   tearDown(() async {
@@ -109,6 +113,7 @@ void main() {
     await capture.pause();
     final points = await repository.points('one', 'alice');
     expect(points.map((point) => point.segmentNumber), [0, 1]);
+    expect(diagnosticEvents, contains('journey_segment_gap'));
   });
 
   test('restart pauses old session and Resume creates a route gap', () async {
@@ -302,7 +307,7 @@ void main() {
     now = t0.add(const Duration(minutes: 1));
 
     await expectLater(slow.finish(), throwsA(isA<JourneyTeardownException>()));
-    expect(source.started, isTrue);
+    expect(source.started, isFalse);
     expect(cancelCalls, 1);
     cancelGate.complete();
 
@@ -310,5 +315,16 @@ void main() {
     expect(finished.recording.phase, JourneyRecordingPhase.completed);
     expect(source.started, isFalse);
     expect(cancelCalls, 1);
+  });
+
+  test('recovery stops a background service left alive by process death', () async {
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    source.started = true;
+
+    final recovered = await capture.recover('alice');
+
+    expect(recovered?.id, session.id);
+    expect(recovered?.recording.phase, JourneyRecordingPhase.paused);
+    expect(source.started, isFalse);
   });
 }

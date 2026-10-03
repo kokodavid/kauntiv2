@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
+import '../../../widgets/app_glyph_icon.dart';
 
 part 'journey_replay_controls_parts.dart';
 
@@ -35,13 +36,25 @@ class JourneyMapButton extends StatelessWidget {
     required this.alignment,
     required this.onPressed,
     required this.tooltip,
-    required this.icon,
-  });
+    this.icon,
+    this.iconWidget,
+  }) : assert(
+         icon != null || iconWidget != null,
+         'JourneyMapButton needs either icon or iconWidget.',
+       );
 
   final Alignment alignment;
   final VoidCallback onPressed;
   final String tooltip;
-  final IconData icon;
+
+  /// A plain Material glyph - fine for a stock shape like [Icons.close].
+  final IconData? icon;
+
+  /// A custom-drawn glyph (see [AppGlyphIcon]) for an action whose stock
+  /// Material icon doesn't match the Claude-Design reference closely
+  /// enough - e.g. the share button's upload-arrow-and-tray icon.
+  /// Overrides [icon] when both are set.
+  final Widget? iconWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +70,7 @@ class JourneyMapButton extends StatelessWidget {
               backgroundColor: Colors.white,
               foregroundColor: AppColors.foreground,
             ),
-            icon: Icon(icon),
+            icon: iconWidget ?? Icon(icon),
           ),
         ),
       ),

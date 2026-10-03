@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
+import '../../../widgets/county_badge_medallion.dart';
 import '../../map_home/domain/county_badge_state.dart';
 import '../domain/badge_collection.dart';
-import 'county_badge_medallion.dart';
 
 /// One county in the collection: its badge inside a depth ring (a quarter
 /// per depth level, from 12 o'clock clockwise). Pending counties get a

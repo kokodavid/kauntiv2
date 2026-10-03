@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
+import '../../../widgets/app_back_button.dart';
 import '../application/discover_detail_actions.dart';
 import '../domain/place_category.dart';
 import '../domain/place_detail.dart';
@@ -211,7 +212,7 @@ class _PlacePhotoChrome extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DetailBackButton(onPressed: () => Navigator.of(context).maybePop()),
+            AppBackButton(onPressed: () => Navigator.of(context).maybePop()),
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),

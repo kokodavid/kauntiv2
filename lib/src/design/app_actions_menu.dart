@@ -45,13 +45,29 @@ class AppActionsMenuButton extends StatefulWidget {
 class _AppActionsMenuButtonState extends State<AppActionsMenuButton>
     with SingleTickerProviderStateMixin {
   final _link = LayerLink();
-  late final _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 220),
-    reverseDuration: const Duration(milliseconds: 140),
-  );
+
+  // Built eagerly in initState(), not as a lazy `late final` initializer:
+  // a menu that's scrolled away (a filtered-out Trip card, say) can be
+  // disposed having never been tapped, so a lazy initializer would run
+  // for the first time inside dispose() itself - by then this element
+  // is already deactivated, and AnimationController's constructor needs
+  // a live ancestor (TickerMode) to create its ticker, so that first
+  // access threw "Looking up a deactivated widget's ancestor is
+  // unsafe." Constructing it up front guarantees it already exists by
+  // the time dispose() runs.
+  late final AnimationController _controller;
   OverlayEntry? _entry;
   bool _open = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+      reverseDuration: const Duration(milliseconds: 140),
+    );
+  }
 
   @override
   void dispose() {

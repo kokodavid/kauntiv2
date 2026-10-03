@@ -128,7 +128,8 @@ class SupabaseJourneyRepository {
               'id, title, started_at, ended_at, distance_m, paused_ms, '
               'destination_place_id, destination_name, '
               'destination_latitude, destination_longitude, '
-              'top_speed_mps, highest_elevation_m, transport_mode',
+              'top_speed_mps, highest_elevation_m, transport_mode, '
+              'cover_media_id',
             )
             .order('started_at', ascending: false)
             // postgrest-dart's order() is descending unless told otherwise.
@@ -195,22 +196,42 @@ class SupabaseJourneyRepository {
     transportMode: JourneyTransportMode.fromStorage(
       row['transport_mode'] as String?,
     ),
+    coverMediaId: row['cover_media_id'] as String?,
   );
 
   /// One uploaded Journey, or null if it's gone (deleted elsewhere).
+  ///
+  /// Fetches its `journey_counties` rows alongside the Journey itself -
+  /// this is the single-Journey counterpart of [history]'s batched join,
+  /// and skipping it here was previously a real bug: every screen that
+  /// reads a Journey through this method (Replay, the share sheet, the
+  /// Trip Share Card) got `countyNames: []` even when [history]'s list
+  /// view showed the right county count for the very same Trip.
   Future<JourneySummary?> journey(String id) async {
-    final row = await _client
-        .from('journeys')
-        .select(
-          'id, title, started_at, ended_at, distance_m, paused_ms, '
-          'destination_place_id, destination_name, '
-          'destination_latitude, destination_longitude, '
-          'top_speed_mps, highest_elevation_m, transport_mode',
-        )
-        .eq('id', id)
-        .maybeSingle()
-        .timeout(_timeout);
-    return row == null ? null : _summary(row);
+    final results = await Future.wait([
+      _client
+          .from('journeys')
+          .select(
+            'id, title, started_at, ended_at, distance_m, paused_ms, '
+            'destination_place_id, destination_name, '
+            'destination_latitude, destination_longitude, '
+            'top_speed_mps, highest_elevation_m, transport_mode, '
+            'cover_media_id',
+          )
+          .eq('id', id)
+          .maybeSingle()
+          .timeout(_timeout),
+      _client
+          .from('journey_counties')
+          .select('journey_id, county_id')
+          .eq('journey_id', id)
+          .timeout(_timeout),
+    ]);
+    final row = results[0] as Map<String, dynamic>?;
+    if (row == null) return null;
+    final countyRows = results[1] as List<Map<String, dynamic>>;
+    final countyNames = _countyNamesByJourney(countyRows)[id] ?? const [];
+    return _summary(row, countyNames);
   }
 
   Future<List<JourneyPoint>> points(String journeyId) async {
@@ -270,6 +291,25 @@ class SupabaseJourneyRepository {
       .rpc<Object?>(
         'rename_journey',
         params: {'p_user_id': userId, 'p_journey_id': id, 'p_title': title},
+      )
+      .timeout(_timeout);
+
+  /// Sets (or clears, with [mediaId] null) the photo representing this
+  /// Trip in its history card and share image. The server checks
+  /// [mediaId] actually belongs to this Trip - `set_trip_cover_photo` is
+  /// the only write path, mirroring [rename].
+  Future<void> setCoverPhoto({
+    required String userId,
+    required String id,
+    required String? mediaId,
+  }) => _client
+      .rpc<Object?>(
+        'set_trip_cover_photo',
+        params: {
+          'p_user_id': userId,
+          'p_journey_id': id,
+          'p_media_id': mediaId,
+        },
       )
       .timeout(_timeout);
 

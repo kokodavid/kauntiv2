@@ -20,9 +20,11 @@ class AppColors {
   static const lockedFill = Color(0xFFF1F5F9);
   static const lockedStroke = Color(0xFFCBD5E1);
   static const legendVisited = Color(0xFF0A84FF);
-  // The Journey Replay map: the route ahead of the marker, a lighter
-  // blue than the accent used for the part already played.
-  static const routeUpcoming = Color(0xFFBBDDFF);
+  // The Journey Replay map: the route ahead of the marker, line and
+  // dots. Same accent blue as the part already played and the rest of
+  // the map's colour key (start marker, playhead) - was a lighter
+  // #BBDDFF, moved to accent so the whole route reads as one colour.
+  static const routeUpcoming = accent;
   static const legendPassed = Color(0xFFEAB308);
   static const pendingFill = Color(0xFFF59E0B);
   static const justUnlockedFill = Color(0xFFEF4444);
@@ -103,4 +105,23 @@ class AppColors {
 
   // Empty replay timeline (Claude-Design "Empty Timeline 2a/2b" reference).
   static const emptyTimelineCardBackground = Color(0xFFF4F6F8);
+
+  // Journey Replay map colour key (Claude-Design reference). Start/end
+  // and the playhead reuse [accent]/[foreground] already above; these
+  // two are the pale-amber "detected stop" pin (direction 2c) and its
+  // amber outline - not yet drawn by the live route map (only the
+  // empty-timeline illustration work that introduces detected-stop and
+  // suggested-moment pins will need them), kept here so both land
+  // together with the rest of that colour key.
+  static const mapDetectedStopFill = Color(0xFFFEF3C7);
+  static const mapDetectedStopOutline = Color(0xFFD97706);
+
+  // Bottom sheets and text-form fields (Profile/Settings "Edit profile",
+  // Membership, Data & privacy). Material 3's default surface tint and
+  // input-decoration colors derive from the theme's seed color, which is
+  // still the old brand green (`app.dart`) -- these are explicit so sheets
+  // and fields never pick that up.
+  static const sheetBackground = Colors.white;
+  static const inputBorder = cardBorder;
+  static const inputFocusedBorder = accent;
 }

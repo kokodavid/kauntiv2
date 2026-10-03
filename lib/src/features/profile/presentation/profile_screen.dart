@@ -10,8 +10,13 @@ import '../../detection/application/detection_controller.dart';
 import '../../journeys/application/journey_entitlement.dart';
 import '../../journeys/application/journey_recorder.dart';
 import '../../onboarding/application/startup_flow.dart';
+import '../application/public_profile_providers.dart';
+import '../application/trip_stats_providers.dart';
+import 'confirm_dialog.dart';
+import 'edit_profile_sheet.dart';
+import 'profile_county_badges.dart';
 import 'profile_header.dart';
-import 'profile_privacy_sheet.dart';
+import 'profile_progress_card.dart';
 import 'profile_tiles.dart';
 
 /// A compact account overview. All account-bound values stay hidden until
@@ -26,7 +31,12 @@ class ProfileScreen extends ConsumerWidget {
 
   final VoidCallback onOpenBadges;
   final VoidCallback? onOpenJourneys;
-  final Future<void> Function() onOpenSettings;
+
+  /// Pushes the in-app Settings screen (architecture §2: cross-feature
+  /// navigation goes through `app/router.dart`, not a direct import
+  /// here). "Location permission", "Location diagnostics" and "Data and
+  /// privacy" moved out of Profile and live only inside Settings now.
+  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,7 +74,7 @@ class _ProfileContent extends ConsumerStatefulWidget {
 
   final VoidCallback onOpenBadges;
   final VoidCallback? onOpenJourneys;
-  final Future<void> Function() onOpenSettings;
+  final VoidCallback onOpenSettings;
 
   @override
   ConsumerState<_ProfileContent> createState() => _ProfileContentState();
@@ -107,27 +117,16 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       );
       return;
     }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text(
-          'Your Trips stay on this phone. Synced Trips will also be '
-          'available when you sign in again.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sign out'),
-          ),
-        ],
-      ),
+    final confirmed = await showStackedConfirmDialog(
+      context,
+      title: 'Sign out of Kaunti47?',
+      body:
+          'County detection pauses on this phone until you sign back in. '
+          'Synced badges and Trips stay on your account.',
+      primaryLabel: 'Sign out',
+      primaryColor: AppColors.foreground,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     setState(() => _signingOut = true);
     final startup = ref.read(startupFlowProvider.notifier);
     final auth = ref.read(authServiceProvider);
@@ -148,107 +147,100 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
     }
   }
 
+  void _openEditProfile() {
+    final profile = ref.read(myPublicProfileProvider).value;
+    if (profile == null) return;
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => EditProfileSheet(profile: profile),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authServiceProvider).currentUser;
     final metadata = user?.userMetadata ?? const <String, dynamic>{};
     final rawName = metadata['full_name'] ?? metadata['name'];
-    final name = rawName is String ? rawName : null;
-    final email = user?.email?.isNotEmpty == true
-        ? user!.email!
-        : 'No email on this account';
+    final fallbackName = rawName is String ? rawName : null;
     final homeCounty = ref.watch(startupFlowProvider).homeCounty?.name;
     final badges = ref.watch(badgeCollectionProvider);
+    final tripStats = ref.watch(tripStatsProvider);
+    final publicProfile = ref.watch(myPublicProfileProvider).value;
     final pro = ref.watch(journeyEntitlementProvider);
+    final isPro = pro?.allowsStartAt(DateTime.now()) == true;
     final proLabel = _checkingPro
         ? 'Checking access...'
         : _proUnavailable
         ? "Couldn't check. Tap to retry."
-        : pro?.allowsStartAt(DateTime.now()) == true
+        : isPro
         ? 'Pro active'
         : 'Free';
+    final displayName = publicProfile?.displayName.isNotEmpty == true
+        ? publicProfile!.displayName
+        : (fallbackName?.isNotEmpty == true ? fallbackName! : 'Traveller');
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: ProfilePalette.surface,
-        foregroundColor: AppColors.foreground,
-        elevation: 0,
-      ),
       body: SafeArea(
+        top: false,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             ProfileHeader(
-              name: name?.isNotEmpty == true ? name! : 'Traveller',
-              email: email,
+              name: displayName,
+              handle: publicProfile?.handle,
+              avatarUrl: publicProfile?.avatarUrl,
+              homeCounty: homeCounty,
+              isPro: isPro,
+              onOpenSettings: widget.onOpenSettings,
+              onEditProfile: _openEditProfile,
             ),
-            const SizedBox(height: 24),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const ProfileSectionTitle('Your progress'),
-                  ProfileTile(
-                    icon: Icons.home_outlined,
-                    title: 'Home county',
-                    subtitle: homeCounty ?? 'Not selected',
+                  ProfileProgressCard(
+                    collection: badges,
+                    onRetry: () => ref.invalidate(badgeCollectionProvider),
+                    tripStats: tripStats,
                   ),
+                  const SizedBox(height: 14),
+                  ProfileCountyBadges(
+                    collection: badges,
+                    onOpenBadges: widget.onOpenBadges,
+                  ),
+                  const SizedBox(height: 14),
                   ProfileTile(
                     icon: Icons.workspace_premium_outlined,
-                    title: 'County badges',
-                    subtitle: badges.when(
-                      loading: () => 'Loading...',
-                      error: (_, _) => 'Unable to load',
-                      data: (value) =>
-                          '${value.claimed} of ${value.total} earned',
-                    ),
-                    onTap: widget.onOpenBadges,
-                  ),
-                  if (widget.onOpenJourneys != null)
-                    ProfileTile(
-                      icon: Icons.route_outlined,
-                      title: 'Trips',
-                      subtitle: 'Your private recorded routes',
-                      onTap: widget.onOpenJourneys,
-                    ),
-                  const SizedBox(height: 24),
-                  const ProfileSectionTitle('Account'),
-                  ProfileTile(
-                    icon: Icons.stars_outlined,
-                    title: 'Membership',
+                    title: 'Kaunti47 Pro',
                     subtitle: proLabel,
+                    style: ProfileTileStyle.dark,
                     onTap: _proUnavailable
                         ? () => unawaited(_refreshPro())
                         : null,
                   ),
-                  ProfileTile(
-                    icon: Icons.location_on_outlined,
-                    title: 'Location permission',
-                    subtitle: 'Manage in device settings',
-                    onTap: () => unawaited(widget.onOpenSettings()),
-                  ),
-                  ProfileTile(
-                    icon: Icons.shield_outlined,
-                    title: 'Data and privacy',
-                    subtitle: 'How county visits and Trips are stored',
-                    onTap: () => unawaited(
-                      showModalBottomSheet<void>(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (_) => const ProfilePrivacySheet(),
+                  if (widget.onOpenJourneys != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14),
+                      child: ProfileTile(
+                        icon: Icons.route_outlined,
+                        title: 'Trips',
+                        subtitle: 'Your private recorded routes',
+                        style: ProfileTileStyle.surface,
+                        onTap: widget.onOpenJourneys,
                       ),
                     ),
-                  ),
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: _signingOut ? null : () => unawaited(_signOut()),
                     icon: const Icon(Icons.logout),
                     label: Text(_signingOut ? 'Signing out...' : 'Sign out'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.accent,
+                      foregroundColor: AppColors.foreground,
                       side: const BorderSide(color: ProfilePalette.border),
                     ),
                   ),

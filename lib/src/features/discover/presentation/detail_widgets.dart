@@ -5,36 +5,6 @@ import 'package:flutter/material.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 
-/// White rounded-square back button floated on detail photos.
-class DetailBackButton extends StatelessWidget {
-  const DetailBackButton({super.key, required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: 40,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: const BorderSide(color: AppColors.backButtonBorder),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          padding: EdgeInsets.zero,
-        ),
-        child: const Icon(
-          Icons.arrow_back,
-          size: 20,
-          color: AppColors.foreground,
-        ),
-      ),
-    );
-  }
-}
-
 /// Small label over a bold value ("AREA / 9,462 KM²").
 class DetailStatFact extends StatelessWidget {
   const DetailStatFact({

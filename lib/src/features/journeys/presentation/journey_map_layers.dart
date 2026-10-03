@@ -10,8 +10,24 @@ import '../../map_home/application/county_camera_fit.dart';
 /// A position on the map.
 typedef JourneyLatLng = ({double latitude, double longitude});
 
-/// A pin on the route: `start`, `end` or `moment` (a replay key moment).
+/// A pin on the route: `start`, `end`, or a free-form `kind` string for
+/// anything whose GeoJSON `properties.kind` a style layer matches on
+/// (the replay marker uses this for its own `marker`/`tip` features).
 typedef JourneyMapPin = ({String kind, JourneyLatLng at});
+
+/// A key moment pin: a photo (drawn a little larger) or a "note" - every
+/// other moment kind (a county crossing, a stop, an elevation peak) -
+/// at the route point [index] it belongs to. [index] is what lets
+/// [JourneyMapLayers.endpointsJson] tell whether replay has passed it
+/// yet, per the Claude-Design colour key: pending until the playhead
+/// reaches it, then flips to its "passed" colour.
+enum JourneyMapMomentKind { photo, note }
+
+typedef JourneyMapMoment = ({
+  JourneyLatLng at,
+  JourneyMapMomentKind kind,
+  int index,
+});
 
 /// The sources and layers a Journey map draws with, and the GeoJSON that
 /// feeds them. Kept apart from the widget so the map stays about camera
@@ -33,10 +49,6 @@ abstract final class JourneyMapLayers {
   static String hex(Color color) =>
       '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 
-  /// Pins as a GeoJSON collection, each tagged with its `kind`.
-  static String pinsJson(List<JourneyMapPin> pins) =>
-      jsonEncode({'type': 'FeatureCollection', 'features': _points(pins)});
-
   /// The replay marker plus the short line from the last played point to
   /// it, so the drawn route reaches the marker between points. Both go in
   /// one source: one native update per frame.
@@ -56,6 +68,60 @@ abstract final class JourneyMapLayers {
                 [tipFrom.longitude, tipFrom.latitude],
                 [marker.longitude, marker.latitude],
               ],
+            },
+          },
+      ],
+    });
+  }
+
+  /// `start`/`end` plus every key moment, each tagged with a `kind` the
+  /// endpoints layer's colour/size `match` expressions key off: `start`,
+  /// `end`, or `moment-photo`/`moment-note` combined with `-pending` /
+  /// `-passed` depending on whether [currentIndex] (the replay playhead;
+  /// null, or a Trip not yet played past a moment's point, both read as
+  /// "not passed yet") has reached that moment's own [JourneyMapMoment.index].
+  static String endpointsJson({
+    JourneyLatLng? start,
+    JourneyLatLng? end,
+    List<JourneyMapMoment> moments = const [],
+    int? currentIndex,
+  }) {
+    String kindOf(JourneyMapMoment moment) {
+      final passed = currentIndex != null && moment.index <= currentIndex;
+      final shape = moment.kind == JourneyMapMomentKind.photo
+          ? 'moment-photo'
+          : 'moment-note';
+      return '$shape-${passed ? 'passed' : 'pending'}';
+    }
+
+    return jsonEncode({
+      'type': 'FeatureCollection',
+      'features': [
+        for (final moment in moments)
+          {
+            'type': 'Feature',
+            'properties': {'kind': kindOf(moment)},
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [moment.at.longitude, moment.at.latitude],
+            },
+          },
+        if (start != null)
+          {
+            'type': 'Feature',
+            'properties': {'kind': 'start'},
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [start.longitude, start.latitude],
+            },
+          },
+        if (end != null)
+          {
+            'type': 'Feature',
+            'properties': {'kind': 'end'},
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [end.longitude, end.latitude],
             },
           },
       ],
@@ -132,6 +198,14 @@ abstract final class JourneyMapLayers {
         circleRadius: 4,
       ),
     );
+    // Start/end/moment colour key (Claude-Design reference): start is
+    // solid accent blue, end near-black, both white-ringed - unchanged
+    // regardless of replay state. A moment is white with a blue outline
+    // until the playhead passes it, then flips to solid blue with a
+    // white outline; photo moments draw a touch larger than note ones.
+    // circleStrokeColor alone can't do the pending/passed swap (start
+    // and "passed" both want a white ring, but "pending" wants a blue
+    // one), so the ring colour needs its own match expression too.
     await style.addLayer(
       CircleLayer(
         id: 'journey-endpoints',
@@ -140,32 +214,50 @@ abstract final class JourneyMapLayers {
           'match',
           ['get', 'kind'],
           'start',
-          hex(AppColors.legendHome),
+          hex(AppColors.accent),
           'end',
-          hex(AppColors.danger),
           hex(AppColors.foreground),
+          'moment-photo-passed',
+          hex(AppColors.accent),
+          'moment-note-passed',
+          hex(AppColors.accent),
+          hex(Colors.white),
+        ],
+        circleStrokeColorExpression: [
+          'match',
+          ['get', 'kind'],
+          'moment-photo-pending',
+          hex(AppColors.accent),
+          'moment-note-pending',
+          hex(AppColors.accent),
+          hex(Colors.white),
         ],
         circleRadiusExpression: [
           'match',
           ['get', 'kind'],
-          'moment',
-          5,
+          'moment-photo-pending',
+          6,
+          'moment-photo-passed',
+          6,
+          'moment-note-pending',
+          4.5,
+          'moment-note-passed',
+          4.5,
           6,
         ],
-        circleStrokeColor: Colors.white.toARGB32(),
         circleStrokeWidth: 2,
       ),
     );
-    // A soft halo behind the marker, matching the replay timeline's
-    // design: a solid dot with a lighter blue glow, not a white-centred
-    // ring.
+    // A soft halo behind the marker - a solid dot with a faint blue glow,
+    // not a white-centred ring (Claude-Design colour key: "a blue dot
+    // with a white ring and a faint blue halo at 18% opacity").
     await style.addLayer(
       CircleLayer(
         id: 'journey-marker-halo',
         sourceId: markerSource,
         filter: _is('Point'),
-        circleColor: upcoming,
-        circleOpacity: 0.55,
+        circleColor: accent,
+        circleOpacity: 0.18,
         circleRadius: 14,
       ),
     );

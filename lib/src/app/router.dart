@@ -12,11 +12,14 @@ import '../features/discover/presentation/place_detail_screen.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
+import '../core/services/location_diagnostics.dart';
+import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
 import '../features/map_home/data/supabase_map_home_repository.dart';
 import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/profile/presentation/settings_screen.dart';
 import '../services/app_supabase.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
@@ -114,14 +117,47 @@ GoRouter appRouter(Ref ref) {
         ),
       GoRoute(
         path: AppRoutes.profile,
-        builder: (context, state) => ProfileScreen(
-          onOpenBadges: () => context.go(AppRoutes.badges),
-          onOpenJourneys: AppFeatureFlags.journeys
-              ? () => context.go(AppRoutes.journeys)
-              : null,
-          onOpenSettings: DetailRoutes.openAppSettings,
+        // NoTransitionPage: sign-out swaps straight to the Sign-In gate
+        // (also swapped in place) via the redirect below. An animated
+        // page transition here would spend its ~300ms showing this
+        // route's own already-signed-out placeholder content mid-slide,
+        // which is the "screen that appears before Sign-In" sign-out
+        // used to flash.
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: ProfileScreen(
+            onOpenBadges: () => context.go(AppRoutes.badges),
+            onOpenJourneys: AppFeatureFlags.journeys
+                ? () => context.go(AppRoutes.journeys)
+                : null,
+            onOpenSettings: () => context.push(AppRoutes.settings),
+          ),
         ),
       ),
+      GoRoute(
+        path: AppRoutes.settings,
+        // NoTransitionPage for the same reason as Profile above: sign-out
+        // (and delete-account) redirect here mid-stack, and an animated
+        // transition would expose a frame of this screen's own
+        // already-signed-out state while it slides away.
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: SettingsScreen(
+            onOpenLocationSettings: DetailRoutes.openAppSettings,
+            onOpenLocationDiagnostics:
+                LocationDiagnostics.enabledFor(
+                  isDev: ref.read(appConfigProvider).isDev,
+                )
+                ? () => context.push(AppRoutes.locationDiagnostics)
+                : null,
+          ),
+        ),
+      ),
+      if (LocationDiagnostics.enabledFor(
+        isDev: ref.read(appConfigProvider).isDev,
+      ))
+        GoRoute(
+          path: AppRoutes.locationDiagnostics,
+          builder: (context, state) => const LocationDiagnosticsScreen(),
+        ),
       GoRoute(
         path: '/county/:code',
         builder: (context, state) => CountyDetailScreen(

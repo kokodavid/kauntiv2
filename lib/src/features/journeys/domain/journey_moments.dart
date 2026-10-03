@@ -18,6 +18,7 @@ class JourneyMoment {
     required this.kind,
     required this.index,
     this.name,
+    this.countyCode,
     this.duration,
     this.photo,
     this.elevationMeters,
@@ -28,6 +29,11 @@ class JourneyMoment {
 
   /// The county entered (null when unknown).
   final String? name;
+
+  /// The entered county's numeric code, for a [countyCrossing] moment
+  /// (null when unknown) - looking up richer county data and deep-linking
+  /// to County Detail both need this, not just the display [name].
+  final int? countyCode;
 
   /// How long the recording was paused, or the stop lasted.
   final Duration? duration;
@@ -172,6 +178,7 @@ abstract final class JourneyMoments {
           kind: JourneyMomentKind.countyCrossing,
           index: i,
           name: countyName?.call(code),
+          countyCode: code,
         );
         current = code;
         candidate = null;

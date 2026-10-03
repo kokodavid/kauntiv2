@@ -37,6 +37,23 @@ import native_geofence
           result(FlutterMethodNotImplemented)
         }
       }
+      FlutterMethodChannel(
+        name: "com.giglab.kaunti47/location_diagnostics",
+        binaryMessenger: registrar.messenger()
+      ).setMethodCallHandler { call, result in
+        guard call.method == "batteryPercent" else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        let device = UIDevice.current
+        device.isBatteryMonitoringEnabled = true
+        let level = device.batteryLevel
+        device.isBatteryMonitoringEnabled = false
+        result(level < 0 ? -1 : Int((level * 100).rounded()))
+      }
+    }
+    if let registrar = self.registrar(forPlugin: "Kaunti47InstagramStoriesPlugin") {
+      InstagramStoriesShare.register(with: registrar)
     }
 
     return didLaunch

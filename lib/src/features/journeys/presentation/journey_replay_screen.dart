@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/app_colors.dart';
+import '../../../widgets/app_glyph_icon.dart';
 import '../application/journey_key_moments.dart';
 import '../application/journey_views.dart';
 import '../domain/journey_moments.dart';
@@ -17,6 +18,7 @@ import 'journey_replay_playback_bar.dart';
 import 'journey_replay_stat_bar.dart';
 import 'journey_replay_timeline.dart';
 import 'journey_route_map.dart';
+import 'trip_share_sheet.dart';
 
 /// A past Journey as a scrollable story: the map at the top sets the
 /// scene, a timeline of its key moments tells it below, and a floating
@@ -119,8 +121,20 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
     curve: Curves.easeOut,
   );
 
-  /// Position along the track in points, fractional between them.
-  double _position = 0;
+  /// Position along the track in points, fractional between them. A
+  /// ValueNotifier, not a plain field: during playback or a scrub drag
+  /// this changes up to 60 times a second, and only the map marker and
+  /// the scrubber actually need to repaint that often. Routing every
+  /// change through setState instead would rebuild the whole screen -
+  /// map, stat bar, timeline (with every photo in it), buttons - on
+  /// every single frame, which is where the replay screen's jank was
+  /// coming from. Only the two ValueListenableBuilders in [build] listen
+  /// to this directly; everything else only rebuilds on the real state
+  /// changes below (play/pause, a moment becoming current, scrub start).
+  final ValueNotifier<double> _positionNotifier = ValueNotifier(0);
+  double get _position => _positionNotifier.value;
+  set _position(double value) => _positionNotifier.value = value;
+
   JourneyReplaySpeed _speed = JourneyReplaySpeed.x1;
 
   /// Replay has been started, scrubbed or jumped to; false shows the
@@ -135,10 +149,9 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
   JourneyRoute? _played;
   int _playedIndex = -1;
 
-  late List<JourneyLatLng> _pins = _pinsFor(widget.moments);
+  late List<JourneyMapMoment> _pins = _pinsFor(widget.moments);
 
   bool get _playing => _ticker.isActive;
-  int get _index => _position.floor().clamp(0, _track.lastIndex);
 
   @override
   void didUpdateWidget(_Player oldWidget) {
@@ -152,31 +165,49 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
   void dispose() {
     _ticker.dispose();
     _enterController.dispose();
+    _positionNotifier.dispose();
     super.dispose();
   }
 
-  /// A pin per moment point on the route.
-  List<JourneyLatLng> _pinsFor(List<JourneyMoment> moments) => [
-    for (final index in {for (final m in moments) m.index})
-      if (index <= _track.lastIndex) _at(_track.points[index]),
+  /// A map pin per key moment - a photo moment or a "note" (every other
+  /// [JourneyMomentKind]), each carrying its own point [JourneyMoment.index]
+  /// so the map can colour it pending/passed against the playhead.
+  List<JourneyMapMoment> _pinsFor(List<JourneyMoment> moments) => [
+    for (final m in moments)
+      if (m.index <= _track.lastIndex)
+        (
+          at: _at(_track.points[m.index]),
+          kind: m.kind == JourneyMomentKind.photo
+              ? JourneyMapMomentKind.photo
+              : JourneyMapMomentKind.note,
+          index: m.index,
+        ),
   ];
 
   void _onTick(Duration elapsed) {
     final seconds = (elapsed - _lastTick).inMicroseconds / 1e6;
     _lastTick = elapsed;
-    setState(() {
-      var next = (_position + _track.pointsPerSecond(_speed) * seconds)
-          .clamp(0, _track.lastIndex)
-          .toDouble();
-      final stop = JourneyMoments.nextStopAfter(_position, widget.moments);
-      if (stop != null && stop < _track.lastIndex && next >= stop) {
-        next = stop.toDouble();
-        _showing = JourneyMoments.at(stop, widget.moments);
+    var next = (_position + _track.pointsPerSecond(_speed) * seconds)
+        .clamp(0, _track.lastIndex)
+        .toDouble();
+    final stop = JourneyMoments.nextStopAfter(_position, widget.moments);
+    final hitStop = stop != null && stop < _track.lastIndex && next >= stop;
+    if (hitStop) next = stop.toDouble();
+    final reachedEnd = next >= _track.lastIndex;
+    if (hitStop || reachedEnd) {
+      // A real state change beyond the raw position - pausing playback
+      // and/or lighting up a moment in the timeline - needs setState so
+      // the timeline and playback bar's play/pause icon pick it up. An
+      // ordinary mid-flight tick only moves _positionNotifier, without
+      // touching setState or rebuilding the rest of the screen.
+      setState(() {
+        _positionNotifier.value = next;
+        if (hitStop) _showing = JourneyMoments.at(stop, widget.moments);
         _ticker.stop();
-      }
-      _position = next;
-      if (_position >= _track.lastIndex) _ticker.stop();
-    });
+      });
+    } else {
+      _positionNotifier.value = next;
+    }
   }
 
   void _play() {
@@ -191,12 +222,23 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
 
   void _togglePlay() => _playing ? setState(_ticker.stop) : _play();
 
-  void _scrub(double value) => setState(() {
+  void _scrub(double value) {
+    // The scrubber's drag gesture calls this continuously, many times a
+    // second - once play/pause and the "active" flag are already settled
+    // for this drag, later calls only need to move the position
+    // notifier, not rebuild the whole screen on every pixel of movement.
+    final needsFullRebuild = _playing || !_active || _showing.isNotEmpty;
     _ticker.stop();
-    _active = true;
-    _showing = const [];
-    _position = value;
-  });
+    if (needsFullRebuild) {
+      setState(() {
+        _active = true;
+        _showing = const [];
+        _position = value;
+      });
+    } else {
+      _position = value;
+    }
+  }
 
   /// Jumps replay to a moment's point, lighting it up immediately - "tap
   /// any moment to jump the map there".
@@ -256,17 +298,24 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
                 left: 0,
                 right: 0,
                 height: mapHeight,
-                child: JourneyRouteMap(
-                  route: widget.route,
-                  played: _active ? _playedUpTo(_index) : null,
-                  start: _at(points.first),
-                  end: _active ? null : _at(points.last),
-                  pins: _pins,
-                  marker: _active ? _track.positionAt(_position) : null,
-                  follow: _active,
-                  animateFollow: false,
-                  bottomInset: overlap,
-                  pulsing: _showing.isNotEmpty,
+                child: ValueListenableBuilder<double>(
+                  valueListenable: _positionNotifier,
+                  builder: (context, position, _) {
+                    final index = position.floor().clamp(0, _track.lastIndex);
+                    return JourneyRouteMap(
+                      route: widget.route,
+                      played: _active ? _playedUpTo(index) : null,
+                      start: _at(points.first),
+                      end: _active ? null : _at(points.last),
+                      moments: _pins,
+                      currentIndex: index,
+                      marker: _active ? _track.positionAt(position) : null,
+                      follow: _active,
+                      animateFollow: false,
+                      bottomInset: overlap,
+                      pulsing: _showing.isNotEmpty,
+                    );
+                  },
                 ),
               ),
               Positioned.fill(
@@ -301,6 +350,27 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
                 tooltip: 'Close replay',
                 icon: Icons.close,
               ),
+              // Only a Trip that's actually uploaded has (or could have)
+              // synced photos to build a share image from - one still
+              // waiting to upload gets no share entry point here.
+              if (widget.summary.isUploaded)
+                JourneyMapButton(
+                  alignment: Alignment.topRight,
+                  onPressed: () => showTripShareSheet(
+                    context,
+                    summary: widget.summary,
+                    route: widget.route,
+                  ),
+                  tooltip: 'Share this Trip',
+                  // The reference's own upload-arrow-and-tray glyph
+                  // (Claude-Design "Share Sheet 3a") rather than
+                  // [Icons.ios_share_rounded] - see AppGlyphPaths.share.
+                  iconWidget: const AppGlyphIcon(
+                    path: AppGlyphPaths.share,
+                    size: 20,
+                    color: AppColors.foreground,
+                  ),
+                ),
               if (_active) JourneyWholeRoutePill(onPressed: _showWholeRoute),
               Positioned(
                 left: 16,
@@ -311,17 +381,20 @@ class _PlayerState extends State<_Player> with TickerProviderStateMixin {
                     begin: const Offset(0, 0.15),
                     end: Offset.zero,
                   ).animate(_enterCurve),
-                  child: JourneyReplayPlaybackBar(
-                    playing: _playing,
-                    pausedAtMoment: _showing.isNotEmpty,
-                    position: _position,
-                    lastIndex: _track.lastIndex,
-                    moments: widget.moments,
-                    readout: _readout,
-                    speed: _speed,
-                    onTogglePlay: _togglePlay,
-                    onScrub: _scrub,
-                    onCycleSpeed: _cycleSpeed,
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _positionNotifier,
+                    builder: (context, position, _) => JourneyReplayPlaybackBar(
+                      playing: _playing,
+                      pausedAtMoment: _showing.isNotEmpty,
+                      position: position,
+                      lastIndex: _track.lastIndex,
+                      moments: widget.moments,
+                      readout: _readout,
+                      speed: _speed,
+                      onTogglePlay: _togglePlay,
+                      onScrub: _scrub,
+                      onCycleSpeed: _cycleSpeed,
+                    ),
                   ),
                 ),
               ),

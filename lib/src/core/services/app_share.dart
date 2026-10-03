@@ -22,4 +22,11 @@ abstract final class AppShare {
       ),
     );
   }
+
+  /// Shares a local diagnostic or export file through the system share sheet.
+  static Future<void> file(String path, {String? text}) async {
+    await SharePlus.instance.share(
+      ShareParams(files: [XFile(path)], text: text),
+    );
+  }
 }

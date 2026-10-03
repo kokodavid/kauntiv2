@@ -150,3 +150,174 @@ final class JourneyMomentsFamily extends $Family
   @override
   String toString() => r'journeyMomentsProvider';
 }
+
+/// Batched county facts in the cloud, or null when the build has no
+/// Supabase.
+
+@ProviderFor(journeyCountyFactsRepository)
+const journeyCountyFactsRepositoryProvider =
+    JourneyCountyFactsRepositoryProvider._();
+
+/// Batched county facts in the cloud, or null when the build has no
+/// Supabase.
+
+final class JourneyCountyFactsRepositoryProvider
+    extends
+        $FunctionalProvider<
+          JourneyCountyFactsRepository?,
+          JourneyCountyFactsRepository?,
+          JourneyCountyFactsRepository?
+        >
+    with $Provider<JourneyCountyFactsRepository?> {
+  /// Batched county facts in the cloud, or null when the build has no
+  /// Supabase.
+  const JourneyCountyFactsRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'journeyCountyFactsRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$journeyCountyFactsRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<JourneyCountyFactsRepository?> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  JourneyCountyFactsRepository? create(Ref ref) {
+    return journeyCountyFactsRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(JourneyCountyFactsRepository? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<JourneyCountyFactsRepository?>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$journeyCountyFactsRepositoryHash() =>
+    r'c1f4a9c6e5b8d2a3f0e7b6c5d4a3f2e1d0c9b8a7';
+
+/// The "Entered county" card's data for every county this Trip crossed,
+/// keyed by county code. Static facts and the visit count come from one
+/// batched query; [JourneyCountyMomentFacts.depth] is merged in from the
+/// Badges collection already loaded elsewhere, so this never re-derives
+/// the depth ladder from scratch.
+
+@ProviderFor(journeyCountyMomentFacts)
+const journeyCountyMomentFactsProvider = JourneyCountyMomentFactsFamily._();
+
+/// The "Entered county" card's data for every county this Trip crossed,
+/// keyed by county code. Static facts and the visit count come from one
+/// batched query; [JourneyCountyMomentFacts.depth] is merged in from the
+/// Badges collection already loaded elsewhere, so this never re-derives
+/// the depth ladder from scratch.
+
+final class JourneyCountyMomentFactsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<int, JourneyCountyMomentFacts>>,
+          Map<int, JourneyCountyMomentFacts>,
+          FutureOr<Map<int, JourneyCountyMomentFacts>>
+        >
+    with
+        $FutureModifier<Map<int, JourneyCountyMomentFacts>>,
+        $FutureProvider<Map<int, JourneyCountyMomentFacts>> {
+  /// The "Entered county" card's data for every county this Trip crossed,
+  /// keyed by county code. Static facts and the visit count come from one
+  /// batched query; [JourneyCountyMomentFacts.depth] is merged in from the
+  /// Badges collection already loaded elsewhere, so this never re-derives
+  /// the depth ladder from scratch.
+  const JourneyCountyMomentFactsProvider._({
+    required JourneyCountyMomentFactsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'journeyCountyMomentFactsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$journeyCountyMomentFactsHash();
+
+  @override
+  String toString() {
+    return r'journeyCountyMomentFactsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<int, JourneyCountyMomentFacts>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<int, JourneyCountyMomentFacts>> create(Ref ref) {
+    final argument = this.argument as String;
+    return journeyCountyMomentFacts(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is JourneyCountyMomentFactsProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$journeyCountyMomentFactsHash() =>
+    r'd2e5b0a7c6f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5';
+
+/// The "Entered county" card's data for every county this Trip crossed,
+/// keyed by county code. Static facts and the visit count come from one
+/// batched query; [JourneyCountyMomentFacts.depth] is merged in from the
+/// Badges collection already loaded elsewhere, so this never re-derives
+/// the depth ladder from scratch.
+
+final class JourneyCountyMomentFactsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<Map<int, JourneyCountyMomentFacts>>,
+          String
+        > {
+  const JourneyCountyMomentFactsFamily._()
+    : super(
+        retry: null,
+        name: r'journeyCountyMomentFactsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The "Entered county" card's data for every county this Trip crossed,
+  /// keyed by county code. Static facts and the visit count come from one
+  /// batched query; [JourneyCountyMomentFacts.depth] is merged in from the
+  /// Badges collection already loaded elsewhere, so this never re-derives
+  /// the depth ladder from scratch.
+
+  JourneyCountyMomentFactsProvider call(String id) =>
+      JourneyCountyMomentFactsProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'journeyCountyMomentFactsProvider';
+}

@@ -1,4 +1,5 @@
 import 'journey_point.dart';
+import 'journey_transport_mode.dart';
 
 class JourneyFix {
   JourneyFix({
@@ -51,7 +52,7 @@ abstract interface class JourneyLocationSource {
   /// between this call and the actual attach.
   Future<void> ensureAvailable();
 
-  Future<void> start();
+  Future<void> start({JourneyTransportMode? mode});
   Future<void> stop();
 }
 

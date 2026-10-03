@@ -29,7 +29,11 @@ class _FullScreenPhoto extends StatelessWidget {
         body: SafeArea(
           child: Center(
             child: InteractiveViewer(
-              child: Image.network(item.url, fit: BoxFit.contain),
+              child: Image.network(
+                item.url,
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
+              ),
             ),
           ),
         ),

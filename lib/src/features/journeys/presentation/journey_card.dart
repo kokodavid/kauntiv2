@@ -11,14 +11,18 @@ import '../domain/journey_point.dart';
 import '../domain/journey_preview.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
+import 'trip_share_card_thumbnail.dart';
 
 part 'journey_card_parts.dart';
 
 /// A past Trip in the list, styled like a small stack of photos in a
 /// folder: two tinted layers peek out from behind the main card to give
-/// it depth, with a route-preview photo, title and facts on top, Replay
-/// on the photo, and Rename/Delete in a menu below (not loose on the
-/// card face).
+/// it depth, a generated Trip share image (see [TripShareCardThumbnail])
+/// as its header - already carrying the Trip's own stats - title and a
+/// short caption below it, and Rename/Delete in a menu there (not loose
+/// on the card face). Tapping anywhere on the card opens Replay; there's
+/// no separate button for it now that the header has no empty space to
+/// float one over.
 class JourneyCard extends StatefulWidget {
   const JourneyCard({
     super.key,
@@ -109,17 +113,18 @@ class _JourneyCardState extends State<JourneyCard> {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          JourneyRoutePreview(journeyId: journey.id),
-                          const DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [Color(0x99000000), Color(0x00000000)],
-                                stops: [0.0, 0.55],
-                              ),
-                            ),
-                          ),
+                          // The generated Trip share image (Claude-Design
+                          // "Trip Share Card") already carries the Trip's
+                          // stats and a scrim for legibility, so this
+                          // header no longer needs its own title/facts
+                          // overlay or gradient - only the "waiting to
+                          // upload" pill, which TripShareCardThumbnail
+                          // itself doesn't know about. A Trip not yet
+                          // uploaded (and therefore without synced
+                          // photos to build a share card from) still
+                          // falls back to the plain route-map preview
+                          // inside TripShareCardThumbnail.
+                          TripShareCardThumbnail(journeyId: journey.id),
                           if (!journey.isUploaded)
                             Positioned(
                               top: 10,
@@ -130,63 +135,55 @@ class _JourneyCardState extends State<JourneyCard> {
                                     : 'Waiting to upload',
                               ),
                             ),
-                          Positioned(
-                            left: 12,
-                            right: open == null ? 12 : 116,
-                            bottom: 12,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  journey.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTypeScale.photoTitle,
-                                ),
-                                const SizedBox(height: 5),
-                                _FactsPill(facts: facts),
-                              ],
-                            ),
-                          ),
-                          if (open != null)
-                            Positioned(
-                              right: 10,
-                              bottom: 10,
-                              child: AppPhotoButton(
-                                onPressed: open,
-                                label: 'Replay',
-                                icon: Icons.play_arrow_rounded,
-                              ),
-                            ),
                         ],
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 6, 0, 0),
-                    child: Row(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 4, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            'Started $time · $day',
-                            style: AppTypeScale.small.copyWith(
-                              color: AppColors.mutedForeground,
-                            ),
-                          ),
+                        Text(
+                          journey.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypeScale.cardTitle,
                         ),
-                        AppActionsMenuButton(
-                          tooltip: 'Trip options',
-                          actions: [
-                            AppMenuAction(
-                              label: 'Rename',
-                              icon: Icons.edit_outlined,
-                              onTap: widget.onRename,
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                // Distance/duration moved here from the
+                                // old on-photo facts pill - the share
+                                // card's own stat grid already shows
+                                // distance, so this line is now just a
+                                // caption under the title rather than a
+                                // second place to read the same number.
+                                'Started $time · $day · $facts',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypeScale.small.copyWith(
+                                  color: AppColors.mutedForeground,
+                                ),
+                              ),
                             ),
-                            AppMenuAction(
-                              label: 'Delete',
-                              icon: Icons.delete_outline,
-                              isDestructive: true,
-                              onTap: widget.onDelete,
+                            AppActionsMenuButton(
+                              tooltip: 'Trip options',
+                              actions: [
+                                AppMenuAction(
+                                  label: 'Rename',
+                                  icon: Icons.edit_outlined,
+                                  onTap: widget.onRename,
+                                ),
+                                AppMenuAction(
+                                  label: 'Delete',
+                                  icon: Icons.delete_outline,
+                                  isDestructive: true,
+                                  onTap: widget.onDelete,
+                                ),
+                              ],
                             ),
                           ],
                         ),

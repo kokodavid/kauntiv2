@@ -1,5 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/domain/app_feature_flags.dart';
+import '../../../core/services/app_config_provider.dart';
+import '../../../core/services/location_diagnostics.dart';
 import '../data/device_journey_location_source.dart';
 import '../data/journey_database.dart';
 import '../data/local_journey_media_repository.dart';
@@ -32,4 +35,9 @@ JourneyLocationSource journeyLocationSource(Ref ref) =>
 JourneyCapture journeyCapture(Ref ref) => JourneyCapture(
   repository: ref.watch(localJourneyRepositoryProvider),
   locationSource: ref.watch(journeyLocationSourceProvider),
+  onDiagnosticEvent:
+      AppFeatureFlags.locationDiagnostics &&
+          ref.watch(appConfigProvider).isDev
+      ? (event, data) => LocationDiagnostics.record(event, data)
+      : null,
 );

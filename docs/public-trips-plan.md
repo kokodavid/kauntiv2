@@ -395,5 +395,45 @@ never fall back to a private Journey or an old public snapshot.
   same at the end. Checked against real dev trips on 2026-10-04: the three real
   trips never exceeded 123 km/h; the two 25 Sep trips are Android emulator
   drives and were ignored when choosing the threshold.
+- Photo worker (Phase 1 PR 2; migration `20261004112000_public_trip_photo_worker_claims.sql`
+  and `supabase/functions/public-trip-photo-worker/`, applied and deployed on
+  dev, proven with real phone photos): an Edge Function using `magick-wasm`
+  re-encodes opted-in photos with all metadata removed (checked byte by byte on
+  a real downloaded copy) and caps them at 2560 px. It rejects sources over
+  16 MB or 52 megapixels. JPEGs are decoded at a reduced scale (1/2, 1/4 or 1/8)
+  and never resized, because a full decode plus resize exceeded the 2 s Edge CPU
+  limit on 12 MP photos. Job listing claims photos with a 3 minute lease and an
+  attempt count, so a photo that kills the worker is failed after 3 attempts
+  instead of blocking the queue. A daily sweep deletes stored copies nothing
+  references. The function is authenticated by its own `PUBLIC_TRIP_WORKER_SECRET`
+  (also in Vault for the cron jobs), not the Supabase service key.
+- Dashboard support (Phase 1 PR 3; migration `20261004113000_public_trip_dashboard_support.sql`):
+  `can_moderate_public_trips()`, a storage read policy so moderators (only) can
+  view sanitized photos through signed URLs, `list_public_trip_review_photos_dashboard`,
+  `list_public_trip_publications_dashboard` (live/hidden), richer review and
+  report lists (owner id/email, context; reporters stay anonymous) and
+  `list_public_trip_moderation_events_dashboard`. Tested in
+  `supabase/tests/public_trips/05_dashboard_support_test.sql`. The screens live in
+  the dashboard repo (`src/features/publicTrips`).
+- App slice, split in two (Phase 1 PR 4): **4a owner flow** is written: the status
+  tile and "Make public" entry in the Share trip sheet (the app passes it in
+  through `shareExtrasBuilder`, so Journeys never imports public-trips UI), the
+  review screen (title, hidden distance, moment switches with privacy hints,
+  photo picker capped at 10, "use these as my defaults"), the server-built
+  preview with a shimmer while it prepares and while photos are copied, terms
+  consent, submit, and withdraw. Older trips with no Drive/Walk mode, and trips
+  not yet uploaded, do not offer it (a mode picker is a later follow-up).
+  **4b viewer side** is written: the public trip screen (route on the map with
+  the owner's chosen moments and photos, author header, date, distance and
+  counties, directions to the already-trimmed public start, report and block
+  from a menu), a neutral "not available" state that never says why, a 30 second
+  and on-resume access re-check that fails closed when it cannot be confirmed,
+  and Home's "Trips near you" row (cards in the Share Card look, "N new for
+  you"), added to the Home sheet through an app-supplied `sheetExtra`. Photos
+  load through 10 minute signed URLs (path `<publication>/<revision>/<photo>.jpg`)
+  allowed by migration `20261004120000`, which lets a viewer read only the live
+  revision of a trip they may view; images are not cached on disk. Not in 4b:
+  animated playback, a blocked-authors list to unblock from, and a cover photo
+  on the Home cards.
 - Keep phase status, implementation PRs, migration deployment and outstanding
   device checks in the port tracker. Do not label a phase done before its gates.

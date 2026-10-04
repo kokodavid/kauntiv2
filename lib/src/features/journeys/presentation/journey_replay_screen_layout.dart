@@ -82,6 +82,7 @@ mixin _JourneyReplayScreenLayout on _JourneyReplayPlayback {
                     context,
                     summary: widget.summary,
                     route: widget.route,
+                    extrasBuilder: widget.shareExtrasBuilder,
                   ),
                   tooltip: 'Share this Trip',
                   iconWidget: const AppGlyphIcon(

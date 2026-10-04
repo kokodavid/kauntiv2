@@ -8,13 +8,11 @@ import '../../../core/domain/map_place.dart';
 import '../../../design/app_colors.dart';
 import '../application/map_home_view_preference_provider.dart';
 import '../domain/map_home_models.dart';
+import 'map_home_board_sheet.dart';
 import 'map_home_county_map.dart';
 import 'map_home_detection_paused_chip.dart';
-import 'map_home_for_you_section.dart';
 import 'map_home_links.dart';
 import 'map_home_map_status.dart';
-import 'map_home_sheet.dart';
-import 'map_home_sheet_cards.dart';
 import 'map_home_skeleton.dart';
 import 'map_home_stat_card.dart';
 import 'real_map_controls.dart';
@@ -33,6 +31,7 @@ class MapHomeBoard extends ConsumerStatefulWidget {
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
     this.onOpenProfile,
+    this.sheetExtra,
   });
 
   /// Null while the board is loading: every slot shows a same-sized
@@ -51,6 +50,10 @@ class MapHomeBoard extends ConsumerStatefulWidget {
   final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
   final VoidCallback? onOpenProfile;
+
+  /// Another feature's section for the Home sheet (the app wires it in), shown
+  /// under For You. It hides itself when it has nothing to show.
+  final Widget? sheetExtra;
 
   @override
   ConsumerState<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -274,23 +277,15 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
               onPressed: () => _setPreferDrawnMap(!_preferDrawnMap),
             ),
           ),
-        MapHomeSheet(
-          children: [
-            AnimatedSwitcher(
-              duration: _fade,
-              child: data == null
-                  ? const MapHomeForYouSkeleton()
-                  : MapHomeForYouSection(
-                      data: data,
-                      onOpenCounty: widget.onOpenCounty,
-                      onOpenPlace: widget.onOpenPlace,
-                      onRoute: widget.onRoute,
-                      onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
-                      onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
-                    ),
-            ),
-            const MapHomeQuestPreviewCard(),
-          ],
+        MapHomeBoardSheet(
+          data: data,
+          fade: _fade,
+          extra: widget.sheetExtra,
+          onOpenCounty: widget.onOpenCounty,
+          onOpenPlace: widget.onOpenPlace,
+          onRoute: widget.onRoute,
+          onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
+          onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
         ),
       ],
     );

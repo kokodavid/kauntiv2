@@ -45,18 +45,57 @@ begin
 end $$;
 reset role;
 
+-- Worker claiming: one lease at a time, retries after a dead worker, and a
+-- photo that never finishes is failed instead of blocking the queue.
+-- (The service role has no table access, so lease expiry is simulated as the owner role.)
+set local role service_role;
+do $$ declare jobs jsonb; begin
+  jobs := public.list_public_trip_photo_jobs();
+  perform tests.assert(jsonb_array_length(jobs) = 1 and jobs#>>'{0,source_path}' = 'owner/aaaa/f1.jpg',
+    'worker sees the pending photo');
+  perform tests.assert(jobs#>>'{0,attempts}' = '1','claim counts an attempt');
+  perform tests.assert(public.list_public_trip_photo_jobs() = '[]'::jsonb,
+    'a claimed photo is leased to one worker run');
+end $$;
+reset role;
+update public.public_trip_revision_photos set claimed_at = now() - interval '4 minutes';
+set local role service_role;
+do $$ declare jobs jsonb; begin
+  jobs := public.list_public_trip_photo_jobs();
+  perform tests.assert(jsonb_array_length(jobs) = 1 and jobs#>>'{0,attempts}' = '2','expired lease is retried');
+end $$;
+reset role;
+update public.public_trip_revision_photos set claimed_at = now() - interval '4 minutes';
+set local role service_role;
+do $$ declare jobs jsonb; begin
+  jobs := public.list_public_trip_photo_jobs();
+  perform tests.assert(jobs#>>'{0,attempts}' = '3','third attempt offered');
+end $$;
+reset role;
+update public.public_trip_revision_photos set claimed_at = now() - interval '4 minutes';
+set local role service_role;
+do $$ begin
+  perform tests.assert(public.list_public_trip_photo_jobs() = '[]'::jsonb,'exhausted photo not offered again');
+end $$;
+reset role;
+do $$ begin
+  perform tests.assert((select status from public.public_trip_revision_photos) = 'failed','exhausted photo is failed');
+end $$;
+update public.public_trip_revision_photos set status = 'pending', attempts = 0, claimed_at = null, failure_reason = null;
+
 -- The worker completes the photo; a stale generation is refused.
 set local role service_role;
 do $$
 declare jobs jsonb;
 begin
   jobs := public.list_public_trip_photo_jobs();
-  perform tests.assert(jsonb_array_length(jobs) = 1 and jobs#>>'{0,source_path}' = 'owner/aaaa/f1.jpg',
-    'worker sees the pending photo');
+  perform tests.assert(jsonb_array_length(jobs) = 1,'photo offered again after reset');
+  perform tests.assert(public.public_trip_photo_paths_in_use() = '[]'::jsonb,'no stored copy yet');
   perform tests.assert(not public.complete_public_trip_photo((jobs#>>'{0,id}')::uuid,
     (jobs#>>'{0,generation}')::int+1,'stale/photo.jpg',800,600),'stale generation refused');
   perform tests.assert(public.complete_public_trip_photo((jobs#>>'{0,id}')::uuid,
     (jobs#>>'{0,generation}')::int,'pub/photo.jpg',800,600),'worker completes the photo');
+  perform tests.assert(public.public_trip_photo_paths_in_use() = '["pub/photo.jpg"]'::jsonb,'stored copy is in use');
 end $$;
 reset role;
 

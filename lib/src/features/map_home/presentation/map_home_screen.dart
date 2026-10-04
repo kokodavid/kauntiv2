@@ -21,6 +21,7 @@ class MapHomeScreen extends StatefulWidget {
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
     this.onOpenProfile,
+    this.sheetExtra,
   });
 
   final CountyPath? homeCounty;
@@ -36,6 +37,9 @@ class MapHomeScreen extends StatefulWidget {
   final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
   final VoidCallback? onOpenProfile;
+
+  /// A section another feature adds to the Home sheet; see [MapHomeBoard].
+  final Widget? sheetExtra;
 
   @override
   State<MapHomeScreen> createState() => _MapHomeScreenState();
@@ -79,6 +83,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
             onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
             onOpenProfile: widget.onOpenProfile,
+            sheetExtra: widget.sheetExtra,
           );
         },
       ),

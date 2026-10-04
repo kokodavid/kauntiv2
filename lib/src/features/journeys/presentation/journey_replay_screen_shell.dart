@@ -8,10 +8,15 @@ class JourneyReplayScreen extends ConsumerWidget {
     super.key,
     required this.journeyId,
     this.onOpenCounty,
+    this.shareExtrasBuilder,
   });
 
   final String journeyId;
   final ValueChanged<int>? onOpenCounty;
+
+  /// Extra content for the Share trip sheet, supplied by the app so this
+  /// feature never depends on another feature's screens.
+  final TripShareExtrasBuilder? shareExtrasBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,6 +38,7 @@ class JourneyReplayScreen extends ConsumerWidget {
               moments: moments ?? const [],
               momentsLoading: momentsLoading,
               onOpenCounty: onOpenCounty,
+              shareExtrasBuilder: shareExtrasBuilder,
             )
           : Stack(
               fit: StackFit.expand,
@@ -77,6 +83,7 @@ class _Player extends StatefulWidget {
     required this.moments,
     required this.momentsLoading,
     this.onOpenCounty,
+    this.shareExtrasBuilder,
   });
 
   final JourneySummary summary;
@@ -88,6 +95,7 @@ class _Player extends StatefulWidget {
   /// `journeyMomentsProvider` is still computing its first value.
   final bool momentsLoading;
   final ValueChanged<int>? onOpenCounty;
+  final TripShareExtrasBuilder? shareExtrasBuilder;
 
   @override
   State<_Player> createState() => _PlayerState();

@@ -161,6 +161,7 @@ class JourneyTimelineMomentRow extends StatelessWidget {
                                   image: appNetworkImage(
                                     photo.url,
                                     cacheKey: photo.id,
+                                    cacheWidth: _photoCacheWidth,
                                   ),
                                   key: ValueKey('journey-photo-${photo.id}'),
                                   fit: BoxFit.cover,
@@ -171,13 +172,13 @@ class JourneyTimelineMomentRow extends StatelessWidget {
                                   // "current"), so keep showing the last
                                   // frame instead of flashing back to
                                   // nothing while a stream briefly
-                                  // re-resolves. cacheWidth decodes at
+                                  // re-resolves. The image's cacheWidth
+                                  // (in appNetworkImage above) decodes at
                                   // roughly this row's own display size
                                   // instead of the original full-resolution
                                   // photo - a real memory/jank win when a
                                   // Trip has several of these in the list.
                                   gaplessPlayback: true,
-                                  cacheWidth: _photoCacheWidth,
                                   errorBuilder: (context, error, stack) =>
                                       const ColoredBox(
                                         color: AppColors.lockedFill,

@@ -11,6 +11,7 @@ import '../../../core/services/app_media_picker.dart';
 import '../../../core/services/app_share.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../core/widgets/app_glyph_icon.dart';
+import '../../../core/widgets/app_shimmer.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../services/app_logger.dart';
@@ -31,9 +32,11 @@ part 'trip_share_sheet_close_button.dart';
 part 'trip_share_sheet_shape_toggle.dart';
 part 'trip_share_sheet_shape_chip.dart';
 part 'trip_share_sheet_photo_strip.dart';
+part 'trip_share_sheet_photo_strip_skeleton.dart';
 part 'trip_share_sheet_photo_thumb.dart';
 part 'trip_share_sheet_from_phone_tile.dart';
 part 'trip_share_sheet_styles.dart';
+part 'trip_share_sheet_action_row.dart';
 
 abstract class _TripShareSheetStateBase extends ConsumerState<_TripShareSheet> {
   static const _logger = AppLogger.journeys();

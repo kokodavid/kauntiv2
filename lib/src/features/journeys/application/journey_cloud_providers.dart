@@ -40,3 +40,14 @@ Future<void> updateJourneyCoverPhoto(
   required String id,
   required String? mediaId,
 }) => repository.setCoverPhoto(userId: userId, id: id, mediaId: mediaId);
+
+Future<void> deleteJourneyMediaPhoto(
+  SupabaseJourneyRepository repository, {
+  required String userId,
+  required String journeyId,
+  required String mediaId,
+}) => repository.deleteMedia(
+  userId: userId,
+  journeyId: journeyId,
+  mediaId: mediaId,
+);

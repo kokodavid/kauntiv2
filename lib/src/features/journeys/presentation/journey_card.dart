@@ -200,7 +200,7 @@ class _JourneyCardState extends State<JourneyCard> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: AppTypeScale.small.copyWith(
-                                      color: AppColors.mutedForeground,
+                                      color: AppColors.accent,
                                     ),
                                   ),
                                 ),

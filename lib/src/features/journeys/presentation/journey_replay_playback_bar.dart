@@ -96,6 +96,8 @@ class JourneyReplayPlaybackBar extends StatelessWidget {
                       Expanded(
                         child: Text(
                           readout,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: AppTypeScale.small.copyWith(
                             color: Colors.white,
                           ),

@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_media_picker.dart';
 import '../../../core/services/camera_roll_matcher.dart';
+import '../../../core/widgets/app_confirm_sheet.dart';
 import '../../../core/widgets/app_floating_toast.dart';
+import '../../../design/app_colors.dart';
 import '../../auth/application/auth_providers.dart';
 import '../application/journey_cloud_providers.dart';
 import '../application/journey_providers.dart';
 import '../application/journey_views.dart';
+import '../domain/journey_media_capture.dart';
 import '../domain/journey_summary.dart';
 
 /// Lets the user fill a Trip's empty timeline with photos from their own
@@ -173,4 +176,61 @@ Future<void> _uploadAndNotify(
         ? 'Photo added to the Trip'
         : '$addedCount photos added to the Trip',
   );
+}
+
+/// Confirms with a "Remove this photo?" sheet, then deletes [item] from
+/// [journeyId]'s synced photos (the storage object and its `journey_media`
+/// row) and refreshes Replay/the share sheet. Returns whether it was
+/// actually removed, so a caller showing the photo full-screen knows to
+/// close back out of it.
+Future<bool> removeJourneyMedia(
+  BuildContext context,
+  WidgetRef ref,
+  String journeyId,
+  JourneyMediaItem item,
+) async {
+  final confirmed = await showAppConfirmSheet(
+    context,
+    icon: Icons.delete_outline,
+    iconColor: AppColors.danger,
+    iconTint: AppColors.dangerTint,
+    title: 'Remove this photo?',
+    body: "It'll be removed from this Trip's timeline for good.",
+    primaryLabel: 'Remove photo',
+    primaryColor: AppColors.danger,
+  );
+  if (!confirmed || !context.mounted) return false;
+
+  final userId = ref.read(currentUserIdProvider)();
+  final cloud = ref.read(supabaseJourneyRepositoryProvider);
+  if (userId == null || cloud == null) return false;
+
+  try {
+    await deleteJourneyMediaPhoto(
+      cloud,
+      userId: userId,
+      journeyId: journeyId,
+      mediaId: item.id,
+    );
+  } on Object {
+    if (!context.mounted) return false;
+    showAppToast(
+      context,
+      variant: AppToastVariant.error,
+      title: "Couldn't remove that photo",
+      message: 'Try again.',
+    );
+    return false;
+  }
+
+  ref.invalidate(journeyMediaProvider(journeyId));
+
+  if (context.mounted) {
+    showAppToast(
+      context,
+      variant: AppToastVariant.success,
+      title: 'Photo removed',
+    );
+  }
+  return true;
 }

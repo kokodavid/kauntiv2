@@ -93,12 +93,14 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
     if (_addingPhotos) return;
     setState(() => _addingPhotos = true);
     try {
-      await addCameraRollMatchesToTrip(
-        context,
-        ref,
-        widget.summary,
-        _cameraRollScan.matches,
-      );
+      final matches = _cameraRollScan.matches;
+      // The card's own label already tells the user when this is a
+      // partial add ("Add 24 of 34") - the rest stay reachable via
+      // "Choose" rather than silently never making it onto the Trip.
+      final capped = matches.length > CameraRollMatcher.maxAutoAdd
+          ? matches.sublist(0, CameraRollMatcher.maxAutoAdd)
+          : matches;
+      await addCameraRollMatchesToTrip(context, ref, widget.summary, capped);
     } finally {
       if (mounted) setState(() => _addingPhotos = false);
     }
@@ -117,4 +119,10 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
       if (mounted) setState(() => _addingPhotos = false);
     }
   }
+
+  /// Handed to [JourneyTimelineMomentRow.onDeletePhoto] - its own
+  /// [BuildContext] (the full-screen photo viewer's, not this screen's)
+  /// is what the confirm sheet and toast anchor to.
+  Future<bool> _removePhoto(BuildContext context, JourneyMediaItem photo) =>
+      removeJourneyMedia(context, ref, widget.summary.id, photo);
 }

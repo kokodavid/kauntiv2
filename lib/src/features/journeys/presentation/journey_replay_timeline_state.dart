@@ -201,6 +201,7 @@ mixin _JourneyReplayTimelineStateBehavior
                     widget.onOpenCounty == null || moment.countyCode == null
                     ? null
                     : () => widget.onOpenCounty!(moment.countyCode!),
+                onDeletePhoto: _removePhoto,
               ),
             );
           }

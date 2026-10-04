@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats and county splits. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats, county splits, camera-roll photo matching, replay moments and share-card media. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
 
 ## Baseline burn-down
 
@@ -417,6 +417,19 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   the confirming point. The recording map waits for its first fix rather
   than briefly opening over the default Kenya camera.
 
+**Built in the Journey media follow-up**
+
+- Match camera-roll photos to a recorded Trip by capture time. Nearby shots
+  (within 60 seconds) are grouped as alternatives; users can choose a different
+  shot, select matches, or add up to 24 suggestions at once. Thumbnail loading
+  uses a stable skeleton rather than flashing an empty tile.
+- Replay can show Trip photos and key moments, including a top-speed moment
+  only when speed clears the minimum threshold and is not an isolated GPS spike.
+- Trip sharing supports selecting/replacing media and deleting an uploaded
+  photo from both private Storage and its `journey_media` row.
+- Release version is set to `1.3.10+19`. Camera-roll permission, photo loading,
+  account/session transitions and native sharing still need device verification.
+
 **Built in the place handoff slice**
 
 - Place Detail Get Route, Home map place pins and the Home promoted-place card
@@ -451,6 +464,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-04 | working tree | 13 | Journey media follow-up: cluster timestamp-matched camera-roll photos with alternatives and a capped bulk-add action; enrich replay/share surfaces with photo management and a filtered top-speed moment. Version set to 1.3.10+19. CI/device verification pending. |
 | 2026-10-03 | working tree | 6 | County news sheet now displays live DeckWatch summary stats: total and previous-period comparison, leading categories and high/critical reports. Summary fetch has independent loading/error/retry states and county-switch transition coverage; Flutter/device verification pending. |
 | 2026-10-03 | working tree | 6 | Match attached KauntiNews concept in v2: compact 30-day news summary, 48-hour corroborated alert banner, detailed external-source sheet and horizontal county place cards. Screen-transition test updated; Flutter/device verification pending. |
 | 2026-10-03 | working tree | 6 | Add owner/admin dashboard control for county news visibility via `app_feature_flags`; app fails closed until the remote flag enables news. Apply migration before using the control. Flutter checks pending. |

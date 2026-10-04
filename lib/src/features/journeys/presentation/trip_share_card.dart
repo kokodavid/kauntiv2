@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_shimmer.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/journey_transport_mode.dart';
@@ -171,7 +172,32 @@ class TripShareCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (hasPhoto)
-              Image(image: photo!, fit: BoxFit.cover)
+              // frameBuilder: the plain `Image(image: photo!, ...)` this
+              // replaced painted nothing while the network bytes were
+              // still downloading - just the scrims below over empty
+              // space, reading as a broken/no-photo card until the
+              // image popped in. A skeleton in the same spot makes that
+              // wait look intentional instead.
+              Image(
+                image: photo!,
+                fit: BoxFit.cover,
+                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                  if (wasSynchronouslyLoaded) return child;
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (frame == null)
+                        const AppShimmer(child: AppSkeleton(radius: 0)),
+                      AnimatedOpacity(
+                        opacity: frame == null ? 0 : 1,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        child: child,
+                      ),
+                    ],
+                  );
+                },
+              )
             else
               _NoPhotoBackground(routePoints: routePoints, isShare: _isShare),
             // Always present; lighter over the brand gradient than over

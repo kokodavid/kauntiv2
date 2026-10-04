@@ -9,6 +9,7 @@ enum JourneyMomentKind {
   countyCrossing,
   photo,
   elevationPeak,
+  topSpeed,
 }
 
 /// A key moment the replay pauses at: where along the route ([index], a
@@ -22,6 +23,7 @@ class JourneyMoment {
     this.duration,
     this.photo,
     this.elevationMeters,
+    this.speedMetersPerSecond,
   });
 
   final JourneyMomentKind kind;
@@ -43,6 +45,9 @@ class JourneyMoment {
 
   /// The altitude in metres, for the elevation-peak moment.
   final double? elevationMeters;
+
+  /// The speed in m/s, for the top-speed moment.
+  final double? speedMetersPerSecond;
 
   bool get isPhoto => photo != null;
 }
@@ -79,6 +84,7 @@ abstract final class JourneyMoments {
       if (countyAt != null) ..._counties(points, countyAt, countyName),
       ..._photos(points, photos),
       ..._elevationPeak(points),
+      ..._topSpeed(points),
     ];
     // Stable by kind within an index, so the order is predictable.
     moments.sort(
@@ -238,6 +244,54 @@ abstract final class JourneyMoments {
       kind: JourneyMomentKind.elevationPeak,
       index: peakIndex,
       elevationMeters: peak,
+    );
+  }
+
+  /// Below this, a Trip's fastest point isn't worth calling out - walking
+  /// or ambling-pace GPS noise shouldn't read as a "top speed" moment.
+  static const topSpeedMinimumKmh = 15.0;
+
+  /// The fastest point found must have at least one neighbouring fix
+  /// within this fraction of its own speed, so a single noisy GPS
+  /// reading (a brief spike with nothing sustained around it) doesn't
+  /// get crowned the Trip's top speed.
+  static const topSpeedNeighbourRatio = 0.7;
+
+  /// The single fastest point of the route, if any point reported a
+  /// speed, it clears [topSpeedMinimumKmh], and it isn't an isolated
+  /// spike (see [topSpeedNeighbourRatio]).
+  static Iterable<JourneyMoment> _topSpeed(List<JourneyPoint> points) sync* {
+    int? fastestIndex;
+    double? fastest;
+    for (var i = 0; i < points.length; i++) {
+      final speed = points[i].speedMetersPerSecond;
+      if (speed == null) continue;
+      if (fastest == null || speed > fastest) {
+        fastest = speed;
+        fastestIndex = i;
+      }
+    }
+    if (fastestIndex == null || fastest == null) return;
+    if (fastest * 3.6 < topSpeedMinimumKmh) return;
+    final fastestPoint = points[fastestIndex];
+    final neighbours = [
+      if (fastestIndex > 0 &&
+          points[fastestIndex - 1].segmentNumber == fastestPoint.segmentNumber)
+        points[fastestIndex - 1].speedMetersPerSecond,
+      if (fastestIndex + 1 < points.length &&
+          points[fastestIndex + 1].segmentNumber == fastestPoint.segmentNumber)
+        points[fastestIndex + 1].speedMetersPerSecond,
+    ].whereType<double>();
+    if (neighbours.isEmpty ||
+        neighbours.every(
+          (speed) => speed < fastest! * topSpeedNeighbourRatio,
+        )) {
+      return;
+    }
+    yield JourneyMoment(
+      kind: JourneyMomentKind.topSpeed,
+      index: fastestIndex,
+      speedMetersPerSecond: fastest,
     );
   }
 }

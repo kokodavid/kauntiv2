@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../design/app_colors.dart';
 import 'profile_tiles.dart';
 
@@ -155,7 +156,7 @@ class _Avatar extends StatelessWidget {
           child: CircleAvatar(
             backgroundColor: AppColors.accent,
             backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
-                ? NetworkImage(avatarUrl!)
+                ? appNetworkImage(avatarUrl!)
                 : null,
             child: avatarUrl != null && avatarUrl!.isNotEmpty
                 ? null

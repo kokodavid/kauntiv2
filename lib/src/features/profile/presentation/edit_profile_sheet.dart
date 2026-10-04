@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_media_picker.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../design/app_colors.dart';
 import '../application/public_profile_providers.dart';
 import '../domain/public_profile.dart';
@@ -163,7 +164,7 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                   radius: 32,
                   backgroundColor: AppColors.accent,
                   backgroundImage: _avatarUrl != null && _avatarUrl!.isNotEmpty
-                      ? NetworkImage(_avatarUrl!)
+                      ? appNetworkImage(_avatarUrl!)
                       : null,
                   child: _savingPhoto
                       ? const SizedBox.square(

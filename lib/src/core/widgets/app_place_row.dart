@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design/app_colors.dart';
 import '../design/app_type_scale.dart';
+import 'app_network_image.dart';
 import 'app_save_icon.dart';
 
 /// The shared place row (v1 `AppPlaceRow`): a 54px thumbnail, the title
@@ -80,8 +81,8 @@ class AppPlaceRow extends StatelessWidget {
                 dimension: 54,
                 child: thumbnail == null
                     ? const ColoredBox(color: AppColors.explorePhotoPlaceholder)
-                    : Image.network(
-                        thumbnail,
+                    : Image(
+                        image: appNetworkImage(thumbnail),
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
                             const ColoredBox(

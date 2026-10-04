@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_network_image.dart';
 import '../../../design/app_colors.dart';
 import '../application/explore_providers.dart';
 import '../domain/explore_board.dart';
@@ -79,8 +80,8 @@ class ExploreWishlistRow extends ConsumerWidget {
                       dimension: 40,
                       child: thumbnail == null
                           ? const ColoredBox(color: AppColors.lockedFill)
-                          : Image.network(
-                              thumbnail,
+                          : Image(
+                              image: appNetworkImage(thumbnail),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   const ColoredBox(color: AppColors.lockedFill),

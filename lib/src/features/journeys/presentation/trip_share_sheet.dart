@@ -11,6 +11,7 @@ import '../../../core/services/app_media_picker.dart';
 import '../../../core/services/app_share.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../core/widgets/app_glyph_icon.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/app_shimmer.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';

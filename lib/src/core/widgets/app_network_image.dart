@@ -31,11 +31,10 @@ widgets.ImageProvider<Object> appNetworkImage(
   String? cacheKey,
   int? cacheWidth,
 }) {
-  final widgets.ImageProvider<Object> image = cached
-      .CachedNetworkImageProvider(
-        url,
-        cacheKey: cacheKey,
-        cacheManager: _imageCache,
-      );
+  final widgets.ImageProvider<Object> image = cached.CachedNetworkImageProvider(
+    url,
+    cacheKey: cacheKey,
+    cacheManager: _imageCache,
+  );
   return widgets.ResizeImage.resizeIfNeeded(cacheWidth, null, image);
 }

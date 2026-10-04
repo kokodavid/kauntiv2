@@ -52,7 +52,7 @@ class _CountySafetyNewsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height * .86;
     final reports = [
-      if (pinnedIncident != null) pinnedIncident!,
+      ?pinnedIncident,
       ...feed.incidents.where((incident) => incident != pinnedIncident),
     ];
     return SafeArea(
@@ -101,9 +101,9 @@ class _CountySafetyNewsSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  "Reports from news outlets, collected by DeckWatch. "
+                  'Reports from news outlets, collected by DeckWatch. '
                   "Kaunti47 doesn't check them, and they aren't a safety "
-                  "rating.",
+                  'rating.',
                   style: AppTypeScale.body.copyWith(height: 1.4),
                 ),
               ),

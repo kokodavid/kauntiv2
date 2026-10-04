@@ -22,6 +22,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
 | 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats, county splits, camera-roll photo matching, replay moments and share-card media. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
+| 14 | Public Trips | New in v2 | In progress | codex/public-trips-backend | [Build plan](public-trips-plan.md): Pro users publish, every revision moderator-approved; server-sanitized copies with chosen moments, sanitized photos, date, author name/avatar; read-only replay, report/block/withdraw, Home horizontal row, directions to an approved start. Phase 1 PR 1 (backend) applied to dev with flags off; photo worker, dashboard moderation and app slice next. |
 
 ## Baseline burn-down
 
@@ -31,6 +32,27 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2026-09-25 | 28 | `app.dart` state machine and the `ChangeNotifier` sign-in controller replaced (go_router work) |
 
 ## Feature notes
+
+### Public Trips (#14)
+
+- [Public Trips plan](public-trips-plan.md) replaces the exploratory brief.
+  Product decisions revised 2026-10-04: Pro publishing with moderator approval,
+  profile name and avatar, chosen moments, opt-in photos and date in the MVP,
+  edits re-approved, directions to an approved start, Home horizontal row.
+- Server-generated public copies, whole-route exclusion checks, synthetic
+  replay timing, exact-revision moderation, photo sanitization and
+  account-scoped access are MVP dependencies. Interior exclusion zones, wider
+  ranking and the route-following Maps itinerary are Phase 2.
+- Backend migrations `20261004100000`-`20261004110000` (including
+  `20261004106000`) implement the revised decisions and are applied to dev with
+  both flags off; prod pending. SQL contract tests: `tools/test_public_trips.sh`.
+- Follow-up: one GPS jump rejects a whole trip in the sanitizer; decide and fix
+  in a new migration, then run it read-only against real dev trips.
+- Today's target is a release candidate for named testers only if all release
+  gates pass; a disabled backend foundation is the first deliverable if the
+  complete MVP cannot be verified. No store release date is guaranteed.
+- Pending: implement and verify every gate in the plan, confirm proposed pilot
+  defaults, deploy additive migrations and distribute a compatible app build.
 
 ### Journeys (#13)
 
@@ -466,6 +488,8 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-04 | codex/public-trips-backend | 14 | Public Trips backend (Phase 1 PR 1): Pro publishing with moderator approval, sanitized routes, moments, photo queue, share defaults, Home row, report/block/withdraw; statement-level source-change triggers; SQL contract tests. Applied to dev, flags off. |
+| 2026-10-04 | codex/public-trips-plan | 14 | Rewritten Public Trips plan: moderated MVP, privacy transformation, publication/revocation contracts, app/dashboard phases and explicit rollout gates; documentation only, nothing implemented or deployed. |
 | 2026-10-04 | working tree | 13 | Journey media follow-up: cluster timestamp-matched camera-roll photos with alternatives and a capped bulk-add action; enrich replay/share surfaces with photo management and a filtered top-speed moment. Version set to 1.3.10+19. CI/device verification pending. |
 | 2026-10-03 | working tree | 6 | County news sheet now displays live DeckWatch summary stats: total and previous-period comparison, leading categories and high/critical reports. Summary fetch has independent loading/error/retry states and county-switch transition coverage; Flutter/device verification pending. |
 | 2026-10-03 | working tree | 6 | Match attached KauntiNews concept in v2: compact 30-day news summary, 48-hour corroborated alert banner, detailed external-source sheet and horizontal county place cards. Screen-transition test updated; Flutter/device verification pending. |

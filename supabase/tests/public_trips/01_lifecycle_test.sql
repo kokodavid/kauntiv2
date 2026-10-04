@@ -1,0 +1,102 @@
+begin;
+select tests.seed();
+insert into public.pro_entitlement_periods(user_id,starts_at) values (tests.actor('owner'),now()-interval '1 day');
+select tests.assert(not exists(select 1 from public.app_feature_flags where enabled), 'flags start disabled');
+set local role authenticated;
+do $$
+declare
+  candidate jsonb; retry jsonb; shown jsonb; second jsonb; report_id uuid;
+  pub uuid; author uuid; rev integer; withdrawal uuid := gen_random_uuid();
+  request uuid := gen_random_uuid();
+begin
+  perform tests.login('owner');
+  perform tests.expect_error($q$select public.prepare_public_trip('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    gen_random_uuid(),'Public title')$q$,'42501');
+  perform tests.login('admin');
+  perform public.set_public_trip_flags_dashboard(true,true);
+  perform tests.login('owner');
+  candidate := public.prepare_public_trip('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',request,'Public title');
+  pub := (candidate->>'id')::uuid; rev := (candidate->>'revision')::integer;
+  author := (candidate#>>'{author,id}')::uuid;
+  perform tests.assert(candidate->>'status' = 'prepared','owner gets a prepared preview');
+  perform tests.assert((candidate->>'distance_m')::numeric between 1000 and 4400,'stats are sanitized, not private total');
+  retry := public.prepare_public_trip('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',request,'Public title');
+  perform tests.assert(retry = candidate,'prepare is idempotent');
+  perform tests.expect_error(format($q$select public.prepare_public_trip('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    %L,'Different input')$q$,request),'22023');
+  perform tests.expect_error(format('select public.submit_public_trip(%L,%s,%L,%L)',pub,rev,'wrong','public-trips-v1'),'22023');
+  perform tests.expect_error(format('select public.submit_public_trip(%L,%s,%L,%L)',pub,rev,candidate->>'content_hash','old-terms'),'22023');
+  candidate := public.submit_public_trip(pub,rev,candidate->>'content_hash','public-trips-v1');
+  retry := public.submit_public_trip(pub,rev,candidate->>'content_hash','public-trips-v1');
+  perform tests.assert(retry = candidate,'submit is idempotent');
+  perform tests.expect_error(format('select public.review_public_trip(%L,%s,%L,%L)',pub,rev,candidate->>'content_hash','approve'),'42501');
+  perform tests.expect_error('select * from public.public_trip_revisions','42501');
+  perform tests.expect_error($q$select public_trip_private.sanitize_route('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',500,500)$q$,'42501');
+  perform tests.expect_error('select public.cleanup_public_trips()','42501');
+  perform tests.login('viewer');
+  perform tests.assert(public.get_public_trip(pub) is null,'unapproved trip is not readable');
+  perform tests.expect_error($q$select public.prepare_public_trip('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    gen_random_uuid(),'Stolen')$q$,'42501','Pro');
+  perform tests.assert(not exists(select 1 from public.journey_points),'private points remain owner scoped');
+  perform tests.login('admin');
+  perform tests.assert(jsonb_array_length(public.list_public_trip_reviews_dashboard()) = 1,'review queue contains submitted trip');
+  perform public.review_public_trip(pub,rev,candidate->>'content_hash','approve');
+  perform public.review_public_trip(pub,rev,candidate->>'content_hash','approve');
+  perform tests.login('viewer');
+  shown := public.get_public_trip(pub);
+  perform tests.assert(shown->>'title' = 'Public title','viewer reads approved title');
+  perform tests.assert(shown->>'playback' = 'illustrative','replay has no private timing');
+  perform tests.assert(not (shown ?| array['journey_id','owner_id','recorded_at','started_at','ended_at',
+    'source_hash','content_hash','expires_at','status','review_reason','duration','speed','excluded']), 'private fields absent');
+  perform tests.assert(shown#>>'{author,display_name}' = 'Test Owner','author identity shown');
+  perform tests.assert(position('PRIVATE SOURCE TITLE' in shown::text) = 0,'private title absent');
+  perform tests.assert(public.public_trips_for_you(47::smallint)->0->>'id' = pub::text,'recommendation eligible');
+  report_id := public.report_public_trip(pub,'privacy','Please review');
+  perform tests.assert(public.report_public_trip(pub,'privacy','Please review') = report_id,'report retry idempotent');
+  perform tests.expect_error('select * from public.public_trip_reports','42501');
+  perform public.block_public_trip_author(author,true);
+  perform tests.assert(public.get_public_trip(pub) is null,'blocking denies detail');
+  perform tests.assert(public.public_trips_for_you(47::smallint) = '[]'::jsonb,'blocking denies recommendation');
+  perform public.block_public_trip_author(author,false);
+  perform tests.assert(public.get_public_trip(pub) is not null,'unblocking restores eligible publication');
+  perform tests.login('outsider');
+  perform tests.assert(public.get_public_trip(pub) is not null,'any signed-in user can read an approved trip');
+  perform tests.expect_error('select public.set_public_trip_flags_dashboard(true,true)','42501');
+  perform tests.login('admin');
+  perform public.set_public_trip_author_suspended_dashboard(tests.actor('owner'),true);
+  perform tests.login('viewer');
+  perform tests.assert(public.get_public_trip(pub) is null,'publisher suspension immediately hides');
+  perform tests.login('admin');
+  perform public.set_public_trip_author_suspended_dashboard(tests.actor('owner'),false);
+  perform public.resolve_public_trip_report_dashboard(report_id);
+  perform tests.assert(public.list_public_trip_reports_dashboard() = '[]'::jsonb,'resolved report leaves queue');
+  perform public.set_public_trip_flags_dashboard(false,false);
+  perform tests.login('viewer');
+  perform tests.expect_error(format('select public.get_public_trip(%L)',pub),'42501');
+  perform tests.login('owner');
+  perform public.withdraw_public_trip(pub,withdrawal);
+  perform public.withdraw_public_trip(pub,withdrawal);
+  perform tests.assert(public.my_public_trip('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')->>'status' = 'revoked',
+    'withdrawal works while flags off');
+  perform tests.login('admin');
+  perform public.set_public_trip_flags_dashboard(true,true);
+  perform tests.expect_error(format('select public.review_public_trip(%L,%s,%L,%L)',pub,rev,candidate->>'content_hash','approve'),'22023');
+  perform tests.login('viewer');
+  perform tests.assert(public.get_public_trip(pub) is null,'withdrawn copy stays unavailable');
+  perform tests.login('owner');
+  perform tests.expect_error(format($q$select public.prepare_public_trip('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    %L,'Public title')$q$,request),'22023');
+  second := public.prepare_public_trip('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',gen_random_uuid(),'New revision');
+  second := public.submit_public_trip(pub,(second->>'revision')::integer,second->>'content_hash','public-trips-v1');
+  perform tests.login('admin');
+  perform public.review_public_trip(pub,(second->>'revision')::integer,second->>'content_hash','approve');
+  perform tests.login('owner');
+  perform public.withdraw_public_trip(pub,withdrawal);
+  perform tests.login('viewer');
+  perform tests.assert(public.get_public_trip(pub)->>'title' = 'New revision','old withdrawal retry cannot remove later approved revision');
+end $$;
+reset role;
+set local role anon;
+select tests.expect_error('select public.get_public_trip(gen_random_uuid())','42501');
+reset role;
+rollback;

@@ -124,7 +124,8 @@ class DeckwatchCountySafetyRepository implements CountySafetyRepository {
     }
 
     return CountyIncidentSummary(
-      asOf: DateTime.tryParse(payload['asOf'] as String? ?? '') ??
+      asOf:
+          DateTime.tryParse(payload['asOf'] as String? ?? '') ??
           DateTime.now().toUtc(),
       periodDays: (payload['periodDays'] as num?)?.toInt() ?? days,
       total: (payload['total'] as num).toInt(),

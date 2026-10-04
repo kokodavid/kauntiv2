@@ -82,11 +82,10 @@ class _CountyDetailBodyState extends State<_CountyDetailBody> {
   late Future<bool> _countyNewsEnabled = widget.actions.isCountyNewsEnabled();
   Future<CountySafetyFeed>? _safetyFeed;
 
-  Future<CountySafetyFeed> _loadSafetyFeed() =>
-      widget.actions.countySafetyFeed(
-        countyName: widget.data.county.name,
-        now: DateTime.now(),
-      );
+  Future<CountySafetyFeed> _loadSafetyFeed() => widget.actions.countySafetyFeed(
+    countyName: widget.data.county.name,
+    now: DateTime.now(),
+  );
 
   Future<CountySafetyFeed> _getSafetyFeed() =>
       _safetyFeed ??= _loadSafetyFeed();

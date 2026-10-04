@@ -63,7 +63,10 @@ class CountySafetySection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
-                          const Text('In the news', style: AppTypeScale.cardTitle),
+                          const Text(
+                            'In the news',
+                            style: AppTypeScale.cardTitle,
+                          ),
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
@@ -145,7 +148,9 @@ class _NewsIcon extends StatelessWidget {
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: alert!.isSevere ? AppColors.danger : AppColors.toastWarningIcon,
+                color: alert!.isSevere
+                    ? AppColors.danger
+                    : AppColors.toastWarningIcon,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
               ),

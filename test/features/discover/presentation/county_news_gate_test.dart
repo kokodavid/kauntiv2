@@ -25,7 +25,9 @@ void main() {
     expect(find.text('In the news'), findsNothing);
   });
 
-  testWidgets('shows news only after the flag resolves enabled', (tester) async {
+  testWidgets('shows news only after the flag resolves enabled', (
+    tester,
+  ) async {
     final enabled = Completer<bool>();
     await tester.pumpWidget(
       MaterialApp(

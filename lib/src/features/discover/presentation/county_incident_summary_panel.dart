@@ -24,9 +24,8 @@ class _CountyIncidentSummaryPanelState
     extends State<CountyIncidentSummaryPanel> {
   late Future<CountyIncidentSummary> _summary = _load();
 
-  Future<CountyIncidentSummary> _load() => widget.actions.countySafetySummary(
-    countySlug: widget.countySlug,
-  );
+  Future<CountyIncidentSummary> _load() =>
+      widget.actions.countySafetySummary(countySlug: widget.countySlug);
 
   void _retry() => setState(() => _summary = _load());
 
@@ -114,10 +113,7 @@ class _SummaryData extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 2),
-                  child: Text(
-                    _changeLabel(summary),
-                    style: AppTypeScale.small,
-                  ),
+                  child: Text(_changeLabel(summary), style: AppTypeScale.small),
                 ),
               ),
             ],
@@ -160,8 +156,7 @@ String _changeLabel(CountyIncidentSummary summary) {
 String _label(String value) => value
     .split('_')
     .map(
-      (word) => word.isEmpty
-          ? word
-          : '${word[0].toUpperCase()}${word.substring(1)}',
+      (word) =>
+          word.isEmpty ? word : '${word[0].toUpperCase()}${word.substring(1)}',
     )
     .join(' ');

@@ -13,8 +13,7 @@ class CountyNewsGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FutureBuilder<bool>(
     future: enabled,
-    builder: (context, snapshot) => snapshot.data == true
-        ? builder(context)
-        : const SizedBox.shrink(),
+    builder: (context, snapshot) =>
+        snapshot.data == true ? builder(context) : const SizedBox.shrink(),
   );
 }

@@ -131,15 +131,11 @@ class _CountySafetyNewsSheet extends StatelessWidget {
                   else
                     for (var index = 0; index < reports.length; index++) ...[
                       if (index > 0)
-                        const Divider(
-                          height: 1,
-                          color: AppColors.listDivider,
-                        ),
+                        const Divider(height: 1, color: AppColors.listDivider),
                       CountySafetyIncidentTile(
                         incident: reports[index],
-                        onTap: () => actions.openSafetySource(
-                          reports[index].sourceUrl,
-                        ),
+                        onTap: () =>
+                            actions.openSafetySource(reports[index].sourceUrl),
                       ),
                     ],
                 ],
@@ -154,7 +150,10 @@ class _CountySafetyNewsSheet extends StatelessWidget {
                     style: AppTypeScale.statLabel,
                   ),
                   const Spacer(),
-                  Text('${feed.incidentCount} listed', style: AppTypeScale.statLabel),
+                  Text(
+                    '${feed.incidentCount} listed',
+                    style: AppTypeScale.statLabel,
+                  ),
                 ],
               ),
             ),

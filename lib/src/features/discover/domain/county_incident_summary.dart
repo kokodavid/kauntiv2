@@ -43,8 +43,7 @@ class CountyIncidentSummary {
   final List<CountyIncidentCategoryCount> categories;
   final List<CountyIncidentSeverityCount> severities;
 
-  List<CountyIncidentCategoryCount> get leadingCategories => categories
-      .where((item) => item.count > 0)
-      .toList()
-    ..sort((a, b) => b.count.compareTo(a.count));
+  List<CountyIncidentCategoryCount> get leadingCategories =>
+      categories.where((item) => item.count > 0).toList()
+        ..sort((a, b) => b.count.compareTo(a.count));
 }

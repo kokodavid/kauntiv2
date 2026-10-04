@@ -135,6 +135,16 @@ String _reportedLabel(DateTime reportedAt) {
 String _date(DateTime date) => '${date.day} ${_month(date.month)}';
 
 String _month(int month) => const [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ][month - 1];

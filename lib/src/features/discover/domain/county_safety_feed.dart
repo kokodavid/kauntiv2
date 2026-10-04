@@ -23,7 +23,8 @@ class CountySafetyIncident {
   final String sourceName;
   final Uri sourceUrl;
 
-  bool get isSevere => {'high', 'critical', 'severe'}.contains(severity.toLowerCase());
+  bool get isSevere =>
+      {'high', 'critical', 'severe'}.contains(severity.toLowerCase());
 }
 
 class CountySafetyFeed {
@@ -35,6 +36,7 @@ class CountySafetyFeed {
 
   final DateTime asOf;
   final List<CountySafetyIncident> incidents;
+
   /// Reports whose headline names a different single county than the API row.
   final int excludedCountyMismatches;
 

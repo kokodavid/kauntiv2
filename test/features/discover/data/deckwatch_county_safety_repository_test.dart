@@ -41,37 +41,40 @@ void main() {
     expect(feed.incidents.single.sourceUrl.host, 'example.com');
   });
 
-  test('loads county incident summary and maps comparison/category fields', () async {
-    late Uri requestedUri;
-    final client = MockClient((request) async {
-      requestedUri = request.url;
-      return http.Response(
-        '{"county":"Kiambu","slug":"kiambu",'
-        '"asOf":"2026-10-03T12:00:00Z","periodDays":30,'
-        '"unit":"incidents","total":14,"previousTotal":7,'
-        '"changePercent":100,"categories":[{"category":"crime",'
-        '"count":5,"previousCount":2,"changePercent":150}],'
-        '"severities":[{"severity":"high","count":3}],"dailyTrend":[]}',
-        200,
+  test(
+    'loads county incident summary and maps comparison/category fields',
+    () async {
+      late Uri requestedUri;
+      final client = MockClient((request) async {
+        requestedUri = request.url;
+        return http.Response(
+          '{"county":"Kiambu","slug":"kiambu",'
+          '"asOf":"2026-10-03T12:00:00Z","periodDays":30,'
+          '"unit":"incidents","total":14,"previousTotal":7,'
+          '"changePercent":100,"categories":[{"category":"crime",'
+          '"count":5,"previousCount":2,"changePercent":150}],'
+          '"severities":[{"severity":"high","count":3}],"dailyTrend":[]}',
+          200,
+        );
+      });
+
+      final summary = await http.runWithClient(
+        () => const DeckwatchCountySafetyRepository().loadCountySummary(
+          countySlug: 'kiambu',
+          days: 30,
+        ),
+        () => client,
       );
-    });
 
-    final summary = await http.runWithClient(
-      () => const DeckwatchCountySafetyRepository().loadCountySummary(
-        countySlug: 'kiambu',
-        days: 30,
-      ),
-      () => client,
-    );
-
-    expect(requestedUri.path, '/api/counties/kiambu/summary');
-    expect(requestedUri.queryParameters['days'], '30');
-    expect(summary.total, 14);
-    expect(summary.previousTotal, 7);
-    expect(summary.changePercent, 100);
-    expect(summary.leadingCategories.single.category, 'crime');
-    expect(summary.leadingCategories.single.count, 5);
-    expect(summary.severities.single.severity, 'high');
-    expect(summary.severities.single.count, 3);
-  });
+      expect(requestedUri.path, '/api/counties/kiambu/summary');
+      expect(requestedUri.queryParameters['days'], '30');
+      expect(summary.total, 14);
+      expect(summary.previousTotal, 7);
+      expect(summary.changePercent, 100);
+      expect(summary.leadingCategories.single.category, 'crime');
+      expect(summary.leadingCategories.single.count, 5);
+      expect(summary.severities.single.severity, 'high');
+      expect(summary.severities.single.count, 3);
+    },
+  );
 }

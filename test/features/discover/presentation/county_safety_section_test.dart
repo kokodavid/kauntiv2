@@ -155,7 +155,11 @@ void main() {
             countyName: 'Nairobi',
             countySlug: 'nairobi',
             feed: Future.value(
-              _feed('Flooding in Nairobi', severity: 'critical', reportCount: 1),
+              _feed(
+                'Flooding in Nairobi',
+                severity: 'critical',
+                reportCount: 1,
+              ),
             ),
             actions: _actions(),
           ),
@@ -235,8 +239,8 @@ CountySafetyFeed _feed(
   DateTime? reportedAt,
   int excludedCountyMismatches = 0,
 }) {
-  final date = reportedAt ??
-      DateTime.now().toUtc().subtract(const Duration(hours: 3));
+  final date =
+      reportedAt ?? DateTime.now().toUtc().subtract(const Duration(hours: 3));
   return CountySafetyFeed(
     asOf: date,
     incidents: [

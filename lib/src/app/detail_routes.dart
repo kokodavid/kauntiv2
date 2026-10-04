@@ -20,9 +20,7 @@ abstract final class DetailRoutes {
   static DiscoverDetailActions? get actions => AppSupabase.isInitialized
       ? DiscoverDetailActions(
           repository: SupabaseDiscoverDetailRepository(AppSupabase.client),
-          countyNewsFlags: SupabaseCountyNewsFlagRepository(
-            AppSupabase.client,
-          ),
+          countyNewsFlags: SupabaseCountyNewsFlagRepository(AppSupabase.client),
         )
       : null;
 

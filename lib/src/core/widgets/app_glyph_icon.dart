@@ -40,6 +40,47 @@ abstract final class AppGlyphPaths {
     ..lineTo(6, 21)
     ..arcToPoint(const Offset(4, 19), radius: const Radius.circular(2))
     ..lineTo(4, 14);
+
+  /// Newspaper ("In the news", County Detail) - lucide `newspaper`, traced
+  /// from its own SVG: `M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0
+  /// 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2`, `M18
+  /// 14h-8`, `M15 18h-5`, `M10 6h8v4h-8V6Z`. Flutter's own
+  /// `Icons.article_outlined` doesn't carry the folded bottom-left corner
+  /// that makes this read as a newspaper rather than a plain document.
+  static Path newspaper() => Path()
+    ..moveTo(4, 22)
+    ..relativeLineTo(16, 0)
+    ..relativeArcToPoint(const Offset(2, -2), radius: const Radius.circular(2))
+    ..lineTo(22, 4)
+    ..relativeArcToPoint(const Offset(-2, -2), radius: const Radius.circular(2))
+    ..lineTo(8, 2)
+    ..relativeArcToPoint(const Offset(-2, 2), radius: const Radius.circular(2))
+    ..relativeLineTo(0, 16)
+    ..relativeArcToPoint(
+      const Offset(-2, 2),
+      radius: const Radius.circular(2),
+      clockwise: true,
+    )
+    ..close()
+    ..moveTo(4, 22)
+    ..relativeArcToPoint(
+      const Offset(-2, -2),
+      radius: const Radius.circular(2),
+      clockwise: true,
+    )
+    ..relativeLineTo(0, -9)
+    ..relativeCubicTo(0, -1.1, 0.9, -2, 2, -2)
+    ..relativeLineTo(2, 0)
+    ..moveTo(18, 14)
+    ..relativeLineTo(-8, 0)
+    ..moveTo(15, 18)
+    ..relativeLineTo(-5, 0)
+    ..moveTo(10, 6)
+    ..relativeLineTo(8, 0)
+    ..relativeLineTo(0, 4)
+    ..relativeLineTo(-8, 0)
+    ..lineTo(10, 6)
+    ..close();
 }
 
 /// Strokes an [AppGlyphPaths] path at any size, matching the reference's

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/discover/application/discover_detail_actions.dart';
+import 'package:kaunti47_v2/src/features/discover/data/county_news_flag_repository.dart';
 import 'package:kaunti47_v2/src/features/discover/data/discover_detail_repository.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/county_detail.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/place_category.dart';
@@ -47,7 +48,10 @@ void main() {
       MaterialApp(
         home: PlaceDetailScreen(
           placeId: 'place-1',
-          actions: DiscoverDetailActions(repository: _Places()),
+          actions: DiscoverDetailActions(
+            repository: _Places(),
+            countyNewsFlags: _EnabledNewsFlags(),
+          ),
           onGetRoute: (context, place) {
             expect(place.id, 'place-1');
             calls++;
@@ -65,4 +69,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Get Route'), findsOneWidget);
   });
+}
+
+class _EnabledNewsFlags implements CountyNewsFlagRepository {
+  @override
+  Future<bool> isEnabled() async => true;
 }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/discover/application/discover_detail_actions.dart';
 import '../features/discover/application/explore_providers.dart';
 import '../features/discover/data/directions_launcher.dart';
+import '../features/discover/data/supabase_county_news_flag_repository.dart';
 import '../features/discover/data/supabase_discover_detail_repository.dart';
 import '../features/discover/domain/explore_board.dart';
 import '../services/app_location_permission_service.dart';
@@ -19,6 +20,7 @@ abstract final class DetailRoutes {
   static DiscoverDetailActions? get actions => AppSupabase.isInitialized
       ? DiscoverDetailActions(
           repository: SupabaseDiscoverDetailRepository(AppSupabase.client),
+          countyNewsFlags: SupabaseCountyNewsFlagRepository(AppSupabase.client),
         )
       : null;
 

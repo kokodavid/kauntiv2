@@ -488,6 +488,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-04 | codex/public-trips-backend | 14 | GPS noise rule for Public Trips: implausible steps become breaks instead of rejecting the trip (new migration `20261004111000`, not applied; reject above 10% noisy steps); SQL tests updated and passing locally |
 | 2026-10-04 | codex/public-trips-backend | 14 | Public Trips backend (Phase 1 PR 1): Pro publishing with moderator approval, sanitized routes, moments, photo queue, share defaults, Home row, report/block/withdraw; statement-level source-change triggers; SQL contract tests. Applied to dev, flags off. |
 | 2026-10-04 | codex/public-trips-plan | 14 | Rewritten Public Trips plan: moderated MVP, privacy transformation, publication/revocation contracts, app/dashboard phases and explicit rollout gates; documentation only, nothing implemented or deployed. |
 | 2026-10-04 | fix/image-egress | 13 | Egress fix: all remote images go through a disk-cached `appNetworkImage` (1,000 files, 60 days), Trip photos cached by media ID instead of their changing signed URLs, camera-roll photos resized to 2048 px before upload, picker photos capped at 2048 px both ways. Dashboard counterpart resizes place-image uploads and adds a one-off "Shrink images" repair. Flutter analyze and device checks pending. |

@@ -383,8 +383,17 @@ never fall back to a private Journey or an old public snapshot.
   a list for the Home row; statement-level `journey_points` triggers (50k-point
   upload overhead about 0.9 s to 70 ms). All four SQL test files pass against
   local PostGIS 16/3.4. Applied to dev 2026-10-04; prod pending.
-- Follow-up (needs a new migration now that these are applied): one GPS jump
-  within a recording segment rejects the whole trip. Decide whether to keep
-  that or drop the bad point, then check the sanitizer against real dev trips.
+- GPS noise (migration `20261004111000_public_trip_gps_noise.sql`, dev only,
+  not yet applied): an implausible step (over 60 m/s, about 216 km/h, or over
+  2 km inside the 2-minute step window) is no longer a reason to reject the trip.
+  It is treated like a recording gap: no edge is drawn across it, and it adds
+  nothing to trim distances, so a bad fix cannot draw a line through somewhere
+  the owner did not go. The trip is rejected only when more than 10% of its
+  steps are implausible ("too much GPS noise to publish"), or when timestamps or
+  segment numbers run backwards. Hiding zones are centred on both the very first
+  recorded point (even a stale fix) and the first usable route point, and the
+  same at the end. Checked against real dev trips on 2026-10-04: the three real
+  trips never exceeded 123 km/h; the two 25 Sep trips are Android emulator
+  drives and were ignored when choosing the threshold.
 - Keep phase status, implementation PRs, migration deployment and outstanding
   device checks in the port tracker. Do not label a phase done before its gates.

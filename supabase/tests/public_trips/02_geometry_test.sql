@@ -47,7 +47,38 @@ update public.journey_points set accuracy_m = 500 where sequence_number = 20;
 select tests.expect_error($q$select public_trip_private.sanitize_route('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',500,500)$q$,
   '22023','location review');
 update public.journey_points set accuracy_m = 8;
+-- One GPS spike no longer rejects the trip: its two implausible steps are
+-- treated as a break, and no edge is ever drawn to the bad fix.
 update public.journey_points set longitude = 38 where sequence_number = 20;
+do $$
+declare result jsonb; line extensions.geometry;
+begin
+  result := public_trip_private.sanitize_route('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',500,500);
+  line := extensions.st_geomfromgeojson((result->'route')::text);
+  perform tests.assert(extensions.st_xmax(line) < 37,'spike point never reaches the public route');
+  perform tests.assert(jsonb_array_length(result#>'{route,coordinates}') >= 2,'spike becomes a break, not a bridge');
+end $$;
+-- A stale first fix far from the real start is ignored and the start is still hidden.
+update public.journey_points set longitude = 36 + sequence_number*0.0005;
+update public.journey_points set longitude = 36.5 where sequence_number = 0;
+do $$
+declare result jsonb; line extensions.geometry;
+begin
+  result := public_trip_private.sanitize_route('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',500,500);
+  line := extensions.st_geomfromgeojson((result->'route')::text);
+  perform tests.assert(extensions.st_xmax(line) < 36.5,'stale first fix is not published');
+  perform tests.assert(not extensions.st_dwithin(line::extensions.geography,
+    extensions.st_setsrid(extensions.st_makepoint(36.0005,-1),4326)::extensions.geography,500),
+    'real start is still hidden after a stale first fix');
+end $$;
+-- More than 10% implausible steps is too noisy to publish.
+update public.journey_points set longitude = 36 + sequence_number*0.0005;
+update public.journey_points set longitude = 38 where sequence_number % 5 = 2;
+select tests.expect_error($q$select public_trip_private.sanitize_route('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',500,500)$q$,
+  '22023','too much GPS noise');
+-- Time or segment numbers running backwards are corrupt and still rejected.
+update public.journey_points set longitude = 36 + sequence_number*0.0005;
+update public.journey_points set recorded_at = recorded_at - interval '1 hour' where sequence_number = 30;
 select tests.expect_error($q$select public_trip_private.sanitize_route('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',500,500)$q$,
   '22023','discontinuities');
 

@@ -22,6 +22,7 @@ import 'trip_share_sheet.dart';
 
 part 'journey_replay_screen_shell.dart';
 part 'journey_replay_screen_playback.dart';
+part 'journey_replay_screen_layout.dart';
 
 abstract class _PlayerStateBase extends State<_Player>
     with TickerProviderStateMixin {
@@ -62,4 +63,5 @@ abstract class _PlayerStateBase extends State<_Player>
   int _playedIndex = -1;
 }
 
-class _PlayerState extends _PlayerStateBase with _JourneyReplayPlayback {}
+class _PlayerState extends _PlayerStateBase
+    with _JourneyReplayPlayback, _JourneyReplayScreenLayout {}

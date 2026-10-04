@@ -4,6 +4,7 @@ import '../../../core/design/app_type_scale.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../domain/journey_county_moment_facts.dart';
+import '../domain/journey_media_capture.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_route.dart';
 import 'journey_county_moment_card.dart';
@@ -26,6 +27,7 @@ class JourneyTimelineMomentRow extends StatelessWidget {
     required this.onTap,
     this.countyFacts,
     this.onOpenCounty,
+    this.onDeletePhoto,
   });
 
   final JourneyMoment moment;
@@ -47,6 +49,12 @@ class JourneyTimelineMomentRow extends StatelessWidget {
   /// Jumps replay to this moment's point in the route.
   final VoidCallback onTap;
   final VoidCallback? onOpenCounty;
+
+  /// Removes this moment's photo (null for a moment with none, or when
+  /// the caller doesn't support removal) - handed straight through to
+  /// [openJourneyPhoto]'s own delete button.
+  final Future<bool> Function(BuildContext context, JourneyMediaItem item)?
+  onDeletePhoto;
 
   /// Decode target in physical pixels - comfortably covers this row's
   /// own display width (full card width, 16:10) even at a 3x device
@@ -139,7 +147,11 @@ class JourneyTimelineMomentRow extends StatelessWidget {
                         if (photo != null) ...[
                           const SizedBox(height: 8),
                           GestureDetector(
-                            onTap: () => openJourneyPhoto(context, photo),
+                            onTap: () => openJourneyPhoto(
+                              context,
+                              photo,
+                              onDelete: onDeletePhoto,
+                            ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(14),
                               child: AspectRatio(
@@ -214,6 +226,11 @@ class JourneyTimelineMomentRow extends StatelessWidget {
       JourneyMomentKind.elevationPeak => (
         Icons.terrain,
         'Highest point · ${JourneyFormat.elevation(moment.elevationMeters)}',
+        '',
+      ),
+      JourneyMomentKind.topSpeed => (
+        Icons.speed,
+        'Top speed · ${JourneyFormat.speed(moment.speedMetersPerSecond)}',
         '',
       ),
     };

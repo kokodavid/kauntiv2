@@ -23,6 +23,9 @@ class _CameraRollMatchCard extends StatelessWidget {
       fontWeight: FontWeight.w600,
     );
     final preview = matches.take(3).toList();
+    final cappedCount = matches.length > CameraRollMatcher.maxAutoAdd
+        ? CameraRollMatcher.maxAutoAdd
+        : matches.length;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -105,7 +108,9 @@ class _CameraRollMatchCard extends StatelessWidget {
                             ),
                           )
                         : Text(
-                            'Add to timeline',
+                            cappedCount == matches.length
+                                ? 'Add to timeline'
+                                : 'Add $cappedCount of ${matches.length}',
                             style: pillLabelStyle.copyWith(color: Colors.white),
                           ),
                   ),

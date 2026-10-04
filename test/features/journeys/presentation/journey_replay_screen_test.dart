@@ -69,7 +69,7 @@ void main() {
         ),
       ],
     );
-    expect(find.text('0:00:00 · 0 m'), findsOneWidget);
+    expect(find.text('0:00:00 · 0 m · —'), findsOneWidget);
     expect(find.text('Morning drive'), findsOneWidget);
     // The timeline lists every key moment from the start, not just the
     // one replay happens to be paused at.
@@ -119,7 +119,7 @@ void main() {
 
     await tester.tap(find.text('Whole route'));
     await tester.pump();
-    expect(find.text('0:00:00 · 0 m'), findsOneWidget);
+    expect(find.text('0:00:00 · 0 m · —'), findsOneWidget);
   });
 
   testWidgets(

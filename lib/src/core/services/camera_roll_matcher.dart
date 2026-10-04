@@ -3,10 +3,22 @@ import 'package:photo_manager/photo_manager.dart';
 /// One camera-roll photo whose timestamp falls inside a Trip's recorded
 /// span, offered for adding to Replay's timeline.
 class CameraRollMatch {
-  const CameraRollMatch({required this.asset, required this.capturedAt});
+  const CameraRollMatch({
+    required this.asset,
+    required this.capturedAt,
+    this.alternates = const [],
+  });
 
   final AssetEntity asset;
   final DateTime capturedAt;
+
+  /// Other camera-roll shots taken within [CameraRollMatcher.clusterGap]
+  /// of this one - a burst, or a couple of quick retakes - collapsed
+  /// into this single suggestion rather than offered as separate ones.
+  /// Empty for a shot that stood alone. The picker surfaces these as a
+  /// "choose a different one from this moment" option rather than
+  /// discarding them outright.
+  final List<CameraRollMatch> alternates;
 }
 
 /// Finds and fetches camera-roll photos timestamped during a Trip, for
@@ -25,6 +37,23 @@ abstract final class CameraRollMatcher {
   /// A sanity cap on how many matches to fetch - a mislabeled or absurdly
   /// long "Trip" shouldn't try to pull in someone's entire camera roll.
   static const _maxMatches = 60;
+
+  /// Consecutive shots this close together collapse into one suggestion
+  /// (the first becomes the representative, the rest its [CameraRollMatch
+  /// .alternates]) - a burst-mode sequence or a couple of quick retakes,
+  /// rather than one suggestion per frame. Gap-based (measured between
+  /// consecutive shots, not from a cluster's start or a fixed clock
+  /// minute), so a burst that straddles a minute boundary still collapses
+  /// correctly, and two unrelated shots that happen to land in the same
+  /// minute but aren't actually close together don't.
+  static const clusterGap = Duration(seconds: 60);
+
+  /// How many suggested photos "Add to timeline" (the one-tap bulk
+  /// action) will add at once. A Trip with more distinct clusters than
+  /// this still has all of them available via "Choose" - this only
+  /// caps the no-questions-asked bulk add, so it can't dump dozens of
+  /// pins onto the timeline from a single tap.
+  static const maxAutoAdd = 24;
 
   /// The current photo-library access, without prompting for it.
   static Future<PermissionState> permissionState() =>
@@ -80,9 +109,38 @@ abstract final class CameraRollMatcher {
       start: 0,
       end: count > _maxMatches ? _maxMatches : count,
     );
-    return [
+    return _cluster([
       for (final asset in assets)
         CameraRollMatch(asset: asset, capturedAt: asset.createDateTime),
-    ];
+    ]);
+  }
+
+  /// Collapses a chronologically-sorted run of matches into one entry per
+  /// cluster: consecutive shots no more than [clusterGap] apart join the
+  /// same cluster, whose representative is the earliest shot in it and
+  /// whose later shots become its [CameraRollMatch.alternates].
+  static List<CameraRollMatch> _cluster(List<CameraRollMatch> sorted) {
+    final result = <CameraRollMatch>[];
+    var clusterStart = 0;
+    for (var i = 1; i <= sorted.length; i++) {
+      final closesCluster =
+          i == sorted.length ||
+          sorted[i].capturedAt.difference(sorted[i - 1].capturedAt) >
+              clusterGap;
+      if (!closesCluster) continue;
+      final members = sorted.sublist(clusterStart, i);
+      final representative = members.first;
+      result.add(
+        members.length == 1
+            ? representative
+            : CameraRollMatch(
+                asset: representative.asset,
+                capturedAt: representative.capturedAt,
+                alternates: members.sublist(1),
+              ),
+      );
+      clusterStart = i;
+    }
+    return result;
   }
 }

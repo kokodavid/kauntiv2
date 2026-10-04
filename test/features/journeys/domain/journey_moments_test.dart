@@ -3,15 +3,21 @@ import 'package:kaunti47_v2/src/features/journeys/domain/journey_media_capture.d
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_moments.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_point.dart';
 
-JourneyPoint _p(int minute, double lat, {int segment = 0, double? altitude}) =>
-    JourneyPoint(
-      recordedAt: DateTime.utc(2026, 9, 25, 10, minute),
-      latitude: lat,
-      longitude: 36.82,
-      accuracyMeters: 5,
-      segmentNumber: segment,
-      altitudeMeters: altitude,
-    );
+JourneyPoint _p(
+  int minute,
+  double lat, {
+  int segment = 0,
+  double? altitude,
+  double? speed,
+}) => JourneyPoint(
+  recordedAt: DateTime.utc(2026, 9, 25, 10, minute),
+  latitude: lat,
+  longitude: 36.82,
+  accuracyMeters: 5,
+  segmentNumber: segment,
+  altitudeMeters: altitude,
+  speedMetersPerSecond: speed,
+);
 
 void main() {
   test('a recording break is a moment at the last point before it', () {
@@ -139,6 +145,48 @@ void main() {
   test('no altitude data means no elevation-peak moment', () {
     final moments = JourneyMoments.find([_p(0, -1.30), _p(1, -1.29)]);
     expect(moments, isEmpty);
+  });
+
+  test('a sustained fastest fix becomes a top-speed moment', () {
+    final moments = JourneyMoments.find([
+      _p(0, -1.30, speed: 6),
+      _p(1, -1.29, speed: 8),
+      _p(2, -1.28, speed: 6.5),
+    ]);
+
+    expect(moments.single.kind, JourneyMomentKind.topSpeed);
+    expect(moments.single.index, 1);
+    expect(moments.single.speedMetersPerSecond, 8);
+  });
+
+  test('a single GPS speed spike is not a top-speed moment', () {
+    final moments = JourneyMoments.find([
+      _p(0, -1.30, speed: 3),
+      _p(1, -1.29, speed: 20),
+      _p(2, -1.28, speed: 3),
+    ]);
+
+    expect(moments.where((m) => m.kind == JourneyMomentKind.topSpeed), isEmpty);
+  });
+
+  test('top speed needs a same-segment neighbouring speed fix', () {
+    final moments = JourneyMoments.find([
+      _p(0, -1.30, segment: 0, speed: 5),
+      _p(1, -1.29, segment: 1, speed: 12),
+      _p(2, -1.28, segment: 2, speed: 4),
+    ]);
+
+    expect(moments.where((m) => m.kind == JourneyMomentKind.topSpeed), isEmpty);
+  });
+
+  test('walking speed is not a top-speed moment', () {
+    final moments = JourneyMoments.find([
+      _p(0, -1.30, speed: 1.2),
+      _p(1, -1.29, speed: 1.5),
+      _p(2, -1.28, speed: 1.3),
+    ]);
+
+    expect(moments.where((m) => m.kind == JourneyMomentKind.topSpeed), isEmpty);
   });
 
   test('the next stop is strictly after the position', () {

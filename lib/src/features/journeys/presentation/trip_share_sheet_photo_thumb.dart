@@ -44,6 +44,25 @@ class _PhotoThumb extends StatelessWidget {
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
                     cacheWidth: 120,
+                    frameBuilder:
+                        (context, child, frame, wasSynchronouslyLoaded) {
+                          if (wasSynchronouslyLoaded) return child;
+                          return Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (frame == null)
+                                const AppShimmer(
+                                  child: AppSkeleton(width: 60, height: 60),
+                                ),
+                              AnimatedOpacity(
+                                opacity: frame == null ? 0 : 1,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
+                                child: child,
+                              ),
+                            ],
+                          );
+                        },
                     errorBuilder: (context, error, stackTrace) =>
                         const ColoredBox(color: AppColors.lockedFill),
                   ),

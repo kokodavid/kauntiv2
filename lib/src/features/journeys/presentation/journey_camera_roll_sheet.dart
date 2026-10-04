@@ -8,6 +8,8 @@ import '../../../core/services/camera_roll_matcher.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 
+part 'journey_camera_roll_sheet_tiles.dart';
+
 /// Lets the user pick which of the camera-roll photos matched to this
 /// Trip actually get added, rather than all-or-nothing via "Add to
 /// timeline" (Claude-Design "2b" reference's "Choose" action).
@@ -42,13 +44,57 @@ class _CameraRollMatchPicker extends StatefulWidget {
 }
 
 class _CameraRollMatchPickerState extends State<_CameraRollMatchPicker> {
+  // The displayed list starts as the matches passed in, one entry per
+  // cluster - but unlike that list, entries here can be swapped in place
+  // when the user picks a different shot from a cluster's alternates, so
+  // this needs its own mutable copy rather than reading widget.matches
+  // directly.
+  late final List<CameraRollMatch> _displayed = [...widget.matches];
+
   // Every match starts selected: "Choose" is for trimming down an
   // already-relevant set, not building one up from nothing.
-  late final Set<CameraRollMatch> _selected = {...widget.matches};
+  late final Set<CameraRollMatch> _selected = {..._displayed};
 
   void _toggle(CameraRollMatch match) {
     setState(() {
       if (!_selected.remove(match)) _selected.add(match);
+    });
+  }
+
+  /// Opens the mini picker for the cluster at [index] and, if the user
+  /// picks a different shot than the one currently showing, swaps it in -
+  /// keeping the rest of that cluster (including the shot that was just
+  /// replaced) as the new representative's alternates, and preserving
+  /// whether that slot was selected.
+  Future<void> _showAlternates(int index) async {
+    final current = _displayed[index];
+    final cluster = [current, ...current.alternates];
+    final chosen = await showModalBottomSheet<CameraRollMatch>(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      barrierColor: AppColors.sheetBarrier,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) =>
+          _ClusterAlternativesSheet(cluster: cluster, current: current),
+    );
+    if (chosen == null || chosen.asset.id == current.asset.id || !mounted) {
+      return;
+    }
+    setState(() {
+      final wasSelected = _selected.remove(current);
+      final replacement = CameraRollMatch(
+        asset: chosen.asset,
+        capturedAt: chosen.capturedAt,
+        alternates: [
+          for (final member in cluster)
+            if (member.asset.id != chosen.asset.id) member,
+        ],
+      );
+      _displayed[index] = replacement;
+      if (wasSelected) _selected.add(replacement);
     });
   }
 
@@ -97,13 +143,16 @@ class _CameraRollMatchPickerState extends State<_CameraRollMatchPicker> {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                   ),
-                  itemCount: widget.matches.length,
+                  itemCount: _displayed.length,
                   itemBuilder: (context, index) {
-                    final match = widget.matches[index];
+                    final match = _displayed[index];
                     return _MatchThumbnail(
                       match: match,
                       selected: _selected.contains(match),
                       onTap: () => _toggle(match),
+                      onShowAlternates: match.alternates.isEmpty
+                          ? null
+                          : () => _showAlternates(index),
                     );
                   },
                 ),
@@ -134,67 +183,6 @@ class _CameraRollMatchPickerState extends State<_CameraRollMatchPicker> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MatchThumbnail extends StatelessWidget {
-  const _MatchThumbnail({
-    required this.match,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final CameraRollMatch match;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: FutureBuilder<Uint8List?>(
-              future: match.asset.thumbnailDataWithSize(
-                const ThumbnailSize.square(200),
-              ),
-              builder: (context, snapshot) {
-                final bytes = snapshot.data;
-                if (bytes == null) {
-                  return const ColoredBox(color: AppColors.lockedFill);
-                }
-                return Image.memory(bytes, fit: BoxFit.cover);
-              },
-            ),
-          ),
-          if (!selected)
-            ColoredBox(color: Colors.white.withValues(alpha: 0.55)),
-          Positioned(
-            top: 6,
-            right: 6,
-            child: Container(
-              width: 22,
-              height: 22,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: selected ? AppColors.accent : Colors.white,
-                border: Border.all(
-                  color: selected ? AppColors.accent : AppColors.cardBorder,
-                  width: 1.5,
-                ),
-              ),
-              child: selected
-                  ? const Icon(Icons.check, size: 14, color: Colors.white)
-                  : null,
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -102,6 +102,19 @@ class JourneyReplayTrack {
     return distanceAt(i) + (distanceAt(i + 1) - distanceAt(i)) * t;
   }
 
+  /// Speed at [position], in m/s - interpolated between the two points
+  /// around it when both reported one, falling back to whichever side
+  /// did when only one does, and null when neither did.
+  double? speedAtPosition(double position) {
+    final (i, t) = _split(position);
+    final a = points[i].speedMetersPerSecond;
+    if (t == 0 || i + 1 >= points.length) return a;
+    final b = points[i + 1].speedMetersPerSecond;
+    if (a == null) return b;
+    if (b == null) return a;
+    return a + (b - a) * t;
+  }
+
   /// The point index at or before [position] and how far towards the next
   /// one it is (0 at the last point).
   (int, double) _split(double position) {

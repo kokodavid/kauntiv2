@@ -54,6 +54,42 @@ extension SupabaseJourneyRepositoryMedia on SupabaseJourneyRepository {
         .timeout(SupabaseJourneyRepository._timeout);
   }
 
+  /// Deletes one uploaded photo for good: the storage object behind it
+  /// and its `journey_media` row. Scoped to [userId] as defense in depth
+  /// alongside RLS - this can't touch a row it doesn't also own.
+  ///
+  /// Mirrors [uploadMedia]'s direct-table-write pattern rather than
+  /// going through an owner-checked RPC like [setCoverPhoto] does - if
+  /// that turns out to be blocked by RLS, this needs the same RPC
+  /// treatment.
+  Future<void> deleteMedia({
+    required String userId,
+    required String journeyId,
+    required String mediaId,
+  }) async {
+    final row = await _client
+        .from('journey_media')
+        .select('storage_path')
+        .eq('id', mediaId)
+        .eq('journey_id', journeyId)
+        .eq('user_id', userId)
+        .maybeSingle()
+        .timeout(SupabaseJourneyRepository._timeout);
+    final storagePath = row?['storage_path'] as String?;
+    if (storagePath != null) {
+      await _client.storage
+          .from(_mediaBucket)
+          .remove([storagePath])
+          .timeout(SupabaseJourneyRepository._timeout);
+    }
+    await _client
+        .from('journey_media')
+        .delete()
+        .eq('id', mediaId)
+        .eq('user_id', userId)
+        .timeout(SupabaseJourneyRepository._timeout);
+  }
+
   /// Reads this Trip's uploaded photos with short-lived signed URLs.
   Future<List<JourneyMediaItem>> media(String journeyId) async {
     final rows = await _client

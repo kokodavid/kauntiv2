@@ -36,6 +36,7 @@ Future<void> addJourneyPhotosToTrip(
   try {
     picked = await AppMediaPicker.pickMultiImage(
       maxWidth: 2048,
+      maxHeight: 2048,
       imageQuality: 85,
     );
   } on Object {
@@ -104,12 +105,9 @@ Future<void> addCameraRollMatchesToTrip(
   var added = 0;
   try {
     for (final match in matches) {
-      final file = await match.asset.file;
-      if (file == null) continue;
-      final localPath = await repository.persistPickedFile(
-        journey.id,
-        file.path,
-      );
+      final bytes = await match.uploadBytes();
+      if (bytes == null) continue;
+      final localPath = await repository.persistPhotoBytes(journey.id, bytes);
       final location = await match.asset.latlngAsync();
       await repository.add(
         journeyId: journey.id,

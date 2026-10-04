@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/county_badge_medallion.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
@@ -73,7 +74,10 @@ class _JourneyCountyMomentCardState extends State<JourneyCountyMomentCard> {
                     fit: StackFit.expand,
                     children: [
                       if (hasPhoto)
-                        Image.network(facts!.heroImageUrl!, fit: BoxFit.cover)
+                        Image(
+                          image: appNetworkImage(facts!.heroImageUrl!),
+                          fit: BoxFit.cover,
+                        )
                       else
                         const ColoredBox(color: AppColors.lockedFill),
                       if (hasPhoto)

@@ -15,7 +15,7 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
   Future<void> _precacheOne(JourneyMediaItem photo) async {
     try {
       await precacheImage(
-        NetworkImage(photo.url),
+        appNetworkImage(photo.url, cacheKey: photo.id),
         context,
         onError: (error, stackTrace) {},
       );

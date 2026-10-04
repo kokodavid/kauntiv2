@@ -4,6 +4,7 @@ import '../../counties/county_paths.dart';
 import '../../design/app_colors.dart';
 import '../../widgets/app_county_shape.dart';
 import '../design/app_type_scale.dart';
+import 'app_network_image.dart';
 
 /// Opens driving directions in the maps app for a text destination;
 /// resolves false when nothing could open it. Supplied by `app/`.
@@ -47,8 +48,8 @@ class AppPhotoHeader extends StatelessWidget {
           if (url == null)
             _NoPhotoFill(county: county)
           else
-            Image.network(
-              url,
+            Image(
+              image: appNetworkImage(url),
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) =>
                   _NoPhotoFill(county: county),

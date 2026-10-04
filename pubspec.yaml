@@ -90,6 +90,13 @@ dependencies:
   # only let the user browse it manually.
   photo_manager: ^3.12.0
 
+  # Disk cache for every remote image (core/widgets/app_network_image.dart).
+  # Without it each launch re-downloaded all photos and blew the Supabase
+  # egress quota. 3.4.x: 4.x needs Dart 3.12.
+  cached_network_image: ^3.4.1
+  # Its cache store, configured directly for a larger, longer-lived cache.
+  flutter_cache_manager: ^3.4.1
+
 
 dev_dependencies:
   flutter_test:

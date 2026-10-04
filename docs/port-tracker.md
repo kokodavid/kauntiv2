@@ -466,6 +466,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-04 | fix/image-egress | 13 | Egress fix: all remote images go through a disk-cached `appNetworkImage` (1,000 files, 60 days), Trip photos cached by media ID instead of their changing signed URLs, camera-roll photos resized to 2048 px before upload, picker photos capped at 2048 px both ways. Dashboard counterpart resizes place-image uploads and adds a one-off "Shrink images" repair. Flutter analyze and device checks pending. |
 | 2026-10-04 | working tree | 13 | Journey media follow-up: cluster timestamp-matched camera-roll photos with alternatives and a capped bulk-add action; enrich replay/share surfaces with photo management and a filtered top-speed moment. Version set to 1.3.10+19. CI/device verification pending. |
 | 2026-10-03 | working tree | 6 | County news sheet now displays live DeckWatch summary stats: total and previous-period comparison, leading categories and high/critical reports. Summary fetch has independent loading/error/retry states and county-switch transition coverage; Flutter/device verification pending. |
 | 2026-10-03 | working tree | 6 | Match attached KauntiNews concept in v2: compact 30-day news summary, 48-hour corroborated alert banner, detailed external-source sheet and horizontal county place cards. Screen-transition test updated; Flutter/device verification pending. |

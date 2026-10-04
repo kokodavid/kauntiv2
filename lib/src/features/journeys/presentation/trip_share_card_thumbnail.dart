@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_network_image.dart';
 import '../../../services/app_logger.dart';
 import '../application/journey_views.dart';
 import '../application/trip_share_card_cache_provider.dart';
@@ -132,7 +133,9 @@ class _TripShareCardThumbnailState
         return;
       }
 
-      final photo = cover == null ? null : NetworkImage(cover.url);
+      final photo = cover == null
+          ? null
+          : appNetworkImage(cover.url, cacheKey: cover.id);
       if (photo != null && mounted) {
         await precacheImage(photo, context);
       }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/services/app_config_provider.dart';
 import '../../../core/widgets/app_actions_menu.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/app_photo_parts.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_views.dart';

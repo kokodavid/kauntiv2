@@ -19,6 +19,18 @@ class CameraRollMatch {
   /// "choose a different one from this moment" option rather than
   /// discarding them outright.
   final List<CameraRollMatch> alternates;
+
+  /// The photo as it should be uploaded: a JPEG at most about 2048 px on
+  /// its long side at quality 85, the same limits the app's own photo
+  /// picker uses. The camera-roll original can be 5-10 MB, which every
+  /// later view of the Trip would download. Re-encoding also leaves the
+  /// original's location metadata behind. Null when the OS can't provide
+  /// the image (for example an iCloud-only photo that fails to load).
+  Future<List<int>?> uploadBytes() => asset.thumbnailDataWithSize(
+    const ThumbnailSize(2048, 2048),
+    format: ThumbnailFormat.jpeg,
+    quality: 85,
+  );
 }
 
 /// Finds and fetches camera-roll photos timestamped during a Trip, for

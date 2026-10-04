@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_network_image.dart';
 import '../domain/journey_media_capture.dart';
 
 /// Opens [item] full screen over a black backdrop - shared by every
@@ -64,8 +65,11 @@ class _FullScreenPhotoState extends State<_FullScreenPhoto> {
             children: [
               Center(
                 child: InteractiveViewer(
-                  child: Image.network(
-                    widget.item.url,
+                  child: Image(
+                    image: appNetworkImage(
+                      widget.item.url,
+                      cacheKey: widget.item.id,
+                    ),
                     fit: BoxFit.contain,
                     gaplessPlayback: true,
                     errorBuilder: (context, error, stackTrace) => const Icon(

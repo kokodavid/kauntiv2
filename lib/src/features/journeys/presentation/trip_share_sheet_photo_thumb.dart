@@ -37,13 +37,16 @@ class _PhotoThumb extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    item.url,
+                  child: Image(
+                    image: appNetworkImage(
+                      item.url,
+                      cacheKey: item.id,
+                      cacheWidth: 120,
+                    ),
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
-                    cacheWidth: 120,
                     frameBuilder:
                         (context, child, frame, wasSynchronouslyLoaded) {
                           if (wasSynchronouslyLoaded) return child;

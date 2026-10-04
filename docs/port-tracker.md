@@ -309,6 +309,27 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Discover MINE and UNCLAIMED preview rows include an active promoted place
   and pin it to slot two when at least one normal place can appear before it;
   if it is the county's only place, it appears first and is marked `AD`.
+- County Detail adds a compact Deckwatch “In the news” row with a 30-day
+  report count and latest headline; it opens a bottom sheet with report
+  location, category, date, outlet/corroboration count and external source
+  links. A recent (48-hour), multi-outlet high-severity report can show a
+  prominent alert banner; medium-severity items use an advisory treatment.
+  Reports whose headline names a single different county are silently
+  excluded. Feed errors/retries are isolated from county facts and places.
+  Visibility for the alert and news row is controlled by the dashboard's
+  `county_news` feature flag (`app_feature_flags`); the app hides both while
+  the flag is unresolved, disabled, missing, or unavailable.
+  The news sheet also loads DeckWatch's county summary endpoint, showing
+  30-day report volume, change from the previous period, leading categories
+  and high/critical report counts. Summary loading/errors are isolated from
+  the incident list and support retry.
+  The sheet explicitly says reports are not independently verified or a
+  safety rating. Places to See uses a horizontal photo-card carousel. The
+  mockup's “Wrong county or duplicate?” action is not
+  implemented until Deckwatch provides a feedback endpoint; report thumbnails
+  are also omitted because the feed exposes no usable image field. The mockup's
+  Map action is deferred because County Detail place data has no coordinates
+  or map-launch action to wire it to.
 
 **Differences from v1 (temporary)**
 
@@ -430,6 +451,10 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-03 | working tree | 6 | County news sheet now displays live DeckWatch summary stats: total and previous-period comparison, leading categories and high/critical reports. Summary fetch has independent loading/error/retry states and county-switch transition coverage; Flutter/device verification pending. |
+| 2026-10-03 | working tree | 6 | Match attached KauntiNews concept in v2: compact 30-day news summary, 48-hour corroborated alert banner, detailed external-source sheet and horizontal county place cards. Screen-transition test updated; Flutter/device verification pending. |
+| 2026-10-03 | working tree | 6 | Add owner/admin dashboard control for county news visibility via `app_feature_flags`; app fails closed until the remote flag enables news. Apply migration before using the control. Flutter checks pending. |
+| 2026-10-03 | working tree | 6 | Deckwatch county safety feed: real 14-day incident list/trend, original-source links, independent loading/retry, and exclusion of obvious headline/county mismatches; live endpoint and source data checked, upstream classification issue found and guarded. Flutter verification pending. |
 | 2026-10-03 | working tree | 8 | Profile layout updated to the attached concept: identity/home county, live county progress, earned badge preview, membership, Trips and privacy shortcuts; retained location diagnostics and sign-out flows. Flutter/device visual verification pending. |
 | 2026-10-03 | working tree | 5, 13 | Dev-only opt-in location diagnostics: local JSONL report, native battery samples, Detection/geofence events, Journey segment-gap events and share/copy controls. Device validation pending. |
 | 2026-10-01 | codex/journey-place-handoff | 13 | Free monthly Trip allowance for non-Pro accounts, account-scoped usage state, Trip search/date filters and empty-state icons; serialize trial checks in the upload RPC and keep rejected recordings retryable. Version bumped to 1.3.2+11. |

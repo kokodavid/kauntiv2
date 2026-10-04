@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
-import '../../../widgets/app_county_shape.dart';
 import '../application/discover_detail_actions.dart';
 import '../domain/county_detail.dart';
+import '../domain/county_safety_feed.dart';
 import '../domain/place_category.dart';
-import 'county_detail_facts.dart';
+import 'county_detail_title_row.dart';
+import 'county_news_gate.dart';
 import 'county_place_filters.dart';
+import 'county_safety_alert_banner.dart';
+import 'county_safety_section.dart';
 import 'detail_async_body.dart';
 import 'detail_photo_carousel.dart';
 import 'detail_widgets.dart';
@@ -76,6 +79,31 @@ class _CountyDetailBodyState extends State<_CountyDetailBody> {
   /// state rather than the loaded one.
   final Map<String, bool> _saved = {};
 
+  late Future<bool> _countyNewsEnabled = widget.actions.isCountyNewsEnabled();
+  Future<CountySafetyFeed>? _safetyFeed;
+
+  Future<CountySafetyFeed> _loadSafetyFeed() =>
+      widget.actions.countySafetyFeed(
+        countyName: widget.data.county.name,
+        now: DateTime.now(),
+      );
+
+  Future<CountySafetyFeed> _getSafetyFeed() =>
+      _safetyFeed ??= _loadSafetyFeed();
+
+  @override
+  void didUpdateWidget(covariant _CountyDetailBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.data.county.name != widget.data.county.name) {
+      _countyNewsEnabled = widget.actions.isCountyNewsEnabled();
+      _safetyFeed = null;
+      _category = null;
+      _saved.clear();
+    }
+  }
+
+  void _retrySafetyFeed() => setState(() => _safetyFeed = _loadSafetyFeed());
+
   CountyDetailPlace _withSaved(CountyDetailPlace place) => CountyDetailPlace(
     id: place.id,
     title: place.title,
@@ -109,13 +137,25 @@ class _CountyDetailBodyState extends State<_CountyDetailBody> {
             ),
           ),
         ),
+        CountyNewsGate(
+          enabled: _countyNewsEnabled,
+          builder: (_) => Padding(
+            padding: const EdgeInsets.fromLTRB(9, 8, 9, 0),
+            child: CountySafetyAlertBanner(
+              countyName: data.county.name,
+              countySlug: data.county.slug,
+              feed: _getSafetyFeed(),
+              actions: actions,
+            ),
+          ),
+        ),
         const SizedBox(height: 19),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 9),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _TitleRow(data: data),
+              CountyDetailTitleRow(data: data),
               const SizedBox(height: 20),
               Text(data.aboutBlurb, style: AppTextStyles.detailBody),
               const SizedBox(height: 11),
@@ -126,7 +166,18 @@ class _CountyDetailBodyState extends State<_CountyDetailBody> {
                   ('Source', 'Kaunti47'),
                 ],
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 11),
+              CountyNewsGate(
+                enabled: _countyNewsEnabled,
+                builder: (_) => CountySafetySection(
+                  countyName: data.county.name,
+                  countySlug: data.county.slug,
+                  feed: _getSafetyFeed(),
+                  actions: actions,
+                  onRetry: _retrySafetyFeed,
+                ),
+              ),
+              const SizedBox(height: 18),
               const Text(
                 'Places to See',
                 style: AppTextStyles.detailSectionTitle,
@@ -150,71 +201,37 @@ class _CountyDetailBodyState extends State<_CountyDetailBody> {
                   onSelected: (next) => setState(() => _category = next),
                 ),
                 const SizedBox(height: 12),
-                for (final place in places) ...[
-                  PlacePhotoCard(
-                    key: ValueKey(place.id),
-                    place: _withSaved(place),
-                    onTap: () => widget.onOpenPlace?.call(context, place.id),
-                    onSavedChanged: (saved) async {
-                      await actions.setPlaceSaved(
-                        countyCode: data.county.code,
-                        placeId: place.id,
-                        saved: saved,
+                SizedBox(
+                  height: 292,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: places.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final place = places[index];
+                      return SizedBox(
+                        width: 284,
+                        child: PlacePhotoCard(
+                          key: ValueKey(place.id),
+                          place: _withSaved(place),
+                          onTap: () =>
+                              widget.onOpenPlace?.call(context, place.id),
+                          onSavedChanged: (saved) async {
+                            await actions.setPlaceSaved(
+                              countyCode: data.county.code,
+                              placeId: place.id,
+                              saved: saved,
+                            );
+                            _saved[place.id] = saved;
+                          },
+                        ),
                       );
-                      _saved[place.id] = saved;
                     },
                   ),
-                  const SizedBox(height: 9),
-                ],
+                ),
               ],
             ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Title, divider and stats on the left; the county's own shape in a white
-/// squircle on the right, solid when explored and dashed when not.
-class _TitleRow extends StatelessWidget {
-  const _TitleRow({required this.data});
-
-  final CountyDetailData data;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(data.county.name, style: AppTextStyles.detailTitle),
-              const SizedBox(height: 20),
-              const Divider(height: 1, color: AppColors.factCardBorder),
-              const SizedBox(height: 10),
-              CountyStatsRow(facts: data.quickFacts),
-            ],
-          ),
-        ),
-        const SizedBox(width: 19),
-        Container(
-          width: 100,
-          height: 100,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: AppColors.countyShapeCardBorder),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: AppCountyShape(
-            county: data.county,
-            fill: data.isHeld ? AppColors.green : AppColors.lockedFill,
-            stroke: data.isHeld ? null : AppColors.lockedStroke,
-            strokeWidth: data.isHeld ? 0 : 1.2,
-            dashed: !data.isHeld,
           ),
         ),
       ],

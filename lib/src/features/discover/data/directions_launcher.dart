@@ -15,4 +15,7 @@ class DirectionsLauncher {
     );
     return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
+
+  Future<bool> openExternal(Uri uri) =>
+      launchUrl(uri, mode: LaunchMode.externalApplication);
 }

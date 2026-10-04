@@ -41,6 +41,7 @@ dependencies:
   flutter_svg: ^2.2.4
   permission_handler: ^13.0.1
   share_plus: ^11.0.0
+  http: ^1.6.0
   url_launcher: ^6.3.2
   # Routing: start-up gating as redirects, tabs as a shell route, detail
   # pages as real routes (docs/architecture.md §5). ^17: 18 needs Dart 3.12.

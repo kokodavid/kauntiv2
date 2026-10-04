@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/discover/application/discover_detail_actions.dart';
+import 'package:kaunti47_v2/src/features/discover/data/county_news_flag_repository.dart';
 import 'package:kaunti47_v2/src/features/discover/data/directions_launcher.dart';
 import 'package:kaunti47_v2/src/features/discover/data/discover_detail_repository.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/county_detail.dart';
@@ -44,10 +45,22 @@ class _FakeDirections extends DirectionsLauncher {
   }
 }
 
+class _FakeNewsFlags implements CountyNewsFlagRepository {
+  _FakeNewsFlags(this.enabled);
+
+  final bool enabled;
+
+  @override
+  Future<bool> isEnabled() async => enabled;
+}
+
 void main() {
   test('saving goes through the repository', () async {
     final repository = _FakeRepository();
-    final actions = DiscoverDetailActions(repository: repository);
+    final actions = DiscoverDetailActions(
+      repository: repository,
+      countyNewsFlags: _FakeNewsFlags(true),
+    );
     await actions.setPlaceSaved(countyCode: 1, placeId: 'p1', saved: true);
     expect(repository.saves, [('p1', true)]);
   });
@@ -58,6 +71,7 @@ void main() {
       final directions = _FakeDirections();
       final actions = DiscoverDetailActions(
         repository: _FakeRepository(),
+        countyNewsFlags: _FakeNewsFlags(true),
         directions: directions,
       );
       final place = await actions.placeDetail('p1');

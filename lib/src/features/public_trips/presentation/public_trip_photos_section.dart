@@ -74,7 +74,9 @@ class _PhotoTile extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: selected ? 'Photo shown. Tap to hide.' : 'Photo hidden. Tap to show.',
+      label: selected
+          ? 'Photo shown. Tap to hide.'
+          : 'Photo hidden. Tap to show.',
       child: GestureDetector(
         onTap: onTap,
         child: Stack(

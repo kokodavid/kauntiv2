@@ -62,12 +62,11 @@ void showTripShareSheet(
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) =>
-          _TripShareSheet(
-            journeyId: summary.id,
-            route: route,
-            extrasBuilder: extrasBuilder,
-          ),
+      builder: (context) => _TripShareSheet(
+        journeyId: summary.id,
+        route: route,
+        extrasBuilder: extrasBuilder,
+      ),
     ),
   );
 }

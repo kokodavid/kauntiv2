@@ -90,7 +90,8 @@ class _RoutePainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
     for (final line in lines) {
       if (line.length < 2) continue;
-      final path = Path()..moveTo(project(line.first).dx, project(line.first).dy);
+      final path = Path()
+        ..moveTo(project(line.first).dx, project(line.first).dy);
       for (final point in line.skip(1)) {
         final o = project(point);
         path.lineTo(o.dx, o.dy);

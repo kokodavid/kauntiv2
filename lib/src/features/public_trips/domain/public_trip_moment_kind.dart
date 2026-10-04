@@ -3,11 +3,7 @@
 enum PublicTripMomentKind {
   countyCrossing('county_crossing', 'County crossing'),
   elevationPeak('elevation_peak', 'Highest point'),
-  topSpeed(
-    'top_speed',
-    'Top speed',
-    hint: 'Shows how fast you were going.',
-  ),
+  topSpeed('top_speed', 'Top speed', hint: 'Shows how fast you were going.'),
   longStop(
     'long_stop',
     'Long stop',

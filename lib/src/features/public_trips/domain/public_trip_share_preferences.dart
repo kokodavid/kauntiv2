@@ -44,20 +44,16 @@ class PublicTripSharePreferences {
     PublicTripMomentKind.recordingBreak => recordingBreak,
   };
 
-  PublicTripSharePreferences withKind(PublicTripMomentKind kind, bool value) =>
-      copyWith(
-        countyCrossing: kind == PublicTripMomentKind.countyCrossing
-            ? value
-            : null,
-        elevationPeak: kind == PublicTripMomentKind.elevationPeak
-            ? value
-            : null,
-        topSpeed: kind == PublicTripMomentKind.topSpeed ? value : null,
-        longStop: kind == PublicTripMomentKind.longStop ? value : null,
-        recordingBreak: kind == PublicTripMomentKind.recordingBreak
-            ? value
-            : null,
-      );
+  PublicTripSharePreferences withKind(
+    PublicTripMomentKind kind,
+    bool value,
+  ) => copyWith(
+    countyCrossing: kind == PublicTripMomentKind.countyCrossing ? value : null,
+    elevationPeak: kind == PublicTripMomentKind.elevationPeak ? value : null,
+    topSpeed: kind == PublicTripMomentKind.topSpeed ? value : null,
+    longStop: kind == PublicTripMomentKind.longStop ? value : null,
+    recordingBreak: kind == PublicTripMomentKind.recordingBreak ? value : null,
+  );
 
   PublicTripSharePreferences copyWith({
     bool? countyCrossing,

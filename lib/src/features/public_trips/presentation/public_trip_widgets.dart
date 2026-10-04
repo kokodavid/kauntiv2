@@ -19,8 +19,7 @@ class PublicTripSectionTitle extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: AppTextStyles.detailSectionTitle),
-          if (trailing != null)
-            Text(trailing!, style: AppTextStyles.bodySmall),
+          if (trailing != null) Text(trailing!, style: AppTextStyles.bodySmall),
         ],
       ),
     );

@@ -33,7 +33,10 @@ class PublicTripDefaultsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        title: const Text('Share defaults', style: AppTextStyles.detailNavTitle),
+        title: const Text(
+          'Share defaults',
+          style: AppTextStyles.detailNavTitle,
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -118,7 +121,9 @@ class _Body extends ConsumerWidget {
           children: [
             for (final meters in PublicTripSharePreferences.trimChoices)
               ChoiceChip(
-                label: Text(meters >= 1000 ? '${meters ~/ 1000} km' : '$meters m'),
+                label: Text(
+                  meters >= 1000 ? '${meters ~/ 1000} km' : '$meters m',
+                ),
                 selected: prefs.trimMeters == meters,
                 onSelected: (_) => unawaited(
                   _save(context, ref, prefs.copyWith(trimMeters: meters)),

@@ -94,7 +94,10 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Report this trip', style: AppTextStyles.confirmSheetTitle),
+            const Text(
+              'Report this trip',
+              style: AppTextStyles.confirmSheetTitle,
+            ),
             const SizedBox(height: 4),
             const Text(
               'Your report is private. The author will not see who sent it.',

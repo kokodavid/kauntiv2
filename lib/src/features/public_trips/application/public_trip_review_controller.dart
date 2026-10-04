@@ -129,7 +129,8 @@ class PublicTripReviewController extends _$PublicTripReviewController {
       view = await _waitForPhotos(view);
       if (!ref.mounted) return;
       _update(
-        (s) => s.copyWith(stage: PublicTripReviewStage.preview, candidate: view),
+        (s) =>
+            s.copyWith(stage: PublicTripReviewStage.preview, candidate: view),
       );
     } on PublicTripFailure catch (failure) {
       _requestKey = null; // A refused request must not be replayed.
@@ -175,10 +176,8 @@ class PublicTripReviewController extends _$PublicTripReviewController {
     final repository = ref.read(publicTripRepositoryProvider);
     if (repository == null) return;
     _update(
-      (s) => s.copyWith(
-        stage: PublicTripReviewStage.submitting,
-        clearError: true,
-      ),
+      (s) =>
+          s.copyWith(stage: PublicTripReviewStage.submitting, clearError: true),
     );
     try {
       final submitted = await repository.submit(

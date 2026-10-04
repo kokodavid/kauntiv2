@@ -22,6 +22,8 @@ class PublicTripScreenBody extends StatelessWidget {
     required this.onReport,
     required this.onBlock,
     this.onOpenDirections,
+    this.topPadding = 18,
+    this.bottomPadding = 40,
   });
 
   final PublicTripView trip;
@@ -29,20 +31,22 @@ class PublicTripScreenBody extends StatelessWidget {
   final VoidCallback onReport;
   final VoidCallback onBlock;
 
+  /// Room to clear the stat bar above and the transport bar below.
+  final double topPadding;
+  final double bottomPadding;
+
   @override
   Widget build(BuildContext context) {
     final start = trip.publicStart;
     final directions = onOpenDirections;
     final counties = publicTripCountyNames(trip);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 40),
+      padding: EdgeInsets.fromLTRB(20, topPadding, 20, bottomPadding),
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Text(trip.title, style: AppTextStyles.detailTitle),
-            ),
+            Expanded(child: Text(trip.title, style: AppTextStyles.detailTitle)),
             PopupMenuButton<VoidCallback>(
               tooltip: 'More',
               icon: const Icon(Icons.more_horiz),
@@ -70,14 +74,6 @@ class PublicTripScreenBody extends StatelessWidget {
             _Fact(
               icon: publicTripModeIcon(trip),
               label: publicTripModeLabel(trip),
-            ),
-            _Fact(
-              icon: Icons.route_outlined,
-              label: publicTripDistanceLabel(trip.distanceMeters),
-            ),
-            _Fact(
-              icon: Icons.map_outlined,
-              label: publicTripCountyCountLabel(trip),
             ),
           ],
         ),

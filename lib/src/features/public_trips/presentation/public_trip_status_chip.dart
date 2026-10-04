@@ -29,10 +29,7 @@ class PublicTripStatusChip extends StatelessWidget {
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(
-        label,
-        style: AppTextStyles.chipLabel.copyWith(color: color),
-      ),
+      child: Text(label, style: AppTextStyles.chipLabel.copyWith(color: color)),
     );
   }
 }

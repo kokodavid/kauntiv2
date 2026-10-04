@@ -51,10 +51,27 @@ void main() {
     );
     expect(find.text('Naivasha loop'), findsOneWidget);
     expect(find.text('Wanjiru'), findsOneWidget);
-    expect(find.text('2 counties'), findsOneWidget);
-    expect(find.text('12.4 km'), findsOneWidget);
+    expect(find.text('Nairobi and Nakuru'), findsOneWidget);
+    expect(find.text('DISTANCE'), findsOneWidget);
+    expect(find.text('COUNTIES'), findsOneWidget);
     await tester.tap(find.text('Directions to the start'));
     expect(lat, -1.30);
+  });
+
+  testWidgets('plays an illustrative replay and pauses it', (tester) async {
+    final repo = FakePublicTripViewerRepository()..trip = viewerTrip();
+    await _pump(tester, repo);
+    await tester.tap(find.byTooltip('Play replay'));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byTooltip('Pause replay'), findsOneWidget);
+    expect(find.text('Whole route'), findsOneWidget);
+    await tester.tap(find.byTooltip('Pause replay'));
+    await tester.pump();
+    expect(find.byTooltip('Play replay'), findsOneWidget);
+    // Speed is one pill that cycles.
+    await tester.tap(find.text('1×'));
+    await tester.pump();
+    expect(find.text('2×'), findsOneWidget);
   });
 
   testWidgets('shows a neutral state for an unavailable trip', (tester) async {

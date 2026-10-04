@@ -49,9 +49,7 @@ class PublicTripPreviewBody extends ConsumerWidget {
         const PublicTripSectionTitle('What is shown'),
         _Facts(view: view),
         if (view.excludedMomentCount > 0 || view.excludedPhotoCount > 0)
-          PublicTripNote(
-            _excludedText(view),
-          ),
+          PublicTripNote(_excludedText(view)),
         _Photos(view: view, onCheck: controller.refreshPhotos),
         const PublicTripSectionTitle('Before you submit'),
         CheckboxListTile(

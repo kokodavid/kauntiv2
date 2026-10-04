@@ -41,7 +41,10 @@ class PublicTripReviewScreen extends ConsumerWidget {
             ),
           ),
         ),
-        title: const Text('Make trip public', style: AppTextStyles.detailNavTitle),
+        title: const Text(
+          'Make trip public',
+          style: AppTextStyles.detailNavTitle,
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -66,11 +69,8 @@ class PublicTripReviewScreen extends ConsumerWidget {
             PublicTripReviewStage.preparing => const _Skeleton(
               label: 'Preparing your preview',
             ),
-            PublicTripReviewStage.preview ||
-            PublicTripReviewStage.submitting => PublicTripPreviewBody(
-              journeyId: journeyId,
-              state: state,
-            ),
+            PublicTripReviewStage.preview || PublicTripReviewStage.submitting =>
+              PublicTripPreviewBody(journeyId: journeyId, state: state),
             PublicTripReviewStage.submitted => PublicTripSubmittedBody(
               onDone: () => Navigator.of(context).maybePop(),
             ),
@@ -110,7 +110,12 @@ class _Skeleton extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Text(label, style: AppTextStyles.bodySmall.copyWith(color: AppColors.mutedForeground)),
+          Text(
+            label,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.mutedForeground,
+            ),
+          ),
         ],
       ),
     );

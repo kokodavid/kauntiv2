@@ -27,8 +27,18 @@ void main() {
         ],
       },
       'moments': [
-        {'kind': 'top_speed', 'latitude': -1.3, 'longitude': 36.8, 'value': <String, dynamic>{}},
-        {'kind': 'unknown_kind', 'latitude': 0, 'longitude': 0, 'value': <String, dynamic>{}},
+        {
+          'kind': 'top_speed',
+          'latitude': -1.3,
+          'longitude': 36.8,
+          'value': <String, dynamic>{},
+        },
+        {
+          'kind': 'unknown_kind',
+          'latitude': 0,
+          'longitude': 0,
+          'value': <String, dynamic>{},
+        },
       ],
       'photos': [
         {'id': 'a'},

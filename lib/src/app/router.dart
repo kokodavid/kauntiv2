@@ -152,8 +152,7 @@ GoRouter appRouter(Ref ref) {
           path: '/journey/:id/public',
           builder: (context, state) => PublicTripReviewScreen(
             journeyId: state.pathParameters['id']!,
-            onOpenDefaults: () =>
-                context.push(AppRoutes.publicTripDefaults),
+            onOpenDefaults: () => context.push(AppRoutes.publicTripDefaults),
           ),
         ),
       if (AppFeatureFlags.journeys)

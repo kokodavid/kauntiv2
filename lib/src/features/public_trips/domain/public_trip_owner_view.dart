@@ -131,7 +131,9 @@ class PublicTripOwnerView {
 
   /// A newer revision is waiting for review while an older one is live.
   bool get hasPendingChange =>
-      isLive && status == PublicTripStatus.submitted && revision != activeRevision;
+      isLive &&
+      status == PublicTripStatus.submitted &&
+      revision != activeRevision;
 
   PublicTripPhase get phase {
     if (hidden) return PublicTripPhase.hidden;

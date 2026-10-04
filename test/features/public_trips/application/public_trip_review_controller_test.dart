@@ -110,18 +110,26 @@ void main() {
     await controller.prepare();
     controller.backToChoices();
     await controller.prepare();
-    expect(repo.prepareCalls[1]['requestId'], repo.prepareCalls[0]['requestId']);
+    expect(
+      repo.prepareCalls[1]['requestId'],
+      repo.prepareCalls[0]['requestId'],
+    );
 
     controller
       ..backToChoices()
       ..toggleMoment('top_speed:9');
     await controller.prepare();
-    expect(repo.prepareCalls[2]['requestId'], isNot(repo.prepareCalls[0]['requestId']));
+    expect(
+      repo.prepareCalls[2]['requestId'],
+      isNot(repo.prepareCalls[0]['requestId']),
+    );
   });
 
   test('a refused preview returns to the choices with the reason', () async {
     final repo = FakePublicTripRepository()
-      ..prepareFailure = const PublicTripFailure('Pro is required to publish trips');
+      ..prepareFailure = const PublicTripFailure(
+        'Pro is required to publish trips',
+      );
     final container = await _start(repo);
     await container.read(_provider.notifier).prepare();
     final state = _state(container);
@@ -175,7 +183,9 @@ void main() {
 
   test('a refused submit stays on the preview with the reason', () async {
     final repo = FakePublicTripRepository()
-      ..submitFailure = const PublicTripFailure('Review the latest candidate and terms');
+      ..submitFailure = const PublicTripFailure(
+        'Review the latest candidate and terms',
+      );
     final container = await _start(repo);
     final controller = container.read(_provider.notifier);
     await controller.prepare();

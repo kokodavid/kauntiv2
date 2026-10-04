@@ -58,7 +58,9 @@ class PublicTripChooseBody extends ConsumerWidget {
           children: [
             for (final meters in PublicTripSharePreferences.trimChoices)
               ChoiceChip(
-                label: Text(meters >= 1000 ? '${meters ~/ 1000} km' : '$meters m'),
+                label: Text(
+                  meters >= 1000 ? '${meters ~/ 1000} km' : '$meters m',
+                ),
                 selected: state.trimMeters == meters,
                 onSelected: (_) => controller.setTrim(meters),
               ),

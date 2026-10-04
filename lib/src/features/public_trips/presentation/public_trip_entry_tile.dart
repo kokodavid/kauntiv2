@@ -85,23 +85,24 @@ class PublicTripEntryTile extends ConsumerWidget {
     );
   }
 
-  String _subtitle(PublicTripOwnerView? view, PublicTripPhase phase) =>
-      switch (phase) {
-        PublicTripPhase.none =>
-          'Share the route with other Kaunti47 users. A moderator reviews it first and the start and end stay hidden.',
-        PublicTripPhase.awaitingReview =>
-          'A moderator will review it soon. It is not visible to anyone yet.',
-        PublicTripPhase.isPublic =>
-          view != null && view.hasPendingChange
-              ? 'Live now. Your change is waiting for review.'
-              : 'Other Kaunti47 users can see this trip.',
-        PublicTripPhase.needsChanges => _changesText(view?.reviewReason),
-        PublicTripPhase.hidden =>
-          'A moderator hid this trip. It is not visible to anyone.',
-      };
+  String _subtitle(
+    PublicTripOwnerView? view,
+    PublicTripPhase phase,
+  ) => switch (phase) {
+    PublicTripPhase.none =>
+      'Share the route with other Kaunti47 users. A moderator reviews it first and the start and end stay hidden.',
+    PublicTripPhase.awaitingReview =>
+      'A moderator will review it soon. It is not visible to anyone yet.',
+    PublicTripPhase.isPublic =>
+      view != null && view.hasPendingChange
+          ? 'Live now. Your change is waiting for review.'
+          : 'Other Kaunti47 users can see this trip.',
+    PublicTripPhase.needsChanges => _changesText(view?.reviewReason),
+    PublicTripPhase.hidden =>
+      'A moderator hid this trip. It is not visible to anyone.',
+  };
 
-  static String _changesText(String? reason) =>
-      reason == null || reason.isEmpty
+  static String _changesText(String? reason) => reason == null || reason.isEmpty
       ? 'A moderator asked for changes.'
       : 'A moderator asked for changes: $reason';
 
@@ -119,7 +120,11 @@ class PublicTripEntryTile extends ConsumerWidget {
       if (phase == PublicTripPhase.needsChanges && canEdit)
         _TileButton(label: 'Edit and resubmit', primary: true, onTap: onOpen),
       if (phase == PublicTripPhase.isPublic && view != null && onView != null)
-        _TileButton(label: 'View', primary: true, onTap: () => onView!(view.id)),
+        _TileButton(
+          label: 'View',
+          primary: true,
+          onTap: () => onView!(view.id),
+        ),
       if (phase == PublicTripPhase.isPublic && canEdit)
         _TileButton(label: 'Edit', onTap: onOpen),
       if (view != null &&
@@ -188,13 +193,18 @@ class _TileButton extends StatelessWidget {
       onPressed: onTap,
       style: TextButton.styleFrom(
         backgroundColor: primary ? AppColors.accent : AppColors.secondaryFill,
-        foregroundColor: primary ? AppColors.accentForeground : AppColors.foreground,
+        foregroundColor: primary
+            ? AppColors.accentForeground
+            : AppColors.foreground,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child: Text(label, style: AppTextStyles.buttonLabelSecondary.copyWith(
-        color: primary ? AppColors.accentForeground : AppColors.foreground,
-      )),
+      child: Text(
+        label,
+        style: AppTextStyles.buttonLabelSecondary.copyWith(
+          color: primary ? AppColors.accentForeground : AppColors.foreground,
+        ),
+      ),
     );
   }
 }

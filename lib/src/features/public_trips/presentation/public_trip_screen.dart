@@ -11,7 +11,7 @@ import '../../../design/app_colors.dart';
 import '../application/public_trip_viewer_providers.dart';
 import '../domain/public_trip_failure.dart';
 import '../domain/public_trip_view.dart';
-import 'public_trip_map.dart';
+import 'public_trip_replay.dart';
 import 'public_trip_report_sheet.dart';
 import 'public_trip_screen_body.dart';
 import 'public_trip_unavailable.dart';
@@ -106,29 +106,35 @@ class _PublicTripScreenState extends ConsumerState<PublicTripScreen>
   Widget build(BuildContext context) {
     final async = ref.watch(publicTripProvider(widget.publicationId));
     final trip = async.value;
+    if (!async.hasError && trip != null) {
+      // The replay carries its own back button, over the map.
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: PublicTripReplay(
+          key: ValueKey(trip.revision),
+          trip: trip,
+          onOpenDirections: widget.onOpenDirections,
+          onReport: () => unawaited(
+            showPublicTripReportSheet(context, publicationId: trip.id),
+          ),
+          onBlock: () => unawaited(_block(trip)),
+        ),
+      );
+    }
     final Widget body;
     if (async.hasError) {
       // Fail closed: if access cannot be confirmed, show nothing of the trip.
       body = PublicTripUnavailable(offline: true, onRetry: _refresh);
     } else if (!async.hasValue) {
       body = const _Skeleton();
-    } else if (trip == null) {
-      body = const PublicTripUnavailable();
     } else {
-      body = _Loaded(
-        trip: trip,
-        onOpenDirections: widget.onOpenDirections,
-        onReport: () => unawaited(
-          showPublicTripReportSheet(context, publicationId: trip.id),
-        ),
-        onBlock: () => unawaited(_block(trip)),
-      );
+      body = const PublicTripUnavailable();
     }
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         // Without this the Stack shrinks to the back button and squeezes the
-        // page (and the map) into a 64 px box.
+        // page into a 64 px box.
         fit: StackFit.expand,
         children: [
           Positioned.fill(child: body),
@@ -152,68 +158,30 @@ class _PublicTripScreenState extends ConsumerState<PublicTripScreen>
   }
 }
 
-class _Loaded extends StatelessWidget {
-  const _Loaded({
-    required this.trip,
-    required this.onOpenDirections,
-    required this.onReport,
-    required this.onBlock,
-  });
-
-  final PublicTripView trip;
-  final OpenPublicTripDirections? onOpenDirections;
-  final VoidCallback onReport;
-  final VoidCallback onBlock;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Shares the height instead of taking a fixed slice, so it can never
-        // overflow. Keyed so a re-check that returns the same revision keeps
-        // the map.
-        Expanded(
-          flex: 42,
-          child: PublicTripMap(key: ValueKey(trip.revision), trip: trip),
-        ),
-        Expanded(
-          flex: 58,
-          child: PublicTripScreenBody(
-            trip: trip,
-            onOpenDirections: onOpenDirections,
-            onReport: onReport,
-            onBlock: onBlock,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _Skeleton extends StatelessWidget {
   const _Skeleton();
 
   @override
   Widget build(BuildContext context) {
-    return AppShimmer(
+    return const AppShimmer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Expanded(flex: 42, child: AppSkeleton(radius: 0)),
-          const Expanded(
+          Expanded(flex: 42, child: AppSkeleton(radius: 0)),
+          Expanded(
             flex: 58,
             child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppSkeleton(width: 220, height: 24),
-                SizedBox(height: 14),
-                AppSkeleton(width: 160, height: 16),
-                SizedBox(height: 22),
-                AppSkeleton(height: 64, radius: 14),
-              ],
-            ),
+              padding: EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppSkeleton(width: 220, height: 24),
+                  SizedBox(height: 14),
+                  AppSkeleton(width: 160, height: 16),
+                  SizedBox(height: 22),
+                  AppSkeleton(height: 64, radius: 14),
+                ],
+              ),
             ),
           ),
         ],

@@ -19,17 +19,12 @@ class PublicTripViewerPhotos extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (trip.photos.isEmpty) return const SizedBox.shrink();
-    final urls = ref.watch(
-      publicTripPhotoUrlsProvider(trip.id, trip.revision),
-    );
+    final urls = ref.watch(publicTripPhotoUrlsProvider(trip.id, trip.revision));
     final links = urls.value ?? const <String, String>{};
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        PublicTripSectionTitle(
-          'Photos',
-          trailing: '${trip.photos.length}',
-        ),
+        PublicTripSectionTitle('Photos', trailing: '${trip.photos.length}'),
         SizedBox(
           height: 120,
           child: ListView.separated(
@@ -53,26 +48,26 @@ class PublicTripViewerPhotos extends ConsumerWidget {
   void _open(BuildContext context, String url) {
     unawaited(
       showDialog<void>(
-      context: context,
-      useRootNavigator: true,
-      barrierColor: Colors.black87,
-      builder: (context) => GestureDetector(
-        onTap: () => Navigator.of(context).pop(),
-        child: InteractiveViewer(
-          child: Center(
-            child: Image.network(
-              url,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stack) => const Icon(
-                Icons.broken_image_outlined,
-                color: Colors.white70,
-                size: 48,
+        context: context,
+        useRootNavigator: true,
+        barrierColor: Colors.black87,
+        builder: (context) => GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: InteractiveViewer(
+            child: Center(
+              child: Image.network(
+                url,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stack) => const Icon(
+                  Icons.broken_image_outlined,
+                  color: Colors.white70,
+                  size: 48,
+                ),
               ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }

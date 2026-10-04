@@ -7,11 +7,7 @@ import '../../../design/app_text_styles.dart';
 /// (withdrawn, hidden, blocked or removed look the same), so it reveals
 /// nothing about the author or the moderation outcome.
 class PublicTripUnavailable extends StatelessWidget {
-  const PublicTripUnavailable({
-    super.key,
-    this.offline = false,
-    this.onRetry,
-  });
+  const PublicTripUnavailable({super.key, this.offline = false, this.onRetry});
 
   /// The trip could not be checked, rather than being gone.
   final bool offline;
@@ -47,7 +43,10 @@ class PublicTripUnavailable extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 18),
-              OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+              OutlinedButton(
+                onPressed: onRetry,
+                child: const Text('Try again'),
+              ),
             ],
           ],
         ),

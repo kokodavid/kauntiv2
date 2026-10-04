@@ -40,8 +40,7 @@ void main() {
   });
 
   testWidgets('shows nothing without a home county', (tester) async {
-    final repo = FakePublicTripViewerRepository()
-      ..forYouTrips = [viewerTrip()];
+    final repo = FakePublicTripViewerRepository()..forYouTrips = [viewerTrip()];
     await _pump(tester, repo, countyCode: null);
     expect(find.text('Trips near you'), findsNothing);
   });

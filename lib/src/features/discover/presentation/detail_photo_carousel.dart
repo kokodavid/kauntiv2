@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_network_image.dart';
 import '../../../design/app_colors.dart';
 
 /// Swipeable hero photos for County and Place Detail (v1's
@@ -47,8 +48,8 @@ class _DetailPhotoCarouselState extends State<DetailPhotoCarousel> {
               controller: _controller,
               itemCount: images.length,
               onPageChanged: (index) => setState(() => _page = index),
-              itemBuilder: (context, index) => Image.network(
-                images[index],
+              itemBuilder: (context, index) => Image(
+                image: appNetworkImage(images[index]),
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>
                     const ColoredBox(color: AppColors.lockedFill),

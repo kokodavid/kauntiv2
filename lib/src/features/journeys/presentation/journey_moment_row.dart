@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../domain/journey_county_moment_facts.dart';
@@ -156,8 +157,11 @@ class JourneyTimelineMomentRow extends StatelessWidget {
                               borderRadius: BorderRadius.circular(14),
                               child: AspectRatio(
                                 aspectRatio: 16 / 10,
-                                child: Image.network(
-                                  photo.url,
+                                child: Image(
+                                  image: appNetworkImage(
+                                    photo.url,
+                                    cacheKey: photo.id,
+                                  ),
                                   key: ValueKey('journey-photo-${photo.id}'),
                                   fit: BoxFit.cover,
                                   // Rows are rebuilt with the same URL far

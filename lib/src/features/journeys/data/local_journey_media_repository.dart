@@ -44,6 +44,17 @@ class LocalJourneyMediaRepository {
     return destination;
   }
 
+  /// Like [persistPickedFile], for a photo that only exists as bytes
+  /// (a resized camera-roll photo).
+  Future<String> persistPhotoBytes(String journeyId, List<int> bytes) async {
+    final directory = await getApplicationSupportDirectory();
+    final mediaDir = Directory('${directory.path}/journey_media/$journeyId');
+    if (!mediaDir.existsSync()) await mediaDir.create(recursive: true);
+    final destination = '${mediaDir.path}/${JourneyIds.newId()}.jpg';
+    await File(destination).writeAsBytes(bytes, flush: true);
+    return destination;
+  }
+
   Future<void> deleteLocalFiles(Iterable<String> paths) async {
     for (final path in paths) {
       try {

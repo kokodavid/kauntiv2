@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_network_image.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/county_detail.dart';
@@ -51,8 +52,8 @@ class PlacePhotoCard extends StatelessWidget {
                       if (photoUrl == null)
                         const ColoredBox(color: AppColors.lockedFill)
                       else
-                        Image.network(
-                          photoUrl,
+                        Image(
+                          image: appNetworkImage(photoUrl),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               const ColoredBox(color: AppColors.lockedFill),

@@ -32,7 +32,9 @@ mixin _TripShareSheetActions on _TripShareSheetStateBase {
   ImageProvider? _effectivePhoto(JourneyMediaItem? selected) {
     final local = _localPhoto;
     if (local != null) return MemoryImage(local);
-    return selected == null ? null : NetworkImage(selected.url);
+    return selected == null
+        ? null
+        : appNetworkImage(selected.url, cacheKey: selected.id);
   }
 
   /// Picks [item] immediately for the preview, then persists it as the
@@ -80,6 +82,7 @@ mixin _TripShareSheetActions on _TripShareSheetStateBase {
       picked = await AppMediaPicker.pickImage(
         source: AppImageSource.gallery,
         maxWidth: 2048,
+        maxHeight: 2048,
         imageQuality: 85,
       );
     } on Object {

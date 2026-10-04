@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../domain/map_place.dart';
+import '../widgets/app_network_image.dart';
 import 'map_place_types.dart';
 import 'place_geojson_builder.dart';
 
@@ -145,7 +146,7 @@ class MapPlaceMarkers {
 
   static Future<ui.Image?> _loadImage(String url) {
     final completer = Completer<ui.Image?>();
-    final stream = NetworkImage(url).resolve(ImageConfiguration.empty);
+    final stream = appNetworkImage(url).resolve(ImageConfiguration.empty);
     late final ImageStreamListener listener;
     listener = ImageStreamListener(
       (info, _) {

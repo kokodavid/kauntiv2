@@ -115,6 +115,7 @@ class _JourneyRecordingControlsState
       photo = await AppMediaPicker.pickImage(
         source: AppImageSource.camera,
         maxWidth: 2048,
+        maxHeight: 2048,
         imageQuality: 85,
       );
     } on Object {

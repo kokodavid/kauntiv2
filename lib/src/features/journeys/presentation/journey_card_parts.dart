@@ -37,8 +37,8 @@ class JourneyRoutePreview extends ConsumerWidget {
           fit: StackFit.expand,
           children: [
             fill,
-            Image.network(
-              url,
+            Image(
+              image: appNetworkImage(url),
               fit: BoxFit.cover,
               gaplessPlayback: true,
               frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {

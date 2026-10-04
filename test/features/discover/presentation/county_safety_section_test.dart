@@ -76,16 +76,13 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('In the news'), findsOneWidget);
-    expect(find.text('1 report · last 30 days'), findsOneWidget);
+    expect(find.text('1 report · 30 days'), findsOneWidget);
 
     await tester.tap(find.text('In the news'));
     await tester.pumpAndSettle();
     expect(find.text('Nairobi · reported incidents'), findsOneWidget);
     expect(find.text('Reported by 2 outlets'), findsOneWidget);
-    expect(
-      find.textContaining('does not independently verify'),
-      findsOneWidget,
-    );
+    expect(find.textContaining("Kaunti47 doesn't check them"), findsOneWidget);
     expect(find.text('Reported incidents · last 30 days'), findsOneWidget);
     expect(find.text('12'), findsOneWidget);
     expect(find.textContaining('Crime (7,'), findsOneWidget);

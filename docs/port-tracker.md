@@ -22,6 +22,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
 | 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats, county splits, camera-roll photo matching, replay moments and share-card media. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
+| 14 | Public Trips | New in v2 | In progress | codex/public-trips-backend | [Build plan](public-trips-plan.md): Pro users publish, every revision moderator-approved; server-sanitized copies with chosen moments, sanitized photos, date, author name/avatar; read-only replay, report/block/withdraw, Home horizontal row, directions to an approved start. Phase 1 backend and photo worker are on dev with flags off; dashboard moderation is merged in `Kaunti47-Admin` PR #1 while migration `20261004113000` remains in this branch; owner and viewer app slices are implemented here and still need cleanup and device verification. |
 
 ## Baseline burn-down
 
@@ -31,6 +32,27 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2026-09-25 | 28 | `app.dart` state machine and the `ChangeNotifier` sign-in controller replaced (go_router work) |
 
 ## Feature notes
+
+### Public Trips (#14)
+
+- [Public Trips plan](public-trips-plan.md) replaces the exploratory brief.
+  Product decisions revised 2026-10-04: Pro publishing with moderator approval,
+  profile name and avatar, chosen moments, opt-in photos and date in the MVP,
+  edits re-approved, directions to an approved start, Home horizontal row.
+- Server-generated public copies, whole-route exclusion checks, synthetic
+  replay timing, exact-revision moderation, photo sanitization and
+  account-scoped access are MVP dependencies. Interior exclusion zones, wider
+  ranking and the route-following Maps itinerary are Phase 2.
+- Backend migrations `20261004100000`-`20261004110000` (including
+  `20261004106000`) implement the revised decisions and are applied to dev with
+  both flags off; prod pending. SQL contract tests: `tools/test_public_trips.sh`.
+- Follow-up: one GPS jump rejects a whole trip in the sanitizer; decide and fix
+  in a new migration, then run it read-only against real dev trips.
+- Today's target is a release candidate for named testers only if all release
+  gates pass; a disabled backend foundation is the first deliverable if the
+  complete MVP cannot be verified. No store release date is guaranteed.
+- Pending: implement and verify every gate in the plan, confirm proposed pilot
+  defaults, deploy additive migrations and distribute a compatible app build.
 
 ### Journeys (#13)
 
@@ -466,6 +488,14 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-04 | codex/public-trips-backend | 14 | Public Trips photo worker (Phase 1 PR 2): Edge Function that strips metadata and re-encodes opted-in photos (reduced-scale JPEG decode, max 2560 px, 16 MB / 52 MP caps), job claiming migration `20261004112000` (lease + 3 attempts), orphan sweep; deployed to dev and proven on real phone photos (metadata-free, upright) |
+| 2026-10-04 | codex/public-trips-backend | 14 | Public Trips dashboard support (Phase 1 PR 3, backend half): migration `20261004113000` (moderator role check and photo read policy, review photos, live/hidden list, richer reports, audit list) with SQL test 05; dashboard screens in kaunti47-dashboard branch `feature/public-trip-moderation`; migration not yet applied to dev |
+| 2026-10-04 | codex/public-trips-backend | 14 | Public Trips viewer on the owner-replay design (4b follow-up): the Journeys replay's map, layers, stat bar, corner buttons, "Whole route" pill, playback bar/scrubber and page layout moved to `core/map` (`replay_route_map`, `replay_map_layers`, `replay_map_types`) and `core/widgets` (`replay_*`) with plain-data APIs; Journeys keeps its public names as thin wrappers (`JourneyRouteMap`, `JourneyReplayStatBar`, `JourneyReplayPlaybackBar`, typedefs for the buttons/scrubber) so its behaviour and tests are unchanged. The public trip screen now uses them via `PublicTripReplay`, with illustrative even-pace playback (`PublicTripTrack`), a distance/counties/photos stat bar, and no times or speeds. Not yet compiled: needs `dart format`, `flutter analyze --fatal-infos`, `flutter test` |
+| 2026-10-04 | codex/public-trips-backend | 14 | Public Trips app slice PR 4b (viewer side): public trip screen with route map, moments, photos, author, directions, report and block; Home "Trips near you" row via `sheetExtra` (Home board sheet split into `map_home_board_sheet.dart`); access re-check every 30 s and on resume, failing closed; migration `20261004120000` (viewer read policy for live sanitized photos) with SQL test 06, applied locally only; route `/public-trip/:id`; unit and widget tests written. Not yet compiled: needs `build_runner`, `dart format`, `flutter analyze --fatal-infos`, `flutter test`. Migration not yet applied to dev |
+| 2026-10-04 | codex/public-trips-backend | 14 | Public Trips app slice PR 4a (owner flow): `features/public_trips` (domain, RPC repository, Riverpod providers, review controller), status tile in the Share trip sheet via an app-supplied `shareExtrasBuilder`, review/submit screen with moment + photo pickers and sanitized preview, share defaults screen (Settings row), withdraw; routes `/journey/:id/public` and `/public-trip-defaults`; unit and widget tests written. Not yet compiled: needs `build_runner`, `flutter analyze --fatal-infos`, `dart format`, `flutter test`, architecture check. Viewer side (replay, report/block, Home row, directions) is PR 4b |
+| 2026-10-04 | codex/public-trips-backend | 14 | GPS noise rule for Public Trips: implausible steps become breaks instead of rejecting the trip (new migration `20261004111000`, not applied; reject above 10% noisy steps); SQL tests updated and passing locally |
+| 2026-10-04 | codex/public-trips-backend | 14 | Public Trips backend (Phase 1 PR 1): Pro publishing with moderator approval, sanitized routes, moments, photo queue, share defaults, Home row, report/block/withdraw; statement-level source-change triggers; SQL contract tests. Applied to dev, flags off. |
+| 2026-10-04 | codex/public-trips-plan | 14 | Rewritten Public Trips plan: moderated MVP, privacy transformation, publication/revocation contracts, app/dashboard phases and explicit rollout gates; documentation only, nothing implemented or deployed. |
 | 2026-10-04 | fix/image-egress | 13 | Egress fix: all remote images go through a disk-cached `appNetworkImage` (1,000 files, 60 days), Trip photos cached by media ID instead of their changing signed URLs, camera-roll photos resized to 2048 px before upload, picker photos capped at 2048 px both ways. Dashboard counterpart resizes place-image uploads and adds a one-off "Shrink images" repair. Flutter analyze and device checks pending. |
 | 2026-10-04 | working tree | 13 | Journey media follow-up: cluster timestamp-matched camera-roll photos with alternatives and a capped bulk-add action; enrich replay/share surfaces with photo management and a filtered top-speed moment. Version set to 1.3.10+19. CI/device verification pending. |
 | 2026-10-03 | working tree | 6 | County news sheet now displays live DeckWatch summary stats: total and previous-period comparison, leading categories and high/critical reports. Summary fetch has independent loading/error/retry states and county-switch transition coverage; Flutter/device verification pending. |

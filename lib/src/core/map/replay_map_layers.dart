@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 // Mapbox exports its own `Size`; this file means Flutter's.
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
-import '../../../design/app_colors.dart';
-import '../../map_home/application/county_camera_fit.dart';
-import 'journey_map_types.dart';
+import '../../design/app_colors.dart';
+import 'replay_map_camera.dart';
+import 'replay_map_types.dart';
 
-export 'journey_map_types.dart';
+typedef _Pin = ({String kind, MapLatLng at});
 
-/// The sources and layers a Journey map draws with, and the GeoJSON that
+/// The sources and layers a replay map draws with, and the GeoJSON that
 /// feeds them. Kept apart from the widget so the map stays about camera
 /// and updates.
-abstract final class JourneyMapLayers {
-  static const routeSource = 'journey-route';
-  static const markerSource = 'journey-marker';
-  static const endpointSource = 'journey-endpoints';
-  static const playedSource = 'journey-played';
-  static const routeLine = 'journey-route-line';
+abstract final class ReplayMapLayers {
+  static const routeSource = 'replay-route';
+  static const markerSource = 'replay-marker';
+  static const endpointSource = 'replay-endpoints';
+  static const playedSource = 'replay-played';
+  static const routeLine = 'replay-route-line';
 
   static const _empty = {'type': 'FeatureCollection', 'features': <Object>[]};
 
@@ -33,7 +33,7 @@ abstract final class JourneyMapLayers {
   /// The replay marker plus the short line from the last played point to
   /// it, so the drawn route reaches the marker between points. Both go in
   /// one source: one native update per frame.
-  static String markerJson(JourneyLatLng? marker, {JourneyLatLng? tipFrom}) {
+  static String markerJson(MapLatLng? marker, {MapLatLng? tipFrom}) {
     if (marker == null) return emptyJson;
     return jsonEncode({
       'type': 'FeatureCollection',
@@ -60,16 +60,16 @@ abstract final class JourneyMapLayers {
   /// `end`, or `moment-photo`/`moment-note` combined with `-pending` /
   /// `-passed` depending on whether [currentIndex] (the replay playhead;
   /// null, or a Trip not yet played past a moment's point, both read as
-  /// "not passed yet") has reached that moment's own [JourneyMapMoment.index].
+  /// "not passed yet") has reached that moment's own [ReplayMapMoment.index].
   static String endpointsJson({
-    JourneyLatLng? start,
-    JourneyLatLng? end,
-    List<JourneyMapMoment> moments = const [],
+    MapLatLng? start,
+    MapLatLng? end,
+    List<ReplayMapMoment> moments = const [],
     int? currentIndex,
   }) {
-    String kindOf(JourneyMapMoment moment) {
+    String kindOf(ReplayMapMoment moment) {
       final passed = currentIndex != null && moment.index <= currentIndex;
-      final shape = moment.kind == JourneyMapMomentKind.photo
+      final shape = moment.kind == ReplayMomentKind.photo
           ? 'moment-photo'
           : 'moment-note';
       return '$shape-${passed ? 'passed' : 'pending'}';
@@ -109,7 +109,7 @@ abstract final class JourneyMapLayers {
     });
   }
 
-  static List<Map<String, Object>> _points(List<JourneyMapPin> pins) => [
+  static List<Map<String, Object>> _points(List<_Pin> pins) => [
     for (final (:kind, :at) in pins)
       {
         'type': 'Feature',
@@ -155,8 +155,8 @@ abstract final class JourneyMapLayers {
     await style.addSource(GeoJsonSource(id: endpointSource, data: endpoints));
     for (final (id, source, color, filter) in [
       (routeLine, routeSource, upcoming, null),
-      ('journey-played-line', playedSource, accent, null),
-      ('journey-tip-line', markerSource, accent, _is('LineString')),
+      ('replay-played-line', playedSource, accent, null),
+      ('replay-tip-line', markerSource, accent, _is('LineString')),
     ]) {
       await style.addLayer(
         LineLayer(
@@ -172,7 +172,7 @@ abstract final class JourneyMapLayers {
     }
     await style.addLayer(
       CircleLayer(
-        id: 'journey-route-dots',
+        id: 'replay-route-dots',
         sourceId: routeSource,
         filter: _is('Point'),
         circleColor: upcoming,
@@ -189,7 +189,7 @@ abstract final class JourneyMapLayers {
     // one), so the ring colour needs its own match expression too.
     await style.addLayer(
       CircleLayer(
-        id: 'journey-endpoints',
+        id: 'replay-endpoints',
         sourceId: endpointSource,
         circleColorExpression: [
           'match',
@@ -234,7 +234,7 @@ abstract final class JourneyMapLayers {
     // with a white ring and a faint blue halo at 18% opacity").
     await style.addLayer(
       CircleLayer(
-        id: 'journey-marker-halo',
+        id: 'replay-marker-halo',
         sourceId: markerSource,
         filter: _is('Point'),
         circleColor: accent,
@@ -244,7 +244,7 @@ abstract final class JourneyMapLayers {
     );
     await style.addLayer(
       CircleLayer(
-        id: 'journey-marker',
+        id: 'replay-marker',
         sourceId: markerSource,
         filter: _is('Point'),
         circleColor: accent,
@@ -258,7 +258,7 @@ abstract final class JourneyMapLayers {
   /// A camera framing [bounds] in a map [width] x [height] (the part not
   /// under overlays), with [padding] for those overlays.
   static CameraOptions frame(
-    ({double south, double west, double north, double east}) bounds, {
+    ReplayBounds bounds, {
     required double width,
     required double height,
     required MbxEdgeInsets padding,
@@ -269,19 +269,7 @@ abstract final class JourneyMapLayers {
         (bounds.south + bounds.north) / 2,
       ),
     ),
-    zoom: CountyCameraFit.zoomToFit(
-      (
-        minLng: bounds.west,
-        minLat: bounds.south,
-        maxLng: bounds.east,
-        maxLat: bounds.north,
-      ),
-      width: width,
-      height: height,
-      fill: 0.75,
-      minZoom: 4,
-      maxZoom: 16,
-    ),
+    zoom: replayZoomToFit(bounds, width: width, height: height),
     padding: padding,
   );
 }

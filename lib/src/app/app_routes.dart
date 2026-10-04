@@ -20,6 +20,11 @@ abstract final class AppRoutes {
   static String county(int code) => '/county/$code';
   static String place(String id) => '/place/$id';
   static String journey(String id) => '/journey/$id';
+  static String publicTripReview(String journeyId) =>
+      '/journey/$journeyId/public';
+  static const publicTripDefaults = '/public-trip-defaults';
+  static String publicTrip(String publicationId) =>
+      '/public-trip/$publicationId';
 
   /// The tabs that are live, in shell-branch order.
   static const tabs = [

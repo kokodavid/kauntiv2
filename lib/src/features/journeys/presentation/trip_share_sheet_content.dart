@@ -195,6 +195,7 @@ mixin _TripShareSheetContent
                 ),
               ],
               const SizedBox(height: 18),
+              ?widget.extrasBuilder?.call(context, summary),
               _TripShareActionRow(
                 buttonKey: _shareButtonKey,
                 saving: _saving,

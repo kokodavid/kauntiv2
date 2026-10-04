@@ -35,6 +35,11 @@ enum _ShareShape {
   final String cacheSuffix;
 }
 
+/// Extra content the app can add to the Share trip sheet, e.g. the public
+/// trip row; built with the Trip being shared.
+typedef TripShareExtrasBuilder =
+    Widget Function(BuildContext context, JourneySummary summary);
+
 /// A Feed/Story preview sheet for sharing a Trip (Claude-Design "Share
 /// Sheet 3a" reference): a fixed-height preview (so the photo strip and
 /// Share button always have room below it regardless of shape), the
@@ -45,6 +50,7 @@ void showTripShareSheet(
   BuildContext context, {
   required JourneySummary summary,
   required JourneyRoute route,
+  TripShareExtrasBuilder? extrasBuilder,
 }) {
   unawaited(
     showModalBottomSheet<void>(
@@ -56,17 +62,25 @@ void showTripShareSheet(
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) =>
-          _TripShareSheet(journeyId: summary.id, route: route),
+      builder: (context) => _TripShareSheet(
+        journeyId: summary.id,
+        route: route,
+        extrasBuilder: extrasBuilder,
+      ),
     ),
   );
 }
 
 class _TripShareSheet extends ConsumerStatefulWidget {
-  const _TripShareSheet({required this.journeyId, required this.route});
+  const _TripShareSheet({
+    required this.journeyId,
+    required this.route,
+    this.extrasBuilder,
+  });
 
   final String journeyId;
   final JourneyRoute route;
+  final TripShareExtrasBuilder? extrasBuilder;
 
   @override
   ConsumerState<_TripShareSheet> createState() => _TripShareSheetState();

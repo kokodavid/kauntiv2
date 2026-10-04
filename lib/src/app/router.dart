@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +12,7 @@ import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
+import '../features/journeys/domain/journey_transport_mode.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
@@ -20,6 +23,11 @@ import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
+import '../features/public_trips/presentation/public_trip_defaults_screen.dart';
+import '../features/public_trips/presentation/public_trip_entry_tile.dart';
+import '../features/public_trips/presentation/public_trip_review_screen.dart';
+import '../features/public_trips/presentation/public_trip_screen.dart';
+import '../features/public_trips/presentation/public_trips_home_row.dart';
 import '../services/app_supabase.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
@@ -115,8 +123,51 @@ GoRouter appRouter(Ref ref) {
             journeyId: state.pathParameters['id']!,
             onOpenCounty: (code) =>
                 DetailRoutes.openCounty?.call(context, code),
+            shareExtrasBuilder: (sheetContext, summary) => PublicTripEntryTile(
+              journeyId: summary.id,
+              // Only a finished, uploaded Drive or Walk can be published.
+              canPublish:
+                  summary.isUploaded &&
+                  (summary.transportMode == JourneyTransportMode.drive ||
+                      summary.transportMode == JourneyTransportMode.walk),
+              onOpen: () {
+                Navigator.of(sheetContext).pop();
+                if (context.mounted) {
+                  unawaited(
+                    context.push(AppRoutes.publicTripReview(summary.id)),
+                  );
+                }
+              },
+              onView: (publicationId) {
+                Navigator.of(sheetContext).pop();
+                if (context.mounted) {
+                  unawaited(context.push(AppRoutes.publicTrip(publicationId)));
+                }
+              },
+            ),
           ),
         ),
+      if (AppFeatureFlags.journeys)
+        GoRoute(
+          path: '/journey/:id/public',
+          builder: (context, state) => PublicTripReviewScreen(
+            journeyId: state.pathParameters['id']!,
+            onOpenDefaults: () => context.push(AppRoutes.publicTripDefaults),
+          ),
+        ),
+      if (AppFeatureFlags.journeys)
+        GoRoute(
+          path: AppRoutes.publicTripDefaults,
+          builder: (context, state) => const PublicTripDefaultsScreen(),
+        ),
+      GoRoute(
+        path: '/public-trip/:id',
+        builder: (context, state) => PublicTripScreen(
+          publicationId: state.pathParameters['id']!,
+          onOpenDirections: (lat, lng) =>
+              unawaited(DetailRoutes.openDirections('$lat,$lng')),
+        ),
+      ),
       GoRoute(
         path: AppRoutes.profile,
         // NoTransitionPage: sign-out swaps straight to the Sign-In gate
@@ -149,6 +200,9 @@ GoRouter appRouter(Ref ref) {
                   isDev: ref.read(appConfigProvider).isDev,
                 )
                 ? () => context.push(AppRoutes.locationDiagnostics)
+                : null,
+            onOpenPublicTripDefaults: AppFeatureFlags.journeys
+                ? () => context.push(AppRoutes.publicTripDefaults)
                 : null,
           ),
         ),
@@ -213,6 +267,10 @@ class _MapTab extends ConsumerWidget {
       onPromotedPlaceRoute: JourneyPlaceRoutes.openPromotion,
       onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
       onOpenProfile: () => context.push(AppRoutes.profile),
+      sheetExtra: PublicTripsHomeRow(
+        countyCode: homeCounty?.code,
+        onOpenTrip: (id) => unawaited(context.push(AppRoutes.publicTrip(id))),
+      ),
       loader: AppSupabase.isInitialized
           ? MapHomeBoardLoader(
               repository: SupabaseMapHomeRepository(AppSupabase.client),

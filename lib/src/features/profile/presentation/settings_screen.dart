@@ -11,6 +11,7 @@ import '../../detection/application/detection_controller.dart';
 import '../../journeys/application/journey_entitlement.dart';
 import '../../journeys/application/journey_recorder.dart';
 import '../../onboarding/application/startup_flow.dart';
+import '../../public_trips/application/public_trip_providers.dart';
 import '../application/profile_settings_providers.dart';
 import '../application/public_profile_providers.dart';
 import 'confirm_dialog.dart';
@@ -22,6 +23,7 @@ import 'settings_account_section.dart';
 import 'settings_developer_section.dart';
 import 'settings_location_section.dart';
 import 'settings_notifications_section.dart';
+import 'settings_widgets.dart';
 
 /// Settings, reached from Profile's gear button. Everything that used to
 /// be inline Profile tiles ("Location permission") now lives here,
@@ -33,10 +35,15 @@ class SettingsScreen extends ConsumerStatefulWidget {
     super.key,
     required this.onOpenLocationSettings,
     this.onOpenLocationDiagnostics,
+    this.onOpenPublicTripDefaults,
   });
 
   final Future<void> Function() onOpenLocationSettings;
   final VoidCallback? onOpenLocationDiagnostics;
+
+  /// Opens the public-trip share defaults; shown only while public trips
+  /// are switched on.
+  final VoidCallback? onOpenPublicTripDefaults;
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -161,6 +168,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     unawaited(widget.onOpenLocationSettings()),
               ),
               const SizedBox(height: 18),
+              if (widget.onOpenPublicTripDefaults != null &&
+                  (ref.watch(publicTripPublishingEnabledProvider).value ??
+                      false)) ...[
+                const SettingsSectionLabel('Public trips'),
+                SettingsCard(
+                  children: [
+                    SettingsActionRow(
+                      title: 'Share defaults',
+                      subtitle:
+                          'What starts switched on when you make a trip public',
+                      onTap: widget.onOpenPublicTripDefaults,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+              ],
               SettingsAccountSection(
                 profile: profileAsync.value,
                 proStatus: proStatus,

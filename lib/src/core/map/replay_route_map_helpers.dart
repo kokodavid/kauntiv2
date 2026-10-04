@@ -1,6 +1,6 @@
-part of 'journey_route_map.dart';
+part of 'replay_route_map.dart';
 
-extension _JourneyRouteMapHelpers on _JourneyRouteMapState {
+extension _ReplayRouteMapHelpers on _ReplayRouteMapState {
   EdgeInsets? _viewportPadding(MbxEdgeInsets? padding) => padding == null
       ? null
       : EdgeInsets.fromLTRB(
@@ -15,21 +15,18 @@ extension _JourneyRouteMapHelpers on _JourneyRouteMapState {
   String _playedJson() {
     final played = widget.played;
     return played == null
-        ? JourneyMapLayers.emptyJson
+        ? ReplayMapLayers.emptyJson
         : jsonEncode(played.toGeoJson());
   }
 
   String _markerJson() {
-    final tip = widget.played?.segments.lastOrNull?.lastOrNull;
-    return JourneyMapLayers.markerJson(
+    return ReplayMapLayers.markerJson(
       widget.marker,
-      tipFrom: tip == null
-          ? null
-          : (latitude: tip.latitude, longitude: tip.longitude),
+      tipFrom: widget.played?.lastPoint,
     );
   }
 
-  String _endpointJson() => JourneyMapLayers.endpointsJson(
+  String _endpointJson() => ReplayMapLayers.endpointsJson(
     start: widget.start,
     end: widget.end,
     moments: widget.moments,
@@ -41,19 +38,19 @@ extension _JourneyRouteMapHelpers on _JourneyRouteMapState {
     if (!_styleReady) return;
     if (widget.pulsing) {
       _pulseTimer ??= Timer.periodic(
-        const Duration(milliseconds: _JourneyRouteMapState._pulseStepMs),
+        const Duration(milliseconds: _ReplayRouteMapState._pulseStepMs),
         (_) {
           _pulseElapsedMs =
-              (_pulseElapsedMs + _JourneyRouteMapState._pulseStepMs) %
-              _JourneyRouteMapState._pulsePeriodMs;
-          final phase = _pulseElapsedMs / _JourneyRouteMapState._pulsePeriodMs;
+              (_pulseElapsedMs + _ReplayRouteMapState._pulseStepMs) %
+              _ReplayRouteMapState._pulsePeriodMs;
+          final phase = _pulseElapsedMs / _ReplayRouteMapState._pulsePeriodMs;
           final radius =
-              _JourneyRouteMapState._markerBaseRadius +
-              _JourneyRouteMapState._markerPulseAmplitude *
+              _ReplayRouteMapState._markerBaseRadius +
+              _ReplayRouteMapState._markerPulseAmplitude *
                   (0.5 - 0.5 * math.cos(2 * math.pi * phase));
           unawaited(
             _map?.style.setStyleLayerProperty(
-              'journey-marker',
+              'replay-marker',
               'circle-radius',
               radius,
             ),
@@ -66,9 +63,9 @@ extension _JourneyRouteMapHelpers on _JourneyRouteMapState {
       _pulseElapsedMs = 0;
       unawaited(
         _map?.style.setStyleLayerProperty(
-          'journey-marker',
+          'replay-marker',
           'circle-radius',
-          _JourneyRouteMapState._markerBaseRadius,
+          _ReplayRouteMapState._markerBaseRadius,
         ),
       );
     }

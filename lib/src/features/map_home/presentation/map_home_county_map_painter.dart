@@ -47,7 +47,11 @@ class MapHomeCountyStyle {
     MapHomeCountyBadgeState state, {
     bool isHome = false,
   }) {
-    if (isHome && state != MapHomeCountyBadgeState.locked) {
+    // Home always gets its own colour, even before it's been visited --
+    // the map's legend promises an unconditional "Home" swatch, and a
+    // freshly chosen home county (locked, not yet earned) previously fell
+    // through to the plain locked style with no visual feedback at all.
+    if (isHome) {
       return const MapHomeCountyStyle(
         fill: AppColors.legendHome,
         stroke: Colors.white,

@@ -45,4 +45,21 @@ void main() {
 
     expect(statesOf(geoJson), {1: 'passedThrough', 23: 'locked', 47: 'home'});
   });
+
+  test('an unvisited home county still has the home state', () {
+    final nairobi = CountyPaths.byCode[47]!;
+
+    final geoJson = CountyGeoJsonBuilder.withBadgeStates(
+      boundariesGeoJson: boundaries,
+      badges: [
+        MapHomeCountyBadge(
+          county: nairobi,
+          state: MapHomeCountyBadgeState.locked,
+        ),
+      ],
+      homeCountySlug: nairobi.slug,
+    );
+
+    expect(statesOf(geoJson)[47], 'home');
+  });
 }

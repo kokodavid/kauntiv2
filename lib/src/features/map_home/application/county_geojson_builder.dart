@@ -8,7 +8,7 @@ import '../domain/map_home_models.dart';
 /// counties with a data-driven style expression.
 ///
 /// `state` is the [MapHomeCountyBadgeState] name, or `home` for the user's
-/// home county (unless it is still locked), mirroring the drawn map.
+/// home county (regardless of badge state), mirroring the drawn map.
 abstract final class CountyGeoJsonBuilder {
   static String withBadgeStates({
     required String boundariesGeoJson,
@@ -34,7 +34,7 @@ abstract final class CountyGeoJsonBuilder {
 
   static String _stateFor(MapHomeCountyBadge badge, String? homeCountySlug) {
     final isHome = badge.county.slug == homeCountySlug;
-    if (isHome && badge.state != MapHomeCountyBadgeState.locked) return 'home';
+    if (isHome) return 'home';
     return badge.state.name;
   }
 }

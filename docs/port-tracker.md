@@ -135,7 +135,9 @@ Status: `Not started` · `In progress` · `In review` · `Done`
   directions in the maps app by place/county name, wired from `app/`.
 - County map: press highlight + name/status label, pinch-zoom 1x–4x with
   animated RESET, small-county tap halo, v1 state colours (shared with the
-  peek sheet), zoom-independent strokes, just-unlocked 3-letter label.
+  peek sheet), zoom-independent strokes, just-unlocked 3-letter label. The
+  chosen home county always uses the Home colour, including before its first
+  visit, matching the legend.
 - Stat card compact state while the map is browsed.
 - Loading state (v2 addition, v1 shows a spinner): the board renders at
   once with same-sized placeholders (masked top-bar chip and stat numbers,
@@ -484,6 +486,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 | 2026-09-26 | codex/badges | 7, 13 | Badge sheet: 'Your time in <county>' (visits, months, last visit, Journeys + km) replaces the place cards; Journeys record the counties they cross (`journey_counties`, `upload_journey` p_counties) |
 | 2026-09-26 | codex/badges | 7 | Badge sheet: earned date, next-depth progress, saved places / county coverage, share card (share_plus), how-to-earn + places for locked; `county_badge_detail` RPC |
 | 2026-09-26 | codex/badges | 7 | Badges tab: tier pill, claimed hero, collection grid of star-less badges with depth rings; tap opens County Detail |
+| 2026-10-04 | codex/map-home-unvisited-home-county | 4 | Map Home always colours the selected home county with the Home swatch, including while its badge is still locked |
 | 2026-09-26 | codex/journeys-ui | 13 | Reliability pass: account-switch guards, recovery duration, pending delete/upload race, native stop retry state, stream-failure status, GPS-gap segments, replay crossing confirmation, and initial map camera; device verification pending |
 | 2026-09-25 | codex/journeys-ui | 13 | Journeys tab behind `JOURNEYS_ENABLED`: start, live route and controls, history, detail with replay and delete |
 | 2026-09-25 | codex/journeys-ui | 13 | Recording on a full-screen map with Home's place pins (tap for the place sheet), follow / re-centre, floating controls; Start opens it; place map pieces moved to core |

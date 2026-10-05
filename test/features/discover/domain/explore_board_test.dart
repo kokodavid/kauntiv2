@@ -76,8 +76,8 @@ void main() {
       expect(board.filtered('zzz').isEmpty, isTrue);
     });
 
-    test('mineCount excludes the featured county (v1 parity)', () {
-      expect(board.mineCount, 2);
+    test('mineCount includes the separately featured claimed county', () {
+      expect(board.mineCount, 3);
     });
   });
 

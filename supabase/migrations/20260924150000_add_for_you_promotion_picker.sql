@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Picks the one promoted place for Home's For You slot.
 --
 -- Several `for_you` promotions can be active at once, but Home shows a
@@ -47,10 +49,10 @@ as $$
     from public.counties c
     where p_latitude is not null
       and p_longitude is not null
-      and extensions.ST_Contains(
+      and ST_Contains(
         c.geometry,
-        extensions.ST_SetSRID(
-          extensions.ST_MakePoint(p_longitude, p_latitude), 4326
+        ST_SetSRID(
+          ST_MakePoint(p_longitude, p_latitude), 4326
         )
       )
     limit 1

@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Map Home Module 3 ranking functions: doc 07's "For you" and "Side
 -- Quests" queries, wrapped as Postgres functions so the Flutter app can
 -- call them with a single supabase.rpc(...) instead of trying to express
@@ -56,7 +58,7 @@ as $$
     where w.user_id = auth.uid() and w.ticked_at is null
   )
   select cand.reason, cand.county_id, cand.place_id,
-         extensions.ST_DistanceSphere(cc.centroid, cand.location) as distance_m
+         ST_DistanceSphere(cc.centroid, cand.location) as distance_m
   from candidates cand, current_county cc
   order by distance_m asc
   limit 3;

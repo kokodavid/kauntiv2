@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Development place fixtures generated from data/places/dev_places_raw.json.
 -- Source prose is not copied. Names, coordinates, IDs, licences and source
 -- URLs are retained for review; summaries/descriptions are neutral dev copy.
@@ -110,8 +112,8 @@ with raw_places (
 normalized as (
   select
     raw_places.*,
-    extensions.ST_SetSRID(
-      extensions.ST_MakePoint(raw_places.lng, raw_places.lat),
+    ST_SetSRID(
+      ST_MakePoint(raw_places.lng, raw_places.lat),
       4326
     ) as location
   from raw_places
@@ -131,7 +133,7 @@ county_matched as (
     normalized.last_verified_at::date
   from normalized
   join public.counties
-    on extensions.ST_Covers(counties.geometry, normalized.location)
+    on ST_Covers(counties.geometry, normalized.location)
   order by normalized.source, normalized.external_id, counties.id
 )
 insert into public.places (

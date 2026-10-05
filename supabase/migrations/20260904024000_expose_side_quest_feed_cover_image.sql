@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Recreate the radius-aware feed with cover_image_url. A new migration is
 -- required because PostgreSQL cannot change a function's table return shape
 -- with create or replace, and older environments already applied 022000.
@@ -48,8 +50,8 @@ as $$
     limit 1
   ),
   current_location as (
-    select extensions.ST_SetSRID(
-             extensions.ST_MakePoint(p_longitude, p_latitude), 4326
+    select ST_SetSRID(
+             ST_MakePoint(p_longitude, p_latitude), 4326
            ) as point
     where p_latitude is not null and p_longitude is not null
 
@@ -80,7 +82,7 @@ as $$
   quest_distances as (
     select
       item.quest_id,
-      min(extensions.ST_DistanceSphere(
+      min(ST_DistanceSphere(
         current_location.point,
         coalesce(place.location, county.centroid)
       )) as distance_m

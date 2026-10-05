@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Adds an optional live GPS anchor to the two "nearest" ranking RPCs
 -- (for_you_candidates(), discover_unclaimed_counties()), for the new
 -- foreground-only current-location read on the Flutter side (distinct
@@ -61,8 +63,8 @@ as $$
   current_county as (
     -- Live location, when supplied, wins outright over both fallbacks
     -- below.
-    select extensions.ST_SetSRID(
-             extensions.ST_MakePoint(p_longitude, p_latitude), 4326
+    select ST_SetSRID(
+             ST_MakePoint(p_longitude, p_latitude), 4326
            ) as centroid
     where p_latitude is not null and p_longitude is not null
 
@@ -109,7 +111,7 @@ as $$
     where w.user_id = auth.uid() and w.ticked_at is null
   )
   select cand.reason, cand.county_id, cand.place_id,
-         extensions.ST_DistanceSphere(cc.centroid, cand.location) as distance_m
+         ST_DistanceSphere(cc.centroid, cand.location) as distance_m
   from candidates cand, current_county cc
   order by distance_m asc
   limit 3;
@@ -141,8 +143,8 @@ as $$
     limit 1
   ),
   current_county as (
-    select extensions.ST_SetSRID(
-             extensions.ST_MakePoint(p_longitude, p_latitude), 4326
+    select ST_SetSRID(
+             ST_MakePoint(p_longitude, p_latitude), 4326
            ) as centroid
     where p_latitude is not null and p_longitude is not null
 
@@ -165,7 +167,7 @@ as $$
   select c.id as county_id,
          case
            when cc.centroid is null then null
-           else extensions.ST_DistanceSphere(cc.centroid, c.centroid)
+           else ST_DistanceSphere(cc.centroid, c.centroid)
          end as distance_m,
          c.rarity_pct
   from public.counties c

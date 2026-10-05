@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Discover & Wishlist Module 2: the two queries backing
 -- lib/src/features/discover/data/discover_repository.dart's
 -- SupabaseDiscoverRepository -- MINE's county list and UNCLAIMED's
@@ -79,7 +81,7 @@ as $$
   select c.id as county_id,
          case
            when cc.centroid is null then null
-           else extensions.ST_DistanceSphere(cc.centroid, c.centroid)
+           else ST_DistanceSphere(cc.centroid, c.centroid)
          end as distance_m,
          c.rarity_pct
   from public.counties c

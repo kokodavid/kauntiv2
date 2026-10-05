@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Radius-aware Side Quests discovery. The user's saved preference defaults to
 -- 100 km and is constrained to the five values exposed by the Flutter UI.
 alter table public.profiles
@@ -48,8 +50,8 @@ as $$
     limit 1
   ),
   current_location as (
-    select extensions.ST_SetSRID(
-             extensions.ST_MakePoint(p_longitude, p_latitude), 4326
+    select ST_SetSRID(
+             ST_MakePoint(p_longitude, p_latitude), 4326
            ) as point
     where p_latitude is not null and p_longitude is not null
 
@@ -80,7 +82,7 @@ as $$
   quest_distances as (
     select
       item.quest_id,
-      min(extensions.ST_DistanceSphere(
+      min(ST_DistanceSphere(
         current_location.point,
         coalesce(place.location, county.centroid)
       )) as distance_m

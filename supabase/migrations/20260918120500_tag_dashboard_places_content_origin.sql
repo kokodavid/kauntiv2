@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- create_place_dashboard_entry already relied on the column default
 -- ('dashboard', from 20260918120000_add_place_content_origin.sql) to tag
 -- every row it inserts. Setting it explicitly here means the RPC keeps
@@ -88,7 +90,7 @@ begin
     btrim(p_type),
     nullif(btrim(p_summary), ''),
     nullif(btrim(p_description), ''),
-    extensions.ST_SetSRID(extensions.ST_MakePoint(p_lng, p_lat), 4326),
+    ST_SetSRID(ST_MakePoint(p_lng, p_lat), 4326),
     btrim(p_source),
     nullif(btrim(p_source_url), ''),
     nullif(btrim(p_licence), ''),

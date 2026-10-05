@@ -24,7 +24,7 @@
 -- projects may have the non-relocatable extension in either `extensions` or
 -- `public`, so resolve its types through this migration's search path.
 create extension if not exists postgis with schema extensions;
-set local search_path = extensions, public;
+set search_path = extensions, public;
 
 create table if not exists public.counties (
   id smallint primary key check (id between 1 and 47),

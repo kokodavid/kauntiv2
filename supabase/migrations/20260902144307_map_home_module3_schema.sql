@@ -20,8 +20,10 @@
 
 -- County boundaries and place locations use PostGIS types. Existing
 -- development projects already have this extension, but a first production
--- bootstrap must not depend on it having been enabled manually.
+-- bootstrap must not depend on it having been enabled manually or installed
+-- in a different schema.
 create extension if not exists postgis with schema extensions;
+alter extension postgis set schema extensions;
 
 create table if not exists public.counties (
   id smallint primary key check (id between 1 and 47),

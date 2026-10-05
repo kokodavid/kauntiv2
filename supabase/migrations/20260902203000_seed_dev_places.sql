@@ -1,8 +1,13 @@
--- Dev places seed generated from data/places/dev_places_raw.json.
+-- Development place fixtures generated from data/places/dev_places_raw.json.
 -- Source prose is not copied. Names, coordinates, IDs, licences and source
 -- URLs are retained for review; summaries/descriptions are neutral dev copy.
 -- Place images are Wikimedia Commons URLs plus attribution/licence metadata,
 -- not downloaded binaries.
+--
+-- The schema in this migration applies in every environment. Fixture rows are
+-- opt-in so a first production migration cannot import development content.
+-- Use `set local app.seed_dev_places = 'on';` before running the fixture
+-- inserts intentionally in a development database.
 
 alter table public.places
   add column if not exists source_url text,
@@ -155,6 +160,7 @@ select
   external_id,
   last_verified_at
 from county_matched
+where current_setting('app.seed_dev_places', true) = 'on'
 on conflict (source, external_id) where external_id is not null do update set
   county_id = excluded.county_id,
   name = excluded.name,
@@ -306,6 +312,7 @@ select
   external_id,
   last_verified_at
 from matched_images
+where current_setting('app.seed_dev_places', true) = 'on'
 on conflict (source, external_id) do update set
   place_id = excluded.place_id,
   sort_order = excluded.sort_order,
@@ -318,4 +325,3 @@ on conflict (source, external_id) do update set
   licence_url = excluded.licence_url,
   attribution = excluded.attribution,
   last_verified_at = excluded.last_verified_at;
-

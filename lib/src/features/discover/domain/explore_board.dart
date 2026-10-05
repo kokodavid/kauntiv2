@@ -140,8 +140,9 @@ class ExploreBoard {
   /// Most recently saved county first.
   final List<ExploreSavedGroup> saved;
 
-  /// v1 parity: the featured county isn't counted in MINE's chip.
-  int get mineCount => mine.length;
+  /// The featured unlock is still a claimed county, even though it is shown
+  /// separately from the accordion list.
+  int get mineCount => mine.length + (featuredUnlock == null ? 0 : 1);
   int get unclaimedCount => unclaimed.length;
 
   /// SAVED counts places, not counties (v1 parity).

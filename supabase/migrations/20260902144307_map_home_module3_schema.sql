@@ -18,6 +18,11 @@
 -- Shared reference tables (doc 07 "Shared reference tables")
 -- ---------------------------------------------------------------------
 
+-- County boundaries and place locations use PostGIS types. Existing
+-- development projects already have this extension, but a first production
+-- bootstrap must not depend on it having been enabled manually.
+create extension if not exists postgis with schema extensions;
+
 create table if not exists public.counties (
   id smallint primary key check (id between 1 and 47),
   name text not null,

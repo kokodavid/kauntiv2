@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Extends for_you_candidates() to also return the linked place's own
 -- name and trip stats (name, area_km2, elevation_m,
 -- visit_duration_minutes -- doc 07's places table, added by
@@ -47,8 +49,8 @@ as $$
     limit 1
   ),
   current_county as (
-    select extensions.ST_SetSRID(
-             extensions.ST_MakePoint(p_longitude, p_latitude), 4326
+    select ST_SetSRID(
+             ST_MakePoint(p_longitude, p_latitude), 4326
            ) as centroid
     where p_latitude is not null and p_longitude is not null
 
@@ -96,7 +98,7 @@ as $$
   ),
   ranked_candidates as (
     select cand.reason, cand.county_id, cand.place_id,
-           extensions.ST_DistanceSphere(cc.centroid, cand.location) as distance_m
+           ST_DistanceSphere(cc.centroid, cand.location) as distance_m
     from candidates cand, current_county cc
   ),
   nearest_per_county as (

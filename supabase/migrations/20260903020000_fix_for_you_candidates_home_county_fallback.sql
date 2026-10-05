@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Fixes for_you_candidates() for a genuinely brand-new user: doc 07
 -- defines "current county" as the user's most recent county_visits
 -- row, but a user who just finished onboarding has none yet -- no
@@ -68,7 +70,7 @@ as $$
     where w.user_id = auth.uid() and w.ticked_at is null
   )
   select cand.reason, cand.county_id, cand.place_id,
-         extensions.ST_DistanceSphere(cc.centroid, cand.location) as distance_m
+         ST_DistanceSphere(cc.centroid, cand.location) as distance_m
   from candidates cand, current_county cc
   order by distance_m asc
   limit 3;

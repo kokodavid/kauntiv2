@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- CountyDetail (board 15e) needs two things the schema didn't carry yet:
 --
 -- 1. Per-county static facts for the About card's quick-facts row
@@ -28,6 +30,6 @@ update public.counties set year_established = 2013;
 
 alter table public.places
   add column if not exists lat double precision
-    generated always as (extensions.ST_Y(location)) stored,
+    generated always as (ST_Y(location)) stored,
   add column if not exists lng double precision
-    generated always as (extensions.ST_X(location)) stored;
+    generated always as (ST_X(location)) stored;

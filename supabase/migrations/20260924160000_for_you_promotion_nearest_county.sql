@@ -1,3 +1,5 @@
+set search_path = extensions, public;
+
 -- Nearest county first for the For You promotion picker.
 --
 -- 20260924150000 ranked promotions in three tiers (anchor county,
@@ -41,10 +43,10 @@ as $$
     from public.counties c
     where p_latitude is not null
       and p_longitude is not null
-      and extensions.ST_Contains(
+      and ST_Contains(
         c.geometry,
-        extensions.ST_SetSRID(
-          extensions.ST_MakePoint(p_longitude, p_latitude), 4326
+        ST_SetSRID(
+          ST_MakePoint(p_longitude, p_latitude), 4326
         )
       )
     limit 1
@@ -88,7 +90,7 @@ as $$
       pl.area_km2,
       pl.elevation_m,
       pl.visit_duration_minutes,
-      extensions.ST_DistanceSphere(ac.centroid, pc.centroid) as county_distance_m,
+      ST_DistanceSphere(ac.centroid, pc.centroid) as county_distance_m,
       case
         when a.id is null then 2
         when pl.county_id = a.id then 0

@@ -18,12 +18,20 @@
 -- Shared reference tables (doc 07 "Shared reference tables")
 -- ---------------------------------------------------------------------
 
+-- County boundaries and place locations use PostGIS types. Existing
+-- development projects already have this extension, but a first production
+-- bootstrap must not depend on it having been enabled manually. Supabase
+-- projects may have the non-relocatable extension in either `extensions` or
+-- `public`, so resolve its types through this migration's search path.
+create extension if not exists postgis with schema extensions;
+set search_path = extensions, public;
+
 create table if not exists public.counties (
   id smallint primary key check (id between 1 and 47),
   name text not null,
   slug text not null unique,
-  geometry extensions.geometry(MultiPolygon, 4326) not null,
-  centroid extensions.geometry(Point, 4326) not null,
+  geometry geometry(MultiPolygon, 4326) not null,
+  centroid geometry(Point, 4326) not null,
   rarity_pct numeric(5, 2),
   is_coastal boolean not null default false
 );
@@ -46,7 +54,7 @@ create table if not exists public.places (
   -- for PlaceDetail -- these were previously assumed to be one field.
   summary text,
   description text,
-  location extensions.geometry(Point, 4326) not null,
+  location geometry(Point, 4326) not null,
   source text not null,
   licence text
 );

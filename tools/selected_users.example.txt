@@ -1,0 +1,3 @@
+# One existing Dev and Prod auth email per line.
+# Every listed person must first sign in to the Prod build once.
+tester@example.com

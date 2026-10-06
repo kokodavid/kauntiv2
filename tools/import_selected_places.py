@@ -110,11 +110,33 @@ def import_place(prod: Project, place: dict, images: list[dict]) -> dict:
     return rows[0]
 
 
+def verify_import_rpc(prod: Project) -> None:
+    """Confirm the target has the RPC before copying any Storage objects.
+
+    An empty payload intentionally fails the function's required-field check
+    after PostgREST resolves it. A missing function instead produces a 404.
+    """
+    try:
+        import_place(prod, {}, [])
+    except RuntimeError as error:
+        message = str(error)
+        if 'failed (404)' in message:
+            raise RuntimeError(
+                'The target database is missing import_selected_dev_place. Apply the place-candidate intake migrations there first.',
+            ) from error
+        if 'Selected place must include id, county_id, name, and type' in message:
+            return
+        raise
+    raise RuntimeError('Unexpected preflight response from import_selected_dev_place.')
+
+
 def main() -> int:
     args = parse_args()
     ids = selected_ids(args.place_ids_file)
     dev = Project(required_url('KAUNTI_DEV_SUPABASE_URL'), required_environment('KAUNTI_DEV_SERVICE_ROLE_KEY'))
     prod = Project(required_url('KAUNTI_PROD_SUPABASE_URL'), required_environment('KAUNTI_PROD_SERVICE_ROLE_KEY'))
+    if args.apply:
+        verify_import_rpc(prod)
     places = get_rows(dev, 'places', {'id': f"in.({','.join(ids)})"})
     found = {place['id'] for place in places}
     missing = [place_id for place_id in ids if place_id not in found]

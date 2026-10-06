@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import mimetypes
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import quote, unquote
 
 from migrate_user_journeys import Project, get_rows, request, required_environment, required_url
 
@@ -20,6 +21,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--place-ids-file', type=Path, required=True)
     parser.add_argument('--apply', action='store_true', help='Perform writes. Default: dry run.')
+    parser.add_argument(
+        '--copy-dev-storage-images',
+        action='store_true',
+        help='Required with --apply when selected images are in the Dev place-images bucket.',
+    )
     return parser.parse_args()
 
 
@@ -40,6 +46,55 @@ def source_images(project: Project, place_ids: list[str]) -> dict[str, list[dict
     for row in rows:
         grouped.setdefault(row['place_id'], []).append(row)
     return grouped
+
+
+def dev_place_image_path(project: Project, image_url: object) -> str | None:
+    if not isinstance(image_url, str):
+        return None
+    prefix = f'{project.url}/storage/v1/object/public/place-images/'
+    if not image_url.startswith(prefix):
+        return None
+    path = unquote(image_url.removeprefix(prefix)).strip('/')
+    return path or None
+
+
+def public_place_image_url(project: Project, path: str) -> str:
+    return f'{project.url}/storage/v1/object/public/place-images/{quote(path, safe="/")}'
+
+
+def storage_image_paths(project: Project, images: list[dict]) -> set[str]:
+    return {
+        path
+        for image in images
+        for key in ('image_url', 'thumbnail_url')
+        if (path := dev_place_image_path(project, image.get(key))) is not None
+    }
+
+
+def copy_place_image(dev: Project, prod: Project, path: str) -> None:
+    encoded_path = quote(path, safe='/')
+    content = request(dev, 'GET', f'/storage/v1/object/public/place-images/{encoded_path}')
+    content_type = mimetypes.guess_type(path)[0] or 'application/octet-stream'
+    request(
+        prod,
+        'POST',
+        f'/storage/v1/object/place-images/{encoded_path}',
+        body=content,
+        headers={'Content-Type': content_type, 'x-upsert': 'true'},
+    )
+
+
+def rewrite_copied_storage_urls(dev: Project, prod: Project, images: list[dict]) -> list[dict]:
+    rewritten: list[dict] = []
+    for image in images:
+        copied = dict(image)
+        for key in ('image_url', 'thumbnail_url'):
+            path = dev_place_image_path(dev, copied.get(key))
+            if path is not None:
+                copied[key] = public_place_image_url(prod, path)
+                copied['storage_copied'] = True
+        rewritten.append(copied)
+    return rewritten
 
 
 def import_place(prod: Project, place: dict, images: list[dict]) -> dict:
@@ -74,21 +129,37 @@ def main() -> int:
         has_summary = bool(str(place.get('summary') or '').strip())
         has_coordinates = place.get('lat') is not None and place.get('lng') is not None
         image_count = len(images_by_place.get(place_id, []))
-        uses_supabase_storage = any(
+        dev_storage_paths = storage_image_paths(dev, images_by_place.get(place_id, []))
+        unknown_storage_url = any(
             '/storage/v1/object/' in str(image.get(key) or '')
+            and dev_place_image_path(dev, image.get(key)) is None
             for image in images_by_place.get(place_id, [])
             for key in ('image_url', 'thumbnail_url')
         )
         complete = has_summary and has_coordinates and image_count > 0 and bool(str(place.get('source') or '').strip())
-        route = 'public place' if complete and not uses_supabase_storage else 'candidate queue'
-        print(f'- {place["name"]}: {route} ({image_count} image(s))')
+        if complete and not unknown_storage_url:
+            route = 'public place'
+            suffix = f'; copy {len(dev_storage_paths)} Dev storage image(s)' if dev_storage_paths else ''
+        else:
+            route = 'candidate queue'
+            suffix = '; unsupported storage URL' if unknown_storage_url else ''
+        print(f'- {place["name"]}: {route} ({image_count} image(s)){suffix}')
 
     if not args.apply:
         print('Dry run only. Re-run with --apply after reviewing the routes above.')
         return 0
 
     for place_id in ids:
-        result = import_place(prod, places_by_id[place_id], images_by_place.get(place_id, []))
+        images = images_by_place.get(place_id, [])
+        paths = storage_image_paths(dev, images)
+        if paths and not args.copy_dev_storage_images:
+            raise RuntimeError(
+                'Selected images are in Dev Storage. Re-run with --copy-dev-storage-images to copy them to Prod.',
+            )
+        for path in sorted(paths):
+            print(f'Copying place image: {path}')
+            copy_place_image(dev, prod, path)
+        result = import_place(prod, places_by_id[place_id], rewrite_copied_storage_urls(dev, prod, images))
         destination = result['destination']
         reference = result['place_id'] or result['candidate_id']
         missing_fields = ', '.join(result['missing_fields']) or 'none'

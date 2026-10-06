@@ -17,10 +17,11 @@ The familiar profile score remains based on three fields:
 2. Coordinates.
 3. At least one image row.
 
-The import additionally blocks publication when the record has no source, or
-when an image URL points at Supabase Storage. Storage objects are not copied by
-this intake tool; keeping such a record in the queue prevents Production from
-silently depending on Dev Storage.
+The import additionally blocks publication when the record has no source. For
+an explicitly selected Dev place, the importer can copy objects from Dev's
+`place-images` bucket into the Production bucket and rewrite their public URLs.
+It requires an explicit flag before doing so; unknown Storage URLs stay in the
+candidate queue rather than making Production depend on another environment.
 
 ## Selected Dev imports
 
@@ -44,7 +45,8 @@ After reviewing the output, perform the copy:
 ```bash
 python3 tools/import_selected_places.py \
   --place-ids-file /secure/path/places-to-import.txt \
-  --apply
+  --apply \
+  --copy-dev-storage-images
 ```
 
 The importer is resumable. Retrying does not duplicate a public place, candidate

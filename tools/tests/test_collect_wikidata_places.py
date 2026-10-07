@@ -6,6 +6,7 @@ from pathlib import Path
 
 def load_collector():
     path = Path(__file__).parents[1] / 'collect_wikidata_places.py'
+    sys.path.insert(0, str(path.parent))
     spec = importlib.util.spec_from_file_location('collect_wikidata_places', path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -16,7 +17,7 @@ def load_collector():
 collector = load_collector()
 
 
-def binding(qid, name, point, kind='Waterfall', description=None):
+def binding(qid, name, point, kind='Waterfall', description=None, image=None):
     row = {
         'item': {'value': f'http://www.wikidata.org/entity/{qid}'},
         'itemLabel': {'value': name},
@@ -24,7 +25,9 @@ def binding(qid, name, point, kind='Waterfall', description=None):
         'kind': {'value': kind},
     }
     if description:
-        row['description'] = {'value': description}
+      row['description'] = {'value': description}
+    if image:
+      row['image'] = {'value': image}
     return row
 
 
@@ -50,11 +53,22 @@ class WikidataCollectorTest(unittest.TestCase):
         self.assertEqual(places[0].payload()['licence'], 'CC0')
         self.assertEqual(places[0].payload()['images'], [])
 
+    def test_place_retains_optional_commons_file_reference(self):
+        places = collector.places_from_bindings([
+            binding(
+                'Q1', 'A waterfall', 'Point(36.8219 -1.2921)',
+                image='http://commons.wikimedia.org/wiki/Special:FilePath/Test.jpg',
+            ),
+        ])
+
+        self.assertEqual(places[0].image_file_url, 'http://commons.wikimedia.org/wiki/Special:FilePath/Test.jpg')
+
     def test_query_is_bounded_and_kenya_only(self):
         query = collector.endpoint_query(25)
         self.assertIn('wd:Q114', query)
         self.assertIn('LIMIT 25', query)
         self.assertIn('wd:Q355304', query)
+        self.assertIn('wdt:P18 ?image', query)
 
 
 if __name__ == '__main__':

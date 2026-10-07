@@ -28,11 +28,18 @@ worker (GitHub Actions)  ->  Edge Function ingest-place-candidates  ->  service-
   refreshed in place; one a person has edited gets a pending row in
   `place_candidate_revisions` (a newer change supersedes an older pending one).
   Published or rejected candidates are left alone.
-- Candidate images keep their remote source, licence and attribution; images
-  without a licence and attribution are dropped. Approved copies will live in
-  the private `place-candidate-staging` bucket (no policies, service role only).
-- `publish_place_candidate_dashboard` refuses `origin = 'scraper'` until the
-  reviewed-asset publish workflow replaces that guard.
+- Candidate images keep their source, licence and attribution; images without
+  a reusable licence and attribution are dropped. The dashboard is never given
+  a remote source URL or private storage path.
+- The collector resolves a Wikidata `P18` image through Wikimedia Commons,
+  accepts only CC0, public-domain, CC BY, or CC BY-SA metadata, and requests a
+  bounded thumbnail from `upload.wikimedia.org`. The ingest function downloads
+  it to the private `place-candidate-staging` bucket (no policies, service role
+  only, 8 MB maximum) only for a pending scraper candidate.
+- Editors receive a short-lived signed preview through `place-candidate-assets`.
+  They must approve or reject every staged asset. Publishing downloads approved
+  private assets and uploads them to `place-images`; the database accepts only
+  that approved asset list before it creates the public place.
 
 ## Edge Function
 
@@ -44,6 +51,7 @@ worker (GitHub Actions)  ->  Edge Function ingest-place-candidates  ->  service-
 | `start` | `{ source, triggered_by: 'schedule'\|'manual', dry_run }` -> `{ run_id, source, checkpoint }` |
 | `items` | `{ run_id, items: [...] }` (max 100) -> `{ results: [{ key, outcome, ... }] }` |
 | `finish` | `{ run_id, status: 'succeeded'\|'partial'\|'failed', checkpoint, error_summary }` |
+| `stage_images` | `{ candidate_ids: [...] }` -> private-stage newly ingested Commons assets |
 
 An item is `{ key, name, type, lat, lng, summary?, description?, source?, source_url?,
 licence?, external_id?, county_id?, images?: [{ key, remote_url, licence, attribution, ... }] }`.
@@ -59,6 +67,17 @@ supabase secrets set SCRAPER_INGEST_KEY="$SCRAPER_INGEST_KEY" --project-ref <ref
 
 Use a different key for Dev and Production.
 
+The private-preview and approved-copy endpoint is deployed with normal JWT
+verification and needs no custom secret:
+
+```bash
+supabase functions deploy place-candidate-assets --project-ref <ref>
+```
+
+Apply `20261007130000_add_scraper_image_review.sql` before deploying either
+updated image function. Redeploy `ingest-place-candidates` with
+`--no-verify-jwt` after the migration so it can stage assets.
+
 ## Wikidata Dev collector
 
 `tools/collect_wikidata_places.py` is the first source adapter. It queries a
@@ -67,8 +86,10 @@ deduplicates repeated Wikidata items locally, and sends batches only to the
 ingest function. The database remains authoritative for county assignment,
 deduplication and every write.
 
-It imports no images. Wikidata text fields are CC0, but image download,
-private staging, editor approval and publication remain separate work.
+It resolves at most one reusable Wikimedia Commons image per candidate. A live
+run asks the ingest function to stage newly created or updated image assets;
+dry runs never write or stage assets. No image is public until an editor has
+approved it and published the candidate.
 
 `.github/workflows/wikidata-dev.yml` is intentionally manual and uses the
 GitHub `dev` Environment. Configure only these Environment secrets:
@@ -82,6 +103,5 @@ candidates. It does not have a schedule or any Production credentials.
 
 ## Not built yet
 
-Additional source adapters, image staging and approval, the reviewed-asset
-publish workflow, the dashboard scraper-runs and revision-diff screens, and
-any scheduled or Production collector.
+Additional source adapters, the dashboard scraper-runs and revision-diff
+screens, and any scheduled or Production collector.

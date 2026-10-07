@@ -16,6 +16,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from wikimedia_commons import CommonsImage, resolve as resolve_commons_image
+
 WIKIDATA_ENDPOINT = 'https://query.wikidata.org/sparql'
 MAX_BATCH_SIZE = 100
 MAX_LIMIT = 100
@@ -42,8 +44,9 @@ class Place:
     lat: float
     lng: float
     summary: str | None
+    image_file_url: str | None
 
-    def payload(self) -> dict[str, Any]:
+    def payload(self, image: CommonsImage | None = None) -> dict[str, Any]:
         return {
             'key': self.key,
             'name': self.name,
@@ -56,14 +59,25 @@ class Place:
             'licence': 'CC0',
             'external_id': self.key,
             'last_verified_at': date.today().isoformat(),
-            # Image import waits for the reviewed-asset workflow.
-            'images': [],
+            'images': [] if image is None else [{
+                'key': image.key,
+                'remote_url': image.remote_url,
+                'thumbnail_url': image.remote_url,
+                'width': image.width,
+                'height': image.height,
+                'source': 'Wikimedia Commons',
+                'source_url': image.source_url,
+                'licence': image.licence,
+                'licence_url': image.licence_url,
+                'attribution': image.attribution,
+                'last_verified_at': date.today().isoformat(),
+            }],
         }
 
 
 def endpoint_query(limit: int) -> str:
     values = '\n'.join(f'  (wd:{qid} "{kind}")' for qid, kind in PLACE_CLASSES)
-    return f'''SELECT ?item ?itemLabel ?coord ?description ?kind WHERE {{
+    return f'''SELECT ?item ?itemLabel ?coord ?description ?image ?kind WHERE {{
   VALUES (?class ?kind) {{
 {values}
   }}
@@ -71,6 +85,7 @@ def endpoint_query(limit: int) -> str:
         wdt:P625 ?coord;
         wdt:P17 wd:Q114.
   OPTIONAL {{ ?item schema:description ?description FILTER (lang(?description) = "en") }}
+  OPTIONAL {{ ?item wdt:P18 ?image }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
 }}
 LIMIT {limit}'''
@@ -106,7 +121,7 @@ def places_from_bindings(bindings: Iterable[dict[str, Any]]) -> list[Place]:
             continue
         key = qid_match.group(1)
         lat, lng = coordinates
-        candidate = Place(key, name, kind, lat, lng, binding_value(binding, 'description'))
+        candidate = Place(key, name, kind, lat, lng, binding_value(binding, 'description'), binding_value(binding, 'image'))
         # A place may match more than one allowed class; preserve the first
         # deterministic row rather than submitting duplicate source keys.
         places.setdefault(key, candidate)
@@ -194,15 +209,34 @@ def main() -> int:
 
     try:
         places = places_from_bindings(fetch_bindings(args.limit))
+        payloads = []
+        for place in places:
+            image = None
+            if place.image_file_url:
+                try:
+                    image = resolve_commons_image(place.image_file_url)
+                except (OSError, ValueError, json.JSONDecodeError) as error:
+                    print(f'Could not resolve image for {place.key}: {error}', file=sys.stderr)
+            payloads.append(place.payload(image))
         outcomes: dict[str, int] = {}
-        for batch in chunks([place.payload() for place in places]):
+        candidate_ids: list[str] = []
+        for batch in chunks(payloads):
             response = request_json(args.ingest_url, {'action': 'items', 'run_id': run_id, 'items': batch}, args.ingest_key)
             for result in response.get('results', []):
                 outcome = result.get('outcome', 'error')
                 outcomes[outcome] = outcomes.get(outcome, 0) + 1
+                candidate_id = result.get('candidate_id')
+                if not args.dry_run and outcome in ('created', 'updated') and isinstance(candidate_id, str):
+                    candidate_ids.append(candidate_id)
+        staging = {}
+        if candidate_ids:
+            staged = request_json(args.ingest_url, {'action': 'stage_images', 'candidate_ids': candidate_ids}, args.ingest_key)
+            for result in staged.get('results', []):
+                outcome = result.get('outcome', 'error')
+                staging[outcome] = staging.get(outcome, 0) + 1
         status = 'partial' if outcomes.get('error') else 'succeeded'
         request_json(args.ingest_url, {'action': 'finish', 'run_id': run_id, 'status': status, 'checkpoint': {}}, args.ingest_key)
-        print(json.dumps({'run_id': run_id, 'dry_run': args.dry_run, 'records': len(places), 'outcomes': outcomes}, sort_keys=True))
+        print(json.dumps({'run_id': run_id, 'dry_run': args.dry_run, 'records': len(places), 'outcomes': outcomes, 'staging': staging}, sort_keys=True))
         return 0 if status == 'succeeded' else 1
     except Exception as error:
         try:

@@ -1,0 +1,44 @@
+name: Collect Wikidata candidates (Dev)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Keep results out of the candidate queue
+        required: true
+        default: true
+        type: boolean
+      limit:
+        description: Maximum Wikidata rows to request (1-100)
+        required: true
+        default: '25'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wikidata-dev-collector
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: Collect review-only Wikidata candidates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Collect and submit candidates
+        env:
+          DEV_SCRAPER_INGEST_URL: ${{ secrets.DEV_SCRAPER_INGEST_URL }}
+          SCRAPER_INGEST_KEY: ${{ secrets.DEV_SCRAPER_INGEST_KEY }}
+        run: |
+          python3 tools/collect_wikidata_places.py \
+            --dry-run "${{ inputs.dry_run }}" \
+            --limit "${{ inputs.limit }}"

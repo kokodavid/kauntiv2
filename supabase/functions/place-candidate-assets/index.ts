@@ -6,10 +6,15 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const STAGING_BUCKET = 'place-candidate-staging'
 const PUBLIC_BUCKET = 'place-images'
+const corsHeaders = {
+  'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
+  'access-control-allow-methods': 'POST, OPTIONS',
+  'access-control-allow-origin': '*',
+}
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status,
-  headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+  headers: { ...corsHeaders, 'content-type': 'application/json', 'cache-control': 'no-store' },
 })
 
 const isString = (value: unknown): value is string => typeof value === 'string' && value.length > 0
@@ -82,6 +87,7 @@ async function publish(url: string, userClient: ReturnType<typeof createClient>,
 }
 
 Deno.serve(async (request) => {
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
   let body: Record<string, unknown>
   try { body = await request.json() } catch { return json({ error: 'Invalid JSON' }, 400) }

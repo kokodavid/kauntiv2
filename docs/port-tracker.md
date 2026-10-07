@@ -467,6 +467,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-07 | codex/scraper-image-review | Infrastructure | Fixed browser access to private candidate-image previews: the authenticated asset function now handles CORS preflight and returns CORS headers with every response. |
 | 2026-10-07 | codex/scraper-foundation | Infrastructure | Added the Dev-only manual Wikidata collector: a bounded, CC0 structured-data query feeds only the authenticated ingest function and review queue. It defaults to dry-run, has no schedule or Production credentials, imports no images, and cannot publish public places. |
 | 2026-10-07 | codex/scraper-image-review | Infrastructure | Added private Wikimedia Commons image staging, role-checked signed previews, required per-image review, and a guarded private-to-public copy only during scraper candidate publication. |
 | 2026-10-07 | codex/candidate-moderation | Infrastructure | Added role-checked candidate review RPCs for dashboard detail, profile correction, rejection, and guarded publication; candidates remain invisible to the app until published. |

@@ -16,19 +16,29 @@ class MapHomeUnclaimedCard extends StatelessWidget {
     required this.suggestion,
     this.onOpenCounty,
     this.onRoute,
+    this.pillLabel = 'Unclaimed',
+    this.fullWidth = false,
   });
 
   final MapHomeSuggestion suggestion;
+
+  /// The photo pill: "Unclaimed", or "Suggested" in Go deeper.
+  final String pillLabel;
+
+  /// A row with a single card shows it across the sheet.
+  final bool fullWidth;
   final OpenCountyDetail? onOpenCounty;
   final OpenDirections? onRoute;
 
-  static const width = 236.0;
+  static const width = 184.0;
+  static const height = 240.0;
+  static const photoHeight = 184.0;
 
   @override
   Widget build(BuildContext context) {
     final route = onRoute;
     return Container(
-      width: width,
+      width: fullWidth ? double.infinity : width,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -49,8 +59,10 @@ class MapHomeUnclaimedCard extends StatelessWidget {
                 title: suggestion.county.name,
                 caption: suggestion.distanceAway,
                 imageUrl: suggestion.highlightImageUrl,
-                height: 132,
-                bottomRight: const AppPhotoPill(label: 'Unclaimed'),
+                height: photoHeight,
+                // Narrow row cards give the whole width to the name; the section
+                // heading already says they are unclaimed.
+                bottomRight: fullWidth ? AppPhotoPill(label: pillLabel) : null,
               ),
             ),
           ),

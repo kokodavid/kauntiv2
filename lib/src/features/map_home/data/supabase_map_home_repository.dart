@@ -7,6 +7,7 @@ import '../../../services/app_logger.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_county_reads.dart';
 import 'map_home_for_you_reads.dart';
+import 'map_home_place_reads.dart';
 import 'map_home_repository.dart';
 
 class SupabaseMapHomeRepository implements MapHomeRepository {
@@ -48,10 +49,11 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
         .length;
 
     final forYou = MapHomeForYouReads(client, _readOptional);
-    final (suggestions, promotion, unclaimed) = await (
+    final (suggestions, promotion, unclaimed, lastClaim) = await (
       _suggestions(countyFacts),
       forYou.promotion(),
       forYou.unclaimed(countyFacts, _distanceLabel),
+      _lastClaim(userId),
     ).wait;
 
     return MapHomeBoardData(
@@ -63,44 +65,13 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
       promotion: promotion,
       unclaimed: unclaimed.row,
       unclaimedCount: unclaimed.total,
+      lastClaim: lastClaim,
     );
   }
 
   @override
-  Future<List<MapPlace>> loadMapPlaces() async {
-    final rows = await client
-        .from('places')
-        .select(
-          'id, name, type, summary, county_id, lat, lng, '
-          'place_images(thumbnail_url, sort_order)',
-        )
-        .timeout(const Duration(seconds: 8));
-    return [
-      for (final row in rows)
-        if (row['lat'] is num && row['lng'] is num)
-          MapPlace(
-            id: row['id'] as String,
-            name: row['name'] as String,
-            type: row['type'] as String,
-            countyCode: (row['county_id'] as num).toInt(),
-            lat: (row['lat'] as num).toDouble(),
-            lng: (row['lng'] as num).toDouble(),
-            summary: row['summary'] as String?,
-            thumbnailUrl: _firstThumbnail(row['place_images']),
-          ),
-    ];
-  }
-
-  String? _firstThumbnail(Object? images) {
-    if (images is! List || images.isEmpty) return null;
-    final sorted = [...images.whereType<Map<String, dynamic>>()]
-      ..sort(
-        (a, b) => ((a['sort_order'] as num?) ?? 0).compareTo(
-          (b['sort_order'] as num?) ?? 0,
-        ),
-      );
-    return sorted.isEmpty ? null : sorted.first['thumbnail_url'] as String?;
-  }
+  Future<List<MapPlace>> loadMapPlaces() =>
+      MapHomePlaceReads(client).loadMapPlaces();
 
   Future<CountyPath?> _homeCounty(
     String userId, {
@@ -183,6 +154,29 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
         if ((raw as Map)['county_id'] != null && raw['state'] != null)
           raw['county_id'] as int: raw['state'] as String,
     };
+  }
+
+  /// The newest county that became explored, by `confirmed_at`. Optional:
+  /// without it Home just never celebrates.
+  Future<MapHomeClaim?> _lastClaim(String userId) async {
+    final rows = await _readOptional<List<dynamic>>(
+      () => client
+          .from('county_visits')
+          .select('county_id, confirmed_at')
+          .eq('user_id', userId)
+          .eq('state', 'explored')
+          .not('confirmed_at', 'is', null)
+          .order('confirmed_at', ascending: false)
+          .limit(1)
+          .timeout(const Duration(seconds: 8)),
+      label: 'latest county claim',
+    );
+    final row = rows?.firstOrNull;
+    if (row is! Map) return null;
+    final county = CountyPaths.byCode[(row['county_id'] as num?)?.toInt()];
+    final at = DateTime.tryParse('${row['confirmed_at']}');
+    if (county == null || at == null) return null;
+    return MapHomeClaim(county: county, claimedAt: at);
   }
 
   Future<List<MapHomeSuggestion>> _suggestions(

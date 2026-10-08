@@ -58,6 +58,12 @@ class SupabaseJourneyRepository {
     );
   }
 
+  static const _summaryColumns =
+      'id, title, started_at, ended_at, distance_m, paused_ms, '
+      'destination_place_id, destination_name, destination_latitude, '
+      'destination_longitude, stops, top_speed_mps, highest_elevation_m, '
+      'transport_mode, cover_media_id';
+
   /// Supabase caps a read at 1,000 rows by default; reads page through.
   static const pageSize = 1000;
 
@@ -113,6 +119,10 @@ class SupabaseJourneyRepository {
               'p_destination_name': destination.name,
               'p_destination_latitude': destination.latitude,
               'p_destination_longitude': destination.longitude,
+              if (destination.viaStops.isNotEmpty)
+                'p_stops': [
+                  for (final stop in destination.viaStops) stop.toJson(),
+                ],
             },
           },
         )
@@ -125,13 +135,7 @@ class SupabaseJourneyRepository {
       readAllPages(
         (from, to) => _client
             .from('journeys')
-            .select(
-              'id, title, started_at, ended_at, distance_m, paused_ms, '
-              'destination_place_id, destination_name, '
-              'destination_latitude, destination_longitude, '
-              'top_speed_mps, highest_elevation_m, transport_mode, '
-              'cover_media_id',
-            )
+            .select(_summaryColumns)
             .order('started_at', ascending: false)
             // postgrest-dart's order() is descending unless told otherwise.
             .order('id', ascending: true)
@@ -190,6 +194,7 @@ class SupabaseJourneyRepository {
             name: row['destination_name'] as String,
             latitude: (row['destination_latitude'] as num?)?.toDouble(),
             longitude: (row['destination_longitude'] as num?)?.toDouble(),
+            viaStops: JourneyStop.listFrom(row['stops']),
           ),
     topSpeedMps: (row['top_speed_mps'] as num?)?.toDouble(),
     highestElevationMeters: (row['highest_elevation_m'] as num?)?.toDouble(),
@@ -212,13 +217,7 @@ class SupabaseJourneyRepository {
     final results = await Future.wait([
       _client
           .from('journeys')
-          .select(
-            'id, title, started_at, ended_at, distance_m, paused_ms, '
-            'destination_place_id, destination_name, '
-            'destination_latitude, destination_longitude, '
-            'top_speed_mps, highest_elevation_m, transport_mode, '
-            'cover_media_id',
-          )
+          .select(_summaryColumns)
           .eq('id', id)
           .maybeSingle()
           .timeout(_timeout),

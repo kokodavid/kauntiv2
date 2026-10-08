@@ -71,8 +71,10 @@ class _JourneyHistorySectionState extends ConsumerState<JourneyHistorySection> {
     final query = _query.trim().toLowerCase();
     if (query.isEmpty) return true;
     if (journey.title.toLowerCase().contains(query)) return true;
-    final destination = journey.destination?.name;
-    if (destination != null && destination.toLowerCase().contains(query)) {
+    final destination = journey.destination;
+    if (destination != null &&
+        [destination.name, for (final s in destination.viaStops) s.name]
+            .any((name) => name.toLowerCase().contains(query))) {
       return true;
     }
     // Counties the route crossed (e.g. typing "kiambu" surfaces a Trip

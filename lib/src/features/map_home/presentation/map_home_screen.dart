@@ -6,6 +6,7 @@ import '../../../design/app_text_styles.dart';
 import '../application/map_home_board_loader.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_board.dart';
+import 'map_home_board_sheet.dart' show defaultRecordTripCardHeight;
 import 'map_home_links.dart';
 
 class MapHomeScreen extends StatefulWidget {
@@ -21,9 +22,29 @@ class MapHomeScreen extends StatefulWidget {
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
     this.onOpenProfile,
+    this.isTripRecording = false,
+    this.onStartTrip,
+    this.tripsNear,
+    this.savedPlans,
+    this.recordTripCard,
+    this.recordTripCardHeight = defaultRecordTripCardHeight,
   });
 
   final CountyPath? homeCounty;
+
+  /// A Trip is recording; the sheet puts the nearest county first.
+  final bool isTripRecording;
+
+  /// Starts a Trip, or null when Trips are not available.
+  final VoidCallback? onStartTrip;
+
+  /// The public trips row, when that feature is on.
+  final Widget? tripsNear;
+  final Widget? savedPlans;
+
+  /// The one-tap Record a Trip card, passed only while the phone is moving.
+  final Widget? recordTripCard;
+  final double recordTripCardHeight;
   final MapHomeBoardLoader loader;
 
   /// Empty: Home shows the drawn county map only.
@@ -79,6 +100,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
             onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
             onOpenProfile: widget.onOpenProfile,
+            isTripRecording: widget.isTripRecording,
+            onStartTrip: widget.onStartTrip,
+            tripsNear: widget.tripsNear,
+            savedPlans: widget.savedPlans,
+            recordTripCard: widget.recordTripCard,
+            recordTripCardHeight: widget.recordTripCardHeight,
           );
         },
       ),

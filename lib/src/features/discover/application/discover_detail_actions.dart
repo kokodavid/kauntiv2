@@ -52,10 +52,15 @@ class DiscoverDetailActions {
     saved: saved,
   );
 
-  Future<bool> openDirections(PlaceDetailData place) => directions.open(
+  /// [waypoints] are "lat,lng" stops to pass on the way to [place].
+  Future<bool> openDirections(
+    PlaceDetailData place, {
+    List<String> waypoints = const [],
+  }) => directions.open(
     latitude: place.latitude,
     longitude: place.longitude,
     query: '${place.title}, ${place.county.name}, Kenya',
+    waypoints: waypoints,
   );
 
   Future<bool> openSafetySource(Uri uri) => directions.openExternal(uri);

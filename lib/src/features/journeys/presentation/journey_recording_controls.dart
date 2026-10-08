@@ -33,7 +33,12 @@ class JourneyRecordingControls extends ConsumerStatefulWidget {
     super.key,
     this.onOpenSettings,
     this.onExpandedChanged,
+    this.compact = false,
   });
+
+  /// A one-row version for the Home sheet: no grab handle, paused note or
+  /// "Trip details" panel - those stay on the full recording screen.
+  final bool compact;
 
   final OpenAppSettings? onOpenSettings;
 
@@ -144,9 +149,10 @@ class _JourneyRecordingControlsState
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Center(
-          child: Container(
-            width: 36,
+        if (!widget.compact)
+          Center(
+            child: Container(
+              width: 36,
             height: 4,
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
@@ -221,7 +227,7 @@ class _JourneyRecordingControlsState
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (!isRecording) ...[
+                  if (!isRecording && !widget.compact) ...[
                     const SizedBox(height: 8),
                     const Text(
                       "Anything between now and Resume isn't drawn, "
@@ -266,6 +272,7 @@ class _JourneyRecordingControlsState
             ),
           ],
         ),
+        if (!widget.compact) ...[
         const SizedBox(height: 14),
         _TripDetailsToggle(expanded: _detailsExpanded, onTap: _toggleDetails),
         AnimatedCrossFade(
@@ -280,6 +287,7 @@ class _JourneyRecordingControlsState
           duration: const Duration(milliseconds: 220),
           sizeCurve: Curves.easeOut,
         ),
+        ],
       ],
     );
   }

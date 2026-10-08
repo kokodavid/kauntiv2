@@ -52,6 +52,56 @@ void main() {
       expect(await reopened.destination('journey-1', 'bob'), isNull);
     });
 
+    test('keeps planned stops, in order, with the destination', () async {
+      const destination = JourneyDestination(
+        placeId: 'place-3',
+        name: 'Ol Donyo Sabuk',
+        latitude: -1.14,
+        longitude: 37.2,
+        viaStops: [
+          JourneyStop(
+            placeId: 'place-1',
+            name: 'Fourteen Falls',
+            latitude: -1.2,
+            longitude: 37.1,
+          ),
+          JourneyStop(
+            placeId: 'place-2',
+            name: 'Thika Falls',
+            latitude: -1.0,
+            longitude: 37.07,
+          ),
+        ],
+      );
+      await repo.start(
+        id: 'journey-s',
+        userId: 'alice',
+        at: started,
+        destination: destination,
+      );
+      final stored = await repo.destination('journey-s', 'alice');
+      expect(stored?.viaStops.map((s) => s.name), [
+        'Fourteen Falls',
+        'Thika Falls',
+      ]);
+      expect(stored?.viaStops.first.latitude, -1.2);
+    });
+
+    test('a trip without stops reads back none', () async {
+      await repo.start(
+        id: 'journey-n',
+        userId: 'alice',
+        at: started,
+        destination: const JourneyDestination(
+          placeId: 'p',
+          name: 'Museum',
+          latitude: -1.2,
+          longitude: 36.8,
+        ),
+      );
+      expect((await repo.destination('journey-n', 'alice'))?.viaStops, isEmpty);
+    });
+
     test('rejects a destination that cannot be uploaded', () async {
       expect(
         repo.start(

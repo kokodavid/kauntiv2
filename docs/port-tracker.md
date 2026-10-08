@@ -12,7 +12,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 1 | Foundations re-homed to `core/` (config, design, widgets, counties, services) | `lib/src/{config,design,widgets,counties,services}` | Not started | | Move to `core/`. Clears most `layout` baseline entries. `core/services/supabase_client_provider.dart` exists (Explore uses it) |
 | 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | In progress | codex/go-router | go_router (`app/router.dart`, `appRouterProvider`); start-up gating is one redirect on `StartupFlow` (`features/onboarding`), the old `app.dart` state machine ported rule for rule; sign-in on a Riverpod notifier with error mapping in the data layer. Left: move the onboarding pages from `screens/` into `features/onboarding/presentation`, sign-out (with detection's local-state clearing), v1's 3 how-it-works intro screens |
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/go-router | `app/app_shell.dart` on a go_router `StatefulShellRoute.indexedStack`: tab branches keep their own stacks and state, built lazily (v1 parity). County / Place Detail are routes (`/county/:code`, `/place/:id`). Map + Explore live; Badges / Ranks show "coming next" |
-| 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In progress | codex/home-migration | Board, sheet, For You, peek, v1 map interactions, Supabase data ported. See [Map Home](#map-home-4) below |
+| 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In review | codex/home-sheet-v2 | Board, compact sheet, nearby-place layout, v1 map interactions and Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 coded. Foreground local detection/dwell/sync checks run every 15 s, while hardware location is read on start/resume and at most every 2 min; background crossing relies on OS geofences. Dev-only opt-in diagnostics can log cycle/GPS-read counts and geofence transitions. Physical-device validation still needed. |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | In progress | codex/badges | [Plan](badges-port-plan.md). Step 1: Badges tab on the new design (Figma 491:1394, star-less badge 277:19839): title + tier pill, claimed hero with 47-segment bar, collection grid with depth rings (county_visits + county_depth_ranks). "Since reset", the activity card, avatar and saved-data time wait on product rules. |
@@ -21,7 +21,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 10 | Quests / side quests + sharing | `features/quests` | Not started | | |
 | 11 | Friends | `features/friends` | Not started | | |
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
-| 13 | Journeys (new Pro feature) | New in v2 | In progress | codex/journey-place-handoff | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats, county splits, camera-roll photo matching, replay moments and share-card media. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
+| 13 | Journeys (new Pro feature) | New in v2 | In review | codex/home-sheet-v2 | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats, county splits, camera-roll photo matching, replay moments, saved trip plans and share-card media. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
 | 14 | Production place candidate intake | New in v2 | In progress | codex/scraper-foundation | Explicit Dev place copies route only publicly ready records into `places`; incomplete or non-portable records remain in an app-inaccessible candidate queue, where an editor can revise, reject, or publish only when all publication checks pass. Scraped data now has a Dev-only, manual Wikidata collector that can create review-only candidates but cannot import images or publish places. See [place-candidate-intake.md](place-candidate-intake.md) and [scraper-ingest.md](scraper-ingest.md). |
 
 ## Baseline burn-down
@@ -449,6 +449,21 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 - Planned routes and travel itineraries are not implemented. A Journey remains
   the actual recorded route, and the user stops it explicitly.
 
+**Built in the Home and trip-planning slice**
+
+- Home has the compact sheet and nearby-place composition from the v2 design,
+  with focused domain layout models and extracted presentation components.
+- Place Detail opens on About, with a separate Plan trip tab that can build,
+  save, reopen and edit an ordered set of stops. Saved plans persist through
+  the new `journey_stops` and `saved_trips` migrations.
+- The plan uses the live Mapbox route surface in both its inline card and its
+  full-screen route view. The inline platform view is intentionally released
+  before full-screen navigation and restored after return, so native map
+  surfaces do not overlap during the transition. A stable unavailable state
+  appears when map data or a token is unavailable instead of a blank screen.
+- Place Detail, Map Home, Journey history and recording controls were split
+  into focused files to keep the architecture's 300-line cap intact.
+
 **Pending**
 
 - Validate native stop and locked-screen recording on devices, including
@@ -467,6 +482,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-08 | codex/home-sheet-v2 | 4, 6, 13 | Home v2 compact sheet and nearby-place composition; Place Detail About/Plan trip split; saved, ordered route plans with migrations; and a guarded inline-to-full-screen Mapbox handoff that releases one native surface before creating the next. Architecture guard passes; Flutter/device transition verification remains pending. |
 | 2026-10-07 | codex/scraper-foundation | Infrastructure | Added the Dev-only manual Wikidata collector: a bounded, CC0 structured-data query feeds only the authenticated ingest function and review queue. It defaults to dry-run, has no schedule or Production credentials, imports no images, and cannot publish public places. |
 | 2026-10-07 | codex/candidate-moderation | Infrastructure | Added role-checked candidate review RPCs for dashboard detail, profile correction, rejection, and guarded publication; candidates remain invisible to the app until published. |
 | 2026-10-06 | codex/place-intake | Infrastructure | Started selected Dev-place intake: Production routes only explicitly listed Dev IDs to public reviewed places when their existing profile is complete (summary, coordinates, image); incomplete records remain in protected candidate tables for later dashboard review. |

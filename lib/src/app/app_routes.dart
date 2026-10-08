@@ -16,6 +16,7 @@ abstract final class AppRoutes {
   static const settings = '/settings';
   static const locationDiagnostics = '/location-diagnostics';
   static const journeyRecording = '/journey-recording';
+  static const savedPlans = '/saved-plans';
 
   static String county(int code) => '/county/$code';
   static String place(String id) => '/place/$id';

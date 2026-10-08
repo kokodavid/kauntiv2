@@ -57,9 +57,12 @@ class AppShell extends ConsumerWidget {
           body: Stack(
             children: [
               Positioned.fill(child: navigationShell),
+              // Home and Trips show the Trip in progress themselves.
               if (AppFeatureFlags.journeys &&
                   AppRoutes.tabs[navigationShell.currentIndex] !=
-                      AppNavTab.journeys)
+                      AppNavTab.journeys &&
+                  AppRoutes.tabs[navigationShell.currentIndex] !=
+                      AppNavTab.map)
                 Positioned(
                   left: 0,
                   right: 0,

@@ -9,7 +9,6 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 
 import '../../../core/services/app_config_provider.dart';
 import '../../../core/services/app_mapbox_telemetry.dart';
-import '../../../design/app_colors.dart';
 import '../domain/trip_route.dart';
 import 'trip_plan_map_controller.dart';
 import 'trip_plan_map_layers.dart';

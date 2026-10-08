@@ -7,6 +7,7 @@ import '../core/services/app_config_provider.dart';
 import '../features/journeys/application/device_motion.dart';
 import '../features/journeys/application/journey_recorder.dart';
 import '../features/journeys/domain/journey_recording.dart';
+import '../features/journeys/domain/motion_rules.dart';
 import '../features/journeys/presentation/journey_recording_controls.dart';
 import '../features/journeys/presentation/journey_start_card.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
@@ -16,10 +17,10 @@ import '../features/map_home/presentation/map_home_board_sheet.dart'
 import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/trip_planner/presentation/saved_plans_home_section.dart';
+import '../services/app_supabase.dart';
 import 'app_routes.dart';
 import 'detail_routes.dart';
 import 'journey_place_routes.dart';
-import '../services/app_supabase.dart';
 
 /// Home tab wiring belongs beside the router, while its UI stays in Map Home.
 class MapTab extends ConsumerWidget {

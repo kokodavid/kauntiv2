@@ -124,4 +124,15 @@ class AppColors {
   static const sheetBackground = Colors.white;
   static const inputBorder = cardBorder;
   static const inputFocusedBorder = accent;
+
+  // Trip planner: warning note (a much longer stop order) and the "new
+  // county" tag.
+  static const warningBackground = Color(0xFFFFF6E5);
+  static const warningBorder = Color(0xFFFBE3B4);
+  static const warningText = Color(0xFF7A4B00);
+  static const newCountyText = Color(0xFF16A34A);
+  static const accentPressed = Color(0xFF0066D6);
+  static const accentTint = Color(0xFFEEF5FF);
+  static const segmentedTrack = Color(0xFFE7E8EB);
+  static const photoPlaceholder = Color(0xFF3A4150);
 }

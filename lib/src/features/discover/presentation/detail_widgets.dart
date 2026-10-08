@@ -116,6 +116,7 @@ class DetailGlassButton extends StatelessWidget {
     this.color = AppColors.foreground,
     this.size = 40,
     this.tooltip,
+    this.background = AppColors.tabBarShell,
   });
 
   final IconData icon;
@@ -123,6 +124,7 @@ class DetailGlassButton extends StatelessWidget {
   final Color color;
   final double size;
   final String? tooltip;
+  final Color background;
 
   @override
   Widget build(BuildContext context) {
@@ -133,10 +135,10 @@ class DetailGlassButton extends StatelessWidget {
         child: Container(
           width: size,
           height: size,
-          decoration: const BoxDecoration(
-            color: AppColors.tabBarShell,
+          decoration: BoxDecoration(
+            color: background,
             shape: BoxShape.circle,
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: AppColors.detailGlassShadow,
                 offset: Offset(0, 2),
@@ -148,7 +150,7 @@ class DetailGlassButton extends StatelessWidget {
             tooltip: tooltip,
             padding: EdgeInsets.zero,
             onPressed: onPressed,
-            icon: Icon(icon, size: 16, color: color),
+            icon: Icon(icon, size: size >= 44 ? 20 : 16, color: color),
           ),
         ),
       ),
@@ -165,12 +167,14 @@ class DetailSaveButton extends StatefulWidget {
     required this.onChanged,
     this.size = 40,
     this.unsavedColor = AppColors.foreground,
+    this.background = AppColors.tabBarShell,
   });
 
   final bool saved;
   final Future<void> Function(bool saved) onChanged;
   final double size;
   final Color unsavedColor;
+  final Color background;
 
   @override
   State<DetailSaveButton> createState() => _DetailSaveButtonState();
@@ -204,6 +208,7 @@ class _DetailSaveButtonState extends State<DetailSaveButton> {
   Widget build(BuildContext context) {
     return DetailGlassButton(
       size: widget.size,
+      background: widget.background,
       tooltip: _saved ? 'Remove from saved' : 'Save',
       icon: _saved ? Icons.bookmark : Icons.bookmark_border,
       color: _saved ? AppColors.accent : widget.unsavedColor,

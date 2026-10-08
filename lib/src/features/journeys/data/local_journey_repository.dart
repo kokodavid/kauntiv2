@@ -117,6 +117,18 @@ class LocalJourneyRepository {
         updates: {_db.journeySessions},
       );
     }
+    if (destination != null && destination.viaStops.isNotEmpty) {
+      await _db.customUpdate(
+        'UPDATE journey_sessions SET stops_json = ? '
+        'WHERE id = ? AND user_id = ?',
+        variables: [
+          Variable.withString(JourneyStop.encodeList(destination.viaStops)),
+          Variable.withString(id),
+          Variable.withString(userId),
+        ],
+        updates: {_db.journeySessions},
+      );
+    }
     if (mode != null) {
       await _db.customUpdate(
         'UPDATE journey_sessions SET transport_mode = ? '

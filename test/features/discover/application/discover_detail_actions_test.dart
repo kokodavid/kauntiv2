@@ -39,7 +39,12 @@ class _FakeDirections extends DirectionsLauncher {
   String? lastQuery;
 
   @override
-  Future<bool> open({double? latitude, double? longitude, String? query}) {
+  Future<bool> open({
+    double? latitude,
+    double? longitude,
+    String? query,
+    List<String> waypoints = const [],
+  }) {
     lastQuery = query;
     return Future.value(true);
   }

@@ -53,6 +53,20 @@ The importer is resumable. Retrying does not duplicate a public place, candidate
 record, or image row. It does not overwrite a candidate after an admin has
 rejected or published it.
 
+For a one-off copy by name, use the name wrapper. It requires exactly one
+case-insensitive Dev match; use the printed UUID with `--place-id` if Dev has
+duplicate names. It always copies supported Dev `place-images` objects when
+`--apply` is present:
+
+```bash
+python3 tools/copy_dev_place_to_prod.py \
+  --name "Bisanadi National Reserve"
+
+python3 tools/copy_dev_place_to_prod.py \
+  --name "Bisanadi National Reserve" \
+  --apply
+```
+
 ## Future scrapers
 
 Scrapers must write candidate records only. They must never insert directly into

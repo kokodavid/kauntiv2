@@ -5,37 +5,51 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
+import '../../../widgets/app_progress_indicator.dart';
 import '../application/discover_detail_actions.dart';
-import '../domain/place_category.dart';
 import '../domain/place_detail.dart';
 import 'detail_async_body.dart';
-import 'detail_photo_carousel.dart';
-import 'detail_widgets.dart';
-import 'place_category_style.dart';
+import 'place_detail_about_tile.dart';
+import 'place_detail_bar.dart';
+import 'place_detail_header.dart';
+
+typedef PlaceDetailSectionBuilder =
+    Widget Function(BuildContext context, PlaceDetailData place);
 
 typedef OpenPlaceRoute =
     Future<void> Function(BuildContext context, PlaceDetailData place);
 
-/// Place Detail (v2 Figma node 235:7353, ported from v1): photo carousel
-/// with back button and category pill, title, description, a Source /
-/// Type card, and a floating Get Route / share / save bar.
+/// Place Detail: the photos, an expandable About tile and, for a place with
+/// coordinates, the trip plan, scrolling together above a fixed bottom bar
+/// with Start trip. A place without coordinates has a Get Route button.
 class PlaceDetailScreen extends StatelessWidget {
   const PlaceDetailScreen({
     super.key,
     required this.placeId,
     required this.actions,
     this.onGetRoute,
+    this.gettingThere,
+    this.startButton,
   });
 
   final String placeId;
   final DiscoverDetailActions actions;
   final OpenPlaceRoute? onGetRoute;
 
+  /// The trip plan, supplied by app/ (features compose there, not
+  /// here). Only built for places with coordinates.
+  final PlaceDetailSectionBuilder? gettingThere;
+
+  /// The bottom bar's main button while [gettingThere] is shown: the trip
+  /// builder's own "Start trip".
+  final PlaceDetailSectionBuilder? startButton;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: SafeArea(
+        bottom: false,
         child: DetailAsyncBody<PlaceDetailData>(
           load: () => actions.placeDetail(placeId),
           errorMessage: "Couldn't load this place.",
@@ -43,6 +57,8 @@ class PlaceDetailScreen extends StatelessWidget {
             data: data,
             actions: actions,
             onGetRoute: onGetRoute,
+            gettingThere: gettingThere,
+            startButton: startButton,
           ),
         ),
       ),
@@ -55,11 +71,15 @@ class _PlaceDetailBody extends StatefulWidget {
     required this.data,
     required this.actions,
     this.onGetRoute,
+    this.gettingThere,
+    this.startButton,
   });
 
   final PlaceDetailData data;
   final DiscoverDetailActions actions;
   final OpenPlaceRoute? onGetRoute;
+  final PlaceDetailSectionBuilder? gettingThere;
+  final PlaceDetailSectionBuilder? startButton;
 
   @override
   State<_PlaceDetailBody> createState() => _PlaceDetailBodyState();
@@ -67,6 +87,11 @@ class _PlaceDetailBody extends StatefulWidget {
 
 class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
   bool _openingRoute = false;
+
+  bool get _planned =>
+      widget.gettingThere != null &&
+      widget.startButton != null &&
+      widget.data.hasCoordinates;
 
   Future<void> _getRoute(BuildContext context) async {
     if (_openingRoute) return;
@@ -78,167 +103,115 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
       } else {
         final opened = await widget.actions.openDirections(widget.data);
         if (!opened && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Couldn't open directions.")),
-          );
+          _say(context, "Couldn't open directions.");
         }
       }
     } on Object {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't open directions.")),
-        );
-      }
+      if (context.mounted) _say(context, "Couldn't open directions.");
     } finally {
       if (mounted) setState(() => _openingRoute = false);
     }
   }
 
+  void _say(BuildContext context, String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
+
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-    final actions = widget.actions;
-    return Stack(
+    return Column(
       children: [
-        Positioned.fill(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(7, 8, 7, 110),
+        Expanded(
+          child: Stack(
             children: [
-              AspectRatio(
-                aspectRatio: 382 / 528,
-                child: DetailPhotoCarousel(
-                  images: data.images,
-                  overlay: _PlacePhotoChrome(category: data.category),
+              Positioned.fill(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 8, bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      PlaceDetailHeader(
+                        images: data.images,
+                        title: data.title,
+                        countyName: '${data.county.name} County',
+                        category: data.category,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            PlaceDetailAboutTile(description: data.description),
+                            if (_planned) ...[
+                              const SizedBox(height: 22),
+                              widget.gettingThere!(context, data),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 19),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 9),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(data.title, style: AppTextStyles.detailTitle),
-                    const SizedBox(height: 11),
-                    Text(
-                      data.description.isEmpty
-                          ? 'No description on file yet for this place.'
-                          : data.description,
-                      style: AppTextStyles.detailBody,
-                    ),
-                    const SizedBox(height: 11),
-                    DetailFactCard(
-                      facts: [
-                        ('Source', data.source),
-                        ('Type', data.category.label),
-                        // v1's third fact is Distance; it returns once v2
-                        // has a foreground location read.
-                      ],
-                    ),
-                  ],
+              // Stays put while the page scrolls under it.
+              Positioned(
+                left: 24,
+                top: 20,
+                child: AppBackButton(
+                  size: 44,
+                  onPressed: () => Navigator.of(context).maybePop(),
                 ),
               ),
             ],
           ),
         ),
-        Positioned(
-          left: 24,
-          right: 24,
-          bottom: 24,
-          child: Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 40,
-                  child: ElevatedButton(
-                    onPressed: _openingRoute
-                        ? null
-                        : () => unawaited(_getRoute(context)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: AppColors.accentForeground,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: _openingRoute
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text(
-                            'Get Route',
-                            style: AppTextStyles.buttonLabel,
-                          ),
-                  ),
+        PlaceDetailBar(
+          primary: _planned
+              ? widget.startButton!(context, data)
+              : _GetRouteButton(
+                  busy: _openingRoute,
+                  onPressed: () => unawaited(_getRoute(context)),
                 ),
-              ),
-              const SizedBox(width: 8),
-              DetailGlassButton(
-                icon: Icons.ios_share,
-                tooltip: 'Share',
-                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sharing is coming soon.')),
-                ),
-              ),
-              const SizedBox(width: 8),
-              DetailSaveButton(
-                saved: data.saved,
-                onChanged: (saved) => actions.setPlaceSaved(
-                  countyCode: data.county.code,
-                  placeId: data.id,
-                  saved: saved,
-                ),
-              ),
-            ],
+          saved: data.saved,
+          onSavedChanged: (saved) => widget.actions.setPlaceSaved(
+            countyCode: data.county.code,
+            placeId: data.id,
+            saved: saved,
           ),
+          onShare: () => _say(context, 'Sharing is coming soon.'),
         ),
       ],
     );
   }
 }
 
-class _PlacePhotoChrome extends StatelessWidget {
-  const _PlacePhotoChrome({required this.category});
+class _GetRouteButton extends StatelessWidget {
+  const _GetRouteButton({required this.busy, required this.onPressed});
 
-  final PlaceCategory category;
+  final bool busy;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppBackButton(onPressed: () => Navigator.of(context).maybePop()),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: AppColors.backButtonBorder),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: category.dotColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(category.label, style: AppTextStyles.detailBody),
-                ],
-              ),
-            ),
-          ],
+    return SizedBox(
+      height: 56,
+      child: ElevatedButton(
+        onPressed: busy ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.accent,
+          foregroundColor: AppColors.accentForeground,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
         ),
+        child: busy
+            ? const AppProgressIndicator(
+                color: AppColors.accentForeground,
+                radius: 9,
+              )
+            : const Text('Get Route', style: AppTextStyles.buttonLabel),
       ),
     );
   }

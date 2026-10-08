@@ -102,8 +102,9 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
         await open(context, widget.data);
       } else {
         final opened = await widget.actions.openDirections(widget.data);
-        if (!opened && context.mounted)
+        if (!opened && context.mounted) {
           _say(context, "Couldn't open directions.");
+        }
       }
     } on Object {
       if (context.mounted) _say(context, "Couldn't open directions.");

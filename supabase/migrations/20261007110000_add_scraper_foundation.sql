@@ -304,7 +304,7 @@ declare
   v_type text := btrim(coalesce(p_item ->> 'type', ''));
   v_lat double precision;
   v_lng double precision;
-  v_point extensions.geometry;
+  v_point geometry;
   v_county_id smallint;
   v_hint smallint;
   v_norm text;
@@ -411,7 +411,7 @@ begin
            and p.external_id = coalesce(nullif(btrim(p_item ->> 'external_id'), ''), v_key))
        or (p.county_id = v_county_id and public.scraper_normalize_name(p.name) = v_norm)
        or (public.scraper_normalize_name(p.name) = v_norm
-           and st_dwithin(p.location::extensions.geography, v_point::extensions.geography, 150))
+           and st_dwithin(p.location::geography, v_point::geography, 150))
     limit 1;
     if v_dupe_name is not null then
       return jsonb_build_object('outcome', 'duplicate', 'of', 'place', 'name', v_dupe_name);
@@ -441,7 +441,7 @@ begin
 
   select p.name into v_near_name
   from public.places p
-  where st_dwithin(p.location::extensions.geography, v_point::extensions.geography, 100)
+  where st_dwithin(p.location::geography, v_point::geography, 100)
   limit 1;
   if v_near_name is not null then
     v_blockers := array_append(v_blockers, 'possible duplicate: ' || v_near_name);

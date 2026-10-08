@@ -68,7 +68,8 @@ class TripPlanSnapshot {
       case TripPlanStatus.ready:
         final shown = plan!;
         final stops = shown.stops.length;
-        final trip = '${shown.route.distanceLabel} · '
+        final trip =
+            '${shown.route.distanceLabel} · '
             '${shown.route.durationLabel}';
         return stops == 0
             ? trip

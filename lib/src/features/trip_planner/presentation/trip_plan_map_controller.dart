@@ -55,8 +55,12 @@ class TripPlanMapController {
         ? 11.0
         : CountyCameraFit.zoomToFit(
             bounds,
-            width: (size.width - padding.horizontal).clamp(80.0, 4000.0).toDouble(),
-            height: (size.height - padding.vertical).clamp(80.0, 4000.0).toDouble(),
+            width: (size.width - padding.horizontal)
+                .clamp(80.0, 4000.0)
+                .toDouble(),
+            height: (size.height - padding.vertical)
+                .clamp(80.0, 4000.0)
+                .toDouble(),
             fill: fill,
             minZoom: 4,
             maxZoom: 16,

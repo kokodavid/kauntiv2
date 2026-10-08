@@ -153,14 +153,14 @@ class _JourneyRecordingControlsState
           Center(
             child: Container(
               width: 36,
-            height: 4,
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: AppColors.cardBorder,
-              borderRadius: BorderRadius.circular(999),
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: AppColors.cardBorder,
+                borderRadius: BorderRadius.circular(999),
+              ),
             ),
           ),
-        ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -273,20 +273,20 @@ class _JourneyRecordingControlsState
           ],
         ),
         if (!widget.compact) ...[
-        const SizedBox(height: 14),
-        _TripDetailsToggle(expanded: _detailsExpanded, onTap: _toggleDetails),
-        AnimatedCrossFade(
-          firstChild: const SizedBox(width: double.infinity),
-          secondChild: _TripDetailsPanel(
-            startedAt: recording.startedAt,
-            route: route,
+          const SizedBox(height: 14),
+          _TripDetailsToggle(expanded: _detailsExpanded, onTap: _toggleDetails),
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity),
+            secondChild: _TripDetailsPanel(
+              startedAt: recording.startedAt,
+              route: route,
+            ),
+            crossFadeState: _detailsExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 220),
+            sizeCurve: Curves.easeOut,
           ),
-          crossFadeState: _detailsExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
-          duration: const Duration(milliseconds: 220),
-          sizeCurve: Curves.easeOut,
-        ),
         ],
       ],
     );

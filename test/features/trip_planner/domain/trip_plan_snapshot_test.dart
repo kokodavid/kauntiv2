@@ -28,7 +28,10 @@ void main() {
   group('TripPlanSnapshot.barSummary', () {
     test('a direct trip is just distance and time', () {
       expect(
-        TripPlanSnapshot(status: TripPlanStatus.ready, plan: _plan()).barSummary,
+        TripPlanSnapshot(
+          status: TripPlanStatus.ready,
+          plan: _plan(),
+        ).barSummary,
         '279 km · 8 h 22 min',
       );
     });

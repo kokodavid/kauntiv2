@@ -77,8 +77,9 @@ class SavedPlansHomeSection extends ConsumerWidget {
             SavedPlanTile(
               plan: plan,
               destination: byId[plan.destinationPlaceId],
-              onTap: () =>
-                  unawaited(SavedPlanManage.open(context, ref, plan, onOpenPlace)),
+              onTap: () => unawaited(
+                SavedPlanManage.open(context, ref, plan, onOpenPlace),
+              ),
             ),
           ],
         ],

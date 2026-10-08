@@ -8,13 +8,22 @@ void main() {
       SavedTrip.keyFor(['b', 'a'], custom: true),
       isNot(SavedTrip.keyFor(['a', 'b'], custom: true)),
     );
-    expect(SavedTrip.keyFor(['a'], custom: true), isNot(SavedTrip.keyFor(['a'])));
+    expect(
+      SavedTrip.keyFor(['a'], custom: true),
+      isNot(SavedTrip.keyFor(['a'])),
+    );
   });
 
   test('suggests a name that fits', () {
     expect(SavedTrip.suggestName('Ol Donyo Sabuk', 0), 'Ol Donyo Sabuk');
-    expect(SavedTrip.suggestName('Ol Donyo Sabuk', 1), 'Ol Donyo Sabuk + 1 stop');
-    expect(SavedTrip.suggestName('Ol Donyo Sabuk', 3), 'Ol Donyo Sabuk + 3 stops');
+    expect(
+      SavedTrip.suggestName('Ol Donyo Sabuk', 1),
+      'Ol Donyo Sabuk + 1 stop',
+    );
+    expect(
+      SavedTrip.suggestName('Ol Donyo Sabuk', 3),
+      'Ol Donyo Sabuk + 3 stops',
+    );
     expect(
       SavedTrip.suggestName('x' * 200, 2).length,
       lessThanOrEqualTo(SavedTrip.maxNameLength),

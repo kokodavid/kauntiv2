@@ -61,8 +61,7 @@ class AppShell extends ConsumerWidget {
               if (AppFeatureFlags.journeys &&
                   AppRoutes.tabs[navigationShell.currentIndex] !=
                       AppNavTab.journeys &&
-                  AppRoutes.tabs[navigationShell.currentIndex] !=
-                      AppNavTab.map)
+                  AppRoutes.tabs[navigationShell.currentIndex] != AppNavTab.map)
                 Positioned(
                   left: 0,
                   right: 0,

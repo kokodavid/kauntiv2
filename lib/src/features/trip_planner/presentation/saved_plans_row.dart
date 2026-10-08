@@ -54,8 +54,10 @@ class SavedPlansRow extends ConsumerWidget {
                   plan: plan,
                   selected: plan.key == currentKey,
                   onTap: () => unawaited(_apply(context, ref, plan)),
-                  onRename: () => unawaited(SavedPlanManage.rename(context, ref, plan)),
-                  onDelete: () => unawaited(SavedPlanManage.delete(context, ref, plan)),
+                  onRename: () =>
+                      unawaited(SavedPlanManage.rename(context, ref, plan)),
+                  onDelete: () =>
+                      unawaited(SavedPlanManage.delete(context, ref, plan)),
                 );
               },
             ),

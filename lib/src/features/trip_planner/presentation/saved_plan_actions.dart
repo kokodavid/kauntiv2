@@ -14,9 +14,7 @@ Future<void> applySavedTrip(
 ) async {
   final catalog = await ref.read(placesCatalogProvider.future);
   final byId = {for (final p in catalog) p.id: p};
-  final stops = [
-    for (final id in plan.stopPlaceIds) ?byId[id],
-  ];
+  final stops = [for (final id in plan.stopPlaceIds) ?byId[id]];
   ref.read(tripStopsProvider(placeId).notifier).setOrder(stops);
   ref
       .read(tripCustomOrderProvider(placeId).notifier)

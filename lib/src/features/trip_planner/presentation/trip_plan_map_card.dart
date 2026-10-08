@@ -115,8 +115,7 @@ class _TripPlanMapCardState extends State<TripPlanMapCard> {
                   rounded: false,
                   height: null,
                 ),
-              if (snapshot.updating)
-                const ColoredBox(color: Color(0x99FFFFFF)),
+              if (snapshot.updating) const ColoredBox(color: Color(0x99FFFFFF)),
               if (snapshot.updating)
                 const Positioned(left: 10, top: 10, child: _UpdatingPill()),
               if (ready)

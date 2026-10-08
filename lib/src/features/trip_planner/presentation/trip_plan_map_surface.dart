@@ -100,7 +100,10 @@ class TripPlanMapUnavailable extends StatelessWidget {
       child: const ColoredBox(
         color: AppColors.lockedFill,
         child: Center(
-          child: Text('Map unavailable in this build', style: AppTypeScale.small),
+          child: Text(
+            'Map unavailable in this build',
+            style: AppTypeScale.small,
+          ),
         ),
       ),
     ),

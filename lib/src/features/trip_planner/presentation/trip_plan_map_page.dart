@@ -136,7 +136,9 @@ class _TripPlanMapPageState extends ConsumerState<TripPlanMapPage> {
     if ((!force && signature == _framed) || !_controller.attached) return;
     final first = _framed.isEmpty;
     _framed = signature;
-    unawaited(_controller.fit(_points(plan), padding: _padding, animate: !first));
+    unawaited(
+      _controller.fit(_points(plan), padding: _padding, animate: !first),
+    );
   }
 
   void _select(int index, TripPlan? plan) {
@@ -218,7 +220,10 @@ class _TripPlanMapPageState extends ConsumerState<TripPlanMapPage> {
                   onPressed: snapshot.origin == null
                       ? null
                       : () => unawaited(
-                          _controller.focus(snapshot.origin!, padding: _padding),
+                          _controller.focus(
+                            snapshot.origin!,
+                            padding: _padding,
+                          ),
                         ),
                 ),
                 const SizedBox(height: 12),
@@ -232,7 +237,8 @@ class _TripPlanMapPageState extends ConsumerState<TripPlanMapPage> {
                         destinationName: widget.placeName,
                         claimed: claimed,
                         collapsed: _collapsed,
-                        onToggle: () => setState(() => _collapsed = !_collapsed),
+                        onToggle: () =>
+                            setState(() => _collapsed = !_collapsed),
                         selected: _selected,
                         onSelect: (index) => _select(index, plan),
                         startButton: TripStartButton(

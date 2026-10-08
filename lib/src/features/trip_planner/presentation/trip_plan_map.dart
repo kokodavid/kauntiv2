@@ -116,9 +116,9 @@ class _TripPlanMapState extends ConsumerState<TripPlanMap> {
     _loadWatch?.cancel();
     if (mounted) {
       setState(() {
-      _loading = false;
-      _failed = true;
-    });
+        _loading = false;
+        _failed = true;
+      });
     }
   }
 
@@ -193,8 +193,8 @@ class _TripPlanMapState extends ConsumerState<TripPlanMap> {
     for (var i = 0; i < markers.length; i++) {
       final at = await _controller.pixelFor(markers[i]);
       if (at == null) continue;
-      final d = (at - Offset(tap.touchPosition.x, tap.touchPosition.y))
-          .distance;
+      final d =
+          (at - Offset(tap.touchPosition.x, tap.touchPosition.y)).distance;
       if (d < best) {
         best = d;
         nearest = i;
@@ -207,10 +207,7 @@ class _TripPlanMapState extends ConsumerState<TripPlanMap> {
   Widget build(BuildContext context) {
     final box = widget.rounded ? BorderRadius.circular(20) : BorderRadius.zero;
     if (_token.isEmpty || widget.points.isEmpty) {
-      return TripPlanMapUnavailable(
-        borderRadius: box,
-        height: widget.height,
-      );
+      return TripPlanMapUnavailable(borderRadius: box, height: widget.height);
     }
     if (_failed) return TripPlanMapFailure(onRetry: _retry);
     final mode = widget.points.length < 2
@@ -219,66 +216,65 @@ class _TripPlanMapState extends ConsumerState<TripPlanMap> {
         ? 'dashed'
         : 'road';
     final map = LayoutBuilder(
-          builder: (context, constraints) {
-            // The whole-screen map is laid out against the screen, never a
-            // box that has not settled yet.
-            final screen = MediaQuery.sizeOf(context);
-            final size = Size(
-              constraints.hasBoundedWidth && constraints.maxWidth > 0
-                  ? constraints.maxWidth
-                  : screen.width,
-              constraints.hasBoundedHeight && constraints.maxHeight > 0
-                  ? constraints.maxHeight
-                  : screen.height,
+      builder: (context, constraints) {
+        // The whole-screen map is laid out against the screen, never a
+        // box that has not settled yet.
+        final screen = MediaQuery.sizeOf(context);
+        final size = Size(
+          constraints.hasBoundedWidth && constraints.maxWidth > 0
+              ? constraints.maxWidth
+              : screen.width,
+          constraints.hasBoundedHeight && constraints.maxHeight > 0
+              ? constraints.maxHeight
+              : screen.height,
+        );
+        _controller.resize(size);
+        final camera = TripPlanMapController.framing(
+          widget.points,
+          size: size,
+          padding: widget.padding,
+          fill: widget.padding == EdgeInsets.zero ? 0.7 : 0.9,
+        );
+        return MapWidget(
+          key: ValueKey('$mode-$_attempt'),
+          styleUri: MapboxStyles.OUTDOORS,
+          // Virtual Display can place a newly pushed native map above
+          // Flutter's full-screen controls on Android. Texture Layer
+          // Hybrid Composition keeps the layers in the expected order.
+          textureView: true,
+          // ignore: experimental_member_use
+          androidHostingMode: AndroidPlatformViewHostingMode.TLHC_HC,
+          viewport: CameraViewportState(
+            center: camera.center,
+            zoom: camera.zoom,
+            padding: widget.padding,
+          ),
+          gestureRecognizers: {
+            const Factory<OneSequenceGestureRecognizer>(
+              EagerGestureRecognizer.new,
+            ),
+          },
+          onMapCreated: (map) {
+            _map = map;
+            _styled = false;
+            _controller.attach(map, size);
+            map.addInteraction(
+              TapInteraction.onMap((tap) => unawaited(_onTap(tap))),
+              interactionID: 'plan-marker-tap',
             );
-            _controller.resize(size);
-            final camera = TripPlanMapController.framing(
-              widget.points,
-              size: size,
-              padding: widget.padding,
-              fill: widget.padding == EdgeInsets.zero ? 0.7 : 0.9,
-            );
-            return MapWidget(
-              key: ValueKey('$mode-$_attempt'),
-              styleUri: MapboxStyles.OUTDOORS,
-              // Virtual Display can place a newly pushed native map above
-              // Flutter's full-screen controls on Android. Texture Layer
-              // Hybrid Composition keeps the layers in the expected order.
-              textureView: true,
-              // ignore: experimental_member_use
-              androidHostingMode: AndroidPlatformViewHostingMode.TLHC_HC,
-              viewport: CameraViewportState(
-                center: camera.center,
-                zoom: camera.zoom,
-                padding: widget.padding,
-              ),
-              gestureRecognizers: {
-                const Factory<OneSequenceGestureRecognizer>(
-                  EagerGestureRecognizer.new,
-                ),
-              },
-              onMapCreated: (map) {
-                _map = map;
-                _styled = false;
-                _controller.attach(map, size);
-                map.addInteraction(
-                  TapInteraction.onMap((tap) => unawaited(_onTap(tap))),
-                  interactionID: 'plan-marker-tap',
-                );
-                unawaited(AppMapboxTelemetry.applyPrivacyDefault());
-                unawaited(
-                  map.scaleBar.updateSettings(ScaleBarSettings(enabled: false)),
-                );
-              },
-              onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
-              onMapLoadErrorListener: (event) {
-                if (event.type == MapLoadErrorType.STYLE) _fail();
-              },
-              onCameraChangeListener: (_) =>
-                  _controller.onCameraChanged?.call(),
+            unawaited(AppMapboxTelemetry.applyPrivacyDefault());
+            unawaited(
+              map.scaleBar.updateSettings(ScaleBarSettings(enabled: false)),
             );
           },
+          onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
+          onMapLoadErrorListener: (event) {
+            if (event.type == MapLoadErrorType.STYLE) _fail();
+          },
+          onCameraChangeListener: (_) => _controller.onCameraChanged?.call(),
         );
+      },
+    );
     return TripPlanMapSurface(
       map: map,
       loading: _loading,

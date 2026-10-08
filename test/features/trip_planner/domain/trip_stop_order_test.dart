@@ -2,14 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/core/domain/map_place.dart';
 import 'package:kaunti47_v2/src/features/trip_planner/domain/trip_stop_order.dart';
 
-MapPlace place(String id, double lat, double lng) => MapPlace(
-  id: id,
-  name: id,
-  type: 'park',
-  countyCode: 1,
-  lat: lat,
-  lng: lng,
-);
+MapPlace place(String id, double lat, double lng) =>
+    MapPlace(id: id, name: id, type: 'park', countyCode: 1, lat: lat, lng: lng);
 
 void main() {
   test('orders stops along the way from the start to the destination', () {

@@ -30,15 +30,16 @@ abstract final class NearbyPlaces {
     double withinMeters = 150000,
     int limit = maxPlaces,
   }) {
-    final found = [
-      for (final place in places)
-        if (place.id != exceptId)
-          NearbyPlace(
-            place: place,
-            distanceMeters: metres(lat, lng, place.lat, place.lng),
-          ),
-    ].where((n) => n.distanceMeters <= withinMeters).toList()
-      ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+    final found =
+        [
+            for (final place in places)
+              if (place.id != exceptId)
+                NearbyPlace(
+                  place: place,
+                  distanceMeters: metres(lat, lng, place.lat, place.lng),
+                ),
+          ].where((n) => n.distanceMeters <= withinMeters).toList()
+          ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
     return found.take(limit).toList();
   }
 

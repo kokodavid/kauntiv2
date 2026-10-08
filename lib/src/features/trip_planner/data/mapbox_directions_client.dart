@@ -22,11 +22,7 @@ class MapboxDirectionsClient {
     List<TripRoutePoint> via = const [],
   }) async {
     final stops = [for (final p in via) '${p.lng},${p.lat}'];
-    final path = [
-      '$fromLng,$fromLat',
-      ...stops,
-      '$toLng,$toLat',
-    ].join(';');
+    final path = ['$fromLng,$fromLat', ...stops, '$toLng,$toLat'].join(';');
     final uri = Uri.https(
       'api.mapbox.com',
       '/directions/v5/mapbox/driving/$path',

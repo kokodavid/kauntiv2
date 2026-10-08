@@ -20,10 +20,7 @@ class SavedTripsRepository {
         .eq('destination_place_id', destinationPlaceId)
         .order('created_at', ascending: false)
         .timeout(_timeout);
-    return [
-      for (final row in rows)
-        ?SavedTrip.fromRow(row),
-    ];
+    return [for (final row in rows) ?SavedTrip.fromRow(row)];
   }
 
   /// Every plan, newest first (the insert policy caps them at 50).
@@ -34,9 +31,7 @@ class SavedTripsRepository {
         .order('created_at', ascending: false)
         .limit(50)
         .timeout(_timeout);
-    return [
-      for (final row in rows) ?SavedTrip.fromRow(row),
-    ];
+    return [for (final row in rows) ?SavedTrip.fromRow(row)];
   }
 
   Future<SavedTrip> save({

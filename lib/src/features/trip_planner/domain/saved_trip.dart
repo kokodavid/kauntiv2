@@ -32,7 +32,9 @@ class SavedTrip {
 
   /// "Ol Donyo Sabuk", or "Ol Donyo Sabuk + 2 stops".
   static String suggestName(String placeName, int stops) {
-    final suffix = stops == 0 ? '' : ' + $stops ${stops == 1 ? 'stop' : 'stops'}';
+    final suffix = stops == 0
+        ? ''
+        : ' + $stops ${stops == 1 ? 'stop' : 'stops'}';
     final room = maxNameLength - suffix.length;
     final base = placeName.length > room
         ? placeName.substring(0, room).trimRight()

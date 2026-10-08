@@ -159,10 +159,7 @@ class TripPlanSection extends ConsumerWidget {
               if (canSave) ...[
                 const SizedBox(width: 10),
                 Expanded(
-                  child: SavePlanButton(
-                    placeId: placeId,
-                    placeName: placeName,
-                  ),
+                  child: SavePlanButton(placeId: placeId, placeName: placeName),
                 ),
               ],
             ],

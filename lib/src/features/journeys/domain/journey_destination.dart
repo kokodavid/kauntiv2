@@ -61,10 +61,7 @@ class JourneyStop {
       }
     }
     if (decoded is! List) return const [];
-    return [
-      for (final item in decoded)
-        ?fromJson(item),
-    ];
+    return [for (final item in decoded) ?fromJson(item)];
   }
 
   static String encodeList(List<JourneyStop> stops) =>

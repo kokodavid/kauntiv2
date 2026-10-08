@@ -61,8 +61,7 @@ class _PlaceDetailHeaderState extends State<PlaceDetailHeader> {
               itemBuilder: (context, index) => Image(
                 image: appNetworkImage(images[index]),
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const _NoPhoto(),
+                errorBuilder: (context, error, stackTrace) => const _NoPhoto(),
               ),
             ),
           const IgnorePointer(

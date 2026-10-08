@@ -126,8 +126,7 @@ Future<TripPlan> tripPlan(
       for (final p in await ref.watch(placesCatalogProvider.future)) p.id: p,
     };
     final picked = [
-      for (final id in stopIds.replaceFirst('!', '').split(','))
-        ?byId[id],
+      for (final id in stopIds.replaceFirst('!', '').split(',')) ?byId[id],
     ];
     if (custom) {
       stops = picked;

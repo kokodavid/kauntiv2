@@ -102,7 +102,8 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
         await open(context, widget.data);
       } else {
         final opened = await widget.actions.openDirections(widget.data);
-        if (!opened && context.mounted) _say(context, "Couldn't open directions.");
+        if (!opened && context.mounted)
+          _say(context, "Couldn't open directions.");
       }
     } on Object {
       if (context.mounted) _say(context, "Couldn't open directions.");
@@ -111,10 +112,9 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
     }
   }
 
-  void _say(BuildContext context, String message) =>
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+  void _say(BuildContext context, String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
 
   @override
   Widget build(BuildContext context) {
@@ -141,9 +141,7 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            PlaceDetailAboutTile(
-                              description: data.description,
-                            ),
+                            PlaceDetailAboutTile(description: data.description),
                             if (_planned) ...[
                               const SizedBox(height: 22),
                               widget.gettingThere!(context, data),
@@ -203,7 +201,9 @@ class _GetRouteButton extends StatelessWidget {
           backgroundColor: AppColors.accent,
           foregroundColor: AppColors.accentForeground,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
         ),
         child: busy
             ? const AppProgressIndicator(

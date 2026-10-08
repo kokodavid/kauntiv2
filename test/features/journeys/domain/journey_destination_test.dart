@@ -24,7 +24,13 @@ void main() {
   test('unreadable stop data is ignored', () {
     expect(JourneyStop.listFrom(null), isEmpty);
     expect(JourneyStop.listFrom('not json'), isEmpty);
-    expect(JourneyStop.listFrom([{'name': 'no id'}, 3]), isEmpty);
+    expect(
+      JourneyStop.listFrom([
+        {'name': 'no id'},
+        3,
+      ]),
+      isEmpty,
+    );
   });
 
   test('a destination with too many or invalid stops is not valid', () {

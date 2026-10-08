@@ -29,10 +29,7 @@ class SavePlanButton extends ConsumerStatefulWidget {
 class _SavePlanButtonState extends ConsumerState<SavePlanButton> {
   bool _saving = false;
 
-  Future<void> _save({
-    required List<String> ids,
-    required bool custom,
-  }) async {
+  Future<void> _save({required List<String> ids, required bool custom}) async {
     final repository = ref.read(savedTripsRepositoryProvider);
     if (repository == null || _saving) return;
     final name = await showPlanNameDialog(
@@ -83,10 +80,7 @@ class _SavePlanButtonState extends ConsumerState<SavePlanButton> {
         onPressed: already || _saving
             ? null
             : () => unawaited(
-                _save(
-                  ids: custom ? ids : ([...ids]..sort()),
-                  custom: custom,
-                ),
+                _save(ids: custom ? ids : ([...ids]..sort()), custom: custom),
               ),
         icon: Icon(
           already ? Icons.bookmark_added_outlined : Icons.bookmark_add_outlined,

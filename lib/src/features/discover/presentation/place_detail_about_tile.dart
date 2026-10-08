@@ -64,9 +64,7 @@ class _PlaceDetailAboutTileState extends State<PlaceDetailAboutTile> {
                 child: Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: Text(
-                    text.isEmpty
-                        ? 'No description for this place yet.'
-                        : text,
+                    text.isEmpty ? 'No description for this place yet.' : text,
                     maxLines: _open ? null : _previewLines,
                     overflow: _open ? null : TextOverflow.ellipsis,
                     style: style,

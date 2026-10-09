@@ -12,6 +12,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { researchPlace } from './anthropic.ts'
+import { discoverPlaces } from './discovery.ts'
 import { cleanDraft } from './validate.ts'
 
 const cors = {
@@ -48,14 +49,17 @@ Deno.serve(async (request) => {
     return json({ error: 'Dashboard access required' }, 403)
   }
 
-  let body: { query?: unknown; county_id?: unknown }
+  let body: { action?: unknown; query?: unknown; county_id?: unknown; theme?: unknown; lead_url?: unknown; limit?: unknown }
   try {
     body = await request.json()
   } catch {
     return json({ error: 'Invalid JSON' }, 400)
   }
+  const action = body.action === 'discover_candidates' ? 'discover_candidates' : 'draft_place'
   const query = typeof body.query === 'string' ? body.query.trim() : ''
-  if (query.length < 3 || query.length > 120) return json({ error: 'Enter a place name (3-120 characters)' }, 400)
+  if (action === 'draft_place' && (query.length < 3 || query.length > 120)) {
+    return json({ error: 'Enter a place name (3-120 characters)' }, 400)
+  }
 
   const service = createClient(url, serviceKey)
   const { data: settings } = await service
@@ -76,10 +80,10 @@ Deno.serve(async (request) => {
     return json({ error: 'Daily AI draft limit reached' }, 429)
   }
 
-  const log = (status: string, usage?: { input: number; output: number; searches: number }) =>
+  const log = (status: string, usage?: { input: number; output: number; searches: number }, logQuery = query) =>
     service.from('place_ai_runs').insert({
       user_id: userId,
-      query,
+      query: logQuery,
       model: settings.model,
       status,
       input_tokens: usage?.input ?? null,
@@ -87,16 +91,37 @@ Deno.serve(async (request) => {
       web_searches: usage?.searches ?? null,
     })
 
-  const { data: similar } = await service.rpc('place_ai_similar_places', { p_name: query })
-  if (similar && similar.length > 0) {
-    await log('duplicate')
-    return json({ status: 'duplicate', existing: similar })
-  }
-
   let countyHint: string | null = null
   if (typeof body.county_id === 'number') {
     const { data } = await service.from('counties').select('name').eq('id', body.county_id).maybeSingle()
     countyHint = data?.name ?? null
+  }
+
+  if (action === 'discover_candidates') {
+    if (typeof body.county_id !== 'number') return json({ error: 'Choose a county for discovery' }, 400)
+    const { data: county } = await service.from('counties').select('name').eq('id', body.county_id).maybeSingle()
+    if (!county) return json({ error: 'Choose a valid county for discovery' }, 400)
+    const theme = typeof body.theme === 'string' ? body.theme.trim().slice(0, 100) : ''
+    const leadUrl = typeof body.lead_url === 'string' && /^https?:\/\//.test(body.lead_url.trim())
+      ? body.lead_url.trim()
+      : null
+    const limit = typeof body.limit === 'number' ? Math.min(Math.max(Math.floor(body.limit), 3), 20) : 10
+    const logQuery = `Discover ${county.name}${theme ? `: ${theme}` : ''}`
+    try {
+      const discovery = await discoverPlaces(apiKey, settings.model, county.name, theme, leadUrl, limit)
+      await log(discovery.suggestions.length ? 'ok' : 'not_found', discovery.usage, logQuery)
+      return json({ status: 'ok', model: settings.model, suggestions: discovery.suggestions, notes: discovery.notes })
+    } catch (error) {
+      console.error('candidate discovery failed', error)
+      await log('error', undefined, logQuery)
+      return json({ error: 'AI discovery failed. Try again.' }, 502)
+    }
+  }
+
+  const { data: similar } = await service.rpc('place_ai_similar_places', { p_name: query })
+  if (similar && similar.length > 0) {
+    await log('duplicate')
+    return json({ status: 'duplicate', existing: similar })
   }
 
   try {

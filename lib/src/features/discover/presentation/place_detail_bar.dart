@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/domain/app_feature_flags.dart';
 import '../../../design/app_colors.dart';
 import 'detail_widgets.dart';
 
@@ -36,14 +37,16 @@ class PlaceDetailBar extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: primary),
-          const SizedBox(width: 10),
-          DetailGlassButton(
-            icon: Icons.ios_share,
-            tooltip: 'Share',
-            size: 44,
-            background: AppColors.secondaryFill,
-            onPressed: onShare,
-          ),
+          if (AppFeatureFlags.placeShare) ...[
+            const SizedBox(width: 10),
+            DetailGlassButton(
+              icon: Icons.ios_share,
+              tooltip: 'Share',
+              size: 44,
+              background: AppColors.secondaryFill,
+              onPressed: onShare,
+            ),
+          ],
           const SizedBox(width: 8),
           DetailSaveButton(
             saved: saved,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_shimmer.dart';
 import '../../../core/widgets/county_badge_medallion.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/app_progress_indicator.dart';
 import '../../badges/domain/badge_collection.dart';
 
 class ProfileCountyBadges extends StatelessWidget {
@@ -57,8 +57,24 @@ class ProfileCountyBadges extends StatelessWidget {
         SizedBox(
           height: 78,
           child: collection.when(
-            loading: () => const Center(
-              child: AppProgressIndicator(color: AppColors.accent, radius: 10),
+            loading: () => const AppShimmer(
+              child: Row(
+                children: [
+                  for (var i = 0; i < 6; i++) ...[
+                    if (i > 0) SizedBox(width: 10),
+                    SizedBox(
+                      width: 58,
+                      child: Column(
+                        children: [
+                          AppSkeleton(width: 54, height: 54, circle: true),
+                          SizedBox(height: 6),
+                          AppSkeleton(width: 36, height: 8),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
             error: (error, stackTrace) => const Align(
               alignment: Alignment.centerLeft,

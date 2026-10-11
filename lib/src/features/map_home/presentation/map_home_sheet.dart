@@ -20,6 +20,7 @@ class MapHomeSheet extends StatefulWidget {
     required this.children,
     this.collapsed,
     this.collapsedHeight = 0,
+    this.collapsedUnderNav = false,
     this.startsExpanded = false,
   });
 
@@ -28,6 +29,11 @@ class MapHomeSheet extends StatefulWidget {
   /// The one-card collapsed content, [collapsedHeight] tall.
   final Widget? collapsed;
   final double collapsedHeight;
+
+  /// The collapsed content runs on beneath the floating tab bar (so the
+  /// bar floats over it) instead of stopping above it; [collapsedHeight]
+  /// then already includes the bar's room.
+  final bool collapsedUnderNav;
   final bool startsExpanded;
 
   @override
@@ -95,7 +101,11 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
               );
         }
         final peek = hasCollapsed && constraints.maxHeight > 0
-            ? (widget.collapsedHeight + _chrome(context)) / constraints.maxHeight
+            ? (widget.collapsedHeight +
+                      (widget.collapsedUnderNav
+                          ? 10.0 + 4.0 + 14.0
+                          : _chrome(context))) /
+                  constraints.maxHeight
             : _peekSize;
         final collapsedSize = math.min(peek, expandedSize);
         _expandedSize = expandedSize;

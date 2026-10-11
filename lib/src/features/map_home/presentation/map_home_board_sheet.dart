@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/domain/map_place.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_photo_parts.dart';
 import '../domain/map_home_compact.dart';
 import '../domain/map_home_layout.dart';
@@ -94,8 +95,9 @@ class MapHomeBoardSheet extends StatelessWidget {
       collapsedHeight: recordTripCard != null
           ? recordTripCardHeight
           : _useCarousel(picked, board)
-          ? MapHomePlacesCarousel.peekHeight
+          ? _carouselPeekHeight(context)
           : MapHomeCompactCard.height,
+      collapsedUnderNav: recordTripCard == null && _useCarousel(picked, board),
       collapsed: _collapsed(context, picked, board, compact),
       children: [
         // The collapsed peek is only a sliver of this; open, it is whole.
@@ -140,7 +142,7 @@ class MapHomeBoardSheet extends StatelessWidget {
       // Laid out at full height but only its top shows: the label and a
       // sliver of the cards.
       return SizedBox(
-        height: MapHomePlacesCarousel.peekHeight,
+        height: _carouselPeekHeight(context),
         child: ClipRect(
           child: OverflowBox(
             alignment: Alignment.topLeft,
@@ -153,6 +155,11 @@ class MapHomeBoardSheet extends StatelessWidget {
     }
     return compact == null ? null : _compactCard(context, compact);
   }
+
+  /// The label and a sliver of the cards above the tab bar, and the cards
+  /// carrying on beneath it so the bar floats over them.
+  double _carouselPeekHeight(BuildContext context) =>
+      MapHomePlacesCarousel.peekHeight + AppBottomNav.clearance(context);
 
   Widget _carousel(MapHomeBoardData board, [Key? key]) =>
       MapHomePlacesCarousel(

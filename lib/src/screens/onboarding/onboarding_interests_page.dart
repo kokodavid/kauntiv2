@@ -42,7 +42,7 @@ class OnboardingInterestsPage extends StatelessWidget {
       title: 'What do you like to see?',
       subtitle: const Text(
         "Each county you enter comes with places to stop. Pick what's worth "
-        'the drive for you.',
+        'a stop for you.',
       ),
       onBack: onBack,
       primaryLabel: 'Continue',

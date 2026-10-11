@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../design/app_colors.dart';
 import '../../counties/county_paths.dart';
+import '../../design/app_colors.dart';
 import '../../widgets/app_county_shape.dart';
 import '../../widgets/app_svg_path.dart';
 import '../design/app_type_scale.dart';

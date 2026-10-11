@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kaunti47/src/features/profile/domain/place_interest.dart';
+import 'package:kaunti47_v2/src/features/profile/domain/place_interest.dart';
 
 void main() {
   test('interestsSummary reads Not set when empty', () {

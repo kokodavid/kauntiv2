@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
 import '../../../core/domain/map_place.dart';
+import '../../../core/widgets/app_photo_parts.dart' show AppOpenDirections;
 import '../../../core/widgets/app_place_sheet.dart';
 import '../domain/map_home_models.dart';
 import 'county_peek_sheet.dart';

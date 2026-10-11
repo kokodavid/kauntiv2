@@ -278,33 +278,46 @@ class _ProfileAvatar extends ConsumerWidget {
       child: InkWell(
         onTap: onOpenProfile,
         customBorder: const CircleBorder(),
+        // A blue ring with a small white gap, so the picture (or initial)
+        // reads as one badge on the pale card.
         child: Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
+          width: 36,
+          height: 36,
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: AppColors.accent,
             shape: BoxShape.circle,
-            image: hasPicture
-                ? DecorationImage(
-                    image: appNetworkImage(avatarUrl),
-                    fit: BoxFit.cover,
-                  )
-                : null,
+            border: Border.all(color: AppColors.accent, width: 2),
           ),
-          child: hasPicture
-              ? null
-              : initial == null
-              ? const Icon(Icons.person_outline, color: Colors.white, size: 18)
-              : Text(
-                  initial,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.accent,
+              shape: BoxShape.circle,
+              image: hasPicture
+                  ? DecorationImage(
+                      image: appNetworkImage(avatarUrl),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: hasPicture
+                ? null
+                : initial == null
+                ? const Icon(
+                    Icons.person_outline,
                     color: Colors.white,
+                    size: 16,
+                  )
+                : Text(
+                    initial,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
+          ),
         ),
       ),
     );

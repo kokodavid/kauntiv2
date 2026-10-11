@@ -6,6 +6,7 @@ import '../../../core/services/app_current_location.dart';
 import '../../../counties/county_paths.dart';
 import '../../profile/domain/place_interest.dart';
 import '../domain/map_home_models.dart';
+import '../domain/map_home_nearby_places.dart';
 import '../domain/map_home_promotion.dart';
 
 /// Reads a Supabase call that may fail on an older database; null then.
@@ -133,7 +134,8 @@ class MapHomeForYouReads {
   /// A matching county's distance counts as this fraction of the real one
   /// when ordering, so it can edge ahead of an equally close county
   /// without one. Same factor as `for_you_candidates()`.
-  static const interestDistanceFactor = 0.6;
+  static const interestDistanceFactor =
+      MapHomeNearbyPlaces.interestDistanceFactor;
 
   /// Per county code, the place that matched one of the user's interests
   /// (`my_interest_matches`). Empty for no interests or an older database.

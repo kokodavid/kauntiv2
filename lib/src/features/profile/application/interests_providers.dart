@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
+import '../data/interest_place_types_repository.dart';
 import '../data/interests_prompt_store.dart';
 import '../data/interests_repository.dart';
+import '../domain/interest_place_types.dart';
 import '../domain/place_interest.dart';
 
 /// The traveller's place interests. Throws when the build has no
@@ -107,3 +109,19 @@ class InterestsPrompt extends AsyncNotifier<bool> {
     if (ref.mounted) state = const AsyncData(false);
   }
 }
+
+/// Which place types count toward each interest, from the backend table so
+/// it can change without an app release. Reads as the bundled mapping while
+/// loading, offline, or when the table is empty or missing.
+final interestPlaceTypesProvider = FutureProvider<InterestPlaceTypes>((
+  ref,
+) async {
+  final client = ref.watch(supabaseClientProvider);
+  if (client == null) return InterestPlaceTypes.fallback;
+  try {
+    final loaded = await InterestPlaceTypesRepository(client).fetch();
+    return loaded.isEmpty ? InterestPlaceTypes.fallback : loaded;
+  } on Object {
+    return InterestPlaceTypes.fallback;
+  }
+});

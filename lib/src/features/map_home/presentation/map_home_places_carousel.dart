@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/map_place.dart';
 import '../../../core/services/app_current_location.dart';
 import '../../../design/app_colors.dart';
+import '../../profile/application/interests_providers.dart';
+import '../../profile/domain/interest_place_types.dart';
 import '../application/real_map_start_focus.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_home_nearby_cards.dart';
@@ -17,7 +20,7 @@ import 'map_home_nearby_card_tile.dart';
 /// counties and places nearest them, swipeable and advancing by itself.
 /// The county cards come from the board and show at once; places join when
 /// the one location read and the places are in.
-class MapHomePlacesCarousel extends StatefulWidget {
+class MapHomePlacesCarousel extends ConsumerStatefulWidget {
   const MapHomePlacesCarousel({
     super.key,
     required this.board,
@@ -39,12 +42,15 @@ class MapHomePlacesCarousel extends StatefulWidget {
   static const _pauseAfterSwipe = Duration(seconds: 12);
 
   @override
-  State<MapHomePlacesCarousel> createState() => _MapHomePlacesCarouselState();
+  ConsumerState<MapHomePlacesCarousel> createState() =>
+      _MapHomePlacesCarouselState();
 }
 
-class _MapHomePlacesCarouselState extends State<MapHomePlacesCarousel> {
+class _MapHomePlacesCarouselState extends ConsumerState<MapHomePlacesCarousel> {
   PageController? _pages;
   List<MapHomeNearbyPlace> _places = const [];
+  List<MapPlace> _allPlaces = const [];
+  ({double latitude, double longitude})? _fix;
   Timer? _timer;
   DateTime _pausedUntil = DateTime.fromMillisecondsSinceEpoch(0);
 
@@ -89,16 +95,31 @@ class _MapHomePlacesCarouselState extends State<MapHomePlacesCarousel> {
           )) {
         return;
       }
-      final nearest = MapHomeNearbyPlaces.nearest(
-        places: places,
-        from: fix,
-        claimedCountyCodes: _claimed,
-        limit: MapHomeNearbyCards.maxCards,
-      );
-      if (mounted) setState(() => _places = nearest);
+      _allPlaces = places;
+      _fix = fix;
+      _rank();
     } on Object {
       // The county cards stay on their own.
     }
+  }
+
+  /// The nearest places, leaning toward the ones that match the user's
+  /// interests. Runs when places load and again when interests change.
+  void _rank() {
+    final fix = _fix;
+    if (fix == null || !mounted) return;
+    final picks = ref.read(myInterestsProvider).value?.interests ?? const [];
+    final types =
+        ref.read(interestPlaceTypesProvider).value ??
+        InterestPlaceTypes.fallback;
+    final nearest = MapHomeNearbyPlaces.nearest(
+      places: _allPlaces,
+      from: fix,
+      claimedCountyCodes: _claimed,
+      limit: MapHomeNearbyCards.maxCards,
+      interestFor: picks.isEmpty ? null : (t) => types.matchFor(t, picks),
+    );
+    setState(() => _places = nearest);
   }
 
   void _advance() {
@@ -151,6 +172,9 @@ class _MapHomePlacesCarouselState extends State<MapHomePlacesCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    ref
+      ..listen(myInterestsProvider, (_, _) => _rank())
+      ..listen(interestPlaceTypesProvider, (_, _) => _rank());
     final cards = _cards;
     return SizedBox(
       height: MapHomePlacesCarousel.height,

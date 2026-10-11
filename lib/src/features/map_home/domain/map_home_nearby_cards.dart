@@ -70,9 +70,10 @@ abstract final class MapHomeNearbyCards {
   static MapHomeNearbyCard _place(MapHomeNearbyPlace entry) {
     final distance = splitDistance(entry.distanceLabel);
     final type = _capitalise(entry.place.type);
+    final basePill = type.isEmpty ? 'Place near you' : type;
     return MapHomeNearbyCard(
       kind: MapHomeNearbyKind.place,
-      pill: type.isEmpty ? 'Place near you' : type,
+      pill: entry.matchedInterest == null ? basePill : 'For you · $basePill',
       title: entry.place.name,
       subtitle: type.isEmpty
           ? entry.county.name
@@ -91,7 +92,9 @@ abstract final class MapHomeNearbyCards {
       kind: MapHomeNearbyKind.newCounty,
       pill: 'New county',
       title: s.county.name,
-      subtitle: placeCount > 0
+      subtitle: s.matchedPlaceName != null
+          ? 'Unclaimed · has ${s.matchedPlaceName}'
+          : placeCount > 0
           ? 'Unclaimed · $placeCount ${placeCount == 1 ? 'place' : 'places'}'
           : 'Unclaimed',
       county: s.county,

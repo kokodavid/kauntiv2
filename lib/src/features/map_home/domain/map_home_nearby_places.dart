@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
+import '../../profile/domain/place_interest.dart';
 
 /// A place worth planning a trip to, with how far it is and whether its
 /// county is still to claim.
@@ -11,12 +12,16 @@ class MapHomeNearbyPlace {
     required this.county,
     required this.distanceMeters,
     required this.countyClaimed,
+    this.matchedInterest,
   });
 
   final MapPlace place;
   final CountyPath county;
   final double distanceMeters;
   final bool countyClaimed;
+
+  /// The interest this place's type matched for the user, if any.
+  final PlaceInterest? matchedInterest;
 
   String get distanceLabel => MapHomeNearbyPlaces.distanceLabel(distanceMeters);
 }
@@ -27,11 +32,18 @@ abstract final class MapHomeNearbyPlaces {
   /// The most cards the row shows.
   static const maxCards = 8;
 
+  /// A matching place's distance counts as this fraction of the real one
+  /// when ordering, so it can edge ahead of an equally close place without
+  /// a match. The same factor Home uses for counties and the database uses
+  /// in `for_you_candidates()`.
+  static const interestDistanceFactor = 0.6;
+
   static List<MapHomeNearbyPlace> nearest({
     required List<MapPlace> places,
     required ({double latitude, double longitude}) from,
     required Set<int> claimedCountyCodes,
     int limit = maxCards,
+    PlaceInterest? Function(String placeType)? interestFor,
   }) {
     final found = <MapHomeNearbyPlace>[];
     for (final place in places) {
@@ -48,10 +60,14 @@ abstract final class MapHomeNearbyPlaces {
             place.lng,
           ),
           countyClaimed: claimedCountyCodes.contains(place.countyCode),
+          matchedInterest: interestFor?.call(place.type),
         ),
       );
     }
-    found.sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+    double leaning(MapHomeNearbyPlace p) =>
+        p.distanceMeters *
+        (p.matchedInterest == null ? 1 : interestDistanceFactor);
+    found.sort((a, b) => leaning(a).compareTo(leaning(b)));
     return found.take(limit).toList();
   }
 

@@ -16,6 +16,8 @@ class _TripMediaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final both = onTimeline.isNotEmpty && other.isNotEmpty;
+    // One swipe order for the viewer: exactly what the row shows.
+    final all = [...onTimeline, ...other];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -26,6 +28,8 @@ class _TripMediaRow extends StatelessWidget {
             _TripMediaGroup(
               label: both ? 'On the timeline' : null,
               items: onTimeline,
+              all: all,
+              offset: 0,
               onDeletePhoto: onDeletePhoto,
             ),
           if (both)
@@ -39,6 +43,8 @@ class _TripMediaRow extends StatelessWidget {
             _TripMediaGroup(
               label: both ? 'Other photos' : null,
               items: other,
+              all: all,
+              offset: onTimeline.length,
               onDeletePhoto: onDeletePhoto,
             ),
         ],
@@ -50,11 +56,17 @@ class _TripMediaRow extends StatelessWidget {
 class _TripMediaGroup extends StatelessWidget {
   const _TripMediaGroup({
     required this.items,
+    required this.all,
+    required this.offset,
     required this.onDeletePhoto,
     this.label,
   });
 
   final List<JourneyMediaItem> items;
+
+  /// Every photo in the row, and where [items] starts within it.
+  final List<JourneyMediaItem> all;
+  final int offset;
   final Future<bool> Function(BuildContext, JourneyMediaItem) onDeletePhoto;
   final String? label;
 
@@ -76,7 +88,12 @@ class _TripMediaGroup extends StatelessWidget {
               if (i > 0) const SizedBox(width: 6),
               _TripMediaThumbnail(
                 item: items[i],
-                onDeletePhoto: onDeletePhoto,
+                onOpen: () => openJourneyPhotos(
+                  context,
+                  all,
+                  initialIndex: offset + i,
+                  onDelete: onDeletePhoto,
+                ),
               ),
             ],
           ],
@@ -87,12 +104,12 @@ class _TripMediaGroup extends StatelessWidget {
 }
 
 class _TripMediaThumbnail extends StatelessWidget {
-  const _TripMediaThumbnail({required this.item, required this.onDeletePhoto});
+  const _TripMediaThumbnail({required this.item, required this.onOpen});
 
   static const size = 84.0;
 
   final JourneyMediaItem item;
-  final Future<bool> Function(BuildContext, JourneyMediaItem) onDeletePhoto;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -102,8 +119,7 @@ class _TripMediaThumbnail extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () =>
-              openJourneyPhoto(context, item, onDelete: onDeletePhoto),
+          onTap: onOpen,
           borderRadius: BorderRadius.circular(14),
           child: Ink(
             decoration: BoxDecoration(

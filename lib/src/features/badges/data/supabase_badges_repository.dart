@@ -15,7 +15,10 @@ class SupabaseBadgesRepository {
   static const _timeout = Duration(seconds: 8);
   static const _logger = AppLogger.badges();
 
-  Future<BadgeCollection> collection(String userId) async {
+  /// The raw inputs of [collection], so the app can keep a copy for offline.
+  Future<({Map<int, String> visitStates, Map<int, String> ranks})> raw(
+    String userId,
+  ) async {
     final visitsFuture = _client
         .from('county_visits')
         .select('county_id, state')
@@ -23,13 +26,21 @@ class SupabaseBadgesRepository {
         .timeout(_timeout);
     final ranks = await _ranks();
     final visits = await visitsFuture;
-    return BadgeCollection.from(
+    return (
       visitStates: {
         for (final row in visits)
           if (row case {'county_id': final num code, 'state': final String s})
             code.toInt(): s,
       },
       ranks: ranks,
+    );
+  }
+
+  Future<BadgeCollection> collection(String userId) async {
+    final data = await raw(userId);
+    return BadgeCollection.from(
+      visitStates: data.visitStates,
+      ranks: data.ranks,
     );
   }
 

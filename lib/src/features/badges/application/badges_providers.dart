@@ -5,6 +5,7 @@ import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../detection/application/visit_sync.dart';
 import '../data/badge_spin_history.dart';
+import '../data/badges_snapshot_store.dart';
 import '../data/supabase_badges_repository.dart';
 import '../domain/badge_collection.dart';
 import '../domain/county_badge_detail.dart';
@@ -18,7 +19,8 @@ SupabaseBadgesRepository? badgesRepository(Ref ref) {
   return client == null ? null : SupabaseBadgesRepository(client);
 }
 
-/// The signed-in user's badge collection. Reloads when the account
+/// The signed-in user's badge collection; offline it is the copy from the
+/// last good load ([BadgeCollection.savedAt] set). Reloads when the account
 /// changes and when a visit syncs (a new badge or depth).
 @riverpod
 Future<BadgeCollection> badgeCollection(Ref ref) async {
@@ -29,7 +31,30 @@ Future<BadgeCollection> badgeCollection(Ref ref) async {
   if (userId == null || repository == null) {
     return BadgeCollection.from(visitStates: const {}, ranks: const {});
   }
-  return repository.collection(userId);
+  const store = BadgesSnapshotStore();
+  try {
+    final data = await repository.raw(userId);
+    await store.write(
+      userId,
+      visitStates: data.visitStates,
+      ranks: data.ranks,
+      now: DateTime.now(),
+    );
+    return BadgeCollection.from(
+      visitStates: data.visitStates,
+      ranks: data.ranks,
+    );
+  } on Object {
+    // No connection: show the copy from the last good load, if any. With
+    // none saved the error stands and the screen says it couldn't load.
+    final saved = await store.read(userId);
+    if (saved == null) rethrow;
+    return BadgeCollection.from(
+      visitStates: saved.visitStates,
+      ranks: saved.ranks,
+      savedAt: saved.savedAt,
+    );
+  }
 }
 
 /// One county's badge in detail, for the badge sheet. Reloads with the

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/domain/saved_at_label.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/map_home_models.dart';
@@ -25,23 +26,9 @@ class MapHomeOfflineScope extends InheritedWidget {
       retrying != old.retrying;
 }
 
-/// "Saved 3 weeks ago" / "Saved today, 9:41 AM"; null without a saved copy.
-String? mapHomeSavedLabel(DateTime? savedAt, DateTime now) {
-  if (savedAt == null) return null;
-  final local = savedAt.toLocal();
-  final days = DateTime(now.year, now.month, now.day)
-      .difference(DateTime(local.year, local.month, local.day))
-      .inDays;
-  if (days <= 0) {
-    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
-    final minute = local.minute.toString().padLeft(2, '0');
-    return 'Saved today, $hour:$minute ${local.hour < 12 ? 'AM' : 'PM'}';
-  }
-  if (days == 1) return 'Saved yesterday';
-  if (days < 14) return 'Saved $days days ago';
-  if (days < 60) return 'Saved ${days ~/ 7} weeks ago';
-  return 'Saved ${days ~/ 30} months ago';
-}
+/// See [savedAtLabel].
+String? mapHomeSavedLabel(DateTime? savedAt, DateTime now) =>
+    savedAtLabel(savedAt, now);
 
 /// The one-line "Offline" strip with a Retry. It is also the collapsed
 /// card of Home's sheet while offline.

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/county_tier.dart';
+import '../../../core/domain/saved_at_label.dart';
 import '../../../core/widgets/app_tier_medal.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
@@ -40,7 +41,9 @@ class BadgesScreen extends ConsumerWidget {
               onOpenPlace: onOpenPlace,
             ),
             AsyncValue(hasError: true) => const _Message(
-              text: "Couldn't load your badges. Pull down to try again.",
+              text:
+                  "Couldn't load your badges. Check your connection and pull "
+                  'down to try again.',
             ),
             _ => const BadgesLoading(),
           },
@@ -71,6 +74,10 @@ class _Content extends StatelessWidget {
           sliver: SliverList.list(
             children: [
               _Header(tier: collection.tier),
+              if (collection.isSavedCopy) ...[
+                const SizedBox(height: 8),
+                _SavedCopyNote(savedAt: collection.savedAt!),
+              ],
               const SizedBox(height: 14),
               BadgesSummarySlider(
                 pages: [
@@ -159,6 +166,37 @@ class _Header extends StatelessWidget {
           child: Text('Collection', style: AppTextStyles.headingForeground),
         ),
         if (tier != null) AppTierPill(tier: tier),
+      ],
+    );
+  }
+}
+
+/// Shown while the collection is the copy kept on the phone. A stand-in
+/// until the shared offline widget replaces it.
+class _SavedCopyNote extends StatelessWidget {
+  const _SavedCopyNote({required this.savedAt});
+
+  final DateTime savedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final saved = savedAtLabel(savedAt, DateTime.now());
+    return Row(
+      children: [
+        const Icon(
+          Icons.cloud_off_rounded,
+          size: 14,
+          color: AppColors.mutedForeground,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          "You're offline · $saved",
+          style: const TextStyle(
+            fontFamily: AppTypeScale.family,
+            fontSize: 12.5,
+            color: AppColors.mutedForeground,
+          ),
+        ),
       ],
     );
   }

@@ -86,9 +86,15 @@ class _Pill extends StatelessWidget {
       _ => 'Up to date',
     };
     final retry = offline && saved != null;
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 160),
-      child: Container(
+    // Never wider than the screen less its margins: the long line shortens
+    // with an ellipsis rather than overflowing on a narrow phone.
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.sizeOf(context).width - 32,
+      ),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 160),
+        child: Container(
         height: 40,
         padding: EdgeInsets.only(left: 14, right: retry ? 4 : 14),
         decoration: BoxDecoration(
@@ -111,16 +117,19 @@ class _Pill extends StatelessWidget {
               child: _Icon(key: ValueKey(status), status: status),
             ),
             const SizedBox(width: 10),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 160),
-              child: Text(
-                text,
-                key: ValueKey(text),
-                maxLines: 1,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+            Flexible(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 160),
+                child: Text(
+                  text,
+                  key: ValueKey(text),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
@@ -158,6 +167,7 @@ class _Pill extends StatelessWidget {
               ),
             ],
           ],
+        ),
         ),
       ),
     );

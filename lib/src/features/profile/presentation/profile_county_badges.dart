@@ -57,12 +57,12 @@ class ProfileCountyBadges extends StatelessWidget {
         SizedBox(
           height: 78,
           child: collection.when(
-            loading: () => const AppShimmer(
+            loading: () => AppShimmer(
               child: Row(
                 children: [
                   for (var i = 0; i < 6; i++) ...[
                     if (i > 0) SizedBox(width: 10),
-                    SizedBox(
+                    const SizedBox(
                       width: 58,
                       child: Column(
                         children: [

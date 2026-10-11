@@ -34,6 +34,10 @@ class MapHomeUnclaimedCard extends StatelessWidget {
   static const height = 240.0;
   static const photoHeight = 184.0;
 
+  /// The "has Place" line takes this much room, so the photo gives it up
+  /// and the card keeps its fixed [height].
+  static const matchLineHeight = 28.0;
+
   @override
   Widget build(BuildContext context) {
     final route = onRoute;
@@ -62,7 +66,9 @@ class MapHomeUnclaimedCard extends StatelessWidget {
                     : '${suggestion.matchedPlaceName} · '
                           '${suggestion.distanceAway}',
                 imageUrl: suggestion.highlightImageUrl,
-                height: photoHeight,
+                height: suggestion.matchLabel == null
+                    ? photoHeight
+                    : photoHeight - matchLineHeight,
                 // Narrow row cards give the whole width to the name; the section
                 // heading already says they are unclaimed.
                 bottomRight: fullWidth ? AppPhotoPill(label: pillLabel) : null,

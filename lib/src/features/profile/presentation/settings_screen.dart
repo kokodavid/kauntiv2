@@ -22,6 +22,7 @@ import 'settings_account_section.dart';
 import 'settings_developer_section.dart';
 import 'settings_location_section.dart';
 import 'settings_notifications_section.dart';
+import 'sign_out_button.dart';
 
 /// Settings, reached from Profile's gear button. Everything that used to
 /// be inline Profile tiles ("Location permission") now lives here,
@@ -197,14 +198,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onOpenLocationDiagnostics: widget.onOpenLocationDiagnostics,
               ),
               const SizedBox(height: 4),
-              OutlinedButton.icon(
-                onPressed: _signingOut ? null : () => unawaited(_signOut()),
-                icon: const Icon(Icons.logout),
-                label: Text(_signingOut ? 'Signing out...' : 'Sign out'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.accent,
-                  side: const BorderSide(color: Color(0xFFD5E7FA)),
-                ),
+              SignOutButton(
+                signingOut: _signingOut,
+                onPressed: () => unawaited(_signOut()),
               ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/services/fail_fast.dart';
 import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
 import '../data/profile_snapshot_store.dart';
@@ -30,7 +31,7 @@ Future<PublicProfile?> myPublicProfile(Ref ref) async {
   if (userId == null || repository == null) return null;
   const store = ProfileSnapshotStore();
   try {
-    final profile = await repository.fetch();
+    final profile = await failFast(ref, repository.fetch);
     if (profile != null) {
       await store.writeProfile(userId, profile, DateTime.now());
     }

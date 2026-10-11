@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/app_current_location.dart';
+import '../../../core/services/fail_fast.dart';
 import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../detection/application/visit_sync.dart';
@@ -33,7 +34,7 @@ Future<BadgeCollection> badgeCollection(Ref ref) async {
   }
   const store = BadgesSnapshotStore();
   try {
-    final data = await repository.raw(userId);
+    final data = await failFast(ref, () => repository.raw(userId));
     await store.write(
       userId,
       visitStates: data.visitStates,

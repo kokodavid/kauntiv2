@@ -37,6 +37,11 @@ class MapHomePlacesCarousel extends ConsumerStatefulWidget {
   /// The blue label above the cards: 14 for the text, 10 below it.
   static const headingHeight = 24.0;
   static const height = MapHomeNearbyCardTile.height + headingHeight;
+
+  /// The collapsed sheet's peek: the label and the top of the cards (a
+  /// sliver, so they read as something to pull up), clear of the tab bar on
+  /// every phone. The full carousel is the first section once it is open.
+  static const peekHeight = headingHeight + 56.0;
   static const _gap = 10.0;
   static const _advanceEvery = Duration(seconds: 5);
   static const _pauseAfterSwipe = Duration(seconds: 12);

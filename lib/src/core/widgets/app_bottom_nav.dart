@@ -45,6 +45,15 @@ class AppBottomNav extends StatelessWidget {
     return math.max(24, MediaQuery.viewPaddingOf(context).bottom + 8);
   }
 
+  /// The pill itself: 4 padding, a 45 tab, 4 padding.
+  static const barHeight = 53.0;
+
+  /// Room a screen's own bottom content must leave for the bar: the gap
+  /// under it, the bar, and a little air. Sheets and lists read this
+  /// rather than a fixed number, so they follow the nav on every phone.
+  static double clearance(BuildContext context) =>
+      bottomGap(context) + barHeight + 7;
+
   @override
   Widget build(BuildContext context) {
     return Container(

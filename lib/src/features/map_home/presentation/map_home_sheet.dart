@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
 
 /// Home's draggable bottom sheet.
@@ -37,8 +38,10 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
   static const _peekSize = 0.14;
   static const _maxSize = 0.88;
 
-  /// Handle row, top padding and the room kept for the tab bar.
-  static const _chromeHeight = 10.0 + 4.0 + 14.0 + 84.0;
+  /// Handle row, top padding and the room kept for the tab bar, which
+  /// follows the bar's own height and the phone's system navigation inset.
+  static double _chrome(BuildContext context) =>
+      10.0 + 4.0 + 14.0 + AppBottomNav.clearance(context);
 
   final _controller = DraggableScrollableController();
   double? _contentHeight;
@@ -86,13 +89,13 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
         var expandedSize = _maxSize;
         if (_contentHeight != null && constraints.maxHeight > 0) {
           expandedSize =
-              ((_contentHeight! + _chromeHeight) / constraints.maxHeight).clamp(
+              ((_contentHeight! + _chrome(context)) / constraints.maxHeight).clamp(
                 _peekSize,
                 _maxSize,
               );
         }
         final peek = hasCollapsed && constraints.maxHeight > 0
-            ? (widget.collapsedHeight + _chromeHeight) / constraints.maxHeight
+            ? (widget.collapsedHeight + _chrome(context)) / constraints.maxHeight
             : _peekSize;
         final collapsedSize = math.min(peek, expandedSize);
         _expandedSize = expandedSize;
@@ -141,7 +144,12 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
               ),
               child: ListView(
                 controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 84),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  10,
+                  20,
+                  AppBottomNav.clearance(context),
+                ),
                 children: [
                   Center(
                     child: Container(

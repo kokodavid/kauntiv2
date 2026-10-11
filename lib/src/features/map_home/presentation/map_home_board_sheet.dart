@@ -94,10 +94,13 @@ class MapHomeBoardSheet extends StatelessWidget {
       collapsedHeight: recordTripCard != null
           ? recordTripCardHeight
           : _useCarousel(picked, board)
-          ? MapHomePlacesCarousel.height
+          ? MapHomePlacesCarousel.peekHeight
           : MapHomeCompactCard.height,
       collapsed: _collapsed(context, picked, board, compact),
       children: [
+        // The collapsed peek is only a sliver of this; open, it is whole.
+        if (_useCarousel(picked, board))
+          _carousel(board, const ValueKey('expanded-places')),
         ?topCard,
         for (final section in MapHomeLayoutRules.sections(picked))
           ?_section(section, picked, board),
@@ -134,15 +137,31 @@ class MapHomeBoardSheet extends StatelessWidget {
   ) {
     if (recordTripCard != null) return recordTripCard;
     if (_useCarousel(layout, board)) {
-      return MapHomePlacesCarousel(
+      // Laid out at full height but only its top shows: the label and a
+      // sliver of the cards.
+      return SizedBox(
+        height: MapHomePlacesCarousel.peekHeight,
+        child: ClipRect(
+          child: OverflowBox(
+            alignment: Alignment.topLeft,
+            minHeight: MapHomePlacesCarousel.height,
+            maxHeight: MapHomePlacesCarousel.height,
+            child: _carousel(board),
+          ),
+        ),
+      );
+    }
+    return compact == null ? null : _compactCard(context, compact);
+  }
+
+  Widget _carousel(MapHomeBoardData board, [Key? key]) =>
+      MapHomePlacesCarousel(
+        key: key,
         board: board,
         loadPlaces: loadPlaces,
         onOpenCounty: onOpenCounty,
         onOpenPlace: onOpenPlace,
       );
-    }
-    return compact == null ? null : _compactCard(context, compact);
-  }
 
   Widget _compactCard(BuildContext context, MapHomeCompact compact) {
     final start = compact.isHomeStart ? onStartTrip : null;

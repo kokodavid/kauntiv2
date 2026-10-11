@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/widgets/app_back_button.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
 
@@ -32,14 +33,14 @@ class OnboardingProgressHeader extends StatelessWidget {
               height: 44,
               child: onBack == null
                   ? null
-                  : IconButton(
-                      tooltip: 'Back',
-                      onPressed: onBack,
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppColors.iconButtonBackground,
-                        foregroundColor: AppColors.foreground,
+                  : Center(
+                      child: Semantics(
+                        label: 'Back',
+                        button: true,
+                        excludeSemantics: true,
+                        onTap: onBack,
+                        child: AppBackButton(onPressed: onBack!),
                       ),
-                      icon: const Icon(Icons.chevron_left, size: 24),
                     ),
             ),
             Expanded(

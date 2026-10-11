@@ -37,4 +37,35 @@ void main() {
       '47@2026-09-24T08:00:00.000Z',
     );
   });
+
+  test('a county shown within the cooldown stays quiet on re-entry', () {
+    final now = t0.add(const Duration(days: 3));
+    final again = CountyArrivalNudge(
+      countyCode: 47,
+      enteredAt: now.subtract(const Duration(minutes: 5)),
+    );
+    final lastShown = {47: t0};
+    expect(
+      ArrivalNudgeRules.pick([again], lastShown: lastShown, now: now),
+      isNull,
+    );
+    // Another county is unaffected.
+    expect(
+      ArrivalNudgeRules.pick(
+        [again, kiambu],
+        lastShown: lastShown,
+        now: now,
+      ),
+      kiambu,
+    );
+  });
+
+  test('after the cooldown a county can show again', () {
+    final now = t0.add(ArrivalNudgeRules.revisitCooldown);
+    final again = CountyArrivalNudge(countyCode: 47, enteredAt: now);
+    expect(
+      ArrivalNudgeRules.pick([again], lastShown: {47: t0}, now: now),
+      again,
+    );
+  });
 }

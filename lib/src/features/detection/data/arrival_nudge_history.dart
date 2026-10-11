@@ -12,6 +12,10 @@ class ArrivalNudgeHistory {
 
   static const _shownKey = 'arrival_nudge.shown_arrival_keys';
 
+  /// `county@shownAtIso` per county: when its sheet last showed, for the
+  /// revisit cooldown.
+  static const _lastShownKey = 'arrival_nudge.last_shown_by_county';
+
   /// v1 keys this port no longer reads; cleared with the rest.
   static const _v1Keys = [
     'arrival_nudge.ever_visited_counties',
@@ -26,8 +30,27 @@ class ArrivalNudgeHistory {
     return (prefs.getStringList(_shownKey) ?? const []).toSet();
   }
 
-  Future<void> markShown(CountyArrivalNudge nudge) async {
+  /// When each county's sheet last showed.
+  Future<Map<int, DateTime>> lastShownByCounty() async {
     final prefs = await SharedPreferences.getInstance();
+    final out = <int, DateTime>{};
+    for (final entry in prefs.getStringList(_lastShownKey) ?? const []) {
+      final parts = entry.split('@');
+      if (parts.length != 2) continue;
+      final code = int.tryParse(parts[0]);
+      final at = DateTime.tryParse(parts[1]);
+      if (code != null && at != null) out[code] = at;
+    }
+    return out;
+  }
+
+  Future<void> markShown(CountyArrivalNudge nudge, {DateTime? now}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final last = await lastShownByCounty();
+    last[nudge.countyCode] = (now ?? DateTime.now()).toUtc();
+    await prefs.setStringList(_lastShownKey, [
+      for (final e in last.entries) '${e.key}@${e.value.toIso8601String()}',
+    ]);
     final shown = [
       ...?prefs.getStringList(_shownKey),
       ArrivalNudgeRules.keyFor(nudge.countyCode, nudge.enteredAt),
@@ -44,6 +67,7 @@ class ArrivalNudgeHistory {
   Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_shownKey);
+    await prefs.remove(_lastShownKey);
     for (final key in _v1Keys) {
       await prefs.remove(key);
     }

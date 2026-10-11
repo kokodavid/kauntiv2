@@ -30,6 +30,12 @@ class PendingArrival {
 class PendingArrivalNudge extends _$PendingArrivalNudge {
   static const _logger = AppLogger.detection();
 
+  /// What this session already handed to the sheet. The history write in
+  /// [take] is asynchronous, so a cycle that starts straight afterwards must
+  /// not offer the same crossing or county again before it lands.
+  final _takenKeys = <String>{};
+  final _takenAt = <int, DateTime>{};
+
   @override
   PendingArrival? build() => null;
 
@@ -42,10 +48,17 @@ class PendingArrivalNudge extends _$PendingArrivalNudge {
     int? homeCountyCode,
   }) async {
     try {
+      final history = ref.read(arrivalNudgeHistoryProvider);
+      final lastShown = await history.lastShownByCounty();
+      _takenAt.forEach((code, at) {
+        final known = lastShown[code];
+        if (known == null || at.isAfter(known)) lastShown[code] = at;
+      });
       final nudge = ArrivalNudgeRules.pick(
         candidates,
         suppressed: {?homeCountyCode},
-        shown: await ref.read(arrivalNudgeHistoryProvider).shownKeys(),
+        shown: {...await history.shownKeys(), ..._takenKeys},
+        lastShown: lastShown,
       );
       if (nudge == null || _isPending(nudge)) return;
       final county = await ref
@@ -67,12 +80,19 @@ class PendingArrivalNudge extends _$PendingArrivalNudge {
   }
 
   /// Hands the pending crossing to the sheet: clears it and records it as
-  /// shown, so the same crossing never shows twice.
+  /// shown, so the same crossing never shows twice and that county stays
+  /// quiet for [ArrivalNudgeRules.revisitCooldown].
   PendingArrival? take() {
     final pending = state;
     if (pending == null) return null;
     state = null;
-    unawaited(ref.read(arrivalNudgeHistoryProvider).markShown(pending.nudge));
+    final now = DateTime.now().toUtc();
+    final nudge = pending.nudge;
+    _takenKeys.add(ArrivalNudgeRules.keyFor(nudge.countyCode, nudge.enteredAt));
+    _takenAt[nudge.countyCode] = now;
+    unawaited(
+      ref.read(arrivalNudgeHistoryProvider).markShown(nudge, now: now),
+    );
     return pending;
   }
 

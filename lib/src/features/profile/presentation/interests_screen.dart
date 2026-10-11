@@ -114,7 +114,10 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                           const Text(
                             'For you leans toward these, and still shows '
                             'other places too.',
-                            style: AppTextStyles.bodyMuted,
+                            style: AppTextStyles.bodyMuted.copyWith(
+                              fontSize: 13,
+                              height: 1.4,
+                            ),
                           ),
                           const SizedBox(height: 18),
                           PlaceInterestTiles(

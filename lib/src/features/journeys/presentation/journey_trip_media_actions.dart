@@ -27,9 +27,10 @@ import '../domain/journey_summary.dart';
 Future<void> addJourneyPhotosToTrip(
   BuildContext context,
   WidgetRef ref,
-  JourneySummary journey,
-) async {
-  late final List<AppPickedImage> picked;
+  JourneySummary journey, {
+  int? maxPhotos,
+}) async {
+  late List<AppPickedImage> picked;
   try {
     picked = await AppMediaPicker.pickMultiImage(
       maxWidth: 2048,
@@ -47,6 +48,17 @@ Future<void> addJourneyPhotosToTrip(
   }
   if (picked.isEmpty) return;
   if (!context.mounted) return;
+  if (maxPhotos != null && picked.length > maxPhotos) {
+    picked = picked.sublist(0, maxPhotos);
+    showAppToast(
+      context,
+      variant: AppToastVariant.warning,
+      title: maxPhotos == 1
+          ? 'Only room for 1 more photo'
+          : 'Only room for $maxPhotos more photos',
+      message: 'The rest were left out.',
+    );
+  }
 
   final userId = ref.read(currentUserIdProvider)();
   if (userId == null) return;

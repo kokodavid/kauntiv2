@@ -7,6 +7,7 @@ import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_media_capture.dart';
+import '../domain/journey_media_quota.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
 import '../domain/journey_transport_mode.dart';
@@ -55,6 +56,18 @@ class SupabaseJourneyRepository {
       tripsUsed: (row['trips_used'] as num).toInt(),
       tripLimit: (row['trip_limit'] as num).toInt(),
       resetsAt: DateTime.parse(row['resets_at'] as String),
+    );
+  }
+
+  /// This account's per-Trip photo limit (live from the server).
+  Future<JourneyMediaLimit> mediaLimit() async {
+    final row = await _client
+        .rpc<Map<String, dynamic>>('my_journey_media_limit')
+        .timeout(_timeout);
+    return JourneyMediaLimit(
+      maxPhotos: (row['max_photos'] as num).toInt(),
+      isPro: row['is_pro'] == true,
+      proMaxPhotos: (row['pro_max_photos'] as num).toInt(),
     );
   }
 

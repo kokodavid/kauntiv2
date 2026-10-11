@@ -46,6 +46,9 @@ abstract class _JourneyReplayTimelineStateBase
   /// True once the user closes the camera-roll suggestion in the sheet.
   bool _matchesDismissed = false;
 
+  /// This account's per-Trip photo limit; null until read (or offline).
+  JourneyMediaLimit? _mediaLimit;
+
   static String? _countyAt(JourneyPoint? point) {
     if (point == null) return null;
     final code = CountyBoundaryResolver.countyCodeFor(
@@ -67,6 +70,7 @@ mixin _JourneyReplayTimelineStateBehavior
   @override
   void initState() {
     super.initState();
+    unawaited(_loadMediaLimit());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _precachePhotos();
     });

@@ -9,6 +9,7 @@ class _TripMediaSheetBody extends StatelessWidget {
     required this.media,
     required this.mediaLoading,
     required this.addingPhotos,
+    required this.limit,
     required this.onAddPhotos,
     required this.onFindPhotos,
     required this.onDeletePhoto,
@@ -17,6 +18,7 @@ class _TripMediaSheetBody extends StatelessWidget {
   final List<JourneyMediaItem> media;
   final bool mediaLoading;
   final bool addingPhotos;
+  final JourneyMediaLimit? limit;
   final VoidCallback onAddPhotos;
   final VoidCallback onFindPhotos;
   final Future<bool> Function(BuildContext, JourneyMediaItem) onDeletePhoto;
@@ -25,7 +27,8 @@ class _TripMediaSheetBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final onTimeline = media.onTimeline;
     final other = media.albumOnly;
-    final busy = addingPhotos || mediaLoading;
+    final full = limit?.isFull(media.length) ?? false;
+    final busy = addingPhotos || mediaLoading || full;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +51,7 @@ class _TripMediaSheetBody extends StatelessWidget {
                     const SizedBox(width: 8),
                     if (!mediaLoading && media.isNotEmpty)
                       Text(
-                        '${media.length}',
+                        limit?.usageLabel(media.length) ?? '${media.length}',
                         style: AppTypeScale.small.copyWith(
                           color: AppColors.mutedForeground,
                         ),
@@ -82,6 +85,16 @@ class _TripMediaSheetBody extends StatelessWidget {
             other: other,
             onDeletePhoto: onDeletePhoto,
           ),
+          if (full)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+              child: Text(
+                limit!.fullMessage,
+                style: AppTypeScale.small.copyWith(
+                  color: AppColors.mutedForeground,
+                ),
+              ),
+            ),
           if (onTimeline.isNotEmpty && other.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),

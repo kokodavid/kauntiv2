@@ -79,39 +79,83 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
     await _scanCameraRoll();
   }
 
+  Future<void> _loadMediaLimit() async {
+    final limit = await ref.read(journeyMediaLimitProvider.future);
+    if (mounted) setState(() => _mediaLimit = limit);
+  }
+
+  int get _slotsLeft => photosThatFit(
+    _mediaLimit,
+    used: widget.media.length,
+    wanted: 1 << 30,
+  );
+
+  /// True (after telling the user) when the Trip can't take another photo.
+  bool _tripIsFull() {
+    final limit = _mediaLimit;
+    if (limit == null || !limit.isFull(widget.media.length)) return false;
+    showAppToast(
+      context,
+      variant: AppToastVariant.warning,
+      title: 'Trip media is full',
+      message: limit.fullMessage,
+    );
+    return true;
+  }
+
   Future<void> _addPhotosManually() async {
-    if (_addingPhotos) return;
+    if (_addingPhotos || _tripIsFull()) return;
     setState(() => _addingPhotos = true);
     try {
-      await addJourneyPhotosToTrip(context, ref, widget.summary);
+      await addJourneyPhotosToTrip(
+        context,
+        ref,
+        widget.summary,
+        maxPhotos: _mediaLimit == null ? null : _slotsLeft,
+      );
     } finally {
       if (mounted) setState(() => _addingPhotos = false);
     }
   }
 
   Future<void> _addAllMatches() async {
-    if (_addingPhotos) return;
+    if (_addingPhotos || _tripIsFull()) return;
     setState(() => _addingPhotos = true);
     try {
       final matches = _cameraRollScan.matches;
       // The card's own label already tells the user when this is a
       // partial add ("Add 24 of 34") - the rest stay reachable via
       // "Choose" rather than silently never making it onto the Trip.
-      final capped = matches.length > CameraRollMatcher.maxAutoAdd
-          ? matches.sublist(0, CameraRollMatcher.maxAutoAdd)
-          : matches;
+      final cap = _matchAddCap;
+      final capped = matches.length > cap ? matches.sublist(0, cap) : matches;
       await addCameraRollMatchesToTrip(context, ref, widget.summary, capped);
     } finally {
       if (mounted) setState(() => _addingPhotos = false);
     }
   }
 
+  /// How many camera-roll matches one tap may add: the one-tap cap, or the
+  /// Trip's free slots when fewer.
+  int get _matchAddCap => _mediaLimit == null
+      ? CameraRollMatcher.maxAutoAdd
+      : _slotsLeft.clamp(0, CameraRollMatcher.maxAutoAdd);
+
   Future<void> _chooseMatches() async {
-    final chosen = await showCameraRollMatchPicker(
+    if (_tripIsFull()) return;
+    var chosen = await showCameraRollMatchPicker(
       context,
       _cameraRollScan.matches,
     );
     if (chosen == null || chosen.isEmpty || !mounted) return;
+    if (_mediaLimit != null && chosen.length > _slotsLeft) {
+      chosen = chosen.sublist(0, _slotsLeft);
+      showAppToast(
+        context,
+        variant: AppToastVariant.warning,
+        title: 'Only room for ${chosen.length} more',
+        message: 'The rest were left out.',
+      );
+    }
     setState(() => _addingPhotos = true);
     try {
       await addCameraRollMatchesToTrip(context, ref, widget.summary, chosen);
@@ -130,6 +174,7 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
   /// [_sheetTick] so photos, the camera-roll scan and the add spinner
   /// stay live while it is open.
   Future<void> _openTripMedia() {
+    unawaited(_loadMediaLimit());
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -163,6 +208,7 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
                   media: widget.media,
                   mediaLoading: widget.mediaLoading,
                   addingPhotos: _addingPhotos,
+                  limit: _mediaLimit,
                   onAddPhotos: _addPhotosManually,
                   onFindPhotos: _requestCameraRollAccess,
                   onDeletePhoto: _removePhoto,
@@ -174,6 +220,7 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
                     child: _CameraRollMatchCard(
                       matches: _cameraRollScan.matches,
                       busy: _addingPhotos,
+                      addLimit: _matchAddCap,
                       onAddAll: _addAllMatches,
                       onChoose: _chooseMatches,
                       onDismiss: () => setState(() => _matchesDismissed = true),

@@ -11,6 +11,7 @@ class _CameraRollMatchCard extends StatelessWidget {
     required this.onAddAll,
     required this.onChoose,
     this.onDismiss,
+    this.addLimit = CameraRollMatcher.maxAutoAdd,
   });
 
   final List<CameraRollMatch> matches;
@@ -21,15 +22,17 @@ class _CameraRollMatchCard extends StatelessWidget {
   /// Hides the suggestion; null leaves the card without a close button.
   final VoidCallback? onDismiss;
 
+  /// How many photos "Add to timeline" will add (the one-tap cap, or the
+  /// Trip's free slots when fewer).
+  final int addLimit;
+
   @override
   Widget build(BuildContext context) {
     final pillLabelStyle = AppTypeScale.action.copyWith(
       fontWeight: FontWeight.w600,
     );
     final preview = matches.take(3).toList();
-    final cappedCount = matches.length > CameraRollMatcher.maxAutoAdd
-        ? CameraRollMatcher.maxAutoAdd
-        : matches.length;
+    final cappedCount = matches.length > addLimit ? addLimit : matches.length;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),

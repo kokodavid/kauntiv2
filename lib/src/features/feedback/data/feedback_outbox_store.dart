@@ -147,9 +147,10 @@ class FeedbackOutboxStore {
         description: m['description'] as String,
         contactOk: m['contactOk'] as bool? ?? false,
         attachments: [
-          for (final f in (m['files'] as List<dynamic>? ?? const []))
-            if (File((f as Map<String, dynamic>)['path'] as String)
-                .existsSync())
+          for (final f
+              in (m['files'] as List<dynamic>? ?? const [])
+                  .whereType<Map<String, dynamic>>())
+            if (File(f['path'] as String).existsSync())
               FeedbackAttachmentFile(
                 path: f['path'] as String,
                 mimeType: f['mime'] as String,

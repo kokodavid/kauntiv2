@@ -118,11 +118,13 @@ class MapHomeBoardSheet extends StatelessWidget {
     ],
   );
 
-  /// The carousel replaces the compact card on the standard layout when
-  /// there are unclaimed counties to show (so its height is known up front).
+  /// The carousel replaces the compact card on the standard and new-user
+  /// layouts when there are unclaimed counties to show (so its height is
+  /// known up front). A new user needs places to go before a Trip makes
+  /// sense, so they see "Near you" first instead of a record prompt.
   bool _useCarousel(MapHomeLayout layout, MapHomeBoardData board) =>
       recordTripCard == null &&
-      layout == MapHomeLayout.standard &&
+      (layout == MapHomeLayout.standard || layout == MapHomeLayout.newUser) &&
       board.unclaimed.isNotEmpty;
 
   /// Moving: the Record a Trip card. Otherwise the places carousel, or the

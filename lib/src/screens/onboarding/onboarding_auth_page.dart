@@ -6,6 +6,7 @@ import '../../design/app_text_styles.dart';
 import '../../widgets/app_icon_badge.dart';
 import '../../widgets/app_progress_indicator.dart';
 import 'onboarding_common.dart';
+import 'onboarding_privacy_note.dart';
 
 /// v2 combined pitch + sign-in screen (Figma node 423:3052,
 /// "Onboarding"). Replaces the v1 green full-bleed auth design.
@@ -116,6 +117,7 @@ class OnboardingAuthPage extends StatelessWidget {
                       onPressed: isGoogleLoading ? null : onApple,
                     ),
                   ],
+                  const OnboardingPrivacyNote(),
                 ],
               ),
             ),

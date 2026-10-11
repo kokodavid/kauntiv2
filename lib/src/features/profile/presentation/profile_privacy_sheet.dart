@@ -1,11 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../../core/services/app_external_links.dart';
 import '../../../design/app_colors.dart';
 
-/// In-app summary of the data this build actually keeps. This is not a
-/// substitute for the published privacy policy required for release.
+/// In-app summary of the data this build actually keeps, with a link to the
+/// full published privacy policy (kaunti47.com/privacy).
 class ProfilePrivacySheet extends StatelessWidget {
   const ProfilePrivacySheet({super.key});
+
+  Future<void> _openPolicy() async {
+    try {
+      await AppExternalLinks.openPrivacyPolicy();
+    } on Object {
+      // Best effort external link; no in-app fallback.
+    }
+  }
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -44,7 +55,17 @@ class ProfilePrivacySheet extends StatelessWidget {
               'settings. Turning it off stops new automatic county detection '
               'and Trip recording.',
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => unawaited(_openPolicy()),
+              icon: const Icon(Icons.open_in_new, size: 18),
+              label: const Text('Read the full privacy policy'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                padding: EdgeInsets.zero,
+              ),
+            ),
+            const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(

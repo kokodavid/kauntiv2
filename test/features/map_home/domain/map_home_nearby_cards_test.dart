@@ -57,5 +57,6 @@ void main() {
     expect(cards[1].kind, MapHomeNearbyKind.newCounty);
     expect(cards[0].pill, 'Waterfall');
     expect(cards[0].distanceUnit, 'm');
+    expect(cards[1].distanceValue, isNull);
   });
 }

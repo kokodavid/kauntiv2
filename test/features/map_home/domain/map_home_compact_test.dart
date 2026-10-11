@@ -62,7 +62,7 @@ void main() {
     );
     final compact = MapHomeCompact.forLayout(MapHomeLayout.recording, data)!;
     expect(compact.context, 'NEAREST UNCLAIMED');
-    expect(compact.title, 'Nyandarua · 12 km');
+    expect(compact.title, 'Nyandarua');
   });
 
   test('the standard layout leads with the top suggestion', () {

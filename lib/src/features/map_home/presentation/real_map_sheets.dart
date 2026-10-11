@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../core/domain/map_place.dart';
 import '../../../core/widgets/app_photo_parts.dart' show AppOpenDirections;
 import '../../../core/widgets/app_place_sheet.dart';
+import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import 'county_peek_sheet.dart';
 import 'real_map_sheet_guard.dart';
@@ -131,37 +132,55 @@ class _PeekHostState extends State<_PeekHost> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Material(
-        type: MaterialType.transparency,
-        child: AnimatedSlide(
-          offset: _visible ? Offset.zero : const Offset(0, 1),
-          duration: _slide,
-          curve: Curves.easeOutCubic,
-          child: GestureDetector(
-            onVerticalDragEnd: (details) {
-              if ((details.primaryVelocity ?? 0) > 250) dismiss();
-            },
-            child: ValueListenableBuilder<_Peek?>(
-              valueListenable: widget.shown,
-              builder: (context, peek, _) {
-                if (peek == null) return const SizedBox.shrink();
-                return AnimatedSize(
-                  duration: const Duration(milliseconds: 200),
-                  alignment: Alignment.bottomCenter,
-                  child: CountyPeekSheet(
-                    key: ValueKey(peek.badge.county.code),
-                    badge: peek.badge,
-                    isHome: peek.isHome,
-                    onOpen: peek.onOpen,
-                    onClose: dismiss,
-                  ),
-                );
-              },
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          // Dims the map like the modal sheet did, but only visually: taps
+          // still reach the map, so another county can be picked.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _visible ? 1 : 0,
+                duration: _slide,
+                child: ColoredBox(
+                  color: AppColors.foreground.withValues(alpha: 0.28),
+                ),
+              ),
             ),
+          ),
+          Positioned(left: 0, right: 0, bottom: 0, child: _sheet()),
+        ],
+      ),
+    );
+  }
+
+  Widget _sheet() {
+    return Material(
+      type: MaterialType.transparency,
+      child: AnimatedSlide(
+        offset: _visible ? Offset.zero : const Offset(0, 1),
+        duration: _slide,
+        curve: Curves.easeOutCubic,
+        child: GestureDetector(
+          onVerticalDragEnd: (details) {
+            if ((details.primaryVelocity ?? 0) > 250) dismiss();
+          },
+          child: ValueListenableBuilder<_Peek?>(
+            valueListenable: widget.shown,
+            builder: (context, peek, _) {
+              if (peek == null) return const SizedBox.shrink();
+              return AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                alignment: Alignment.bottomCenter,
+                child: CountyPeekSheet(
+                  key: ValueKey(peek.badge.county.code),
+                  badge: peek.badge,
+                  isHome: peek.isHome,
+                  onOpen: peek.onOpen,
+                  onClose: dismiss,
+                ),
+              );
+            },
           ),
         ),
       ),

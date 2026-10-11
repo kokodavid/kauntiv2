@@ -7,10 +7,11 @@ import '../../widgets/app_county_map.dart';
 import '../../widgets/county_picker_sheet.dart';
 import 'onboarding_shell.dart';
 
-/// Setup step 1 of 3: pick your home county (Figma "Karibu" node
-/// 235:4745, search sheet at node 235:6967), inside the shared
-/// [OnboardingShell]. Tapping a county's shape on the map selects it, and
-/// a small search button over the map opens [CountyPickerSheet].
+/// Setup step 1 of 3: pick your home county (setup design v2), inside the
+/// shared [OnboardingShell]. The header gives the one-line pitch, so a new
+/// user knows the game before picking. Tapping a county's shape on the map
+/// selects it; a search bar over the map opens [CountyPickerSheet]; and
+/// the pick shows as a card under the map.
 ///
 /// Selecting a home county is required: Continue stays disabled until
 /// [selectedCounty] is set. There is no back button, since this is the
@@ -35,51 +36,50 @@ class OnboardingHomeCountyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnboardingShell(
       step: 1,
+      pill: 'Earn all 47 counties',
       title: 'Where is home?',
       subtitle: const Text(
-        'Suggestions start here. You can change it later in Settings.',
+        "Spend about two hours in a county and it's yours. Your map and "
+        'suggestions start from home.',
       ),
       primaryLabel: 'Continue',
       onPrimary: selectedCounty == null ? null : onContinue,
+      footerCaption: 'Change it later in Settings',
       isBusy: isSaving,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-        child: Column(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: Stack(
           children: [
-            Expanded(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 36),
-                    child: AppCountyMap(
-                      selectedCounty: selectedCounty,
-                      onCountySelected: onSelected,
-                    ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.pageBackground,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 64, 12, 88),
+                  child: AppCountyMap(
+                    selectedCounty: selectedCounty,
+                    onCountySelected: onSelected,
                   ),
-                  Positioned(
-                    top: 0,
-                    right: 4,
-                    child: _SearchIconButton(
-                      onPressed: () => _openSearchSheet(context),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    child: _MapCaptionChip(selectedCounty: selectedCounty),
-                  ),
-                ],
-              ),
-            ),
-            if (errorMessage != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                errorMessage!,
-                style: AppTextStyles.listItemSubtitle.copyWith(
-                  color: AppColors.headingText,
                 ),
               ),
-            ],
+            ),
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: _SearchBar(onPressed: () => _openSearchSheet(context)),
+            ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: _SelectedCountyCard(
+                county: selectedCounty,
+                errorMessage: errorMessage,
+              ),
+            ),
           ],
         ),
       ),
@@ -97,55 +97,142 @@ class OnboardingHomeCountyPage extends StatelessWidget {
   }
 }
 
-class _SearchIconButton extends StatelessWidget {
-  const _SearchIconButton({required this.onPressed});
+/// Always on screen, so searching never needs hunting for an icon.
+class _SearchBar extends StatelessWidget {
+  const _SearchBar({required this.onPressed});
 
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 36,
-      height: 36,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.iconButtonBackground,
-          side: BorderSide.none,
-          shape: const CircleBorder(),
-          padding: EdgeInsets.zero,
+    return Semantics(
+      button: true,
+      label: 'Search 47 counties',
+      excludeSemantics: true,
+      onTap: onPressed,
+      child: Material(
+        color: Colors.white,
+        elevation: 3,
+        shadowColor: AppColors.detailGlassShadow,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onPressed,
+          child: SizedBox(
+            height: 44,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.search,
+                    size: 18,
+                    color: AppColors.mutedForeground,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Search 47 counties',
+                    style: AppTextStyles.searchInputText.copyWith(
+                      color: AppColors.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-        child: const Icon(Icons.search, size: 16, color: AppColors.foreground),
       ),
     );
   }
 }
 
-/// Instruction chip over the map's bottom edge. Doubles as the
-/// selected-county label once a county is picked -- Figma's own caption
-/// ("Tap your county on the map") only ever shows the instruction, but
-/// with no other on-screen confirmation of *which* county got tapped
-/// (the map's fill change is easy to miss on a shape this small), naming
-/// it here reuses the one piece of chrome already anchored to the map
-/// instead of adding new UI for it.
-class _MapCaptionChip extends StatelessWidget {
-  const _MapCaptionChip({required this.selectedCounty});
+/// The pick, as a card: a badge with the county's first letters, its
+/// name, and a hint to tap another. Before a pick it says how to start.
+/// A save error replaces the hint line.
+class _SelectedCountyCard extends StatelessWidget {
+  const _SelectedCountyCard({
+    required this.county,
+    required this.errorMessage,
+  });
 
-  final CountyPath? selectedCounty;
+  final CountyPath? county;
+  final String? errorMessage;
 
   @override
   Widget build(BuildContext context) {
-    final county = selectedCounty;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryFill,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        county == null ? 'Tap your county on the map' : county.name,
-        style: AppTextStyles.chipLabel,
+    final picked = county;
+    final hint = errorMessage ?? 'Tap another county to change';
+    return Material(
+      color: Colors.white,
+      elevation: 4,
+      shadowColor: AppColors.detailGlassShadow,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: picked == null
+                    ? AppColors.pageBackground
+                    : AppColors.accent,
+              ),
+              child: picked == null
+                  ? const Icon(
+                      Icons.touch_app_outlined,
+                      size: 20,
+                      color: AppColors.mutedForeground,
+                    )
+                  : Text(
+                      _initials(picked.name),
+                      style: AppTextStyles.chipLabel.copyWith(
+                        color: AppColors.accentForeground,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    picked?.name ?? 'Tap your county on the map',
+                    style: AppTextStyles.listItemTitle,
+                  ),
+                  if (picked != null || errorMessage != null)
+                    Text(
+                      hint,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        fontSize: 12.5,
+                        color: errorMessage == null
+                            ? AppColors.mutedForeground
+                            : AppColors.danger,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (picked != null)
+              const Icon(
+                Icons.check_circle_outline,
+                size: 22,
+                color: AppColors.accent,
+              ),
+          ],
+        ),
       ),
     );
+  }
+
+  static String _initials(String name) {
+    final letters = name.replaceAll(RegExp('[^A-Za-z]'), '');
+    final count = letters.length < 3 ? letters.length : 3;
+    return letters.substring(0, count).toUpperCase();
   }
 }

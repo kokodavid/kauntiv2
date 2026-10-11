@@ -60,18 +60,14 @@ void main() {
     expect(toggled, PlaceInterest.water);
   });
 
-  test('the hint says what the count means, never an error', () {
+  test('the hint says picks lean the suggestions, never an error', () {
     expect(
       OnboardingInterestsPage.hint(0),
-      'Pick one or more, or skip for now.',
+      'Pick any number, or skip for now.',
     );
     expect(
-      OnboardingInterestsPage.hint(3),
-      '3 picked. Change them anytime in Settings.',
-    );
-    expect(
-      OnboardingInterestsPage.hint(7),
-      '7 picked. For you will stay broad, which is fine.',
+      OnboardingInterestsPage.hint(2),
+      '2 picked. For you leans toward these and still shows the rest.',
     );
   });
 

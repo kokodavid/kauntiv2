@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
 import '../../features/profile/domain/place_interest.dart';
+import 'onboarding_permission_ask.dart';
 import 'onboarding_permission_parts.dart';
 import 'onboarding_shell.dart';
 
@@ -68,7 +69,7 @@ class OnboardingPermissionPage extends StatelessWidget {
               'You can turn it on later in Settings.',
             ),
           )
-        : ('One last thing', _askLine());
+        : ('Let counties unlock on their own', _askLine());
     return OnboardingShell(
       step: 3,
       title: title,
@@ -78,6 +79,9 @@ class OnboardingPermissionPage extends StatelessWidget {
           ? 'Open Settings'
           : (_denied ? 'Try again' : 'Enable location'),
       onPrimary: onEnableLocation,
+      footerNote: isPermanentlyDenied || _denied
+          ? null
+          : const PermissionPromptNote(),
       secondaryLabel: _denied ? 'Continue without location' : 'Not now',
       onSecondary: onNotNow,
       isBusy: isRequesting,
@@ -93,7 +97,7 @@ class OnboardingPermissionPage extends StatelessWidget {
             )
           : null,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
         child: isPermanentlyDenied
             ? const _PermanentlyDeniedBody()
             : _denied
@@ -115,12 +119,12 @@ class OnboardingPermissionPage extends StatelessWidget {
               text: tie,
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
-                color: AppColors.foreground,
+                color: Colors.white,
               ),
             ),
             const TextSpan(text: ' near you, and '),
           ],
-          const TextSpan(text: 'unlock counties as you cross into them.'),
+          const TextSpan(text: 'notice each county line you cross.'),
         ],
       ),
     );
@@ -130,44 +134,55 @@ class OnboardingPermissionPage extends StatelessWidget {
 class _AskBody extends StatelessWidget {
   const _AskBody();
 
+  static const _items = [
+    (
+      Icons.location_on_outlined,
+      'Wakes only at lines',
+      'No constant GPS. Almost no battery.',
+    ),
+    (
+      Icons.shield_outlined,
+      'Entries, never traces',
+      '"Entered Turkana on Saturday". Nothing more.',
+    ),
+    (
+      Icons.cloud_outlined,
+      'Works offline',
+      'Badges confirm once you have signal.',
+    ),
+    (
+      Icons.tune_outlined,
+      "You're in control",
+      'Manual mode or delete history in Profile.',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        PermissionFact(
-          icon: Icons.location_on_outlined,
-          title: 'Wakes only at boundaries.',
-          body:
-              "Your phone's own geofencing nudges the app at county lines. "
-              'No constant GPS, almost no battery.',
-        ),
-        SizedBox(height: 14),
-        PermissionFact(
-          icon: Icons.shield_outlined,
-          title: 'County entries, never traces.',
-          body:
-              'We store "entered Turkana on Saturday", not where you went or '
-              'slept.',
-        ),
-        SizedBox(height: 14),
-        PermissionFact(
-          icon: Icons.cloud_outlined,
-          title: 'Works offline.',
-          body:
-              'No bars in Marsabit? The badge lands on your phone and '
-              'confirms when you are back in coverage.',
-        ),
-        SizedBox(height: 14),
-        PermissionFact(
-          icon: Icons.tune_outlined,
-          title: "You're in control.",
-          body:
-              'Switch to manual mode or delete your history anytime from '
-              'Profile → Location mode.',
-        ),
-        SizedBox(height: 14),
-        PermissionPromptNote(),
+        const PermissionHowEarned(),
+        const SizedBox(height: 10),
+        for (var row = 0; row < _items.length; row += 2) ...[
+          if (row > 0) const SizedBox(height: 10),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = row; i < row + 2; i++) ...[
+                  if (i > row) const SizedBox(width: 10),
+                  Expanded(
+                    child: PermissionReassurance(
+                      icon: _items[i].$1,
+                      title: _items[i].$2,
+                      body: _items[i].$3,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

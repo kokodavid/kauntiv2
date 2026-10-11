@@ -63,34 +63,26 @@ class PermissionFact extends StatelessWidget {
   }
 }
 
-/// "Your phone asks next. Choose Allow all the time."
+/// "Next your phone asks. Choose Allow all the time." Sits right above
+/// the button it is about.
 class PermissionPromptNote extends StatelessWidget {
   const PermissionPromptNote({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.noteBackground,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Text.rich(
-        TextSpan(
-          style: AppTextStyles.noteText.copyWith(fontSize: 12.5),
-          children: const [
-            TextSpan(text: 'Your phone asks next. Choose '),
-            TextSpan(
-              text: 'Allow all the time',
-              style: TextStyle(
-                color: AppColors.noteStrongText,
-                fontWeight: FontWeight.w600,
-              ),
+    return const Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: 'Next your phone asks. Choose '),
+          TextSpan(
+            text: 'Allow all the time',
+            style: TextStyle(
+              color: AppColors.foreground,
+              fontWeight: FontWeight.w600,
             ),
-            TextSpan(text: '.'),
-          ],
-        ),
+          ),
+          TextSpan(text: '.'),
+        ],
       ),
     );
   }

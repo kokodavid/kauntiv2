@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/widgets/app_back_button.dart';
-import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
 
-/// The top of every setup step: an optional back button, "n of 3" and
-/// three segmented bars. [step] is 1 to 3.
+/// The top of every setup step, drawn on the blue header: an optional
+/// back button, "n of 3" and three segmented bars. [step] is 1 to 3.
 class OnboardingProgressHeader extends StatelessWidget {
   const OnboardingProgressHeader({
     super.key,
@@ -52,6 +51,7 @@ class OnboardingProgressHeader extends StatelessWidget {
                     style: AppTextStyles.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -65,8 +65,8 @@ class OnboardingProgressHeader extends StatelessWidget {
                           height: 4,
                           decoration: BoxDecoration(
                             color: i <= step
-                                ? AppColors.accent
-                                : AppColors.trackInactive,
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),

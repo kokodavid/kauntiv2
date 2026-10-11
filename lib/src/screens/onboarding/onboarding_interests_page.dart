@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
 import '../../features/profile/domain/place_interest.dart';
-import '../../features/profile/presentation/place_interest_chips.dart';
+import '../../features/profile/presentation/place_interest_tiles.dart';
 import 'onboarding_shell.dart';
 
 /// Setup step 2 of 3: what kinds of places the user likes. Optional:
@@ -27,13 +27,12 @@ class OnboardingInterestsPage extends StatelessWidget {
   final VoidCallback onSkip;
   final VoidCallback onBack;
 
-  /// The line under the chips: what the count means, never an error.
+  /// The line under the tiles: what the count means, never an error. It
+  /// also says picks lean the suggestions, not filter them.
   static String hint(int count) {
-    if (count == 0) return 'Pick one or more, or skip for now.';
-    if (count >= 6) {
-      return '$count picked. For you will stay broad, which is fine.';
-    }
-    return '$count picked. Change them anytime in Settings.';
+    if (count == 0) return 'Pick any number, or skip for now.';
+    return '$count picked. For you leans toward these and still shows '
+        'the rest.';
   }
 
   @override
@@ -41,7 +40,10 @@ class OnboardingInterestsPage extends StatelessWidget {
     return OnboardingShell(
       step: 2,
       title: 'What do you like to see?',
-      subtitle: const Text('Pick any. For you starts with these.'),
+      subtitle: const Text(
+        "Each county you enter comes with places to stop. Pick what's worth "
+        'the drive for you.',
+      ),
       onBack: onBack,
       primaryLabel: 'Continue',
       onPrimary: selected.isEmpty ? null : onContinue,
@@ -49,12 +51,12 @@ class OnboardingInterestsPage extends StatelessWidget {
       onSecondary: onSkip,
       isBusy: isSaving,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PlaceInterestChips(selected: selected, onToggle: onToggle),
-            const SizedBox(height: 16),
+            PlaceInterestTiles(selected: selected, onToggle: onToggle),
+            const SizedBox(height: 14),
             Text(
               hint(selected.length),
               style: AppTextStyles.bodySmall.copyWith(

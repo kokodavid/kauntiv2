@@ -60,28 +60,34 @@ final class BadgesRepositoryProvider
 
 String _$badgesRepositoryHash() => r'119b3176cbbc04974f1cc8b30d6207eb0322786f';
 
-/// The signed-in user's badge collection; offline it is the copy from the
-/// last good load ([BadgeCollection.savedAt] set). Reloads when the account
-/// changes and when a visit syncs (a new badge or depth).
+/// The signed-in user's badge collection. The copy from the last good load
+/// shows at once ([BadgeCollection.savedAt] set), then the live one replaces
+/// it when it arrives; offline, the saved copy simply stays. Reloads when
+/// the account changes, when a visit syncs (a new badge or depth) and when
+/// the connection drops or returns.
 
 @ProviderFor(badgeCollection)
 const badgeCollectionProvider = BadgeCollectionProvider._();
 
-/// The signed-in user's badge collection; offline it is the copy from the
-/// last good load ([BadgeCollection.savedAt] set). Reloads when the account
-/// changes and when a visit syncs (a new badge or depth).
+/// The signed-in user's badge collection. The copy from the last good load
+/// shows at once ([BadgeCollection.savedAt] set), then the live one replaces
+/// it when it arrives; offline, the saved copy simply stays. Reloads when
+/// the account changes, when a visit syncs (a new badge or depth) and when
+/// the connection drops or returns.
 
 final class BadgeCollectionProvider
     extends
         $FunctionalProvider<
           AsyncValue<BadgeCollection>,
           BadgeCollection,
-          FutureOr<BadgeCollection>
+          Stream<BadgeCollection>
         >
-    with $FutureModifier<BadgeCollection>, $FutureProvider<BadgeCollection> {
-  /// The signed-in user's badge collection; offline it is the copy from the
-  /// last good load ([BadgeCollection.savedAt] set). Reloads when the account
-  /// changes and when a visit syncs (a new badge or depth).
+    with $FutureModifier<BadgeCollection>, $StreamProvider<BadgeCollection> {
+  /// The signed-in user's badge collection. The copy from the last good load
+  /// shows at once ([BadgeCollection.savedAt] set), then the live one replaces
+  /// it when it arrives; offline, the saved copy simply stays. Reloads when
+  /// the account changes, when a visit syncs (a new badge or depth) and when
+  /// the connection drops or returns.
   const BadgeCollectionProvider._()
     : super(
         from: null,
@@ -98,17 +104,17 @@ final class BadgeCollectionProvider
 
   @$internal
   @override
-  $FutureProviderElement<BadgeCollection> $createElement(
+  $StreamProviderElement<BadgeCollection> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<BadgeCollection> create(Ref ref) {
+  Stream<BadgeCollection> create(Ref ref) {
     return badgeCollection(ref);
   }
 }
 
-String _$badgeCollectionHash() => r'd96ea6b8211733cf33cf64336bb18b990575ad53';
+String _$badgeCollectionHash() => r'9dc187f83ec2044bc3f5b6cadf522ecd316be94b';
 
 /// One county's badge in detail, for the badge sheet. Reloads with the
 /// collection (account change, visit sync).

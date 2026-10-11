@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/offline_screen.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/journey_history.dart';
@@ -30,6 +31,39 @@ class JourneysScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final active = ref.watch(journeyRecorderProvider) != null;
+    final history = ref.watch(journeyHistoryListProvider).value;
+    // Offline with no Trip on this phone: say so, rather than offering a
+    // Start that can't run and "no Trips yet" that isn't true.
+    if (!active &&
+        history != null &&
+        history.cloudUnavailable &&
+        history.journeys.isEmpty) {
+      return Scaffold(
+        backgroundColor: AppColors.pageBackground,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Text('Trips', style: AppTextStyles.headingForeground),
+              ),
+              Expanded(
+                child: OfflineScreen(
+                  key: const Key('trips-offline-screen'),
+                  message:
+                      'Your Trips load from the internet, and a new Trip '
+                      'needs a connection to start. Check your data or '
+                      'Wi‑Fi, then try again.',
+                  onRetry: () => ref.invalidate(journeyHistoryListProvider),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: SafeArea(

@@ -118,7 +118,7 @@ final class MyPublicProfileProvider
   }
 }
 
-String _$myPublicProfileHash() => r'1da84ff0685b8e815256d5323e95387b5153c807';
+String _$myPublicProfileHash() => r'ce3c0f1835afe72040bf7d60d9f69d045967d288';
 
 /// When the Profile values on screen were last saved, for the "Saved"
 /// chip while offline. Re-reads whenever either value reloads.

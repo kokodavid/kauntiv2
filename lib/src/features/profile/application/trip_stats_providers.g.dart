@@ -104,4 +104,4 @@ final class TripStatsProvider
   }
 }
 
-String _$tripStatsHash() => r'8a492152b269b74c44155c33bf6fda7f5b02663d';
+String _$tripStatsHash() => r'072a1e955e8fc8d7c5a2e3fc836646d53d728995';

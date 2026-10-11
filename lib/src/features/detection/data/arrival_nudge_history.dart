@@ -34,7 +34,8 @@ class ArrivalNudgeHistory {
   Future<Map<int, DateTime>> lastShownByCounty() async {
     final prefs = await SharedPreferences.getInstance();
     final out = <int, DateTime>{};
-    for (final entry in prefs.getStringList(_lastShownKey) ?? const []) {
+    final entries = prefs.getStringList(_lastShownKey) ?? const <String>[];
+    for (final String entry in entries) {
       final parts = entry.split('@');
       if (parts.length != 2) continue;
       final code = int.tryParse(parts[0]);

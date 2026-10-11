@@ -16,6 +16,7 @@ import '../application/trip_stats_providers.dart';
 import 'confirm_dialog.dart';
 import 'edit_profile_sheet.dart';
 import 'profile_county_badges.dart';
+import 'profile_app_version.dart';
 import 'profile_feedback_tile.dart';
 import 'profile_header.dart';
 import 'profile_progress_card.dart';
@@ -258,6 +259,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                     signingOut: _signingOut,
                     onPressed: () => unawaited(_signOut()),
                   ),
+                  const ProfileAppVersion(),
                 ],
               ),
             ),

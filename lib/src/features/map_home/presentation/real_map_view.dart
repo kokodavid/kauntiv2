@@ -20,6 +20,7 @@ import 'real_map_county_source.dart';
 import 'real_map_focus.dart';
 import 'real_map_layers.dart';
 import 'real_map_load_watch.dart';
+import 'real_map_sheet_guard.dart';
 
 /// Home's default map: the county map on a real Mapbox base map, edge to
 /// edge behind Home's header, sheet and nav. Same badges and colours as the
@@ -69,7 +70,6 @@ class _RealMapViewState extends State<RealMapView> {
   // Starts on all of Kenya, then flies in to the user (or home county).
   ViewportState _viewport = RealMapFocus.kenya(_tiltedPitch);
   bool _hasLocation = false;
-
   bool _terrainEnabled = true;
 
   MapboxMap? _map;
@@ -82,6 +82,7 @@ class _RealMapViewState extends State<RealMapView> {
   MapHomeCountyBadge? _selected;
   Size _mapSize = Size.zero;
   late final MapPlacesLayer _placesLayer;
+  final _sheets = RealMapSheetGuard();
 
   @override
   void initState() {
@@ -112,8 +113,8 @@ class _RealMapViewState extends State<RealMapView> {
     await _focusOnUser();
   }
 
-  /// Opening camera and "locate me": one position read, one flight, no
-  /// following afterwards. Outside Kenya or without a fix, the home county.
+  /// Opening camera and "locate me": one position read, one flight. Outside
+  /// Kenya or without a fix, the home county.
   Future<void> _focusOnUser() async {
     final location = _hasLocation ? await AppCurrentLocation.read() : null;
     await _counties.geoJson();
@@ -169,12 +170,14 @@ class _RealMapViewState extends State<RealMapView> {
     final place = _placesLayer.placeFor(id);
     if (place == null) return;
     unawaited(
-      AppPlaceSheet.show(
-        context,
-        place,
-        onOpenPlace: widget.onOpenPlace,
-        onRoute: widget.onRoute,
-        onPlaceRoute: widget.onPlaceRoute,
+      _sheets.run(
+        () => AppPlaceSheet.show(
+          context,
+          place,
+          onOpenPlace: widget.onOpenPlace,
+          onRoute: widget.onRoute,
+          onPlaceRoute: widget.onPlaceRoute,
+        ),
       ),
     );
   }
@@ -194,7 +197,7 @@ class _RealMapViewState extends State<RealMapView> {
         .where((candidate) => candidate.county.code == code)
         .firstOrNull;
     if (badge == null) return;
-    unawaited(_openPeek(badge));
+    unawaited(_sheets.run(() => _openPeek(badge)));
   }
 
   Future<void> _openPeek(MapHomeCountyBadge badge) async {
@@ -217,13 +220,12 @@ class _RealMapViewState extends State<RealMapView> {
     if (map != null) RealMapCamera.releaseSheetPadding(map);
   }
 
-  /// Flies into the county, then gives the flight most of its run before
-  /// the sheet slides up, so the two motions overlap rather than queue.
+  /// Flies into the county; the sheet follows once most of the flight has
+  /// run, so the two motions overlap.
   Future<void> _flyTo(MapHomeCountyBadge badge) async {
     final map = _map;
     final bounds = _counties.boundsFor(badge.county.code);
     if (map == null || bounds == null) return;
-    // Stop following the user's dot so it doesn't pull the camera back.
     setState(() => _viewport = const IdleViewportState());
     unawaited(
       RealMapCamera.flyToCounty(
@@ -250,7 +252,6 @@ class _RealMapViewState extends State<RealMapView> {
   void _setBaseStyle(RealMapBaseStyle style) {
     if (style == _baseStyle) return;
     setState(() => _baseStyle = style);
-    // Layers are re-added by the style-loaded listener.
     unawaited(_map?.style.setStyleURI(style.uri));
   }
 
@@ -268,7 +269,6 @@ class _RealMapViewState extends State<RealMapView> {
               viewport: _viewport,
               onMapCreated: _onMapCreated,
               onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
-              // Only a style failure is fatal; a missing tile or sprite isn't.
               onMapLoadErrorListener: (event) {
                 if (event.type == MapLoadErrorType.STYLE) _load.fail();
               },

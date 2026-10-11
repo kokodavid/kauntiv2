@@ -27,26 +27,55 @@ Future<T> failFast<T>(
   Ref ref,
   Future<T> Function() load, {
   Duration patience = const Duration(seconds: 10),
+}) => _race(
+  load,
+  patience: patience,
+  isOffline: () => ref.read(connectivityProvider).isOffline,
+  quickCheck: () => ref.read(connectivityProvider.notifier).checkNow(),
+  listen: (onOffline) => ref.listen(
+    connectivityProvider.select((s) => s.isOffline),
+    (was, offline) => onOffline(offline),
+  ),
+);
+
+/// [failFast] for a widget's own load (a detail page's `initState`).
+Future<T> failFastWidget<T>(
+  WidgetRef ref,
+  Future<T> Function() load, {
+  Duration patience = const Duration(seconds: 10),
+}) => _race(
+  load,
+  patience: patience,
+  isOffline: () => ref.read(connectivityProvider).isOffline,
+  quickCheck: () => ref.read(connectivityProvider.notifier).checkNow(),
+  listen: (onOffline) => ref.listenManual(
+    connectivityProvider.select((s) => s.isOffline),
+    (was, offline) => onOffline(offline),
+  ),
+);
+
+Future<T> _race<T>(
+  Future<T> Function() load, {
+  required Duration patience,
+  required bool Function() isOffline,
+  required Future<bool> Function() quickCheck,
+  required ProviderSubscription<bool> Function(void Function(bool) onOffline)
+  listen,
 }) async {
-  if (ref.read(connectivityProvider).isOffline) {
-    throw const OfflineException();
-  }
+  if (isOffline()) throw const OfflineException();
   final gaveUp = Completer<T>();
-  final watch = ref.listen(connectivityProvider.select((s) => s.isOffline), (
-    was,
-    offline,
-  ) {
-    if (offline && !gaveUp.isCompleted) {
-      gaveUp.completeError(const OfflineException());
-    }
+  void giveUp() {
+    if (!gaveUp.isCompleted) gaveUp.completeError(const OfflineException());
+  }
+
+  final watch = listen((offline) {
+    if (offline) giveUp();
   });
   // The app still thinks it is online: ask the network now, so a dead
   // connection is found in a couple of seconds rather than ten.
   unawaited(
-    ref.read(connectivityProvider.notifier).checkNow().then((reachable) {
-      if (!reachable && !gaveUp.isCompleted) {
-        gaveUp.completeError(const OfflineException());
-      }
+    quickCheck().then((reachable) {
+      if (!reachable) giveUp();
     }),
   );
   try {
@@ -54,6 +83,8 @@ Future<T> failFast<T>(
   } finally {
     watch.close();
     // A load that finishes after we gave up must not surface as unhandled.
-    if (gaveUp.isCompleted) unawaited(gaveUp.future.then((_) {}, onError: (_) {}));
+    if (gaveUp.isCompleted) {
+      unawaited(gaveUp.future.then((_) {}, onError: (_) {}));
+    }
   }
 }

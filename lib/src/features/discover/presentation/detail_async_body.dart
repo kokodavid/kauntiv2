@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/fail_fast.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/offline_screen.dart';
 import '../../../design/app_colors.dart';
@@ -9,7 +11,7 @@ import '../../../widgets/app_progress_indicator.dart';
 /// states explicitly. A page that can't load shows the shared "You're
 /// offline" screen (or "Couldn't load this page" when the phone is online)
 /// under a Back button, and loads by itself when the connection returns.
-class DetailAsyncBody<T> extends StatefulWidget {
+class DetailAsyncBody<T> extends ConsumerStatefulWidget {
   const DetailAsyncBody({
     super.key,
     required this.load,
@@ -20,11 +22,13 @@ class DetailAsyncBody<T> extends StatefulWidget {
   final Widget Function(BuildContext context, T data) builder;
 
   @override
-  State<DetailAsyncBody<T>> createState() => _DetailAsyncBodyState<T>();
+  ConsumerState<DetailAsyncBody<T>> createState() =>
+      _DetailAsyncBodyState<T>();
 }
 
-class _DetailAsyncBodyState<T> extends State<DetailAsyncBody<T>> {
-  late Future<T> _future = widget.load();
+class _DetailAsyncBodyState<T> extends ConsumerState<DetailAsyncBody<T>> {
+  // Fails at once offline instead of waiting out the network's timeout.
+  late Future<T> _future = failFastWidget(ref, widget.load);
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +50,9 @@ class _DetailAsyncBodyState<T> extends State<DetailAsyncBody<T>> {
               ),
               Expanded(
                 child: OfflineScreen(
-                  onRetry: () => setState(() => _future = widget.load()),
+                  onRetry: () => setState(
+                    () => _future = failFastWidget(ref, widget.load),
+                  ),
                 ),
               ),
             ],

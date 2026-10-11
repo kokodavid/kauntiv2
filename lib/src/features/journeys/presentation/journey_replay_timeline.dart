@@ -20,11 +20,13 @@ import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
 import 'journey_camera_roll_sheet.dart';
+import 'journey_media_strip.dart' show openJourneyPhoto;
 import 'journey_moment_row.dart';
 import 'journey_trip_media_actions.dart';
 
 part 'journey_replay_timeline_empty_timeline_body.dart';
 part 'journey_replay_timeline_add_moments_card.dart';
+part 'journey_replay_timeline_trip_media_panel.dart';
 part 'journey_replay_timeline_inline_camera_roll_suggestion.dart';
 part 'journey_replay_timeline_camera_roll_match_card.dart';
 part 'journey_replay_timeline_thumbnail_tile.dart';

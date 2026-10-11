@@ -106,16 +106,15 @@ mixin _JourneyReplayTimelineStateBehavior
         ? null
         : widget.currentMoments.first.index;
     final showEmptyBody = widget.moments.isEmpty;
-    // Whether to offer the camera-roll suggestion at all: a Trip can have
-    // other moments (stops, crossings...) and still have zero photos, and
-    // that's just as much a "no photos yet" Trip as a fully empty one.
+    // Auto-scan only until the first photo exists. The permanent media panel
+    // below remains available for manual additions and review either way.
     final hasPhotos = widget.moments.any((moment) => moment.isPhoto);
-    final showInlineSuggestion = !showEmptyBody && !hasPhotos;
+    final showInlineSuggestion = !showEmptyBody;
     if (!hasPhotos && !widget.momentsLoading) {
       _ensureCameraRollScanStarted();
     }
     final momentCount = showEmptyBody ? 0 : widget.moments.length;
-    final hasFooter = !showEmptyBody && showInlineSuggestion;
+    final hasFooter = showInlineSuggestion;
     // Index 0 is always the header (date/title/empty-body card); then one
     // item per moment; then an optional footer. A single flat,
     // lazily-built ListView rather than a CustomScrollView of grouped
@@ -211,12 +210,16 @@ mixin _JourneyReplayTimelineStateBehavior
           return Padding(
             padding: const EdgeInsets.only(top: 16),
             child: _InlineCameraRollSuggestion(
+              photoMoments: widget.moments
+                  .where((moment) => moment.isPhoto)
+                  .toList(growable: false),
               cameraRoll: _cameraRollScan,
               addingPhotos: _addingPhotos,
               onAddPhotos: _addPhotosManually,
               onFindPhotos: _requestCameraRollAccess,
               onAddAllMatches: _addAllMatches,
               onChooseMatches: _chooseMatches,
+              onDeletePhoto: _removePhoto,
             ),
           );
         },

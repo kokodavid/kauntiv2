@@ -8,41 +8,46 @@ part of 'journey_replay_timeline.dart';
 /// fallback card as the fully-empty case, just without the pins.
 class _InlineCameraRollSuggestion extends StatelessWidget {
   const _InlineCameraRollSuggestion({
+    required this.photoMoments,
     required this.cameraRoll,
     required this.addingPhotos,
     required this.onAddPhotos,
     required this.onFindPhotos,
     required this.onAddAllMatches,
     required this.onChooseMatches,
+    required this.onDeletePhoto,
   });
 
+  final List<JourneyMoment> photoMoments;
   final _CameraRollScan cameraRoll;
   final bool addingPhotos;
   final VoidCallback onAddPhotos;
   final VoidCallback onFindPhotos;
   final VoidCallback onAddAllMatches;
   final VoidCallback onChooseMatches;
+  final Future<bool> Function(BuildContext, JourneyMediaItem) onDeletePhoto;
 
   @override
   Widget build(BuildContext context) {
-    if (cameraRoll.status == _CameraRollStatus.matchesFound) {
-      return _CameraRollMatchCard(
-        matches: cameraRoll.matches,
-        busy: addingPhotos,
-        onAddAll: onAddAllMatches,
-        onChoose: onChooseMatches,
-      );
-    }
-    return _AddMomentsCard(
-      title: 'No photos on this trip yet',
-      message:
-          'Add some from your gallery, or let us find them in your '
-          'camera roll.',
-      onAddPhotos: onAddPhotos,
-      addingPhotos: addingPhotos,
-      showFindPhotosLink: cameraRoll.status == _CameraRollStatus.noAccess,
-      onFindPhotos: onFindPhotos,
-      showAddNote: false,
+    return Column(
+      children: [
+        _TripMediaPanel(
+          photoMoments: photoMoments,
+          addingPhotos: addingPhotos,
+          onAddPhotos: onAddPhotos,
+          onFindPhotos: onFindPhotos,
+          onDeletePhoto: onDeletePhoto,
+        ),
+        if (cameraRoll.status == _CameraRollStatus.matchesFound) ...[
+          const SizedBox(height: 16),
+          _CameraRollMatchCard(
+            matches: cameraRoll.matches,
+            busy: addingPhotos,
+            onAddAll: onAddAllMatches,
+            onChoose: onChooseMatches,
+          ),
+        ],
+      ],
     );
   }
 }

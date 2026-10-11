@@ -118,4 +118,50 @@ final class MyPublicProfileProvider
   }
 }
 
-String _$myPublicProfileHash() => r'a2dace6d12bc4d6956151197969bcb34b352e14f';
+String _$myPublicProfileHash() => r'1da84ff0685b8e815256d5323e95387b5153c807';
+
+/// When the Profile values on screen were last saved, for the "Saved"
+/// chip while offline. Re-reads whenever either value reloads.
+
+@ProviderFor(profileSavedAt)
+const profileSavedAtProvider = ProfileSavedAtProvider._();
+
+/// When the Profile values on screen were last saved, for the "Saved"
+/// chip while offline. Re-reads whenever either value reloads.
+
+final class ProfileSavedAtProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DateTime?>,
+          DateTime?,
+          FutureOr<DateTime?>
+        >
+    with $FutureModifier<DateTime?>, $FutureProvider<DateTime?> {
+  /// When the Profile values on screen were last saved, for the "Saved"
+  /// chip while offline. Re-reads whenever either value reloads.
+  const ProfileSavedAtProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileSavedAtProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileSavedAtHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<DateTime?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<DateTime?> create(Ref ref) {
+    return profileSavedAt(ref);
+  }
+}
+
+String _$profileSavedAtHash() => r'70a9c84182bf7d6b582487b98fcba59db1afbda5';

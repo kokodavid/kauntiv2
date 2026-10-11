@@ -44,16 +44,17 @@ class JourneyReplayScreen extends ConsumerWidget {
               children: [
                 Center(
                   child: switch (detail) {
-                    AsyncValue(:final error?) => JourneyReplayMessage(
-                      text: error is JourneyNotFound
-                          ? 'This Trip was deleted.'
-                          : "Couldn't load this Trip. Check your "
-                                'connection.',
-                      onRetry: error is JourneyNotFound
-                          ? null
-                          : () => ref.invalidate(
-                              journeyDetailProvider(journeyId),
-                            ),
+                    AsyncValue(:final error?) when error is JourneyNotFound =>
+                      const JourneyReplayMessage(
+                        text: 'This Trip was deleted.',
+                      ),
+                    AsyncValue(hasError: true) => OfflineScreen(
+                      showHint: false,
+                      message:
+                          'This Trip needs a connection to open. Check your '
+                          'data or Wi‑Fi, then try again.',
+                      onRetry: () =>
+                          ref.invalidate(journeyDetailProvider(journeyId)),
                     ),
                     AsyncValue(hasValue: true) => const JourneyReplayMessage(
                       text:

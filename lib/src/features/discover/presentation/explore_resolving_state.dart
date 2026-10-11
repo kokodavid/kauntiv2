@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/needs_connection.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
 import 'explore_header.dart';
-import 'explore_styles.dart';
 
 /// Explore's first frame while the board loads (v1
 /// `_DiscoverResolvingState`): the real title over neutral skeleton
-/// blocks, so no zero counts or stale account content can flash. With
-/// [onRetry] set it shows the load error card instead of the list block.
+/// blocks, so no zero counts or stale account content can flash.
 class ExploreResolvingState extends StatelessWidget {
-  const ExploreResolvingState({super.key, this.onRetry});
-
-  final VoidCallback? onRetry;
+  const ExploreResolvingState({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final retry = onRetry;
     return ListView(
       key: const Key('explore-resolving-state'),
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 112),
@@ -36,39 +29,7 @@ class ExploreResolvingState extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        if (retry == null)
-          const _Block(height: 268, radius: 16)
-        else
-          NeedsConnection(
-            title: 'Explore needs a connection',
-            message: 'Counties and places load from the internet.',
-            onRetry: retry,
-            child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: ExploreStyles.cardDecoration,
-            child: Column(
-              children: [
-                Text(
-                  "Couldn't load Discover.",
-                  style: AppTextStyles.headingForeground.copyWith(fontSize: 16),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Check your connection and try again.',
-                  style: ExploreStyles.emptyBody,
-                ),
-                const SizedBox(height: 14),
-                FilledButton(
-                  onPressed: retry,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                  ),
-                  child: const Text('Try again'),
-                ),
-              ],
-            ),
-          ),
-          ),
+        const _Block(height: 268, radius: 16),
       ],
     );
   }

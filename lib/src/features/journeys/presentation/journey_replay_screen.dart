@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_glyph_icon.dart';
+import '../../../core/widgets/offline_screen.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_key_moments.dart';
 import '../application/journey_views.dart';

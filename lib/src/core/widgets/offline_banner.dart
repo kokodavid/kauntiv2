@@ -6,6 +6,7 @@ import '../domain/connectivity_state.dart';
 import '../domain/saved_at_label.dart';
 import '../services/connectivity_provider.dart';
 import '../services/offline_saved_at.dart';
+import '../services/offline_screen_presence.dart';
 
 /// The app-wide offline pill (Offline States 01/04). Mounted once in the
 /// shell. It reads [connectivityProvider]: nothing shows it by hand.
@@ -33,7 +34,9 @@ class _OfflineBannerState extends ConsumerState<OfflineBanner> {
   Widget build(BuildContext context) {
     final status = ref.watch(connectivityProvider.select((s) => s.status));
     final savedAt = ref.watch(offlineSavedAtProvider);
-    final visible = status != ConnectivityStatus.online;
+    // A full-screen "You're offline" says it already; don't say it twice.
+    final suppressed = ref.watch(offlineBannerSuppressedProvider);
+    final visible = status != ConnectivityStatus.online && !suppressed;
     if (visible) _shown = status;
     final content = _shown;
     return IgnorePointer(

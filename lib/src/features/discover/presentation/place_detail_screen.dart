@@ -52,7 +52,6 @@ class PlaceDetailScreen extends StatelessWidget {
         bottom: false,
         child: DetailAsyncBody<PlaceDetailData>(
           load: () => actions.placeDetail(placeId),
-          errorMessage: "Couldn't load this place.",
           builder: (context, data) => _PlaceDetailBody(
             data: data,
             actions: actions,

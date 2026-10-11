@@ -143,5 +143,6 @@ class AppColors {
   static const offlineIconCircle = Color(0xFFF4F4F5);
   static const offlineBody = Color(0xFF52525B);
   static const offlineTick = Color(0xFF16A34A);
+  static const offlineScreenButtonChecking = Color(0xFF5AABFF);
   static const offlineMapChipBackground = Color(0xD1181B18);
 }

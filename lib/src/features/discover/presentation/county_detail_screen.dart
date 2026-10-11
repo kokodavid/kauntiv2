@@ -44,7 +44,6 @@ class CountyDetailScreen extends StatelessWidget {
       body: SafeArea(
         child: DetailAsyncBody<CountyDetailData>(
           load: () => actions.countyDetail(countyCode),
-          errorMessage: "Couldn't load this county.",
           builder: (context, data) => _CountyDetailBody(
             data: data,
             actions: actions,

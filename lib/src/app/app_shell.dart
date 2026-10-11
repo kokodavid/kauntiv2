@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/domain/app_feature_flags.dart';
 import '../core/domain/connectivity_state.dart';
 import '../core/services/connectivity_provider.dart';
+import '../core/services/offline_screen_presence.dart';
 import '../core/widgets/app_bottom_nav.dart';
 import '../core/widgets/connectivity_lifecycle.dart';
 import '../core/widgets/offline_banner.dart';
@@ -66,9 +67,9 @@ class AppShell extends ConsumerWidget {
         ref.read(connectivityProvider.notifier).markSynced();
       });
     });
-    final bannerShown = ref.watch(
-      connectivityProvider.select((s) => s.showsBanner),
-    );
+    final bannerShown =
+        ref.watch(connectivityProvider.select((s) => s.showsBanner)) &&
+        !ref.watch(offlineBannerSuppressedProvider);
     return ConnectivityLifecycle(
       child: DetectionLifecycle(
       homeCountyCode: homeCounty?.code,

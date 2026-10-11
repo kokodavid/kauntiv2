@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/offline_screen.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 
-/// Loads a detail page's data once and renders loading, error (with retry
-/// and back) and data states explicitly.
+/// Loads a detail page's data once and renders loading, error and data
+/// states explicitly. A page that can't load shows the shared "You're
+/// offline" screen (or "Couldn't load this page" when the phone is online)
+/// under a Back button, and loads by itself when the connection returns.
 class DetailAsyncBody<T> extends StatefulWidget {
   const DetailAsyncBody({
     super.key,
     required this.load,
     required this.builder,
-    required this.errorMessage,
   });
 
   final Future<T> Function() load;
   final Widget Function(BuildContext context, T data) builder;
-  final String errorMessage;
 
   @override
   State<DetailAsyncBody<T>> createState() => _DetailAsyncBodyState<T>();
@@ -33,27 +35,21 @@ class _DetailAsyncBodyState<T> extends State<DetailAsyncBody<T>> {
           return widget.builder(context, snapshot.data as T);
         }
         if (snapshot.hasError) {
-          return Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  widget.errorMessage,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.mutedForeground),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => setState(() => _future = widget.load()),
-                  child: const Text('Try again'),
-                ),
-                TextButton(
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                child: AppBackButton(
                   onPressed: () => Navigator.of(context).maybePop(),
-                  child: const Text('Go back'),
                 ),
-              ],
-            ),
+              ),
+              Expanded(
+                child: OfflineScreen(
+                  onRetry: () => setState(() => _future = widget.load()),
+                ),
+              ),
+            ],
           );
         }
         return const Center(

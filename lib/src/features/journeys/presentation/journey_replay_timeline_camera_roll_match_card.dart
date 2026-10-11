@@ -10,12 +10,16 @@ class _CameraRollMatchCard extends StatelessWidget {
     required this.busy,
     required this.onAddAll,
     required this.onChoose,
+    this.onDismiss,
   });
 
   final List<CameraRollMatch> matches;
   final bool busy;
   final VoidCallback onAddAll;
   final VoidCallback onChoose;
+
+  /// Hides the suggestion; null leaves the card without a close button.
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +75,17 @@ class _CameraRollMatchCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onDismiss != null)
+                IconButton(
+                  onPressed: busy ? null : onDismiss,
+                  tooltip: 'Dismiss',
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(
+                    Icons.close,
+                    size: 18,
+                    color: AppColors.mutedForeground,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12),

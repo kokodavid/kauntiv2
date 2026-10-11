@@ -43,6 +43,9 @@ abstract class _JourneyReplayTimelineStateBase
   /// result, add-in-progress) so the open sheet rebuilds in place.
   final _sheetTick = ValueNotifier<int>(0);
 
+  /// True once the user closes the camera-roll suggestion in the sheet.
+  bool _matchesDismissed = false;
+
   static String? _countyAt(JourneyPoint? point) {
     if (point == null) return null;
     final code = CountyBoundaryResolver.countyCodeFor(
@@ -191,8 +194,9 @@ mixin _JourneyReplayTimelineStateBehavior
                       _TripMediaButton(
                         count: widget.media.length,
                         hasMatches:
+                            !_matchesDismissed &&
                             _cameraRollScan.status ==
-                            _CameraRollStatus.matchesFound,
+                                _CameraRollStatus.matchesFound,
                         onPressed: _openTripMedia,
                       ),
                   ],

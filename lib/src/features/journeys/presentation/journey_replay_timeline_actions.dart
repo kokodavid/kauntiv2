@@ -167,7 +167,8 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
                   onFindPhotos: _requestCameraRollAccess,
                   onDeletePhoto: _removePhoto,
                 ),
-                if (_cameraRollScan.status == _CameraRollStatus.matchesFound)
+                if (!_matchesDismissed &&
+                    _cameraRollScan.status == _CameraRollStatus.matchesFound)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: _CameraRollMatchCard(
@@ -175,6 +176,7 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
                       busy: _addingPhotos,
                       onAddAll: _addAllMatches,
                       onChoose: _chooseMatches,
+                      onDismiss: () => setState(() => _matchesDismissed = true),
                     ),
                   ),
               ],

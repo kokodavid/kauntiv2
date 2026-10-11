@@ -61,8 +61,10 @@ final class LocationPermissionServiceProvider
 String _$locationPermissionServiceHash() =>
     r'809eba6598962de8705730d4e75ca24d9648fa27';
 
-/// Start-up and onboarding: splash (session restore) → sign in → home
-/// county → location permission → ready. The router redirects on [step]
+/// Start-up and onboarding: splash (session restore) → sign in → then, for
+/// a new user only, three setup steps (home county → place interests →
+/// location permission) → ready. A returning user, who already has a home
+/// county and no setup in progress on this phone, goes straight to ready. The router redirects on [step]
 /// (`app/router.dart`); screens call these methods. Ported from the
 /// `setState` gate that `app.dart` used to be, with the same rules and
 /// copy.
@@ -70,15 +72,19 @@ String _$locationPermissionServiceHash() =>
 @ProviderFor(StartupFlow)
 const startupFlowProvider = StartupFlowProvider._();
 
-/// Start-up and onboarding: splash (session restore) → sign in → home
-/// county → location permission → ready. The router redirects on [step]
+/// Start-up and onboarding: splash (session restore) → sign in → then, for
+/// a new user only, three setup steps (home county → place interests →
+/// location permission) → ready. A returning user, who already has a home
+/// county and no setup in progress on this phone, goes straight to ready. The router redirects on [step]
 /// (`app/router.dart`); screens call these methods. Ported from the
 /// `setState` gate that `app.dart` used to be, with the same rules and
 /// copy.
 final class StartupFlowProvider
     extends $NotifierProvider<StartupFlow, StartupState> {
-  /// Start-up and onboarding: splash (session restore) → sign in → home
-  /// county → location permission → ready. The router redirects on [step]
+  /// Start-up and onboarding: splash (session restore) → sign in → then, for
+  /// a new user only, three setup steps (home county → place interests →
+  /// location permission) → ready. A returning user, who already has a home
+  /// county and no setup in progress on this phone, goes straight to ready. The router redirects on [step]
   /// (`app/router.dart`); screens call these methods. Ported from the
   /// `setState` gate that `app.dart` used to be, with the same rules and
   /// copy.
@@ -109,10 +115,12 @@ final class StartupFlowProvider
   }
 }
 
-String _$startupFlowHash() => r'75ec0cb0b6b6b894dde0bd47470596090cf6ccda';
+String _$startupFlowHash() => r'79fc92ad1338a9bbe1a55e254ba81e1d8891d516';
 
-/// Start-up and onboarding: splash (session restore) → sign in → home
-/// county → location permission → ready. The router redirects on [step]
+/// Start-up and onboarding: splash (session restore) → sign in → then, for
+/// a new user only, three setup steps (home county → place interests →
+/// location permission) → ready. A returning user, who already has a home
+/// county and no setup in progress on this phone, goes straight to ready. The router redirects on [step]
 /// (`app/router.dart`); screens call these methods. Ported from the
 /// `setState` gate that `app.dart` used to be, with the same rules and
 /// copy.

@@ -14,6 +14,7 @@ import '../features/detection/presentation/detection_lifecycle.dart';
 import '../features/journeys/presentation/journey_active_banner.dart';
 import '../features/journeys/presentation/journey_sync_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/profile/application/public_profile_providers.dart';
 import 'app_routes.dart';
 import 'detail_routes.dart';
 
@@ -60,6 +61,8 @@ class AppShell extends ConsumerWidget {
         } on Object {
           // Queued visits retry on their own schedule.
         }
+        // Profile fell back to its saved copy while offline; reload it.
+        ref.invalidate(myPublicProfileProvider);
         ref.read(connectivityProvider.notifier).markSynced();
       });
     });

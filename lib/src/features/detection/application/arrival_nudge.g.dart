@@ -101,7 +101,7 @@ final class PendingArrivalNudgeProvider
 }
 
 String _$pendingArrivalNudgeHash() =>
-    r'2990efe2c29e22b3abfdbc990d84a5754178ba98';
+    r'2fe50ae24e23aeb3d491496a10756a0881912bea';
 
 /// The crossing the app should show the arrival sheet for; null when
 /// there's none. Offered by each detection cycle, taken by the sheet host.

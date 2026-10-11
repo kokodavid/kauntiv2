@@ -1,13 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_external_links.dart';
+import '../../../core/services/connectivity_provider.dart';
 import '../../journeys/domain/pro_status.dart';
 import '../domain/public_profile.dart';
 import 'settings_widgets.dart';
 
-class SettingsAccountSection extends StatelessWidget {
+class SettingsAccountSection extends ConsumerWidget {
   const SettingsAccountSection({
     super.key,
     required this.profile,
@@ -38,7 +40,8 @@ class SettingsAccountSection extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final offline = ref.watch(connectivityProvider.select((s) => s.isOffline));
     final membershipSubtitle = proStatus?.active == true
         ? 'Pro · active'
         : 'Free';
@@ -54,6 +57,7 @@ class SettingsAccountSection extends StatelessWidget {
                   ? 'Set up your public identity'
                   : '${profile!.displayName} · @${profile!.handle}',
               onTap: onOpenEditProfile,
+              needsConnection: offline,
             ),
             if (showMembership)
               SettingsActionRow(
@@ -61,6 +65,7 @@ class SettingsAccountSection extends StatelessWidget {
                 subtitle: membershipSubtitle,
                 onTap: onOpenMembership,
                 divider: true,
+                needsConnection: offline,
               ),
             SettingsActionRow(
               title: 'Data and privacy',
@@ -81,6 +86,7 @@ class SettingsAccountSection extends StatelessWidget {
               onTap: onDeleteAccount,
               danger: true,
               divider: true,
+              needsConnection: offline,
             ),
           ],
         ),

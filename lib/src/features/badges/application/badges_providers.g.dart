@@ -60,13 +60,15 @@ final class BadgesRepositoryProvider
 
 String _$badgesRepositoryHash() => r'119b3176cbbc04974f1cc8b30d6207eb0322786f';
 
-/// The signed-in user's badge collection. Reloads when the account
+/// The signed-in user's badge collection; offline it is the copy from the
+/// last good load ([BadgeCollection.savedAt] set). Reloads when the account
 /// changes and when a visit syncs (a new badge or depth).
 
 @ProviderFor(badgeCollection)
 const badgeCollectionProvider = BadgeCollectionProvider._();
 
-/// The signed-in user's badge collection. Reloads when the account
+/// The signed-in user's badge collection; offline it is the copy from the
+/// last good load ([BadgeCollection.savedAt] set). Reloads when the account
 /// changes and when a visit syncs (a new badge or depth).
 
 final class BadgeCollectionProvider
@@ -77,7 +79,8 @@ final class BadgeCollectionProvider
           FutureOr<BadgeCollection>
         >
     with $FutureModifier<BadgeCollection>, $FutureProvider<BadgeCollection> {
-  /// The signed-in user's badge collection. Reloads when the account
+  /// The signed-in user's badge collection; offline it is the copy from the
+  /// last good load ([BadgeCollection.savedAt] set). Reloads when the account
   /// changes and when a visit syncs (a new badge or depth).
   const BadgeCollectionProvider._()
     : super(
@@ -105,7 +108,7 @@ final class BadgeCollectionProvider
   }
 }
 
-String _$badgeCollectionHash() => r'fe56e58bb3d3bcdc5b2dada2c8d7e1a71adc39e4';
+String _$badgeCollectionHash() => r'd96ea6b8211733cf33cf64336bb18b990575ad53';
 
 /// One county's badge in detail, for the badge sheet. Reloads with the
 /// collection (account change, visit sync).

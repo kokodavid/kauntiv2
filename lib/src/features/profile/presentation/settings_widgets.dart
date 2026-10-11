@@ -120,6 +120,7 @@ class SettingsActionRow extends StatelessWidget {
     this.trailing,
     this.danger = false,
     this.divider = false,
+    this.needsConnection = false,
   });
 
   final String title;
@@ -129,24 +130,58 @@ class SettingsActionRow extends StatelessWidget {
   final bool danger;
   final bool divider;
 
+  /// Offline and this action needs the network: muted, not tappable, with
+  /// the reason on the right (Offline States, unavailable action).
+  final bool needsConnection;
+
   @override
   Widget build(BuildContext context) => Column(
     children: [
       if (divider) const Divider(height: 1, color: Color(0xFFF1F1F3)),
       ListTile(
-        onTap: onTap,
+        onTap: needsConnection ? null : onTap,
         title: Text(
           title,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: danger ? AppColors.danger : AppColors.foreground,
+            color: needsConnection
+                ? AppColors.offlinePillIcon
+                : danger
+                ? AppColors.danger
+                : AppColors.foreground,
           ),
         ),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 12.5)),
-        trailing:
-            trailing ??
-            (onTap != null ? const Icon(Icons.chevron_right) : null),
+        trailing: needsConnection
+            ? const _NeedsConnectionTag()
+            : trailing ??
+                  (onTap != null ? const Icon(Icons.chevron_right) : null),
+      ),
+    ],
+  );
+}
+
+class _NeedsConnectionTag extends StatelessWidget {
+  const _NeedsConnectionTag();
+
+  @override
+  Widget build(BuildContext context) => const Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(
+        Icons.cloud_off_rounded,
+        size: 14,
+        color: AppColors.offlinePillIcon,
+      ),
+      SizedBox(width: 6),
+      Text(
+        'Needs a connection',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.mutedForeground,
+        ),
       ),
     ],
   );

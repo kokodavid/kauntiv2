@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/needs_connection.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../../auth/application/auth_providers.dart';
@@ -140,11 +141,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           loading: () => const Center(
             child: AppProgressIndicator(color: AppColors.accent, radius: 14),
           ),
-          error: (error, stackTrace) => Center(
-            child: TextButton(
-              onPressed: () =>
-                  ref.invalidate(profileSettingsControllerProvider),
-              child: const Text('Settings are unavailable. Retry.'),
+          error: (error, stackTrace) => NeedsConnection(
+            message: 'Your settings load from the internet.',
+            onRetry: () => ref.invalidate(profileSettingsControllerProvider),
+            child: Center(
+              child: TextButton(
+                onPressed: () =>
+                    ref.invalidate(profileSettingsControllerProvider),
+                child: const Text('Settings are unavailable. Retry.'),
+              ),
             ),
           ),
           data: (settings) => ListView(

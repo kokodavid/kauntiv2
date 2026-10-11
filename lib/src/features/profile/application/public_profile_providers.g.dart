@@ -66,14 +66,18 @@ String _$publicProfileRepositoryHash() =>
 
 /// The signed-in account's display name, handle and avatar. Reloads when
 /// the account changes; Edit Profile invalidates this after a successful
-/// save or avatar upload.
+/// save or avatar upload. Kept alive so Home's avatar and Profile read one
+/// loaded copy instead of fetching again (and flashing the initial) each
+/// time either screen appears.
 
 @ProviderFor(myPublicProfile)
 const myPublicProfileProvider = MyPublicProfileProvider._();
 
 /// The signed-in account's display name, handle and avatar. Reloads when
 /// the account changes; Edit Profile invalidates this after a successful
-/// save or avatar upload.
+/// save or avatar upload. Kept alive so Home's avatar and Profile read one
+/// loaded copy instead of fetching again (and flashing the initial) each
+/// time either screen appears.
 
 final class MyPublicProfileProvider
     extends
@@ -85,7 +89,9 @@ final class MyPublicProfileProvider
     with $FutureModifier<PublicProfile?>, $FutureProvider<PublicProfile?> {
   /// The signed-in account's display name, handle and avatar. Reloads when
   /// the account changes; Edit Profile invalidates this after a successful
-  /// save or avatar upload.
+  /// save or avatar upload. Kept alive so Home's avatar and Profile read one
+  /// loaded copy instead of fetching again (and flashing the initial) each
+  /// time either screen appears.
   const MyPublicProfileProvider._()
     : super(
         from: null,
@@ -112,4 +118,4 @@ final class MyPublicProfileProvider
   }
 }
 
-String _$myPublicProfileHash() => r'19bd47c647f678dd79fa80430c94b721abd39721';
+String _$myPublicProfileHash() => r'a2dace6d12bc4d6956151197969bcb34b352e14f';

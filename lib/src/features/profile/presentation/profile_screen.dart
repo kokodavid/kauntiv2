@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/connectivity_provider.dart';
 import '../../../design/app_colors.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../badges/application/badges_providers.dart';
@@ -166,6 +167,11 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
     final metadata = user?.userMetadata ?? const <String, dynamic>{};
     final rawName = metadata['full_name'] ?? metadata['name'];
     final fallbackName = rawName is String ? rawName : null;
+    final offline = ref.watch(connectivityProvider.select((s) => s.isOffline));
+    // Back online: ask again about Pro if the offline attempt failed.
+    ref.listen(connectivityProvider.select((s) => s.isOffline), (was, now) {
+      if (was == true && !now && _proUnavailable) unawaited(_refreshPro());
+    });
     final homeCounty = ref.watch(startupFlowProvider).homeCounty?.name;
     final badges = ref.watch(badgeCollectionProvider);
     final tripStats = ref.watch(tripStatsProvider);
@@ -175,10 +181,11 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
     final proLabel = _checkingPro
         ? 'Checking access...'
         : _proUnavailable
-        ? "Couldn't check. Tap to retry."
+        ? (offline ? 'Needs a connection' : "Couldn't check. Tap to retry.")
         : isPro
         ? 'Pro active'
         : 'Free';
+    final savedAt = ref.watch(profileSavedAtProvider).value;
     final displayName = publicProfile?.displayName.isNotEmpty == true
         ? publicProfile!.displayName
         : (fallbackName?.isNotEmpty == true ? fallbackName! : 'Traveller');
@@ -196,6 +203,8 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
               avatarUrl: publicProfile?.avatarUrl,
               homeCounty: homeCounty,
               isPro: isPro,
+              canEdit: !offline && publicProfile != null,
+              savedAt: savedAt,
               onOpenSettings: widget.onOpenSettings,
               onEditProfile: _openEditProfile,
             ),

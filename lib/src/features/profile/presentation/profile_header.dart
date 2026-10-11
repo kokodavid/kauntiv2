@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_network_image.dart';
+import '../../../core/widgets/saved_chip.dart';
 import '../../../design/app_colors.dart';
 import 'profile_tiles.dart';
 
@@ -17,6 +18,8 @@ class ProfileHeader extends StatelessWidget {
     this.homeCounty,
     required this.isPro,
     required this.onOpenSettings,
+    this.canEdit = true,
+    this.savedAt,
     required this.onEditProfile,
   });
 
@@ -25,6 +28,13 @@ class ProfileHeader extends StatelessWidget {
   final String? avatarUrl;
   final String? homeCounty;
   final bool isPro;
+
+  /// False offline (or before the profile loads): the pencil is hidden.
+  final bool canEdit;
+
+  /// When the name / photo on screen were saved; shows "Saved ..." while
+  /// offline.
+  final DateTime? savedAt;
   final VoidCallback onOpenSettings;
   final VoidCallback onEditProfile;
 
@@ -65,7 +75,7 @@ class ProfileHeader extends StatelessWidget {
                 _Avatar(
                   name: name,
                   avatarUrl: avatarUrl,
-                  onEdit: onEditProfile,
+                  onEdit: canEdit ? onEditProfile : null,
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -106,6 +116,11 @@ class ProfileHeader extends StatelessWidget {
                           if (homeCounty != null && homeCounty!.isNotEmpty)
                             _Chip(text: 'Home · $homeCounty'),
                           if (isPro) const _ProPill(),
+                          if (savedAt != null)
+                            SavedChip(
+                              savedAt: savedAt!,
+                              tone: SavedChipTone.onWhite,
+                            ),
                         ],
                       ),
                     ],
@@ -129,7 +144,7 @@ class _Avatar extends StatelessWidget {
 
   final String name;
   final String? avatarUrl;
-  final VoidCallback onEdit;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -168,7 +183,8 @@ class _Avatar extends StatelessWidget {
                   ),
           ),
         ),
-        Positioned(
+        if (onEdit != null)
+          Positioned(
           right: -2,
           bottom: -2,
           child: GestureDetector(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/county_tier.dart';
+import '../../../core/widgets/needs_connection.dart';
 import '../../../design/app_colors.dart';
 import '../../badges/domain/badge_collection.dart';
 import '../domain/trip_stats.dart';
@@ -62,11 +63,18 @@ class ProfileProgressCard extends StatelessWidget {
     ],
   );
 
-  Widget _error() => Row(
-    children: [
-      const Expanded(child: Text('County progress is unavailable right now.')),
-      TextButton(onPressed: onRetry, child: const Text('Retry')),
-    ],
+  Widget _error() => NeedsConnection(
+    size: NeedsConnectionSize.row,
+    title: 'Progress needs a connection',
+    onRetry: onRetry,
+    child: Row(
+      children: [
+        const Expanded(
+          child: Text('County progress is unavailable right now.'),
+        ),
+        TextButton(onPressed: onRetry, child: const Text('Retry')),
+      ],
+    ),
   );
 
   /// "3 more counties to Mzururaji" once a next tier exists, otherwise

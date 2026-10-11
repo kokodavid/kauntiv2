@@ -2,8 +2,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
+import '../data/profile_snapshot_store.dart';
 import '../data/public_profile_repository.dart';
 import '../domain/public_profile.dart';
+import 'trip_stats_providers.dart';
 
 part 'public_profile_providers.g.dart';
 
@@ -26,5 +28,28 @@ Future<PublicProfile?> myPublicProfile(Ref ref) async {
   final userId = ref.watch(currentUserIdProvider)();
   final repository = ref.watch(publicProfileRepositoryProvider);
   if (userId == null || repository == null) return null;
-  return repository.fetch();
+  const store = ProfileSnapshotStore();
+  try {
+    final profile = await repository.fetch();
+    if (profile != null) {
+      await store.writeProfile(userId, profile, DateTime.now());
+    }
+    return profile;
+  } on Object {
+    // No connection: the copy from the last good load, if there is one.
+    final saved = await store.readProfile(userId);
+    if (saved == null) rethrow;
+    return saved;
+  }
+}
+
+/// When the Profile values on screen were last saved, for the "Saved"
+/// chip while offline. Re-reads whenever either value reloads.
+@riverpod
+Future<DateTime?> profileSavedAt(Ref ref) async {
+  ref.watch(myPublicProfileProvider);
+  ref.watch(tripStatsProvider);
+  final userId = ref.watch(currentUserIdProvider)();
+  if (userId == null) return null;
+  return const ProfileSnapshotStore().savedAt(userId);
 }

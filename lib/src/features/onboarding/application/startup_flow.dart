@@ -231,7 +231,7 @@ class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
   Future<void> skipLocation() async {
     if (state.isRequestingLocation) return;
     try {
-      await ref.read(profileSettingsRepositoryProvider).update({
+      await ref.read(profileSettingsRepositoryProvider)?.update({
         'location_mode': 'manual',
       });
     } on Object {

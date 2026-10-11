@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,6 +88,7 @@ void main() {
         connectivityProvider.overrideWith(_Online.new),
         appConfigProvider.overrideWithValue(const AppConfig.dev()),
         currentUserIdProvider.overrideWithValue(() => 'user-1'),
+        authUserIdProvider.overrideWith((ref) => Stream.value('user-1')),
         feedbackRepositoryProvider.overrideWithValue(repository),
         feedbackContextSourceProvider.overrideWithValue(const _Context()),
         feedbackOutboxStoreProvider.overrideWithValue(outbox),

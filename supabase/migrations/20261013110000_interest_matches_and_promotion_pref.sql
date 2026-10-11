@@ -63,7 +63,7 @@ returns table (
 language sql
 volatile
 security invoker
-set search_path = public
+set search_path = public, extensions
 as $$
   with live_county as (
     select c.id

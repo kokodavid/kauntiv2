@@ -58,7 +58,7 @@ class OnboardingHomeCountyPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 64, 12, 100),
+                  padding: const EdgeInsets.fromLTRB(12, 64, 12, 80),
                   child: AppCountyMap(
                     selectedCounty: selectedCounty,
                     onCountySelected: onSelected,
@@ -167,42 +167,42 @@ class _SelectedCountyCard extends StatelessWidget {
       color: Colors.white,
       elevation: 4,
       shadowColor: AppColors.detailGlassShadow,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
             // The county's own badge, as it will look once earned.
             if (picked == null)
               Container(
-                width: 52,
-                height: 52,
+                width: 40,
+                height: 40,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.pageBackground,
                 ),
                 child: const Icon(
                   Icons.touch_app_outlined,
-                  size: 22,
+                  size: 18,
                   color: AppColors.mutedForeground,
                 ),
               )
             else
-              CountyBadgeMedallion(county: picked, earned: true, size: 52),
-            const SizedBox(width: 12),
+              CountyBadgeMedallion(county: picked, earned: true, size: 40),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     picked?.name ?? 'Tap your county on the map',
-                    style: AppTextStyles.listItemTitle,
+                    style: AppTextStyles.listItemTitle.copyWith(fontSize: 14),
                   ),
                   if (picked != null || errorMessage != null)
                     Text(
                       hint,
                       style: AppTextStyles.bodySmall.copyWith(
-                        fontSize: 12.5,
+                        fontSize: 11.5,
                         color: errorMessage == null
                             ? AppColors.mutedForeground
                             : AppColors.danger,
@@ -214,7 +214,7 @@ class _SelectedCountyCard extends StatelessWidget {
             if (picked != null)
               const Icon(
                 Icons.check_circle_outline,
-                size: 22,
+                size: 20,
                 color: AppColors.accent,
               ),
           ],

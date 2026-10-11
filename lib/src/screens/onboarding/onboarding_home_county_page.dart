@@ -215,7 +215,7 @@ class _SelectedCountyCard extends StatelessWidget {
               const Icon(
                 Icons.check_circle_outline,
                 size: 20,
-                color: AppColors.accent,
+                color: AppColors.legendHome,
               ),
           ],
         ),

@@ -49,6 +49,27 @@ abstract final class RealMapCamera {
     );
   }
 
+  /// Starts the flight into a county and returns once most of it has run,
+  /// so a sheet can slide up while the camera finishes.
+  static Future<void> flyToCountyThenSettle(
+    MapboxMap map,
+    CountyBounds bounds, {
+    required Size screen,
+    required double pitch,
+    double topPadding = 0,
+  }) {
+    unawaited(
+      flyToCounty(
+        map,
+        bounds,
+        screen: screen,
+        pitch: pitch,
+        topPadding: topPadding,
+      ),
+    );
+    return Future<void>.delayed(flightDuration * 0.6);
+  }
+
   /// Eases the camera to [pitch] (3D toggle).
   static void tiltTo(MapboxMap map, double pitch) {
     unawaited(

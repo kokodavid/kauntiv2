@@ -7,11 +7,9 @@ import '../../../core/domain/map_place.dart';
 import '../../../core/map/map_places_layer.dart';
 import '../../../core/services/app_current_location.dart';
 import '../../../core/services/app_mapbox_telemetry.dart';
-import '../../../core/widgets/app_place_sheet.dart';
 import '../../../services/app_location_permission_service.dart';
 import '../application/real_map_start_focus.dart';
 import '../domain/map_home_models.dart';
-import 'county_peek_sheet.dart';
 import 'map_home_links.dart';
 import 'map_home_map_overlays.dart';
 import 'real_map_camera.dart';
@@ -20,7 +18,7 @@ import 'real_map_county_source.dart';
 import 'real_map_focus.dart';
 import 'real_map_layers.dart';
 import 'real_map_load_watch.dart';
-import 'real_map_sheet_guard.dart';
+import 'real_map_sheets.dart';
 
 /// Home's default map: the county map on a real Mapbox base map, edge to
 /// edge behind Home's header, sheet and nav. Same badges and colours as the
@@ -82,7 +80,8 @@ class _RealMapViewState extends State<RealMapView> {
   MapHomeCountyBadge? _selected;
   Size _mapSize = Size.zero;
   late final MapPlacesLayer _placesLayer;
-  final _sheets = RealMapSheetGuard();
+  late final _sheets = RealMapSheets(onPeekClosed: _onPeekClosed);
+  int _peekTap = 0;
 
   @override
   void initState() {
@@ -98,8 +97,15 @@ class _RealMapViewState extends State<RealMapView> {
 
   @override
   void dispose() {
+    _sheets.dispose();
     _load.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!TickerMode.of(context)) _sheets.closePeek();
   }
 
   double get _pitch => _terrainEnabled ? _tiltedPitch : 0;
@@ -170,26 +176,19 @@ class _RealMapViewState extends State<RealMapView> {
     final place = _placesLayer.placeFor(id);
     if (place == null) return;
     unawaited(
-      _sheets.run(
-        () => AppPlaceSheet.show(
-          context,
-          place,
-          onOpenPlace: widget.onOpenPlace,
-          onRoute: widget.onRoute,
-          onPlaceRoute: widget.onPlaceRoute,
-        ),
+      _sheets.showPlace(
+        context,
+        place,
+        onOpenPlace: widget.onOpenPlace,
+        onRoute: widget.onRoute,
+        onPlaceRoute: widget.onPlaceRoute,
       ),
     );
   }
 
   Future<void> _applyHighlight() async {
     final map = _map;
-    if (map == null) return;
-    await map.style.setStyleLayerProperty(
-      RealMapLayers.highlightLayerId,
-      'filter',
-      RealMapLayers.highlightFilter(_selected?.county.code),
-    );
+    if (map != null) await RealMapLayers.setHighlight(map, _selected);
   }
 
   void _onCountyTapped(Object? code) {
@@ -197,15 +196,17 @@ class _RealMapViewState extends State<RealMapView> {
         .where((candidate) => candidate.county.code == code)
         .firstOrNull;
     if (badge == null) return;
-    unawaited(_sheets.run(() => _openPeek(badge)));
+    unawaited(_openPeek(badge));
   }
 
+  /// The latest tap wins: it replaces a peek that is flying in or showing.
   Future<void> _openPeek(MapHomeCountyBadge badge) async {
+    final tap = ++_peekTap;
     setState(() => _selected = badge);
     unawaited(_applyHighlight());
     await _flyTo(badge);
-    if (!mounted) return;
-    await CountyPeekSheet.show(
+    if (!mounted || tap != _peekTap) return;
+    _sheets.showCounty(
       context,
       badge,
       isHome: badge.county.slug == widget.homeCountySlug,
@@ -213,6 +214,10 @@ class _RealMapViewState extends State<RealMapView> {
           ? null
           : () => widget.onOpenCounty!(context, badge.county.code),
     );
+  }
+
+  void _onPeekClosed() {
+    _peekTap++;
     if (!mounted) return;
     setState(() => _selected = null);
     unawaited(_applyHighlight());
@@ -220,24 +225,19 @@ class _RealMapViewState extends State<RealMapView> {
     if (map != null) RealMapCamera.releaseSheetPadding(map);
   }
 
-  /// Flies into the county; the sheet follows once most of the flight has
-  /// run, so the two motions overlap.
+  /// Flies into the county, returning once most of the flight has run.
   Future<void> _flyTo(MapHomeCountyBadge badge) async {
     final map = _map;
     final bounds = _counties.boundsFor(badge.county.code);
     if (map == null || bounds == null) return;
     setState(() => _viewport = const IdleViewportState());
-    unawaited(
-      RealMapCamera.flyToCounty(
-        map,
-        bounds,
-        screen: _mapSize,
-        sheetShare: 0.45,
-        topPadding: widget.topInset,
-        pitch: _pitch,
-      ),
+    await RealMapCamera.flyToCountyThenSettle(
+      map,
+      bounds,
+      screen: _mapSize,
+      topPadding: widget.topInset,
+      pitch: _pitch,
     );
-    await Future<void>.delayed(RealMapCamera.flightDuration * 0.6);
   }
 
   void _setTerrainEnabled(bool enabled) {

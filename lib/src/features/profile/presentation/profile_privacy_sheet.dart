@@ -27,6 +27,13 @@ class ProfilePrivacySheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const Text(
+              'If you pick interests, such as waterfalls or coast, that short '
+              'list is saved to your account. We use it only to put places '
+              "you'd like higher in For you. Change or clear it any time in "
+              'Settings > Interests; it is deleted with your account.',
+            ),
+            const SizedBox(height: 12),
+            const Text(
               'Trips record your route. Completed Trips are kept on '
               'this phone and synced privately to your account when '
               'available. You can delete a Trip from its list.',

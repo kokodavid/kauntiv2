@@ -1,7 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/connectivity_state.dart';
+import '../../../core/services/connectivity_provider.dart';
+import '../../../core/services/offline_saved_at.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
@@ -10,9 +14,8 @@ import '../domain/map_home_models.dart';
 import 'map_home_board.dart';
 import 'map_home_board_sheet.dart' show defaultRecordTripCardHeight;
 import 'map_home_links.dart';
-import 'map_home_offline_note.dart';
 
-class MapHomeScreen extends StatefulWidget {
+class MapHomeScreen extends ConsumerStatefulWidget {
   const MapHomeScreen({
     super.key,
     this.homeCounty,
@@ -66,10 +69,10 @@ class MapHomeScreen extends StatefulWidget {
   final VoidCallback? onOpenProfile;
 
   @override
-  State<MapHomeScreen> createState() => _MapHomeScreenState();
+  ConsumerState<MapHomeScreen> createState() => _MapHomeScreenState();
 }
 
-class _MapHomeScreenState extends State<MapHomeScreen>
+class _MapHomeScreenState extends ConsumerState<MapHomeScreen>
     with WidgetsBindingObserver {
   late Future<MapHomeBoardData> _board;
   bool _offline = false;
@@ -101,6 +104,13 @@ class _MapHomeScreenState extends State<MapHomeScreen>
 
   void _trackOffline(MapHomeBoardData? data) {
     final offline = data?.isOffline ?? false;
+    // Only while Home is the tab on screen: the banner switches to its Home
+    // form (saved time and Retry) there, and stays plain on other tabs.
+    final active = TickerMode.valuesOf(context).enabled;
+    final savedAt = offline && active ? data?.savedAt : null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(offlineSavedAtProvider.notifier).set(savedAt);
+    });
     if (offline == _offline) return;
     _offline = offline;
     _autoRetry?.cancel();
@@ -127,6 +137,14 @@ class _MapHomeScreenState extends State<MapHomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    // The connection came back: swap the live board in.
+    ref.listen(connectivityProvider.select((s) => s.status), (prev, next) {
+      if (_offline &&
+          (next == ConnectivityStatus.reconnecting ||
+              next == ConnectivityStatus.upToDate)) {
+        unawaited(_retry());
+      }
+    });
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       // The board handles safe areas itself so the real map can run
@@ -144,10 +162,7 @@ class _MapHomeScreenState extends State<MapHomeScreen>
           }
           _trackOffline(snapshot.data);
           // Null while loading: the board renders its own placeholders.
-          return MapHomeOfflineScope(
-            retrying: _retrying,
-            onRetry: () => unawaited(_retry()),
-            child: MapHomeBoard(
+          return MapHomeBoard(
             data: snapshot.data,
             loadMapPlaces: widget.loader.loadMapPlaces,
             // Offline: no token, so Home stays on the drawn county map.
@@ -168,7 +183,6 @@ class _MapHomeScreenState extends State<MapHomeScreen>
             recordTripCard: widget.recordTripCard,
             recordTripCardHeight: widget.recordTripCardHeight,
             topCard: widget.topCard,
-          ),
           );
         },
       ),

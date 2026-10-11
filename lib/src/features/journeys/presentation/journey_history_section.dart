@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/needs_connection.dart';
 import '../../../counties/county_paths.dart';
 import '../application/journey_history.dart';
 import '../domain/journey_grouping.dart';
@@ -97,8 +98,14 @@ class _JourneyHistorySectionState extends ConsumerState<JourneyHistorySection> {
         const SizedBox(height: 10),
         switch (history) {
           AsyncValue(:final value?) => _buildList(value),
-          AsyncValue(hasError: true) => _Retry(
+          AsyncValue(hasError: true) => NeedsConnection(
+            title: 'Past Trips need a connection',
+            message:
+                'Trips you record here stay on your phone and upload later.',
             onRetry: () => ref.invalidate(journeyHistoryListProvider),
+            child: _Retry(
+              onRetry: () => ref.invalidate(journeyHistoryListProvider),
+            ),
           ),
           _ => const JourneyCardsLoading(),
         },

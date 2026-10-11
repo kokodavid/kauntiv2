@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/map_home/domain/map_home_models.dart';
 import 'package:kaunti47_v2/src/features/map_home/domain/map_home_snapshot.dart';
-import 'package:kaunti47_v2/src/features/map_home/presentation/map_home_offline_note.dart';
 
 MapHomeBoardData _board() => MapHomeBoardData(
   tier: null,
@@ -69,18 +68,5 @@ void main() {
   test('junk JSON is ignored', () {
     expect(MapHomeSnapshot.fromJson('nope'), isNull);
     expect(MapHomeSnapshot.fromJson({'saved_at': 'x'}), isNull);
-  });
-
-  test('saved label reads naturally', () {
-    final today = DateTime(2026, 10, 12, 15);
-    expect(mapHomeSavedLabel(null, today), isNull);
-    expect(
-      mapHomeSavedLabel(DateTime(2026, 10, 12, 9, 41), today),
-      'Saved today, 9:41 AM',
-    );
-    expect(mapHomeSavedLabel(DateTime(2026, 10, 11, 9), today), 'Saved yesterday');
-    expect(mapHomeSavedLabel(DateTime(2026, 10, 5, 9), today), 'Saved 7 days ago');
-    expect(mapHomeSavedLabel(DateTime(2026, 9, 14, 9), today), 'Saved 4 weeks ago');
-    expect(mapHomeSavedLabel(DateTime(2026, 6, 1, 9), today), 'Saved 4 months ago');
   });
 }

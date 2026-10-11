@@ -3,8 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/domain/app_feature_flags.dart';
+import '../core/domain/connectivity_state.dart';
+import '../core/services/connectivity_provider.dart';
 import '../core/widgets/app_bottom_nav.dart';
+import '../core/widgets/connectivity_lifecycle.dart';
+import '../core/widgets/offline_banner.dart';
 import '../design/app_colors.dart';
+import '../features/detection/application/visit_sync.dart';
 import '../features/detection/presentation/detection_lifecycle.dart';
 import '../features/journeys/presentation/journey_active_banner.dart';
 import '../features/journeys/presentation/journey_sync_lifecycle.dart';
@@ -45,7 +50,24 @@ class AppShell extends ConsumerWidget {
     final homeCounty = ref.watch(
       startupFlowProvider.select((s) => s.homeCounty),
     );
-    return DetectionLifecycle(
+    // Back online: catch the app up (queued visits upload), then let the
+    // banner say "Up to date" and leave.
+    ref.listen(connectivityProvider.select((s) => s.status), (prev, next) {
+      if (next != ConnectivityStatus.reconnecting) return;
+      Future<void>(() async {
+        try {
+          await ref.read(visitSyncProvider.notifier).drain();
+        } on Object {
+          // Queued visits retry on their own schedule.
+        }
+        ref.read(connectivityProvider.notifier).markSynced();
+      });
+    });
+    final bannerShown = ref.watch(
+      connectivityProvider.select((s) => s.showsBanner),
+    );
+    return ConnectivityLifecycle(
+      child: DetectionLifecycle(
       homeCountyCode: homeCounty?.code,
       onOpenCounty: DetailRoutes.openCounty,
       onOpenPlace: DetailRoutes.openPlace,
@@ -56,7 +78,25 @@ class AppShell extends ConsumerWidget {
           // content underneath it to float over and blur.
           body: Stack(
             children: [
-              Positioned.fill(child: navigationShell),
+              // The offline pill takes the top 44 px while it shows, once,
+              // on the same curve it enters on.
+              Positioned.fill(
+                child: AnimatedPadding(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  padding: EdgeInsets.only(
+                    top: bannerShown ? OfflineBanner.height : 0,
+                  ),
+                  child: navigationShell,
+                ),
+              ),
+              Positioned(
+                top: MediaQuery.paddingOf(context).top,
+                left: 0,
+                right: 0,
+                height: OfflineBanner.height,
+                child: const OfflineBanner(),
+              ),
               // Home and Trips show the Trip in progress themselves.
               if (AppFeatureFlags.journeys &&
                   AppRoutes.tabs[navigationShell.currentIndex] !=
@@ -85,6 +125,7 @@ class AppShell extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

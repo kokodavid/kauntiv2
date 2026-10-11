@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/county_tier.dart';
-import '../../../core/domain/saved_at_label.dart';
 import '../../../core/widgets/app_tier_medal.dart';
+import '../../../core/widgets/needs_connection.dart';
+import '../../../core/widgets/saved_chip.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/badges_providers.dart';
@@ -40,10 +41,9 @@ class BadgesScreen extends ConsumerWidget {
               onOpenCounty: onOpenCounty,
               onOpenPlace: onOpenPlace,
             ),
-            AsyncValue(hasError: true) => const _Message(
-              text:
-                  "Couldn't load your badges. Check your connection and pull "
-                  'down to try again.',
+            AsyncValue(hasError: true) => _Message(
+              text: "Couldn't load your badges. Pull down to try again.",
+              onRetry: () => ref.invalidate(badgeCollectionProvider),
             ),
             _ => const BadgesLoading(),
           },
@@ -76,7 +76,10 @@ class _Content extends StatelessWidget {
               _Header(tier: collection.tier),
               if (collection.isSavedCopy) ...[
                 const SizedBox(height: 8),
-                _SavedCopyNote(savedAt: collection.savedAt!),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: SavedChipBody(savedAt: collection.savedAt!),
+                ),
               ],
               const SizedBox(height: 14),
               BadgesSummarySlider(
@@ -171,50 +174,30 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Shown while the collection is the copy kept on the phone. A stand-in
-/// until the shared offline widget replaces it.
-class _SavedCopyNote extends StatelessWidget {
-  const _SavedCopyNote({required this.savedAt});
-
-  final DateTime savedAt;
-
-  @override
-  Widget build(BuildContext context) {
-    final saved = savedAtLabel(savedAt, DateTime.now());
-    return Row(
-      children: [
-        const Icon(
-          Icons.cloud_off_rounded,
-          size: 14,
-          color: AppColors.mutedForeground,
-        ),
-        const SizedBox(width: 6),
-        Text(
-          "You're offline · $saved",
-          style: const TextStyle(
-            fontFamily: AppTypeScale.family,
-            fontSize: 12.5,
-            color: AppColors.mutedForeground,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _Message extends StatelessWidget {
-  const _Message({required this.text});
+  const _Message({required this.text, required this.onRetry});
 
   final String text;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     // Scrollable so pull-to-refresh works.
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 120, 24, 24),
+      padding: const EdgeInsets.fromLTRB(16, 80, 16, 24),
       children: [
-        Text(text, textAlign: TextAlign.center, style: AppTypeScale.body),
+        // Offline, with nothing saved yet, this is a notice with Retry;
+        // online it is the plain failure message.
+        NeedsConnection(
+          message: 'Your badges load from the internet the first time.',
+          onRetry: onRetry,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: AppTypeScale.body,
+          ),
+        ),
       ],
     );
   }

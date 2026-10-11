@@ -105,17 +105,14 @@ class MapHomeBoardSheet extends StatelessWidget {
     );
   }
 
-  /// No connection: the strip is the collapsed card; expanded it explains
-  /// what still works. Trips still record offline, so that card stays.
+  /// No connection: the collapsed card and the body say what still works
+  /// (the banner carries the offline line). Trips still record offline, so that card stays.
   Widget _offlineSheet(MapHomeBoardData board) => MapHomeSheet(
     collapsedHeight: recordTripCard != null
         ? recordTripCardHeight
         : defaultRecordTripCardHeight,
-    collapsed: recordTripCard ?? MapHomeOfflineStrip(board: board),
-    children: [
-      MapHomeOfflineStrip(board: board),
-      MapHomeOfflineBody(board: board),
-    ],
+    collapsed: recordTripCard ?? MapHomeOfflineCollapsed(board: board),
+    children: [MapHomeOfflineBody(board: board)],
   );
 
   /// The carousel replaces the compact card on the standard and new-user

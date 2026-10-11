@@ -135,4 +135,13 @@ class AppColors {
   static const accentTint = Color(0xFFEEF5FF);
   static const segmentedTrack = Color(0xFFE7E8EB);
   static const photoPlaceholder = Color(0xFF3A4150);
+
+  // Offline states: the dark pill banner, notices, chips and hint.
+  static const offlinePillBackground = toastBackground;
+  static const offlinePillIcon = toastSubtitle;
+  static const offlinePillBackOnline = Color(0xFF4ADE80);
+  static const offlineIconCircle = Color(0xFFF4F4F5);
+  static const offlineBody = Color(0xFF52525B);
+  static const offlineTick = Color(0xFF16A34A);
+  static const offlineMapChipBackground = Color(0xD1181B18);
 }

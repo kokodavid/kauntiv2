@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/needs_connection.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import 'explore_header.dart';
@@ -38,7 +39,11 @@ class ExploreResolvingState extends StatelessWidget {
         if (retry == null)
           const _Block(height: 268, radius: 16)
         else
-          Container(
+          NeedsConnection(
+            title: 'Explore needs a connection',
+            message: 'Counties and places load from the internet.',
+            onRetry: retry,
+            child: Container(
             padding: const EdgeInsets.all(20),
             decoration: ExploreStyles.cardDecoration,
             child: Column(
@@ -62,6 +67,7 @@ class ExploreResolvingState extends StatelessWidget {
                 ),
               ],
             ),
+          ),
           ),
       ],
     );

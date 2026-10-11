@@ -169,8 +169,8 @@ class _Heading extends StatelessWidget {
           Text(
             title,
             style: AppTextStyles.heading.copyWith(
-              fontSize: 28,
-              height: 1.15,
+              fontSize: 24,
+              height: 1.2,
               fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
@@ -178,7 +178,7 @@ class _Heading extends StatelessWidget {
           const SizedBox(height: 8),
           DefaultTextStyle.merge(
             style: AppTextStyles.bodyMuted.copyWith(
-              fontSize: 15,
+              fontSize: 14,
               height: 1.45,
               color: Colors.white.withValues(alpha: 0.9),
             ),

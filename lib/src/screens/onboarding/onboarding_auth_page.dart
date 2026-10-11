@@ -61,7 +61,10 @@ class OnboardingAuthPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text('Earn all 47 counties.', style: AppTextStyles.heading),
+                  Text(
+                    'Earn all 47 counties.',
+                    style: AppTextStyles.heading.copyWith(fontSize: 22),
+                  ),
                   const SizedBox(height: 6),
                   Text(
                     "Stay about two hours in a county and it's yours.",

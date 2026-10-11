@@ -51,18 +51,22 @@ class OnboardingAuthPage extends StatelessWidget {
                 children: [
                   AppIconBadge(size: 60),
                   SizedBox(height: 20),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
                     children: [
-                      Text('Lots of Love for', style: AppTextStyles.kickerText),
-                      SizedBox(width: 8),
                       _KenyaPill(),
+                      Text('county by county', style: AppTextStyles.kickerText),
                     ],
                   ),
                   SizedBox(height: 4),
+                  Text('Earn all 47 counties.', style: AppTextStyles.heading),
+                  SizedBox(height: 6),
                   Text(
-                    'Begin your journey. Fill in the map of Kenya.',
-                    style: AppTextStyles.heading,
+                    "Travel as you normally do. Kaunti47 notices when you "
+                    "cross a county line and gives you the badge once "
+                    "you've spent time there.",
+                    style: AppTextStyles.bodyMuted.copyWith(fontSize: 14, height: 1.45),
                   ),
                 ],
               ),

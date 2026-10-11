@@ -13,8 +13,9 @@ import 'map_home_board_sheet.dart';
 import 'map_home_board_top.dart';
 import 'map_home_drawn_map.dart';
 import 'map_home_links.dart';
+import 'map_home_map_focus.dart';
+import 'map_home_map_switch_button.dart';
 import 'map_home_map_status.dart';
-import 'real_map_controls.dart';
 import 'real_map_view.dart';
 
 class MapHomeBoard extends ConsumerStatefulWidget {
@@ -71,17 +72,15 @@ class MapHomeBoard extends ConsumerStatefulWidget {
 
 class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
   bool _isMapInteracting = false;
+  final _focus = MapHomeMapFocus();
 
-  /// The real (Mapbox) map is Home's default; the drawn map is the
-  /// fallback when it can't load. Once failed, Home stays on the drawn map
-  /// until the user retries, so a patchy signal never flips maps mid-use.
+  /// The real (Mapbox) map is Home's default; the drawn map is the fallback
+  /// once it fails, until the user retries.
   _RealMapStatus _realMap = _RealMapStatus.loading;
   int _realMapAttempt = 0;
 
-  /// The user's own choice of map, independent of [_realMap]'s load/fail
-  /// state: the real map still loads normally underneath (so switching
-  /// back is instant), it's just not the one shown while this is true.
-  /// Loaded from storage on first build and persisted on every toggle.
+  /// The user's own choice of map, stored on every toggle; the real map
+  /// still loads underneath so switching back is instant.
   bool _preferDrawnMap = false;
 
   bool get _realMapAllowed => !kIsWeb && widget.mapboxAccessToken.isNotEmpty;
@@ -144,6 +143,12 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
     unawaited(_loadPreferences());
   }
 
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadPreferences() async {
     final prefs = ref.read(mapHomeViewPreferenceProvider);
     final preferDrawn = await prefs.preferDrawnMap();
@@ -188,10 +193,8 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
     // What's actually on screen: the real map once it's ready, unless the
     // user has chosen the drawn map themselves.
     final showRealMap = realReady && !_preferDrawnMap;
-    // Only the automatic path should wait on the real map before showing
-    // the drawn map's real content (so a fallback never flashes it right
-    // before the real map turns out to succeed); a manual pick shouldn't
-    // wait on it at all.
+    // Only the automatic path waits on the real map, so a fallback never
+    // flashes the drawn map just before the real one succeeds.
     final waitingOnRealMap =
         mountReal && _realMap == _RealMapStatus.loading && !_preferDrawnMap;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -202,7 +205,9 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
         // The real map runs edge to edge; the header floats on it.
         if (mountReal) ...[
           Positioned.fill(
-            child: RealMapView(
+            child: MapHomeMapTouchSensor(
+              focus: _focus,
+              child: RealMapView(
               key: ValueKey('real-map-$_realMapAttempt'),
               accessToken: widget.mapboxAccessToken,
               badges: data.countyBadges,
@@ -215,6 +220,7 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
               onOpenPlace: widget.onOpenPlace,
               onRoute: widget.onRoute,
               onPlaceRoute: widget.onPlaceRoute,
+              ),
             ),
           ),
           const MapHomeHeaderScrim(),
@@ -237,6 +243,7 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
           headerKey: _headerKey,
           fade: _fade,
           isMapInteracting: _isMapInteracting,
+          focus: _focus,
           onOpenProfile: widget.onOpenProfile,
           showRealMap: showRealMap,
           drawnMap: mapHomeDrawnMapFor(
@@ -258,23 +265,15 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
             _isMapInteracting = false;
           }),
         ),
-        // Always on top of both map layers (even when the drawn map is
-        // covering RealMapView's own controls underneath), so the user
-        // can get back to whichever map they're not currently viewing.
         if (mountReal)
-          Positioned(
+          MapHomeMapSwitchButton(
             top: _headerBottom + 20 + 8 + (_preferDrawnMap ? 0 : 3 * 48),
-            right: 16,
-            child: RealMapRoundButton(
-              icon: _preferDrawnMap ? Icons.public : Icons.map_outlined,
-              tooltip: _preferDrawnMap
-                  ? 'Switch to live map'
-                  : 'Switch to simple map',
-              active: _preferDrawnMap,
-              onPressed: () => _setPreferDrawnMap(!_preferDrawnMap),
-            ),
+            preferDrawnMap: _preferDrawnMap,
+            onToggle: () => _setPreferDrawnMap(!_preferDrawnMap),
           ),
-        MapHomeBoardSheet(
+        MapHomeFocusFade(
+          focus: _focus,
+          child: MapHomeBoardSheet(
           data: data,
           layout: _layout,
           fade: _fade,
@@ -290,6 +289,7 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
           onRoute: widget.onRoute,
           onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
           onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
+        ),
         ),
       ],
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/map_home_models.dart';
 import 'map_home_detection_paused_chip.dart';
+import 'map_home_map_focus.dart';
 import 'map_home_map_status.dart';
 import 'map_home_stat_card.dart';
 
@@ -14,6 +15,7 @@ class MapHomeBoardTop extends StatelessWidget {
     required this.headerKey,
     required this.fade,
     required this.isMapInteracting,
+    this.focus,
     required this.onOpenProfile,
     required this.showRealMap,
     required this.drawnMap,
@@ -25,6 +27,9 @@ class MapHomeBoardTop extends StatelessWidget {
   final Key headerKey;
   final Duration fade;
   final bool isMapInteracting;
+
+  /// Clears the stat card while the real map is being worked.
+  final MapHomeMapFocus? focus;
   final VoidCallback? onOpenProfile;
   final bool showRealMap;
   final Widget drawnMap;
@@ -46,7 +51,9 @@ class MapHomeBoardTop extends StatelessWidget {
             Padding(
               key: headerKey,
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: AnimatedSwitcher(
+              child: MapHomeFocusFade(
+                focus: focus,
+                child: AnimatedSwitcher(
                 duration: fade,
                 child: board == null
                     ? MapHomeStatCard.loading(onOpenProfile: onOpenProfile)
@@ -59,6 +66,7 @@ class MapHomeBoardTop extends StatelessWidget {
                         onOpenProfile: onOpenProfile,
                       ),
               ),
+            ),
             ),
             const SizedBox(height: 20),
             Expanded(

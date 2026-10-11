@@ -16,6 +16,7 @@ typedef UploadJourneyMedia =
       required String id,
       required String localPath,
       required DateTime capturedAt,
+      required bool isTimelineMedia,
       double? latitude,
       double? longitude,
     });
@@ -53,6 +54,7 @@ class JourneyMediaUploadQueue {
           required id,
           required localPath,
           required capturedAt,
+          required isTimelineMedia,
           latitude,
           longitude,
         }) => cloud.uploadMedia(
@@ -61,6 +63,7 @@ class JourneyMediaUploadQueue {
           id: id,
           localPath: localPath,
           capturedAt: capturedAt,
+          isTimelineMedia: isTimelineMedia,
           latitude: latitude,
           longitude: longitude,
         ),
@@ -103,6 +106,7 @@ class JourneyMediaUploadQueue {
           id: capture.id,
           localPath: capture.localPath,
           capturedAt: capture.capturedAt,
+          isTimelineMedia: capture.isTimelineMedia,
           latitude: capture.latitude,
           longitude: capture.longitude,
         );

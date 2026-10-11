@@ -43,6 +43,7 @@ Future<void> _pump(
         appConfigProvider.overrideWithValue(const AppConfig.dev()),
         journeyDetailProvider('j').overrideWith((ref) async => _detail),
         journeyMomentsProvider('j').overrideWith((ref) async => moments),
+        journeyMediaProvider('j').overrideWith((ref) async => const []),
       ],
       child: const MaterialApp(home: JourneyReplayScreen(journeyId: 'j')),
     ),

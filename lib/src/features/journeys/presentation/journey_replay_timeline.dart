@@ -42,10 +42,12 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
     required this.summary,
     required this.points,
     required this.moments,
+    required this.media,
     required this.currentMoments,
     required this.onJumpTo,
     this.onOpenCounty,
     this.momentsLoading = false,
+    this.mediaLoading = false,
     this.topPadding = 0,
     this.bottomPadding = 0,
   });
@@ -53,12 +55,14 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
   final JourneySummary summary;
   final List<JourneyPoint> points;
   final List<JourneyMoment> moments;
+  final List<JourneyMediaItem> media;
 
   /// True while `journeyMomentsProvider` is still resolving its first
   /// value - shows a spinner instead of the empty-timeline card, so a
   /// Trip that simply hasn't finished computing its moments isn't
   /// briefly mistaken for one with none.
   final bool momentsLoading;
+  final bool mediaLoading;
 
   /// The moment(s) replay is currently paused at, if any ("lit up").
   final List<JourneyMoment> currentMoments;

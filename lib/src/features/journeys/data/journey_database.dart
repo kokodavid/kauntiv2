@@ -44,7 +44,7 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -73,6 +73,7 @@ class JourneyDatabase extends _$JourneyDatabase {
       if (from < 8) await _createMediaCapturesTable();
       if (from < 9) await _addTransportModeColumn();
       if (from < 10) await _addStopsColumn();
+      if (from >= 8 && from < 11) await _addTimelinePlacementColumn();
     },
   );
 
@@ -136,12 +137,20 @@ class JourneyDatabase extends _$JourneyDatabase {
         user_id TEXT NOT NULL,
         local_path TEXT NOT NULL,
         captured_at_millis INTEGER NOT NULL,
+        timeline_placed INTEGER NOT NULL DEFAULT 1,
         latitude REAL,
         longitude REAL,
         upload_attempts INTEGER NOT NULL DEFAULT 0,
         next_upload_at_millis INTEGER
       )
     ''');
+  }
+
+  Future<void> _addTimelinePlacementColumn() async {
+    await customStatement(
+      'ALTER TABLE journey_media_captures '
+      'ADD COLUMN timeline_placed INTEGER NOT NULL DEFAULT 1',
+    );
   }
 
   /// How the Trip was travelled - 'drive', 'walk' or 'cycle' - chosen

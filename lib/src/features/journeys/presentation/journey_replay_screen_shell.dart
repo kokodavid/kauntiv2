@@ -16,6 +16,9 @@ class JourneyReplayScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(journeyDetailProvider(journeyId));
+    final mediaAsync = ref.watch(journeyMediaProvider(journeyId));
+    final media = mediaAsync.value ?? const <JourneyMediaItem>[];
+    final mediaLoading = mediaAsync.isLoading && !mediaAsync.hasValue;
     final momentsAsync = ref.watch(journeyMomentsProvider(journeyId));
     final moments = momentsAsync.value;
     // True only while moments has never resolved yet - a refresh that
@@ -31,6 +34,8 @@ class JourneyReplayScreen extends ConsumerWidget {
               summary: value!.summary,
               route: route,
               moments: moments ?? const [],
+              media: media,
+              mediaLoading: mediaLoading,
               momentsLoading: momentsLoading,
               onOpenCounty: onOpenCounty,
             )
@@ -75,6 +80,8 @@ class _Player extends StatefulWidget {
     required this.summary,
     required this.route,
     required this.moments,
+    required this.media,
+    required this.mediaLoading,
     required this.momentsLoading,
     this.onOpenCounty,
   });
@@ -82,6 +89,8 @@ class _Player extends StatefulWidget {
   final JourneySummary summary;
   final JourneyRoute route;
   final List<JourneyMoment> moments;
+  final List<JourneyMediaItem> media;
+  final bool mediaLoading;
 
   /// Forwarded to [JourneyReplayTimeline] so it can show a loading
   /// indicator instead of "No key moments on this Trip yet." while

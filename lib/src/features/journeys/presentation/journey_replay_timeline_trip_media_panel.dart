@@ -1,18 +1,20 @@
 part of 'journey_replay_timeline.dart';
 
-/// A stable entry point for photos on every replay with a timeline. The
-/// timeline still owns their chronological placement; this panel makes adding
-/// and revisiting media discoverable after the first photo has been added.
+/// The Trip's album. Photos taken during the Trip also sit on the replay
+/// timeline; photos added by hand have no real capture time, so they stay
+/// here under "Other photos" and never interrupt the route replay.
 class _TripMediaPanel extends StatelessWidget {
   const _TripMediaPanel({
-    required this.photoMoments,
+    required this.media,
+    required this.mediaLoading,
     required this.addingPhotos,
     required this.onAddPhotos,
     required this.onFindPhotos,
     required this.onDeletePhoto,
   });
 
-  final List<JourneyMoment> photoMoments;
+  final List<JourneyMediaItem> media;
+  final bool mediaLoading;
   final bool addingPhotos;
   final VoidCallback onAddPhotos;
   final VoidCallback onFindPhotos;
@@ -20,8 +22,9 @@ class _TripMediaPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visiblePhotos = photoMoments.take(3).toList(growable: false);
-    final count = photoMoments.length;
+    final onTimeline = media.onTimeline;
+    final other = media.albumOnly;
+    final count = media.length;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -45,52 +48,52 @@ class _TripMediaPanel extends StatelessWidget {
                     ),
                   ),
                 ),
-                Text(
-                  count == 1 ? '1 photo' : '$count photos',
-                  style: AppTypeScale.small.copyWith(
-                    color: AppColors.mutedForeground,
+                if (mediaLoading)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Text(
+                    count == 1 ? '1 photo' : '$count photos',
+                    style: AppTypeScale.small.copyWith(
+                      color: AppColors.mutedForeground,
+                    ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              count == 0
+              mediaLoading
+                  ? 'Loading your Trip media...'
+                  : count == 0
                   ? 'Add photos from your gallery or find ones from this trip.'
-                  : 'Tap a photo to review it on the timeline or remove it.',
+                  : 'Photos taken during the Trip also appear on its timeline.',
               style: AppTypeScale.small.copyWith(
                 color: AppColors.mutedForeground,
               ),
             ),
-            if (visiblePhotos.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 72,
-                child: Row(
-                  children: [
-                    for (final moment in visiblePhotos)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: _TripMediaThumbnail(
-                            moment: moment,
-                            onDeletePhoto: onDeletePhoto,
-                          ),
-                        ),
-                      ),
-                    if (count > visiblePhotos.length)
-                      _TripMediaMoreCount(count: count - visiblePhotos.length),
-                  ],
-                ),
+            if (!mediaLoading && onTimeline.isNotEmpty)
+              _TripMediaGroup(
+                label: other.isEmpty ? null : 'On the timeline',
+                items: onTimeline,
+                onDeletePhoto: onDeletePhoto,
               ),
-            ],
+            if (!mediaLoading && other.isNotEmpty)
+              _TripMediaGroup(
+                label: 'Other photos',
+                caption: 'Kept in this album, not placed on the timeline.',
+                items: other,
+                onDeletePhoto: onDeletePhoto,
+              ),
             const SizedBox(height: 14),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
                 ElevatedButton.icon(
-                  onPressed: addingPhotos ? null : onAddPhotos,
+                  onPressed: addingPhotos || mediaLoading ? null : onAddPhotos,
                   icon: addingPhotos
                       ? const SizedBox(
                           width: 16,
@@ -108,7 +111,7 @@ class _TripMediaPanel extends StatelessWidget {
                   ),
                 ),
                 OutlinedButton.icon(
-                  onPressed: addingPhotos ? null : onFindPhotos,
+                  onPressed: addingPhotos || mediaLoading ? null : onFindPhotos,
                   icon: const Icon(Icons.search, size: 18),
                   label: const Text('Find trip photos'),
                 ),
@@ -121,62 +124,97 @@ class _TripMediaPanel extends StatelessWidget {
   }
 }
 
+/// A labelled row of photos. [label] is null when the panel has only one
+/// group, so a lone row carries no heading.
+class _TripMediaGroup extends StatelessWidget {
+  const _TripMediaGroup({
+    required this.items,
+    required this.onDeletePhoto,
+    this.label,
+    this.caption,
+  });
+
+  final List<JourneyMediaItem> items;
+  final Future<bool> Function(BuildContext, JourneyMediaItem) onDeletePhoto;
+  final String? label;
+  final String? caption;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (label != null)
+            Text(
+              label!,
+              style: AppTypeScale.small.copyWith(fontWeight: FontWeight.w700),
+            ),
+          if (caption != null)
+            Text(
+              caption!,
+              style: AppTypeScale.small.copyWith(
+                color: AppColors.mutedForeground,
+              ),
+            ),
+          if (label != null || caption != null) const SizedBox(height: 8),
+          SizedBox(
+            height: _TripMediaThumbnail.size,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: items.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) => _TripMediaThumbnail(
+                item: items[index],
+                onDeletePhoto: onDeletePhoto,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TripMediaThumbnail extends StatelessWidget {
   const _TripMediaThumbnail({
-    required this.moment,
+    required this.item,
     required this.onDeletePhoto,
   });
 
-  final JourneyMoment moment;
+  static const size = 72.0;
+
+  final JourneyMediaItem item;
   final Future<bool> Function(BuildContext, JourneyMediaItem) onDeletePhoto;
 
   @override
   Widget build(BuildContext context) {
-    final photo = moment.photo!;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => openJourneyPhoto(
-          context,
-          photo,
-          onDelete: onDeletePhoto,
-        ),
-        borderRadius: BorderRadius.circular(10),
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            image: DecorationImage(
-              image: appNetworkImage(
-                photo.url,
-                cacheKey: photo.id,
-                cacheWidth: 240,
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () =>
+              openJourneyPhoto(context, item, onDelete: onDeletePhoto),
+          borderRadius: BorderRadius.circular(10),
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              image: DecorationImage(
+                image: appNetworkImage(
+                  item.url,
+                  cacheKey: item.id,
+                  cacheWidth: 240,
+                ),
+                fit: BoxFit.cover,
+                onError: (_, _) {},
               ),
-              fit: BoxFit.cover,
-              onError: (_, __) {},
             ),
           ),
         ),
       ),
     );
   }
-}
-
-class _TripMediaMoreCount extends StatelessWidget {
-  const _TripMediaMoreCount({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: 56,
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      color: AppColors.lockedFill,
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Text(
-      '+$count',
-      style: AppTypeScale.itemTitle.copyWith(fontWeight: FontWeight.w700),
-    ),
-  );
 }

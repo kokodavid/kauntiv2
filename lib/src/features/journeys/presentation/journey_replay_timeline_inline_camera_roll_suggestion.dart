@@ -8,7 +8,8 @@ part of 'journey_replay_timeline.dart';
 /// fallback card as the fully-empty case, just without the pins.
 class _InlineCameraRollSuggestion extends StatelessWidget {
   const _InlineCameraRollSuggestion({
-    required this.photoMoments,
+    required this.media,
+    required this.mediaLoading,
     required this.cameraRoll,
     required this.addingPhotos,
     required this.onAddPhotos,
@@ -18,7 +19,8 @@ class _InlineCameraRollSuggestion extends StatelessWidget {
     required this.onDeletePhoto,
   });
 
-  final List<JourneyMoment> photoMoments;
+  final List<JourneyMediaItem> media;
+  final bool mediaLoading;
   final _CameraRollScan cameraRoll;
   final bool addingPhotos;
   final VoidCallback onAddPhotos;
@@ -32,7 +34,8 @@ class _InlineCameraRollSuggestion extends StatelessWidget {
     return Column(
       children: [
         _TripMediaPanel(
-          photoMoments: photoMoments,
+          media: media,
+          mediaLoading: mediaLoading,
           addingPhotos: addingPhotos,
           onAddPhotos: onAddPhotos,
           onFindPhotos: onFindPhotos,

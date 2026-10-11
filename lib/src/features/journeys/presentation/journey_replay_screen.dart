@@ -9,6 +9,7 @@ import '../../../design/app_colors.dart';
 import '../application/journey_key_moments.dart';
 import '../application/journey_views.dart';
 import '../domain/journey_moments.dart';
+import '../domain/journey_media_capture.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_replay.dart';
 import '../domain/journey_route.dart';

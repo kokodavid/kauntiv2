@@ -36,9 +36,9 @@ abstract final class TripShareCardCache {
 
   /// The photo a Trip's share card should show: the user's explicit
   /// choice (`summary.coverMediaId`) when it's still among this Trip's
-  /// synced photos, else the earliest one, else null (no-photo
-  /// fallback). `media` is already ordered oldest-first by the server
-  /// query, so "earliest" is just its first element.
+  /// synced photos, else the earliest photo taken during the Trip (then any
+  /// album-only photo), else null (no-photo fallback). `media` is already
+  /// ordered oldest-first by the server query.
   static JourneyMediaItem? resolveCoverPhoto(
     JourneySummary summary,
     List<JourneyMediaItem> media,
@@ -50,7 +50,9 @@ abstract final class TripShareCardCache {
         if (item.id == chosenId) return item;
       }
     }
-    return media.first;
+    // Photos taken during the Trip lead; album-only ones are still usable
+    // when they are all there is.
+    return media.onTimeline.firstOrNull ?? media.first;
   }
 
   /// Bump whenever [TripShareCard]'s own layout/painting changes in a way

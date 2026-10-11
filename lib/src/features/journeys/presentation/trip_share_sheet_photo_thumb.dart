@@ -13,9 +13,11 @@ class _PhotoThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = TimeOfDay.fromDateTime(
-      item.capturedAt.toLocal(),
-    ).format(context);
+    // A photo added by hand has no real capture time, so it is labelled as
+    // album media instead of showing the moment it was added.
+    final time = item.isTimelineMedia
+        ? TimeOfDay.fromDateTime(item.capturedAt.toLocal()).format(context)
+        : 'Album';
     return GestureDetector(
       onTap: onTap,
       child: Column(

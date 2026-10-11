@@ -210,9 +210,8 @@ mixin _JourneyReplayTimelineStateBehavior
           return Padding(
             padding: const EdgeInsets.only(top: 16),
             child: _InlineCameraRollSuggestion(
-              photoMoments: widget.moments
-                  .where((moment) => moment.isPhoto)
-                  .toList(growable: false),
+              media: widget.media,
+              mediaLoading: widget.mediaLoading,
               cameraRoll: _cameraRollScan,
               addingPhotos: _addingPhotos,
               onAddPhotos: _addPhotosManually,

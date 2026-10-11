@@ -177,6 +177,28 @@ void main() {
     expect(find.textContaining('You stayed'), findsNothing);
   });
 
+  testWidgets('lists only the nearest three places', (tester) async {
+    BadgeSuggestedPlace place(int i) => BadgeSuggestedPlace(
+      id: 'p$i',
+      name: 'Place $i',
+      type: 'park',
+      latitude: -1.28 - i / 10,
+      longitude: 36.82,
+    );
+    await tester.pumpWidget(
+      _app(
+        badge(22),
+        CountyBadgeDetail(
+          suggestedPlaces: [for (var i = 0; i < 6; i++) place(i)],
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(AppPlaceRow), findsNWidgets(3));
+  });
+
   testWidgets('first open spins the coin; Share waits until it lands', (
     tester,
   ) async {

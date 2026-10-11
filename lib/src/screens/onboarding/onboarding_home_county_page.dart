@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/widgets/county_badge_medallion.dart';
 import '../../counties/county_paths.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
@@ -57,7 +58,7 @@ class OnboardingHomeCountyPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 64, 12, 88),
+                  padding: const EdgeInsets.fromLTRB(12, 64, 12, 100),
                   child: AppCountyMap(
                     selectedCounty: selectedCounty,
                     onCountySelected: onSelected,
@@ -146,8 +147,8 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-/// The pick, as a card: a badge with the county's first letters, its
-/// name, and a hint to tap another. Before a pick it says how to start.
+/// The pick, as a card: the county's badge, its name, and a hint to tap
+/// another. Before a pick it says how to start.
 /// A save error replaces the hint line.
 class _SelectedCountyCard extends StatelessWidget {
   const _SelectedCountyCard({
@@ -171,31 +172,23 @@ class _SelectedCountyCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: picked == null
-                    ? AppColors.pageBackground
-                    : AppColors.accent,
-              ),
-              child: picked == null
-                  ? const Icon(
-                      Icons.touch_app_outlined,
-                      size: 20,
-                      color: AppColors.mutedForeground,
-                    )
-                  : Text(
-                      _initials(picked.name),
-                      style: AppTextStyles.chipLabel.copyWith(
-                        color: AppColors.accentForeground,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-            ),
+            // The county's own badge, as it will look once earned.
+            if (picked == null)
+              Container(
+                width: 52,
+                height: 52,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.pageBackground,
+                ),
+                child: const Icon(
+                  Icons.touch_app_outlined,
+                  size: 22,
+                  color: AppColors.mutedForeground,
+                ),
+              )
+            else
+              CountyBadgeMedallion(county: picked, earned: true, size: 52),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -228,11 +221,5 @@ class _SelectedCountyCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static String _initials(String name) {
-    final letters = name.replaceAll(RegExp('[^A-Za-z]'), '');
-    final count = letters.length < 3 ? letters.length : 3;
-    return letters.substring(0, count).toUpperCase();
   }
 }

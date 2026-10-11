@@ -141,21 +141,28 @@ class _Heading extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (pill != null) ...[
-            Container(
-              height: 26,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                pill!,
-                style: AppTextStyles.chipLabel.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+            // A Row gives the pill unbounded width, so it hugs its text
+            // instead of stretching across the header.
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 26,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    pill!,
+                    style: AppTextStyles.chipLabel.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
             const SizedBox(height: 12),
           ],

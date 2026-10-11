@@ -10,12 +10,16 @@ class ConnectivityProbe {
 
   final String host;
 
-  Future<bool> reachable() async {
+  Future<bool> reachable() => reachableWithin(const Duration(seconds: 4));
+
+  /// [reachable] with its own patience: a load that is starting wants a
+  /// quick answer, not the background poll's.
+  Future<bool> reachableWithin(Duration patience) async {
     if (kIsWeb) return true;
     try {
       final found = await InternetAddress.lookup(
         host,
-      ).timeout(const Duration(seconds: 4));
+      ).timeout(patience);
       return found.isNotEmpty && found.first.rawAddress.isNotEmpty;
     } on Object {
       return false;

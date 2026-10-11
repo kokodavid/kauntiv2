@@ -107,6 +107,24 @@ class Connectivity extends _$Connectivity {
     });
   }
 
+  /// A quick check for a load that is starting while the app still thinks it
+  /// is online (the usual first sight of a dead connection). Fast failure
+  /// marks the phone offline straight away so the load can give up in
+  /// seconds, not wait out the network's own timeout. Never throws.
+  Future<bool> checkNow() async {
+    try {
+      final ok = await ref
+          .read(connectivityProbeProvider)
+          .reachableWithin(const Duration(milliseconds: 2500));
+      if (!ok && ref.mounted && state.status == ConnectivityStatus.online) {
+        state = state.copyWith(status: ConnectivityStatus.offline);
+      }
+      return ok;
+    } on Object {
+      return true;
+    }
+  }
+
   /// Retry: checks again now. While offline it shows "Checking..." for at
   /// least a beat so the tap visibly does something.
   Future<void> recheck() async {

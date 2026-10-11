@@ -16,6 +16,8 @@ class OfflineException implements Exception {
 /// once instead of waiting out the network's own (very long) timeout.
 ///
 /// - Already offline: throws [OfflineException] without sending anything.
+/// - Looks dead on a quick check (about 2.5 s): gives up and marks the
+///   phone offline.
 /// - Goes offline mid-load: gives up the moment the app notices.
 /// - Neither, but the server never answers: gives up after [patience].
 ///
@@ -38,6 +40,15 @@ Future<T> failFast<T>(
       gaveUp.completeError(const OfflineException());
     }
   });
+  // The app still thinks it is online: ask the network now, so a dead
+  // connection is found in a couple of seconds rather than ten.
+  unawaited(
+    ref.read(connectivityProvider.notifier).checkNow().then((reachable) {
+      if (!reachable && !gaveUp.isCompleted) {
+        gaveUp.completeError(const OfflineException());
+      }
+    }),
+  );
   try {
     return await Future.any([load(), gaveUp.future]).timeout(patience);
   } finally {

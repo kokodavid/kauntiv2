@@ -16,6 +16,7 @@ import '../application/trip_stats_providers.dart';
 import 'confirm_dialog.dart';
 import 'edit_profile_sheet.dart';
 import 'profile_county_badges.dart';
+import 'profile_feedback_tile.dart';
 import 'profile_header.dart';
 import 'profile_progress_card.dart';
 import 'profile_tiles.dart';
@@ -29,10 +30,14 @@ class ProfileScreen extends ConsumerWidget {
     required this.onOpenBadges,
     this.onOpenJourneys,
     required this.onOpenSettings,
+    required this.onOpenFeedback,
   });
 
   final VoidCallback onOpenBadges;
   final VoidCallback? onOpenJourneys;
+
+  /// Opens the beta feedback form (the entry is only shown to testers).
+  final VoidCallback onOpenFeedback;
 
   /// Pushes the in-app Settings screen (architecture §2: cross-feature
   /// navigation goes through `app/router.dart`, not a direct import
@@ -62,6 +67,7 @@ class ProfileScreen extends ConsumerWidget {
       onOpenBadges: onOpenBadges,
       onOpenJourneys: onOpenJourneys,
       onOpenSettings: onOpenSettings,
+      onOpenFeedback: onOpenFeedback,
     );
   }
 }
@@ -72,11 +78,13 @@ class _ProfileContent extends ConsumerStatefulWidget {
     required this.onOpenBadges,
     this.onOpenJourneys,
     required this.onOpenSettings,
+    required this.onOpenFeedback,
   });
 
   final VoidCallback onOpenBadges;
   final VoidCallback? onOpenJourneys;
   final VoidCallback onOpenSettings;
+  final VoidCallback onOpenFeedback;
 
   @override
   ConsumerState<_ProfileContent> createState() => _ProfileContentState();
@@ -244,6 +252,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                         onTap: widget.onOpenJourneys,
                       ),
                     ),
+                  ProfileFeedbackTile(onOpen: widget.onOpenFeedback),
                   const SizedBox(height: 16),
                   SignOutButton(
                     signingOut: _signingOut,

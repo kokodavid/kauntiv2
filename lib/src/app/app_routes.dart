@@ -16,6 +16,8 @@ abstract final class AppRoutes {
   static const profile = '/profile';
   static const settings = '/settings';
   static const interests = '/interests';
+  static const feedback = '/feedback';
+  static const feedbackReports = '/feedback/reports';
   static const locationDiagnostics = '/location-diagnostics';
   static const journeyRecording = '/journey-recording';
   static const savedPlans = '/saved-plans';

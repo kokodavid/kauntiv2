@@ -90,6 +90,11 @@ dependencies:
   # only let the user browse it manually.
   photo_manager: ^3.12.0
 
+  # Beta feedback: the app version and device model that go on every report
+  # so a tester never has to describe their phone.
+  package_info_plus: ^8.3.0
+  device_info_plus: ^11.5.0
+
   # Disk cache for every remote image (core/widgets/app_network_image.dart).
   # Without it each launch re-downloaded all photos and blew the Supabase
   # egress quota. 3.4.x: 4.x needs Dart 3.12.

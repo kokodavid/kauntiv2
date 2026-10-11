@@ -5,11 +5,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
+import '../core/services/last_screen.dart';
 import '../core/services/location_diagnostics.dart';
 import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
+import '../features/feedback/presentation/feedback_form_screen.dart';
+import '../features/feedback/presentation/feedback_reports_screen.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
@@ -134,7 +137,20 @@ GoRouter appRouter(Ref ref) {
                 ? () => context.go(AppRoutes.journeys)
                 : null,
             onOpenSettings: () => context.push(AppRoutes.settings),
+            onOpenFeedback: () => context.push(AppRoutes.feedback),
           ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.feedback,
+        builder: (context, state) => FeedbackFormScreen(
+          onOpenReports: () => context.push(AppRoutes.feedbackReports),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.feedbackReports,
+        builder: (context, state) => FeedbackReportsScreen(
+          onSendFeedback: () => context.pop(),
         ),
       ),
       GoRoute(
@@ -213,12 +229,25 @@ GoRouter appRouter(Ref ref) {
       ),
     ],
   );
+  // Remember the screen the user is on so a bug report can say where it
+  // happened. Deferred a microtask: the router notifies mid-navigation.
+  void rememberScreen() {
+    final path = router.routerDelegate.currentConfiguration.uri.path;
+    Future<void>.microtask(() {
+      if (ref.mounted) ref.read(lastScreenProvider.notifier).record(path);
+    });
+  }
+
+  router.routerDelegate.addListener(rememberScreen);
   ref
     ..listen(
       startupFlowProvider.select((s) => s.step),
       (_, _) => router.refresh(),
     )
-    ..onDispose(router.dispose);
+    ..onDispose(() {
+      router.routerDelegate.removeListener(rememberScreen);
+      router.dispose();
+    });
   return router;
 }
 

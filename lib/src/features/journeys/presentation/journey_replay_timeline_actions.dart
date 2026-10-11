@@ -125,4 +125,63 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
   /// is what the confirm sheet and toast anchor to.
   Future<bool> _removePhoto(BuildContext context, JourneyMediaItem photo) =>
       removeJourneyMedia(context, ref, widget.summary.id, photo);
+
+  /// Opens the Trip media bottom sheet (Journey Replay 3a). Rebuilds on
+  /// [_sheetTick] so photos, the camera-roll scan and the add spinner
+  /// stay live while it is open.
+  Future<void> _openTripMedia() {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => ListenableBuilder(
+        listenable: _sheetTick,
+        builder: (sheetContext, _) => SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 8, bottom: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.of(sheetContext).pop(),
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 36,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBorder,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+                _TripMediaSheetBody(
+                  media: widget.media,
+                  mediaLoading: widget.mediaLoading,
+                  addingPhotos: _addingPhotos,
+                  onAddPhotos: _addPhotosManually,
+                  onFindPhotos: _requestCameraRollAccess,
+                  onDeletePhoto: _removePhoto,
+                ),
+                if (_cameraRollScan.status == _CameraRollStatus.matchesFound)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: _CameraRollMatchCard(
+                      matches: _cameraRollScan.matches,
+                      busy: _addingPhotos,
+                      onAddAll: _addAllMatches,
+                      onChoose: _chooseMatches,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

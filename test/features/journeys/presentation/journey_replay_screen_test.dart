@@ -172,4 +172,22 @@ void main() {
     expect(find.textContaining('0:06:00'), findsOneWidget);
     expect(find.byTooltip('Continue replay'), findsOneWidget);
   });
+
+  testWidgets('the media button opens the Trip media sheet', (tester) async {
+    await _pump(
+      tester,
+      moments: const [
+        JourneyMoment(
+          kind: JourneyMomentKind.countyCrossing,
+          index: 6,
+          name: 'Nairobi',
+        ),
+      ],
+    );
+    expect(find.text('Trip media'), findsNothing);
+    await tester.tap(find.bySemanticsLabel('Trip media'));
+    await tester.pumpAndSettle();
+    expect(find.text('Trip media'), findsOneWidget);
+    expect(find.textContaining('No photos yet.'), findsOneWidget);
+  });
 }

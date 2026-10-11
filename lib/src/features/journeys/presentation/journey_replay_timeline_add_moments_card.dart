@@ -7,7 +7,7 @@ part of 'journey_replay_timeline.dart';
 /// a standing nag once the answer is already known. [title]/[message] and
 /// [showAddNote] let this double as both the fully-empty-timeline card
 /// and the lighter inline "no photos yet" suggestion (see
-/// [_InlineCameraRollSuggestion]) without duplicating the layout.
+/// the Trip media sheet) without duplicating the layout.
 class _AddMomentsCard extends StatelessWidget {
   const _AddMomentsCard({
     required this.title,

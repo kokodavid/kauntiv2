@@ -39,6 +39,10 @@ abstract class _JourneyReplayTimelineStateBase
   /// cost per photo rather than something repeated on every rebuild.
   final _precachedPhotoIds = <String>{};
 
+  /// Bumped whenever the Trip media sheet's inputs change (media, scan
+  /// result, add-in-progress) so the open sheet rebuilds in place.
+  final _sheetTick = ValueNotifier<int>(0);
+
   static String? _countyAt(JourneyPoint? point) {
     if (point == null) return null;
     final code = CountyBoundaryResolver.countyCodeFor(
@@ -65,12 +69,27 @@ mixin _JourneyReplayTimelineStateBehavior
     });
   }
 
+  @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    _sheetTick.value++;
+  }
+
+  @override
+  void dispose() {
+    _sheetTick.dispose();
+    super.dispose();
+  }
+
   GlobalKey _keyFor(JourneyMoment moment) =>
       _rowKeys.putIfAbsent(_keyTuple(moment), GlobalKey.new);
 
   @override
   void didUpdateWidget(JourneyReplayTimeline oldWidget) {
     super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _sheetTick.value++;
+    });
     if (!identical(oldWidget.moments, widget.moments)) {
       _precachePhotos();
     }
@@ -109,14 +128,12 @@ mixin _JourneyReplayTimelineStateBehavior
     // Auto-scan only until the first photo exists. The permanent media panel
     // below remains available for manual additions and review either way.
     final hasPhotos = widget.moments.any((moment) => moment.isPhoto);
-    final showInlineSuggestion = !showEmptyBody;
     if (!hasPhotos && !widget.momentsLoading) {
       _ensureCameraRollScanStarted();
     }
     final momentCount = showEmptyBody ? 0 : widget.moments.length;
-    final hasFooter = showInlineSuggestion;
     // Index 0 is always the header (date/title/empty-body card); then one
-    // item per moment; then an optional footer. A single flat,
+    // item per moment. A single flat,
     // lazily-built ListView rather than a CustomScrollView of grouped
     // slivers (SliverMainAxisGroup) - that combination, with this list's
     // GlobalKey-keyed rows, was tripping a Flutter framework semantics
@@ -124,7 +141,7 @@ mixin _JourneyReplayTimelineStateBehavior
     // ticker-driven map/scrubber rebuilt nearby. ListView.builder is the
     // standard, well-tested virtualization path and keeps the same lazy,
     // don't-build-offscreen-photos behavior.
-    final itemCount = 1 + momentCount + (hasFooter ? 1 : 0);
+    final itemCount = 1 + momentCount;
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -143,17 +160,42 @@ mixin _JourneyReplayTimelineStateBehavior
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _dateRange(widget.summary.startedAt, widget.summary.endedAt),
-                  style: AppTypeScale.meta.copyWith(
-                    color: AppColors.accent,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.summary.title,
-                  style: AppTypeScale.sectionTitle.copyWith(fontSize: 22),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _dateRange(
+                              widget.summary.startedAt,
+                              widget.summary.endedAt,
+                            ),
+                            style: AppTypeScale.meta.copyWith(
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.summary.title,
+                            style: AppTypeScale.sectionTitle.copyWith(
+                              fontSize: 22,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!showEmptyBody)
+                      _TripMediaButton(
+                        count: widget.media.length,
+                        hasMatches:
+                            _cameraRollScan.status ==
+                            _CameraRollStatus.matchesFound,
+                        onPressed: _openTripMedia,
+                      ),
+                  ],
                 ),
                 if (!widget.summary.isUploaded) ...[
                   const SizedBox(height: 4),
@@ -204,23 +246,7 @@ mixin _JourneyReplayTimelineStateBehavior
               ),
             );
           }
-          // The only slot left once the header and every moment are
-          // accounted for is the footer - only reachable when hasFooter
-          // made itemCount include it.
-          return Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: _InlineCameraRollSuggestion(
-              media: widget.media,
-              mediaLoading: widget.mediaLoading,
-              cameraRoll: _cameraRollScan,
-              addingPhotos: _addingPhotos,
-              onAddPhotos: _addPhotosManually,
-              onFindPhotos: _requestCameraRollAccess,
-              onAddAllMatches: _addAllMatches,
-              onChooseMatches: _chooseMatches,
-              onDeletePhoto: _removePhoto,
-            ),
-          );
+          return const SizedBox.shrink();
         },
       ),
     );

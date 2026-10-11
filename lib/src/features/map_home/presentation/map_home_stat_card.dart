@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/county_tier.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/app_tier_medal.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../auth/application/auth_providers.dart';
+import '../../profile/application/public_profile_providers.dart';
 import 'map_home_skeleton.dart';
 
 part 'map_home_stat_card_parts.dart';
@@ -257,7 +259,9 @@ class _MedalPlaceholder extends StatelessWidget {
   }
 }
 
-/// The signed-in user's initial in a circle, opening Profile.
+/// The signed-in user's profile picture in a circle (their initial until
+/// they have one), opening Profile. Reads the same public profile as the
+/// Profile screen, so a new picture shows here as soon as it is saved.
 class _ProfileAvatar extends ConsumerWidget {
   const _ProfileAvatar({this.onOpenProfile});
 
@@ -267,6 +271,8 @@ class _ProfileAvatar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(authUserIdProvider);
     final initial = ref.watch(authServiceProvider).currentUserInitial;
+    final avatarUrl = ref.watch(myPublicProfileProvider).value?.avatarUrl;
+    final hasPicture = avatarUrl != null && avatarUrl.isNotEmpty;
     return Tooltip(
       message: 'Profile',
       child: InkWell(
@@ -276,11 +282,19 @@ class _ProfileAvatar extends ConsumerWidget {
           width: 32,
           height: 32,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.accent,
             shape: BoxShape.circle,
+            image: hasPicture
+                ? DecorationImage(
+                    image: appNetworkImage(avatarUrl),
+                    fit: BoxFit.cover,
+                  )
+                : null,
           ),
-          child: initial == null
+          child: hasPicture
+              ? null
+              : initial == null
               ? const Icon(Icons.person_outline, color: Colors.white, size: 18)
               : Text(
                   initial,

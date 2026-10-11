@@ -8,7 +8,8 @@ import '../application/journey_history.dart';
 import '../domain/journey_route.dart';
 
 /// The exploring-so-far summary at the top of the Journeys tab: total
-/// distance, Trip count and counties explored, as three columns in one
+/// distance, Trip count and counties crossed (every county a Trip's route
+/// passed through, independent of the badge check), as three columns in one
 /// gradient panel (the Home map stat card's language). Shown once there
 /// is at least one Journey; hidden while loading or empty, since the
 /// history list below already covers those states.
@@ -68,7 +69,7 @@ class JourneyHeroStats extends ConsumerWidget {
             child: _Stat(
               value: '${counties.length}',
               valueSuffix: '/${CountyPaths.all.length}',
-              label: 'COUNTIES',
+              label: 'COUNTIES CROSSED',
             ),
           ),
         ],
@@ -145,11 +146,12 @@ class _Stat extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 2),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypeScale.statLabel,
+        // Shrinks a long label ("COUNTIES CROSSED") to fit a narrow phone
+        // rather than cutting it off.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(label, maxLines: 1, style: AppTypeScale.statLabel),
         ),
       ],
     );

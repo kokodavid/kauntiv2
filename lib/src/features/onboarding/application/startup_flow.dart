@@ -47,7 +47,6 @@ class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
   }
 
   void completeSplash() => state = state.copyWith(splashComplete: true);
-
   /// Clear account-specific onboarding state before routing to sign-in.
   void resetAfterSignOut() => state = const StartupState(splashComplete: true);
 

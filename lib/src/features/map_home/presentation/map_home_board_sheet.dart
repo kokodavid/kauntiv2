@@ -11,6 +11,7 @@ import 'map_home_celebration_card.dart';
 import 'map_home_compact_card.dart';
 import 'map_home_for_you_section.dart';
 import 'map_home_links.dart';
+import 'map_home_offline_note.dart';
 import 'map_home_places_carousel.dart';
 import 'map_home_sheet.dart';
 import 'map_home_suggestion_media.dart';
@@ -86,6 +87,7 @@ class MapHomeBoardSheet extends StatelessWidget {
         ],
       );
     }
+    if (board.isOffline) return _offlineSheet(board);
     final compact = MapHomeCompact.forLayout(picked, board);
     return MapHomeSheet(
       startsExpanded: MapHomeLayoutRules.startsExpanded(picked),
@@ -102,6 +104,19 @@ class MapHomeBoardSheet extends StatelessWidget {
       ],
     );
   }
+
+  /// No connection: the strip is the collapsed card; expanded it explains
+  /// what still works. Trips still record offline, so that card stays.
+  Widget _offlineSheet(MapHomeBoardData board) => MapHomeSheet(
+    collapsedHeight: recordTripCard != null
+        ? recordTripCardHeight
+        : defaultRecordTripCardHeight,
+    collapsed: recordTripCard ?? MapHomeOfflineStrip(board: board),
+    children: [
+      MapHomeOfflineStrip(board: board),
+      MapHomeOfflineBody(board: board),
+    ],
+  );
 
   /// The carousel replaces the compact card on the standard layout when
   /// there are unclaimed counties to show (so its height is known up front).

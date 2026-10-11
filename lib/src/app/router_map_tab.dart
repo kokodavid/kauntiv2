@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
+import '../features/detection/application/detection_providers.dart';
+import '../features/detection/data/detection_repository.dart';
 import '../features/journeys/application/device_motion.dart';
 import '../features/journeys/application/journey_recorder.dart';
 import '../features/journeys/domain/journey_recording.dart';
@@ -11,6 +13,7 @@ import '../features/journeys/domain/motion_rules.dart';
 import '../features/journeys/presentation/journey_recording_controls.dart';
 import '../features/journeys/presentation/journey_start_card.dart';
 import '../features/map_home/application/map_home_board_loader.dart';
+import '../features/map_home/data/offline_map_home_repository.dart';
 import '../features/map_home/data/supabase_map_home_repository.dart';
 import '../features/map_home/presentation/map_home_board_sheet.dart'
     show defaultRecordTripCardHeight;
@@ -88,7 +91,15 @@ class MapTab extends ConsumerWidget {
       onOpenProfile: () => context.push(AppRoutes.profile),
       loader: AppSupabase.isInitialized
           ? MapHomeBoardLoader(
-              repository: SupabaseMapHomeRepository(AppSupabase.client),
+              // Saves each good board and falls back to it, plus visits
+              // detected on this phone but not synced, when offline.
+              repository: OfflineMapHomeRepository(
+                inner: SupabaseMapHomeRepository(AppSupabase.client),
+                userId: () => AppSupabase.client.auth.currentUser?.id,
+                pendingCounties: ref
+                    .read(detectionRepositoryProvider)
+                    .pendingCountyCodes,
+              ),
             )
           : const MapHomeBoardLoader(),
     );

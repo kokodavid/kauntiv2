@@ -119,6 +119,8 @@ class MapHomeBoardData {
     this.unclaimed = const [],
     this.unclaimedCount = 0,
     this.lastClaim,
+    this.isOffline = false,
+    this.savedAt,
   });
 
   /// The medal earned; null before the first (the chip hides).
@@ -139,6 +141,13 @@ class MapHomeBoardData {
 
   /// The newest claim, null when nothing is claimed or it couldn't be read.
   final MapHomeClaim? lastClaim;
+
+  /// Built from this phone's saved copy because the server couldn't be
+  /// reached: no suggestions, places or photos, only the drawn map.
+  final bool isOffline;
+
+  /// When the saved copy was taken; null when none exists yet.
+  final DateTime? savedAt;
 
   /// The top card when nothing is promoted: a saved place or depth-rank
   /// pick first, else the nearest unclaimed county.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../counties/county_paths.dart';
@@ -8,6 +10,7 @@ import '../domain/map_home_models.dart';
 import 'map_home_board.dart';
 import 'map_home_board_sheet.dart' show defaultRecordTripCardHeight;
 import 'map_home_links.dart';
+import 'map_home_offline_note.dart';
 
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({
@@ -66,13 +69,60 @@ class MapHomeScreen extends StatefulWidget {
   State<MapHomeScreen> createState() => _MapHomeScreenState();
 }
 
-class _MapHomeScreenState extends State<MapHomeScreen> {
-  late final Future<MapHomeBoardData> _board;
+class _MapHomeScreenState extends State<MapHomeScreen>
+    with WidgetsBindingObserver {
+  late Future<MapHomeBoardData> _board;
+  bool _offline = false;
+  bool _retrying = false;
+  Timer? _autoRetry;
+
+  /// While Home runs from its saved copy, it quietly tries the server again
+  /// this often (and on resume) and swaps the live board in when it works.
+  static const _autoRetryEvery = Duration(seconds: 30);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _board = widget.loader.loadBoard(homeCounty: widget.homeCounty);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _autoRetry?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _offline) unawaited(_retry());
+  }
+
+  void _trackOffline(MapHomeBoardData? data) {
+    final offline = data?.isOffline ?? false;
+    if (offline == _offline) return;
+    _offline = offline;
+    _autoRetry?.cancel();
+    _autoRetry = offline
+        ? Timer.periodic(_autoRetryEvery, (_) => unawaited(_retry()))
+        : null;
+  }
+
+  /// Asks the server again; keeps the saved copy on screen until the live
+  /// board arrives, so there is no flash.
+  Future<void> _retry() async {
+    if (_retrying) return;
+    setState(() => _retrying = true);
+    try {
+      final live = await widget.loader.loadBoard(homeCounty: widget.homeCounty);
+      if (!mounted || live.isOffline) return;
+      setState(() => _board = Future.value(live));
+    } on Object {
+      // Still offline; the strip stays.
+    } finally {
+      if (mounted) setState(() => _retrying = false);
+    }
   }
 
   @override
@@ -92,11 +142,18 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               ),
             );
           }
+          _trackOffline(snapshot.data);
           // Null while loading: the board renders its own placeholders.
-          return MapHomeBoard(
+          return MapHomeOfflineScope(
+            retrying: _retrying,
+            onRetry: () => unawaited(_retry()),
+            child: MapHomeBoard(
             data: snapshot.data,
             loadMapPlaces: widget.loader.loadMapPlaces,
-            mapboxAccessToken: widget.mapboxAccessToken,
+            // Offline: no token, so Home stays on the drawn county map.
+            mapboxAccessToken: snapshot.data?.isOffline == true
+                ? ''
+                : widget.mapboxAccessToken,
             onOpenCounty: widget.onOpenCounty,
             onOpenPlace: widget.onOpenPlace,
             onRoute: widget.onRoute,
@@ -111,6 +168,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             recordTripCard: widget.recordTripCard,
             recordTripCardHeight: widget.recordTripCardHeight,
             topCard: widget.topCard,
+          ),
           );
         },
       ),

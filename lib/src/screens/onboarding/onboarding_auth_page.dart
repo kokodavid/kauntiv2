@@ -44,14 +44,14 @@ class OnboardingAuthPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppIconBadge(size: 60),
-                  SizedBox(height: 20),
-                  Wrap(
+                  const AppIconBadge(size: 60),
+                  const SizedBox(height: 20),
+                  const Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 8,
                     children: [
@@ -59,14 +59,15 @@ class OnboardingAuthPage extends StatelessWidget {
                       Text('county by county', style: AppTextStyles.kickerText),
                     ],
                   ),
-                  SizedBox(height: 4),
-                  Text('Earn all 47 counties.', style: AppTextStyles.heading),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 4),
+                  const Text('Earn all 47 counties.', style: AppTextStyles.heading),
+                  const SizedBox(height: 6),
                   Text(
-                    "Travel as you normally do. Kaunti47 notices when you "
-                    "cross a county line and gives you the badge once "
-                    "you've spent time there.",
-                    style: AppTextStyles.bodyMuted.copyWith(fontSize: 14, height: 1.45),
+                    "Stay about two hours in a county and it's yours.",
+                    style: AppTextStyles.bodyMuted.copyWith(
+                      fontSize: 14,
+                      height: 1.45,
+                    ),
                   ),
                 ],
               ),

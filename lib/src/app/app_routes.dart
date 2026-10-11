@@ -7,6 +7,7 @@ abstract final class AppRoutes {
   static const splash = '/splash';
   static const signIn = '/sign-in';
   static const homeCounty = '/home-county';
+  static const preferences = '/preferences';
   static const permission = '/permission';
   static const map = '/map';
   static const badges = '/badges';
@@ -29,7 +30,13 @@ abstract final class AppRoutes {
     if (AppFeatureFlags.journeys) AppNavTab.journeys,
   ];
 
-  static const _gates = {splash, signIn, homeCounty, permission};
+  static const _gates = {
+    splash,
+    signIn,
+    homeCounty,
+    preferences,
+    permission,
+  };
 
   /// Start-up gating: until onboarding is done, every location goes to
   /// the current step's page; once ready, a gate page goes to Map and
@@ -39,6 +46,7 @@ abstract final class AppRoutes {
       StartupStep.splash => splash,
       StartupStep.signIn => signIn,
       StartupStep.homeCounty => homeCounty,
+      StartupStep.preferences => preferences,
       StartupStep.permission => permission,
       StartupStep.ready => null,
     };

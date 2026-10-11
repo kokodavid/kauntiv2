@@ -19,7 +19,7 @@ class ProfileAppVersion extends ConsumerWidget {
     final isDev =
         ref.watch(appConfigProvider).environment == AppEnvironment.dev;
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.only(top: 8),
       child: Center(
         child: Text(
           'Kaunti47 $version${isDev ? ' · dev' : ''}',

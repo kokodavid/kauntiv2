@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/connectivity_provider.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../badges/application/badges_providers.dart';
@@ -218,7 +219,12 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
               onEditProfile: _openEditProfile,
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                14,
+                16,
+                AppBottomNav.clearance(context) + 8,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

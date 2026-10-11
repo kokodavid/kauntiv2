@@ -42,8 +42,6 @@ class MapHomeCompact {
     ].join(' · ');
   }
 
-  static String _distance(String label) => label.replaceFirst(' away', '');
-
   /// The collapsed card for [layout], or null when there is nothing to
   /// point at (no suggestion, no unclaimed county, no home county).
   static MapHomeCompact? forLayout(
@@ -79,8 +77,7 @@ class MapHomeCompact {
     };
     return MapHomeCompact(
       context: context,
-      title:
-          '${suggestion.county.name} · ${_distance(suggestion.distanceAway)}',
+      title: suggestion.county.name,
       meta: suggestion.placeName ?? suggestion.reasonLabel,
       county: suggestion.county,
       suggestion: suggestion,

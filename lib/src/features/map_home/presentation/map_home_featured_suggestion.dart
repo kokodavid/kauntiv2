@@ -50,11 +50,11 @@ Widget mapHomeSuggestionCard(
     county: suggestion.county,
     photoTitle: suggestion.title,
     photoCaption: suggestion.placeName == null
-        ? suggestion.distanceAway
+        ? suggestion.reasonLabel
         : '${suggestion.county.name} County',
     photoUrl: suggestion.highlightImageUrl,
     label: whyLabel,
-    line: '${suggestion.reasonLabel} · ${suggestion.distanceAway}',
+    line: suggestion.reasonLabel,
     stats: suggestion.stats,
     actions: [
       if (onRoute != null)

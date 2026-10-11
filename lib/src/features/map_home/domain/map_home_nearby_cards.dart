@@ -87,7 +87,8 @@ abstract final class MapHomeNearbyCards {
   }
 
   static MapHomeNearbyCard _county(MapHomeSuggestion s, int placeCount) {
-    final distance = splitDistance(s.distanceAway);
+    // No distance on county cards: the database measures them from the home
+    // or last-visited county, not from where the user is.
     return MapHomeNearbyCard(
       kind: MapHomeNearbyKind.newCounty,
       pill: 'New county',
@@ -98,8 +99,6 @@ abstract final class MapHomeNearbyCards {
           ? 'Unclaimed · $placeCount ${placeCount == 1 ? 'place' : 'places'}'
           : 'Unclaimed',
       county: s.county,
-      distanceValue: distance?.value,
-      distanceUnit: distance?.unit,
       imageUrl: s.highlightImageUrl,
     );
   }

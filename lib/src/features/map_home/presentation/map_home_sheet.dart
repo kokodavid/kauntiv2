@@ -44,6 +44,9 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
   static const _peekSize = 0.14;
   static const _maxSize = 0.88;
 
+  /// The one space between sheet sections.
+  static const _sectionGap = 28.0;
+
   /// Handle row, top padding and the room kept for the tab bar, which
   /// follows the bar's own height and the phone's system navigation inset.
   static double _chrome(BuildContext context) =>
@@ -133,10 +136,14 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (var i = 0; i < widget.children.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 28),
-                    widget.children[i],
-                  ],
+                  // Each section brings its own gap, and only when it shows
+                  // something, so a section that hides itself (saved plans,
+                  // an empty row) can't leave a double gap behind.
+                  for (var i = 0; i < widget.children.length; i++)
+                    _SectionSlot(
+                      gap: i == 0 ? 0 : _sectionGap,
+                      child: widget.children[i],
+                    ),
                 ],
               ),
             );
@@ -226,5 +233,60 @@ class _MeasureSizeRenderObject extends RenderProxyBox {
       _oldSize = newSize;
       WidgetsBinding.instance.addPostFrameCallback((_) => onChange(newSize));
     }
+  }
+}
+
+/// A section plus the gap above it, collapsing to nothing when the section
+/// itself has no height. Keeps the space between visible sections exactly
+/// one gap however many sections hide.
+class _SectionSlot extends SingleChildRenderObjectWidget {
+  const _SectionSlot({required this.gap, required Widget child})
+    : super(child: child);
+
+  final double gap;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderSectionSlot(gap);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant _RenderSectionSlot renderObject,
+  ) => renderObject.gap = gap;
+}
+
+class _RenderSectionSlot extends RenderShiftedBox {
+  _RenderSectionSlot(this._gap) : super(null);
+
+  double _gap;
+
+  set gap(double value) {
+    if (_gap == value) return;
+    _gap = value;
+    markNeedsLayout();
+  }
+
+  Size _sized(Size child) =>
+      child.height == 0 ? Size(child.width, 0) : Size(child.width, child.height + _gap);
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    final c = child;
+    if (c == null) return constraints.smallest;
+    return constraints.constrain(_sized(c.getDryLayout(constraints)));
+  }
+
+  @override
+  void performLayout() {
+    final c = child;
+    if (c == null) {
+      size = constraints.smallest;
+      return;
+    }
+    c.layout(constraints, parentUsesSize: true);
+    final empty = c.size.height == 0;
+    (c.parentData! as BoxParentData).offset = Offset(0, empty ? 0 : _gap);
+    size = constraints.constrain(_sized(c.size));
   }
 }

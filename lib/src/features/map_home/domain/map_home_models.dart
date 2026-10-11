@@ -85,6 +85,16 @@ class MapHomeSuggestion {
 
 enum MapHomeSuggestionReason { depthRank, savedHere, unclaimed }
 
+/// The user's most recent claim (a county that became explored), for the
+/// celebration. [claimedAt] is `county_visits.confirmed_at`, not the latest
+/// visit, so a revisit never re-triggers it.
+class MapHomeClaim {
+  const MapHomeClaim({required this.county, required this.claimedAt});
+
+  final CountyPath county;
+  final DateTime claimedAt;
+}
+
 class MapHomeBoardData {
   const MapHomeBoardData({
     required this.tier,
@@ -95,6 +105,7 @@ class MapHomeBoardData {
     this.promotion,
     this.unclaimed = const [],
     this.unclaimedCount = 0,
+    this.lastClaim,
   });
 
   /// The medal earned; null before the first (the chip hides).
@@ -112,6 +123,9 @@ class MapHomeBoardData {
 
   /// How many counties are still unclaimed in total ("All N left").
   final int unclaimedCount;
+
+  /// The newest claim, null when nothing is claimed or it couldn't be read.
+  final MapHomeClaim? lastClaim;
 
   /// The top card when nothing is promoted: a saved place or depth-rank
   /// pick first, else the nearest unclaimed county.
@@ -137,6 +151,29 @@ class MapHomeBoardData {
             entry.county.code != top.county.code)
           entry,
     ].take(maxUnclaimedCards).toList();
+  }
+
+  /// The home county as a first target for a new user: its own suggestion
+  /// when one exists, else a plain card built from its badge.
+  MapHomeSuggestion? get homeCountySuggestion {
+    final home = homeCounty;
+    if (home == null) return null;
+    for (final s in [...unclaimed, ...suggestions]) {
+      if (s.county.code == home.code) return s;
+    }
+    final badge = countyBadges
+        .where((b) => b.county.code == home.code)
+        .firstOrNull;
+    return MapHomeSuggestion(
+      county: home,
+      reason: MapHomeSuggestionReason.unclaimed,
+      distanceAway: 'Your home county',
+      isNear: true,
+      areaKm2: badge?.areaKm2?.toDouble(),
+      elevationM: badge?.elevationM?.toInt(),
+      visitDurationMinutes: badge?.durationMinutes,
+      highlightImageUrl: badge?.highlightImageUrl,
+    );
   }
 
   int get exploredCount => countyBadges

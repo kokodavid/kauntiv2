@@ -7,16 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/domain/map_place.dart';
 import '../../../design/app_colors.dart';
 import '../application/map_home_view_preference_provider.dart';
+import '../domain/map_home_layout.dart';
 import '../domain/map_home_models.dart';
-import 'map_home_county_map.dart';
-import 'map_home_detection_paused_chip.dart';
-import 'map_home_for_you_section.dart';
+import 'map_home_board_sheet.dart';
+import 'map_home_board_top.dart';
+import 'map_home_drawn_map.dart';
 import 'map_home_links.dart';
 import 'map_home_map_status.dart';
-import 'map_home_sheet.dart';
-import 'map_home_sheet_cards.dart';
-import 'map_home_skeleton.dart';
-import 'map_home_stat_card.dart';
 import 'real_map_controls.dart';
 import 'real_map_view.dart';
 
@@ -33,7 +30,21 @@ class MapHomeBoard extends ConsumerStatefulWidget {
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
     this.onOpenProfile,
+    this.isTripRecording = false,
+    this.onStartTrip,
+    this.tripsNear,
+    this.savedPlans,
+    this.recordTripCard,
+    this.recordTripCardHeight = defaultRecordTripCardHeight,
   });
+
+  /// A Trip is recording; starting or stopping one re-picks the layout.
+  final bool isTripRecording;
+  final VoidCallback? onStartTrip;
+  final Widget? tripsNear;
+  final Widget? savedPlans;
+  final Widget? recordTripCard; // while moving or a Trip is in progress
+  final double recordTripCardHeight;
 
   /// Null while the board is loading: every slot shows a same-sized
   /// placeholder, then crossfades to the real content in place.
@@ -73,20 +84,74 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
 
   bool get _realMapAllowed => !kIsWeb && widget.mapboxAccessToken.isNotEmpty;
 
+  /// The sheet's layout. Picked once the board and the stored preferences
+  /// are in, then re-picked only when a Trip starts or stops, so a late
+  /// signal never moves content under the user's thumb.
+  MapHomeLayout? _layout;
+  bool _prefsLoaded = false;
+  DateTime? _celebratedClaimAt;
+
+  /// Decided on the first pick: whether the newest claim is celebrated on
+  /// this open. Kept for the session so a Trip starting does not drop it.
+  bool _claimIsFresh = false;
+  bool _firstPickDone = false;
+
+  void _pickLayout() {
+    final data = widget.data;
+    if (data == null || !_prefsLoaded) return;
+    final claim = data.lastClaim;
+    if (!_firstPickDone) {
+      _firstPickDone = true;
+      _claimIsFresh = MapHomeLayoutRules.isFreshClaim(
+        claimedAt: claim?.claimedAt,
+        now: DateTime.now(),
+        celebratedAt: _celebratedClaimAt,
+      );
+      if (_claimIsFresh && claim != null) {
+        // One open only: the next open goes back to the usual order.
+        unawaited(
+          ref
+              .read(mapHomeViewPreferenceProvider)
+              .setCelebratedClaimAt(claim.claimedAt),
+        );
+      }
+    }
+    final layout = MapHomeLayoutRules.pick(
+      claimedCount: data.exploredCount,
+      totalCounties: data.totalCounties,
+      isTripRecording: widget.isTripRecording,
+      hasFreshClaim: _claimIsFresh && claim != null,
+    );
+    if (layout != _layout) setState(() => _layout = layout);
+  }
+
+  @override
+  void didUpdateWidget(MapHomeBoard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final boardArrived = oldWidget.data == null && widget.data != null;
+    if (boardArrived || oldWidget.isTripRecording != widget.isTripRecording) {
+      _pickLayout();
+    }
+  }
+
   static const _fade = Duration(milliseconds: 400);
 
   @override
   void initState() {
     super.initState();
-    unawaited(
-      ref.read(mapHomeViewPreferenceProvider).preferDrawnMap().then((
-        preferDrawn,
-      ) {
-        if (mounted && preferDrawn) {
-          setState(() => _preferDrawnMap = preferDrawn);
-        }
-      }),
-    );
+    unawaited(_loadPreferences());
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = ref.read(mapHomeViewPreferenceProvider);
+    final preferDrawn = await prefs.preferDrawnMap();
+    final celebratedAt = await prefs.celebratedClaimAt();
+    if (!mounted) return;
+    _celebratedClaimAt = celebratedAt;
+    _prefsLoaded = true;
+    if (preferDrawn) _preferDrawnMap = true;
+    _pickLayout();
+    if (preferDrawn) setState(() {});
   }
 
   void _setPreferDrawnMap(bool preferDrawn) {
@@ -110,21 +175,6 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
         .dy;
     if ((bottom - _headerBottom).abs() < 1) return;
     setState(() => _headerBottom = bottom);
-  }
-
-  /// The drawn map's slot below the header: the placeholder while the board
-  /// or the real map loads, else the drawn county map (fallback).
-  Widget _drawnMapFor(MapHomeBoardData? data, {required bool realLoading}) {
-    if (data == null || realLoading) return const MapHomeLoadingMap();
-    return MapHomeCountyMap(
-      badges: data.countyBadges,
-      homeCountySlug: data.homeCounty?.slug,
-      onOpenCounty: widget.onOpenCounty,
-      onInteractingChanged: (interacting) {
-        if (interacting == _isMapInteracting) return;
-        setState(() => _isMapInteracting = interacting);
-      },
-    );
   }
 
   @override
@@ -180,83 +230,31 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
             ),
           ),
         ],
-        Positioned.fill(
-          child: SafeArea(
-            bottom: false,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Equal top and side margin around the card, so it sits
-                // a little inset from the screen edges on every side.
-                const SizedBox(height: 12),
-                Padding(
-                  key: _headerKey,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: AnimatedSwitcher(
-                    duration: _fade,
-                    child: data == null
-                        ? MapHomeStatCard.loading(
-                            onOpenProfile: widget.onOpenProfile,
-                          )
-                        : MapHomeStatCard(
-                            key: const ValueKey('stat-card'),
-                            exploredCount: data.exploredCount,
-                            totalCounties: data.totalCounties,
-                            compact: _isMapInteracting,
-                            tier: data.tier,
-                            onOpenProfile: widget.onOpenProfile,
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          ignoring: showRealMap,
-                          child: AnimatedOpacity(
-                            opacity: showRealMap ? 0 : 1,
-                            duration: _fade,
-                            child: AnimatedSwitcher(
-                              duration: _fade,
-                              child: _drawnMapFor(
-                                data,
-                                realLoading: waitingOnRealMap,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        left: 24,
-                        right: 24,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const MapHomeDetectionPausedChip(),
-                            if (data != null &&
-                                _realMapAllowed &&
-                                _realMap == _RealMapStatus.failed) ...[
-                              const SizedBox(height: 6),
-                              MapHomeOfflineMapChip(
-                                onRetry: () => setState(() {
-                                  _realMap = _RealMapStatus.loading;
-                                  _realMapAttempt++;
-                                  _isMapInteracting = false;
-                                }),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+        MapHomeBoardTop(
+          data: data,
+          headerKey: _headerKey,
+          fade: _fade,
+          isMapInteracting: _isMapInteracting,
+          onOpenProfile: widget.onOpenProfile,
+          showRealMap: showRealMap,
+          drawnMap: mapHomeDrawnMapFor(
+            data,
+            realLoading: waitingOnRealMap,
+            onOpenCounty: widget.onOpenCounty,
+            onInteractingChanged: (interacting) {
+              if (interacting == _isMapInteracting) return;
+              setState(() => _isMapInteracting = interacting);
+            },
           ),
+          showOfflineChip:
+              data != null &&
+              _realMapAllowed &&
+              _realMap == _RealMapStatus.failed,
+          onRetryRealMap: () => setState(() {
+            _realMap = _RealMapStatus.loading;
+            _realMapAttempt++;
+            _isMapInteracting = false;
+          }),
         ),
         // Always on top of both map layers (even when the drawn map is
         // covering RealMapView's own controls underneath), so the user
@@ -274,23 +272,21 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
               onPressed: () => _setPreferDrawnMap(!_preferDrawnMap),
             ),
           ),
-        MapHomeSheet(
-          children: [
-            AnimatedSwitcher(
-              duration: _fade,
-              child: data == null
-                  ? const MapHomeForYouSkeleton()
-                  : MapHomeForYouSection(
-                      data: data,
-                      onOpenCounty: widget.onOpenCounty,
-                      onOpenPlace: widget.onOpenPlace,
-                      onRoute: widget.onRoute,
-                      onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
-                      onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
-                    ),
-            ),
-            const MapHomeQuestPreviewCard(),
-          ],
+        MapHomeBoardSheet(
+          data: data,
+          layout: _layout,
+          fade: _fade,
+          tripsNear: widget.tripsNear,
+          savedPlans: widget.savedPlans,
+          loadPlaces: widget.loadMapPlaces,
+          recordTripCard: widget.recordTripCard,
+          recordTripCardHeight: widget.recordTripCardHeight,
+          onStartTrip: widget.onStartTrip,
+          onOpenCounty: widget.onOpenCounty,
+          onOpenPlace: widget.onOpenPlace,
+          onRoute: widget.onRoute,
+          onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
+          onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
         ),
       ],
     );

@@ -8,7 +8,8 @@ Future<JourneyDestination?> _destination(
   final rows = await db
       .customSelect(
         'SELECT destination_place_id, destination_name, '
-        'destination_latitude, destination_longitude FROM journey_sessions '
+        'destination_latitude, destination_longitude, stops_json '
+        'FROM journey_sessions '
         'WHERE id = ? AND user_id = ?',
         variables: [Variable.withString(id), Variable.withString(userId)],
         readsFrom: {db.journeySessions},
@@ -24,6 +25,7 @@ Future<JourneyDestination?> _destination(
     name: name,
     latitude: (row['destination_latitude'] as num?)?.toDouble(),
     longitude: (row['destination_longitude'] as num?)?.toDouble(),
+    viaStops: JourneyStop.listFrom(row['stops_json']),
   );
 }
 

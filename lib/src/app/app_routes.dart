@@ -15,6 +15,7 @@ abstract final class AppRoutes {
   static const journeys = '/journeys';
   static const profile = '/profile';
   static const settings = '/settings';
+  static const interests = '/interests';
   static const locationDiagnostics = '/location-diagnostics';
   static const journeyRecording = '/journey-recording';
 

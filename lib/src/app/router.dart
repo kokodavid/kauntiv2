@@ -18,6 +18,8 @@ import '../features/map_home/application/map_home_board_loader.dart';
 import '../features/map_home/data/supabase_map_home_repository.dart';
 import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/profile/presentation/interests_prompt_card.dart';
+import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../services/app_supabase.dart';
@@ -137,6 +139,10 @@ GoRouter appRouter(Ref ref) {
         ),
       ),
       GoRoute(
+        path: AppRoutes.interests,
+        builder: (context, state) => const InterestsScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.settings,
         // NoTransitionPage for the same reason as Profile above: sign-out
         // (and delete-account) redirect here mid-stack, and an animated
@@ -214,6 +220,11 @@ class _MapTab extends ConsumerWidget {
       onPromotedPlaceRoute: JourneyPlaceRoutes.openPromotion,
       onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
       onOpenProfile: () => context.push(AppRoutes.profile),
+      // The "Tell us what you like" card lives in the profile feature, so
+      // the app layer hands it to Home rather than Home importing it.
+      topCard: InterestsPromptCard(
+        onPick: () => context.push(AppRoutes.interests),
+      ),
       loader: AppSupabase.isInitialized
           ? MapHomeBoardLoader(
               repository: SupabaseMapHomeRepository(AppSupabase.client),

@@ -21,6 +21,7 @@ class MapHomeScreen extends StatefulWidget {
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
     this.onOpenProfile,
+    this.topCard,
   });
 
   final CountyPath? homeCounty;
@@ -36,6 +37,10 @@ class MapHomeScreen extends StatefulWidget {
   final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
   final VoidCallback? onOpenProfile;
+
+  /// Shown above For you once the board has loaded (e.g. the "Tell us what
+  /// you like" card), supplied by the app layer. It hides itself.
+  final Widget? topCard;
 
   @override
   State<MapHomeScreen> createState() => _MapHomeScreenState();
@@ -79,6 +84,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
             onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
             onOpenProfile: widget.onOpenProfile,
+            topCard: widget.topCard,
           );
         },
       ),

@@ -20,6 +20,7 @@ class MapHomeForYouSection extends StatelessWidget {
     this.onRoute,
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
+    this.topCard,
   });
 
   final MapHomeBoardData data;
@@ -31,6 +32,10 @@ class MapHomeForYouSection extends StatelessWidget {
   final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
 
+  /// Sits above everything else when present (it sizes itself to nothing
+  /// when it has nothing to show).
+  final Widget? topCard;
+
   @override
   Widget build(BuildContext context) {
     final promotion = data.promotion;
@@ -41,6 +46,7 @@ class MapHomeForYouSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        ?topCard,
         if (promotion != null || fallback != null) ...[
           const MapHomeForYouHeader(),
           const SizedBox(height: 10),

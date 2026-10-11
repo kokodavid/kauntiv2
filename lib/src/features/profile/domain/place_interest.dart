@@ -62,3 +62,13 @@ class InterestsAnswer {
         completed: completed ?? this.completed,
       );
 }
+
+/// How the saved interests read in a settings row: "Not set", or the
+/// first two names and a count of the rest, e.g. "Waterfalls, coast +1".
+String interestsSummary(List<PlaceInterest> interests) {
+  if (interests.isEmpty) return 'Not set';
+  final names = [for (final i in interests.take(2)) i.shortName];
+  names[0] = names[0][0].toUpperCase() + names[0].substring(1);
+  final extra = interests.length - names.length;
+  return '${names.join(', ')}${extra > 0 ? ' +$extra' : ''}';
+}

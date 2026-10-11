@@ -33,6 +33,7 @@ class MapHomeBoard extends ConsumerStatefulWidget {
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
     this.onOpenProfile,
+    this.topCard,
   });
 
   /// Null while the board is loading: every slot shows a same-sized
@@ -51,6 +52,7 @@ class MapHomeBoard extends ConsumerStatefulWidget {
   final OpenPromotedPlaceDirections? onPromotedPlaceRoute;
   final OpenAllUnclaimed? onSeeAllUnclaimed;
   final VoidCallback? onOpenProfile;
+  final Widget? topCard;
 
   @override
   ConsumerState<MapHomeBoard> createState() => _MapHomeBoardState();
@@ -287,6 +289,7 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
                       onRoute: widget.onRoute,
                       onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
                       onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
+                      topCard: widget.topCard,
                     ),
             ),
             const MapHomeQuestPreviewCard(),

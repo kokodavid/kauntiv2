@@ -1,6 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/app_current_location.dart';
+import '../../../core/services/connectivity_provider.dart';
 import '../../../core/services/fail_fast.dart';
 import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
@@ -20,19 +22,31 @@ SupabaseBadgesRepository? badgesRepository(Ref ref) {
   return client == null ? null : SupabaseBadgesRepository(client);
 }
 
-/// The signed-in user's badge collection; offline it is the copy from the
-/// last good load ([BadgeCollection.savedAt] set). Reloads when the account
-/// changes and when a visit syncs (a new badge or depth).
+/// The signed-in user's badge collection. The copy from the last good load
+/// shows at once ([BadgeCollection.savedAt] set), then the live one replaces
+/// it when it arrives; offline, the saved copy simply stays. Reloads when
+/// the account changes, when a visit syncs (a new badge or depth) and when
+/// the connection drops or returns.
 @riverpod
-Future<BadgeCollection> badgeCollection(Ref ref) async {
+Stream<BadgeCollection> badgeCollection(Ref ref) async* {
   ref.watch(authUserIdProvider);
   ref.watch(visitSyncProvider);
+  ref.watch(connectivityProvider.select((s) => s.isOffline));
   final userId = ref.watch(currentUserIdProvider)();
   final repository = ref.watch(badgesRepositoryProvider);
   if (userId == null || repository == null) {
-    return BadgeCollection.from(visitStates: const {}, ranks: const {});
+    yield BadgeCollection.from(visitStates: const {}, ranks: const {});
+    return;
   }
   const store = BadgesSnapshotStore();
+  final saved = await store.read(userId);
+  if (saved != null) {
+    yield BadgeCollection.from(
+      visitStates: saved.visitStates,
+      ranks: saved.ranks,
+      savedAt: saved.savedAt,
+    );
+  }
   try {
     final data = await failFast(ref, () => repository.raw(userId));
     await store.write(
@@ -41,20 +55,14 @@ Future<BadgeCollection> badgeCollection(Ref ref) async {
       ranks: data.ranks,
       now: DateTime.now(),
     );
-    return BadgeCollection.from(
+    yield BadgeCollection.from(
       visitStates: data.visitStates,
       ranks: data.ranks,
     );
   } on Object {
-    // No connection: show the copy from the last good load, if any. With
-    // none saved the error stands and the screen says it couldn't load.
-    final saved = await store.read(userId);
+    // No connection: the saved copy already on screen stays. With none
+    // saved the error stands and the screen says it needs a connection.
     if (saved == null) rethrow;
-    return BadgeCollection.from(
-      visitStates: saved.visitStates,
-      ranks: saved.ranks,
-      savedAt: saved.savedAt,
-    );
   }
 }
 

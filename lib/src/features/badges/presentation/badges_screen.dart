@@ -81,7 +81,7 @@ class _Content extends StatelessWidget {
                 const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: SavedChipBody(savedAt: collection.savedAt!),
+                  child: SavedChip(savedAt: collection.savedAt!),
                 ),
               ],
               const SizedBox(height: 14),

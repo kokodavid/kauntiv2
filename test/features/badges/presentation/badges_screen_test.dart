@@ -23,7 +23,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          badgeCollectionProvider.overrideWith((ref) async => collection),
+          badgeCollectionProvider.overrideWith((ref) => Stream.value(collection)),
           countyBadgeDetailProvider(
             1,
           ).overrideWith((ref) async => const CountyBadgeDetail()),
@@ -81,7 +81,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          badgeCollectionProvider.overrideWith((ref) => pending.future),
+          badgeCollectionProvider.overrideWith((ref) => Stream.fromFuture(pending.future)),
         ],
         child: const MaterialApp(home: BadgesScreen()),
       ),

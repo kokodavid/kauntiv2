@@ -106,8 +106,8 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                           Text(
                             'What do you like to see?',
                             style: AppTextStyles.heading.copyWith(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 18,
+                              height: 1.3,
                             ),
                           ),
                           const SizedBox(height: 6),

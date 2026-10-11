@@ -99,7 +99,7 @@ class _PlaceDetailHeaderState extends State<PlaceDetailHeader> {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontFamily: AppTypeScale.family,
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.w700,
                             height: 1.15,
                             color: Colors.white,

@@ -36,7 +36,12 @@ class TripPlanCounties extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            const Text('Passes through', style: AppTypeScale.sectionTitle),
+            Text(
+              'Passes through',
+              style: AppTypeScale.sectionTitle.copyWith(
+                fontSize: AppTypeScale.cardTitleSize,
+              ),
+            ),
             const SizedBox(width: 8),
             Flexible(
               child: Text(

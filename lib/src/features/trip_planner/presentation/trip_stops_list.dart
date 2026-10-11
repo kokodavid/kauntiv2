@@ -63,7 +63,12 @@ class _TripStopsListState extends State<TripStopsList> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text('Stops', style: AppTypeScale.sectionTitle),
+            Text(
+              'Stops',
+              style: AppTypeScale.sectionTitle.copyWith(
+                fontSize: AppTypeScale.cardTitleSize,
+              ),
+            ),
             const SizedBox(width: 8),
             Text(
               '${stops.length} of ${TripStopOrder.maxStops}',

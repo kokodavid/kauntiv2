@@ -13,6 +13,7 @@ import '../domain/startup_state.dart';
 import 'setup_progress_providers.dart';
 
 part 'startup_flow.g.dart';
+part 'startup_flow_interests.dart';
 
 /// The OS location permission service. Tests override it.
 @Riverpod(keepAlive: true)
@@ -27,7 +28,7 @@ AppLocationPermissionService locationPermissionService(Ref ref) =>
 /// `setState` gate that `app.dart` used to be, with the same rules and
 /// copy.
 @Riverpod(keepAlive: true)
-class StartupFlow extends _$StartupFlow {
+class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
   static const _homeCountyCheckFailed =
       'Could not check your saved home county. Pick it again to continue.';
 
@@ -156,8 +157,7 @@ class StartupFlow extends _$StartupFlow {
     }
   }
 
-  /// Resume setup at the first unfinished step after the home county:
-  /// interests not answered → step 2, otherwise on to the permission.
+  /// Resume at the first unfinished step: interests open → 2, else 3.
   Future<void> _continueSetup() async {
     InterestsAnswer? answer;
     try {
@@ -178,80 +178,6 @@ class StartupFlow extends _$StartupFlow {
     }
     state = state.copyWith(interests: answer.interests);
     await _continuePastInterests();
-  }
-
-  Future<void> _syncInterests() async {
-    try {
-      await ref.read(interestsRepositoryProvider).syncPending();
-    } on Object {
-      // Sent next time.
-    }
-  }
-
-  void toggleInterest(PlaceInterest interest) {
-    final next = state.interests.contains(interest)
-        ? [
-            for (final i in state.interests)
-              if (i != interest) i,
-          ]
-        : PlaceInterest.fromKeys([
-            ...state.interests.map((i) => i.key),
-            interest.key,
-          ]);
-    state = state.copyWith(interests: next);
-  }
-
-  /// Step 2's Continue: remember the picks, then on to the permission.
-  Future<void> continueFromInterests() async {
-    if (state.isSavingInterests) return;
-    await _answerInterests(state.interests, skipped: false);
-  }
-
-  /// Step 2's "Skip for now": saves an empty answer so it is never asked
-  /// again in setup; step 3 shows an Undo toast.
-  Future<void> skipInterests() async {
-    if (state.isSavingInterests) return;
-    state = state.copyWith(interests: const []);
-    await _answerInterests(const [], skipped: true);
-  }
-
-  Future<void> _answerInterests(
-    List<PlaceInterest> picks, {
-    required bool skipped,
-  }) async {
-    state = state.copyWith(isSavingInterests: true);
-    try {
-      await ref
-          .read(interestsRepositoryProvider)
-          .save(InterestsAnswer(interests: picks, completed: true));
-    } on Object {
-      // The answer is kept on the phone; setup carries on regardless.
-    }
-    if (!ref.mounted) return;
-    state = state.copyWith(isSavingInterests: false, interestsSkipped: skipped);
-    await _continuePastInterests();
-  }
-
-  /// The Undo on the skip toast: back to step 2 with the question open.
-  Future<void> undoInterestsSkip() async {
-    state = state.copyWith(
-      phase: StartupStep.preferences,
-      interestsSkipped: false,
-      permissionError: () => null,
-    );
-    try {
-      await ref
-          .read(interestsRepositoryProvider)
-          .save(InterestsAnswer(interests: state.interests, completed: false));
-    } on Object {
-      // Still reopens; the answer is re-saved on Continue.
-    }
-  }
-
-  void dismissInterestsToast() {
-    if (state.interestsSkipped) {
-      state = state.copyWith(interestsSkipped: false);
-    }
   }
 
   /// Back one setup step; picks and the saved county are kept.
@@ -291,7 +217,7 @@ class StartupFlow extends _$StartupFlow {
     );
   }
 
-  /// Setup is over: clear the in-progress flag and open Home.
+  /// Setup is over: clear the flag and open Home.
   Future<void> _finishSetup() async {
     await _markSetupInProgress(false);
     if (!ref.mounted) return;
@@ -302,8 +228,7 @@ class StartupFlow extends _$StartupFlow {
     );
   }
 
-  /// Step 3's "Not now" (and "Continue in manual mode"): Home in manual
-  /// mode. Location can be turned on later from Settings.
+  /// Step 3's "Not now": Home in manual mode (turn location on in Settings).
   Future<void> skipLocation() async {
     if (state.isRequestingLocation) return;
     try {
@@ -311,7 +236,7 @@ class StartupFlow extends _$StartupFlow {
         'location_mode': 'manual',
       });
     } on Object {
-      // The mode is a preference; Home opens either way.
+      // A preference only; Home opens either way.
     }
     if (!ref.mounted) return;
     await _finishSetup();

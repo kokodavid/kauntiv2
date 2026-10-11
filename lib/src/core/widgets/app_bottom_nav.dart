@@ -1,5 +1,7 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../design/app_colors.dart';
@@ -34,10 +36,19 @@ class AppBottomNav extends StatelessWidget {
       (tab: AppNavTab.journeys, icon: Icons.route_rounded, label: 'Trips'),
   ];
 
+  /// Gap under the floating bar. The app draws edge to edge (no
+  /// SafeArea), so on Android the bar has to lift itself above the system
+  /// navigation bar (buttons or gesture pill). iPhones already sit clear of
+  /// the home indicator at the design's 24.
+  static double bottomGap(BuildContext context) {
+    if (defaultTargetPlatform != TargetPlatform.android) return 24;
+    return math.max(24, MediaQuery.viewPaddingOf(context).bottom + 8);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      padding: EdgeInsets.fromLTRB(24, 16, 24, bottomGap(context)),
       alignment: Alignment.center,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(999),

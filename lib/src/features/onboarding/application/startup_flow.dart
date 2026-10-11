@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../counties/county_paths.dart';
@@ -45,6 +47,29 @@ class StartupFlow extends _$StartupFlow {
   /// After sign-in (or a restored session): the saved home county decides
   /// whether to pick one or check permission next.
   Future<void> onSignedIn() async {
+    // A county remembered on this phone is trusted at once, so a returning
+    // user starts instantly and offline. The server copy is re-read quietly
+    // afterwards in case it changed elsewhere.
+    CountyPath? remembered;
+    try {
+      remembered = await ref
+          .read(profileSetupRepositoryProvider)
+          .cachedHomeCounty();
+    } on Object {
+      remembered = null;
+    }
+    if (!ref.mounted) return;
+    if (remembered != null) {
+      state = state.copyWith(
+        homeCounty: () => remembered,
+        homeCountyError: () => null,
+        permissionError: () => null,
+      );
+      unawaited(_refreshHomeCounty());
+      await _continueAfterHomeCounty();
+      return;
+    }
+
     CountyPath? county;
     String? error;
     try {
@@ -62,6 +87,20 @@ class StartupFlow extends _$StartupFlow {
       phase: county == null ? StartupStep.homeCounty : null,
     );
     if (county != null) await _continueAfterHomeCounty();
+  }
+
+  /// Background re-read of the saved county. Failures (offline, slow) are
+  /// ignored: the remembered county keeps working.
+  Future<void> _refreshHomeCounty() async {
+    try {
+      final latest = await ref
+          .read(profileSetupRepositoryProvider)
+          .fetchHomeCounty();
+      if (!ref.mounted || latest == null || latest == state.homeCounty) return;
+      state = state.copyWith(homeCounty: () => latest);
+    } on Object {
+      // Keep using the remembered county.
+    }
   }
 
   void selectCounty(CountyPath county) => state = state.copyWith(

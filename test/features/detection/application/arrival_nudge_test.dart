@@ -107,4 +107,30 @@ void main() {
     await history.clear();
     expect(await history.shownKeys(), isEmpty);
   });
+
+  test('re-entering a county right after its sheet does not show again',
+      () async {
+    final c = container();
+    final notifier = c.read(pendingArrivalNudgeProvider.notifier);
+    await notifier.offer([nairobi]);
+    expect(notifier.take(), isNotNull);
+
+    // A new crossing into the same county moments later (boundary flap).
+    final again = CountyArrivalNudge(
+      countyCode: 47,
+      enteredAt: DateTime.now().toUtc(),
+    );
+    await notifier.offer([again]);
+    expect(c.read(pendingArrivalNudgeProvider), isNull);
+  });
+
+  test('a different county still shows after one was taken', () async {
+    final c = container();
+    final notifier = c.read(pendingArrivalNudgeProvider.notifier);
+    await notifier.offer([nairobi]);
+    notifier.take();
+    final kiambu = CountyArrivalNudge(countyCode: 22, enteredAt: entered);
+    await notifier.offer([kiambu]);
+    expect(c.read(pendingArrivalNudgeProvider)?.nudge, kiambu);
+  });
 }

@@ -11,7 +11,7 @@ import 'local/detection_database.dart';
 typedef UploadVisit = Future<Object?> Function(String owner, PendingSyncOp op);
 
 /// Drains the on-device visit queue to `sync_county_visit` (ported from
-/// v1). Only the county, outcome and entry time are sent, never a
+/// v1). Only the county, outcome, entry time and stay length are sent, never a
 /// location (doc 05). The RPC is idempotent, so a retry after a lost
 /// response can't double-count a visit.
 ///
@@ -41,6 +41,10 @@ class VisitSyncQueue {
         'p_county_id': op.countyCode,
         'p_outcome': op.outcome,
         'p_entered_at': op.enteredAt.toUtc().toIso8601String(),
+        // How long the stay lasted; the badge sheet compares it with the
+        // 2 hours a county needs. Never a location.
+        'p_stay_seconds': op.resolvedAt.difference(op.enteredAt).inSeconds
+            .clamp(0, 1 << 30),
       },
     ),
   );

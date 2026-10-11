@@ -10,8 +10,12 @@ import 'package:kaunti47_v2/src/services/app_location_permission_service.dart';
 
 class _FakeProfile implements ProfileSetupRepository {
   CountyPath? saved;
+  CountyPath? cached;
   var failFetch = false;
   var failSave = false;
+
+  @override
+  Future<CountyPath?> cachedHomeCounty() async => cached;
 
   @override
   Future<CountyPath?> fetchHomeCounty() async {
@@ -116,6 +120,42 @@ void main() {
     final state = c.read(startupFlowProvider);
     expect(state.step, StartupStep.homeCounty);
     expect(state.homeCountyError, contains('Could not check'));
+  });
+
+  test('a remembered county starts the app even when offline', () async {
+    userId = 'alice';
+    profile
+      ..cached = kiambu
+      ..failFetch = true;
+    final c = container();
+    final flow = c.read(startupFlowProvider.notifier);
+    await flow.restoreSession();
+    flow.completeSplash();
+    final state = c.read(startupFlowProvider);
+    expect(state.step, StartupStep.ready);
+    expect(state.homeCounty, kiambu);
+    expect(state.homeCountyError, isNull);
+  });
+
+  test('a remembered county is replaced if the server has a new one', () async {
+    userId = 'alice';
+    final nairobi = CountyPaths.byCode[47]!;
+    profile
+      ..cached = kiambu
+      ..saved = nairobi;
+    final c = container();
+    final flow = c.read(startupFlowProvider.notifier);
+    await flow.restoreSession();
+    await Future<void>.delayed(Duration.zero);
+    expect(c.read(startupFlowProvider).homeCounty, nairobi);
+  });
+
+  test('nothing remembered and offline still asks for a county', () async {
+    profile.failFetch = true;
+    final c = container();
+    final flow = c.read(startupFlowProvider.notifier)..completeSplash();
+    await flow.onSignedIn();
+    expect(c.read(startupFlowProvider).step, StartupStep.homeCounty);
   });
 
   test('a failed save keeps the page with an error', () async {

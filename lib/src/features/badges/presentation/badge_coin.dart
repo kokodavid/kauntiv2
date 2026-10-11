@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/county_badge_medallion.dart';
+import '../../map_home/domain/county_badge_state.dart';
 import '../domain/badge_collection.dart';
 
 /// The badge as a coin that can spin: a few fast turns about its vertical
@@ -129,6 +130,7 @@ class _BadgeCoinState extends State<BadgeCoin>
     Widget face({required bool back}) => CountyBadgeMedallion(
       county: badge.county,
       earned: badge.isEarned,
+      passedThrough: badge.state == CountyBadgeState.passedThrough,
       size: widget.size,
       back: back,
     );

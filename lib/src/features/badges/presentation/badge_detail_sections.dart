@@ -160,14 +160,19 @@ class BadgeHowToEarnSection extends StatelessWidget {
         'Your visit to $name is waiting to sync. The badge appears once '
             "it's confirmed.",
       CountyBadgeState.passedThrough =>
-        "You've passed through $name. Spend about 2 hours here to earn "
-            'the badge.',
+        "You've passed through $name. Spend about 2 hours here in one "
+            'stay to earn the badge.',
       _ => 'Spend about 2 hours in $name to earn the badge.',
     };
+    final passed = badge.state == CountyBadgeState.passedThrough
+        ? _passedLines(detail)
+        : const <String>[];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _Line(icon: Icons.flag_outlined, text: how),
+        for (final line in passed)
+          _Line(icon: Icons.schedule_outlined, text: line),
         const SizedBox(height: 8),
         BadgePlacesSection(
           countyCode: badge.county.code,
@@ -177,6 +182,44 @@ class BadgeHowToEarnSection extends StatelessWidget {
       ],
     );
   }
+}
+
+/// What the last pass-through looked like, against the 2 hours needed.
+/// Stays don't add up across visits, so the sheet says so.
+List<String> _passedLines(CountyBadgeDetail detail) {
+  final at = detail.lastPassAt;
+  final stay = detail.lastPassStay;
+  final lines = <String>[];
+  if (at != null) {
+    final when = BadgeProgressSection.date(at);
+    lines.add(
+      stay == null
+          ? 'Last passed through on $when.'
+          : 'Last passed through on $when. You stayed '
+                '${_stayLabel(stay)} of the 2 hours needed.',
+    );
+  }
+  if (detail.passCount > 1) {
+    lines.add(
+      'Passed through ${detail.passCount} times. Time spent on separate '
+      "visits doesn't add up, so it takes one stay of about 2 hours.",
+    );
+  } else if (at != null) {
+    lines.add(
+      "Time on separate visits doesn't add up, so it takes one stay of "
+      'about 2 hours.',
+    );
+  }
+  return lines;
+}
+
+String _stayLabel(Duration stay) {
+  if (stay.inMinutes < 1) return 'under a minute';
+  if (stay.inMinutes < 60) return 'about ${stay.inMinutes} min';
+  final minutes = stay.inMinutes % 60;
+  return minutes == 0
+      ? 'about ${stay.inHours} h'
+      : 'about ${stay.inHours} h $minutes min';
 }
 
 class _Line extends StatelessWidget {

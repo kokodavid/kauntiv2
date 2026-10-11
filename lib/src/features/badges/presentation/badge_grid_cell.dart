@@ -29,6 +29,7 @@ class BadgeGridCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pending = badge.state == CountyBadgeState.pending;
+    final passedThrough = badge.state == CountyBadgeState.passedThrough;
     return Semantics(
       button: onTap != null,
       label:
@@ -50,6 +51,9 @@ class BadgeGridCell extends StatelessWidget {
                   child: CustomPaint(
                     painter: _DepthRingPainter(
                       quarters: badge.depth.quarters,
+                      color: passedThrough
+                          ? AppColors.legendPassed
+                          : AppColors.accent,
                       stroke: math.max(2, size * 2.2 / 80),
                     ),
                   ),
@@ -58,6 +62,7 @@ class BadgeGridCell extends StatelessWidget {
                     CountyBadgeMedallion(
                       county: badge.county,
                       earned: badge.isEarned,
+                      passedThrough: passedThrough,
                       size: size - inset * 2,
                     ),
                 if (pending)
@@ -72,9 +77,14 @@ class BadgeGridCell extends StatelessWidget {
 }
 
 class _DepthRingPainter extends CustomPainter {
-  const _DepthRingPainter({required this.quarters, required this.stroke});
+  const _DepthRingPainter({
+    required this.quarters,
+    required this.color,
+    required this.stroke,
+  });
 
   final int quarters;
+  final Color color;
   final double stroke;
 
   @override
@@ -93,13 +103,15 @@ class _DepthRingPainter extends CustomPainter {
       -math.pi / 2,
       math.pi / 2 * quarters.clamp(0, 4),
       false,
-      paint..color = AppColors.accent,
+      paint..color = color,
     );
   }
 
   @override
   bool shouldRepaint(_DepthRingPainter oldDelegate) =>
-      oldDelegate.quarters != quarters || oldDelegate.stroke != stroke;
+      oldDelegate.quarters != quarters ||
+      oldDelegate.color != color ||
+      oldDelegate.stroke != stroke;
 }
 
 class _PendingMarker extends StatelessWidget {

@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import '../../counties/county_paths.dart';
 import '../../widgets/app_county_shape.dart';
 import '../../widgets/app_svg_path.dart';
+import '../../design/app_colors.dart';
 import '../design/app_type_scale.dart';
 
 /// A county badge (Figma "Badge", no stars): a glossy disc with the county
 /// name across the top and its silhouette in white. Blue once earned,
-/// grey otherwise. Drawn at any [size]; the design is 74 px. With [back]
-/// it's the coin's reverse: the same disc with the Kaunti47 mark.
+/// the map's "passed" yellow when only passed through, grey otherwise.
+/// Drawn at any [size]; the design is 74 px. With [back] it's the coin's
+/// reverse: the same disc with the Kaunti47 mark.
 ///
 /// Lives in `widgets/` rather than the Badges feature because Journeys'
 /// "Entered county" timeline card (`journey_county_moment_card.dart`)
@@ -21,12 +23,17 @@ class CountyBadgeMedallion extends StatelessWidget {
     super.key,
     required this.county,
     required this.earned,
+    this.passedThrough = false,
     this.size = 74,
     this.back = false,
   });
 
   final CountyPath county;
   final bool earned;
+
+  /// Passed through but not earned: drawn in the map's "passed" colour.
+  /// Ignored once [earned].
+  final bool passedThrough;
   final double size;
   final bool back;
 
@@ -39,7 +46,12 @@ class CountyBadgeMedallion extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: CustomPaint(painter: _DiscPainter(earned: earned)),
+            child: CustomPaint(
+              painter: _DiscPainter(
+                earned: earned,
+                passedThrough: passedThrough,
+              ),
+            ),
           ),
           Positioned(
             left: 6 * unit,
@@ -88,7 +100,12 @@ extension on CountyBadgeMedallion {
     child: Stack(
       children: [
         Positioned.fill(
-          child: CustomPaint(painter: _DiscPainter(earned: earned)),
+          child: CustomPaint(
+              painter: _DiscPainter(
+                earned: earned,
+                passedThrough: passedThrough,
+              ),
+            ),
         ),
         Positioned(
           left: 18 * unit,
@@ -165,9 +182,29 @@ class _KenyaPainter extends CustomPainter {
 /// The disc: a rim (lit from above) round an inner face with a soft light
 /// band down its left side. Colours sampled from the Figma badge.
 class _DiscPainter extends CustomPainter {
-  const _DiscPainter({required this.earned});
+  const _DiscPainter({required this.earned, this.passedThrough = false});
 
   final bool earned;
+  final bool passedThrough;
+
+  /// The map's "passed" yellow as a lit rim and a three-stop face, the
+  /// same way the blue and grey ones are built.
+  static final _passedRim = [
+    _shade(AppColors.legendPassed, 0.2),
+    _shade(AppColors.legendPassed, -0.3),
+  ];
+  static final _passedFace = [
+    _shade(AppColors.legendPassed, 0.15),
+    AppColors.legendPassed,
+    _shade(AppColors.legendPassed, -0.25),
+  ];
+
+  static Color _shade(Color color, double amount) {
+    final hsl = HSLColor.fromColor(color);
+    return hsl
+        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
+        .toColor();
+  }
 
   static const _earnedRim = [Color(0xFF0BD9FF), Color(0xFF004BD8)];
   static const _earnedFace = [
@@ -197,7 +234,11 @@ class _DiscPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: earned ? _earnedRim : _lockedRim,
+          colors: earned
+              ? _earnedRim
+              : passedThrough
+              ? _passedRim
+              : _lockedRim,
         ).createShader(bounds),
     );
     canvas.drawCircle(
@@ -207,7 +248,11 @@ class _DiscPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: earned ? _earnedFace : _lockedFace,
+          colors: earned
+              ? _earnedFace
+              : passedThrough
+              ? _passedFace
+              : _lockedFace,
         ).createShader(faceRect),
     );
     // Soft light down the left of the face.
@@ -253,5 +298,7 @@ class _DiscPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DiscPainter oldDelegate) => oldDelegate.earned != earned;
+  bool shouldRepaint(_DiscPainter oldDelegate) =>
+      oldDelegate.earned != earned ||
+      oldDelegate.passedThrough != passedThrough;
 }

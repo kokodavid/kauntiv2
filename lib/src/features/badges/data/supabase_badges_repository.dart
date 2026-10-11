@@ -73,6 +73,12 @@ class SupabaseBadgesRepository {
       exploredVisits: count('explored_visits'),
       exploredMonths: count('explored_months'),
       lastVisitedAt: at('last_visited_at'),
+      passCount: count('pass_count'),
+      lastPassAt: at('last_pass_at'),
+      lastPassStay: switch (row['last_pass_stay_seconds']) {
+        final num seconds => Duration(seconds: seconds.toInt()),
+        _ => null,
+      },
       journeys: count('journeys'),
       journeyMeters: (row['journey_distance_m'] as num?)?.toDouble() ?? 0,
       suggestedPlaces: [

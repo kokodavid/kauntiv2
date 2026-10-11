@@ -98,9 +98,9 @@ class _CountyMapPainter extends CustomPainter {
 
     for (final county in CountyPaths.all) {
       final path = AppSvgPath.parse(county.pathData);
-      // Selected fill is legendHome, not AppColors.green (v1's olive) --
-      // this map's "home county" highlight is the same green the app's
-      // stat-card legend already uses for "Home" elsewhere.
+      // Selected fill is the app blue (setup design v2: "selected county
+      // is app blue, not green"), so the pick matches the selected-county
+      // card under the map and the rest of the setup flow.
       //
       // Unselected fill/stroke: the Figma "Karibu" node (235:4745) embeds
       // the map as a flattened image rather than per-county vector paths,
@@ -118,7 +118,7 @@ class _CountyMapPainter extends CustomPainter {
       final selected = county == selectedCounty;
       canvas.drawPath(
         path,
-        Paint()..color = selected ? AppColors.legendHome : Colors.white,
+        Paint()..color = selected ? AppColors.accent : Colors.white,
       );
       if (!selected) {
         canvas.drawPath(

@@ -57,7 +57,10 @@ class MapHomeUnclaimedCard extends StatelessWidget {
               child: AppPhotoHeader(
                 county: suggestion.county,
                 title: suggestion.county.name,
-                caption: suggestion.distanceAway,
+                caption: suggestion.matchedPlaceName == null
+                    ? suggestion.distanceAway
+                    : '${suggestion.matchedPlaceName} · '
+                          '${suggestion.distanceAway}',
                 imageUrl: suggestion.highlightImageUrl,
                 height: photoHeight,
                 // Narrow row cards give the whole width to the name; the section
@@ -66,6 +69,19 @@ class MapHomeUnclaimedCard extends StatelessWidget {
               ),
             ),
           ),
+          if (suggestion.matchLabel case final match?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: Text(
+                match,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypeScale.action.copyWith(
+                  fontSize: 12.5,
+                  color: AppColors.mutedForeground,
+                ),
+              ),
+            ),
           if (route != null)
             InkWell(
               onTap: () =>

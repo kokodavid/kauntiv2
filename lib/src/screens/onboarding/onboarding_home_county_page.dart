@@ -1,32 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../../core/widgets/county_badge_medallion.dart';
 import '../../counties/county_paths.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
 import '../../widgets/app_county_map.dart';
 import '../../widgets/county_picker_sheet.dart';
+import 'onboarding_shell.dart';
 
-/// v2 home-county picker (Figma "Karibu" node 235:4745, with the search
-/// sheet at node 235:6967). Full rewrite of the v1 screen, matching the
-/// pattern already used for the splash and Onboarding 02 rebuilds: same
-/// constructor/callbacks as before so `OnboardingFlow`'s wiring is
-/// untouched, new visuals and interaction inside.
+/// Setup step 1 of 3: pick your home county (setup design v2), inside the
+/// shared [OnboardingShell]. The header gives the one-line pitch, so a new
+/// user knows the game before picking. Tapping a county's shape on the map
+/// selects it; a search bar over the map opens [CountyPickerSheet]; and
+/// the pick shows as a card under the map.
 ///
-/// Two real interaction changes from v1, not just a restyle:
-/// - Tapping a county's actual shape on the map now selects it directly
-///   (`AppCountyMap.onCountySelected`, new hit-testing) -- v1's map tap
-///   only ever opened the picker sheet.
-/// - Search moved off the screen itself and into a dedicated bottom
-///   sheet (`CountyPickerSheet`, reusable) opened by a small search
-///   button over the map, rather than an always-visible search bar with
-///   an inline results dropdown.
-///
-/// Selecting a home county is mandatory -- there is no skip option (a
-/// "Skip - suggest one from my first location" button existed here
-/// briefly, matching an earlier Figma pass, but nothing behind it
-/// actually inferred a county from the first detected location, and the
-/// step is cheap enough for the user to just answer). `Continue` stays
-/// disabled until [selectedCounty] is set.
+/// Selecting a home county is required: Continue stays disabled until
+/// [selectedCounty] is set. There is no back button, since this is the
+/// first step (the shell hides it when [OnboardingShell.onBack] is null).
 class OnboardingHomeCountyPage extends StatelessWidget {
   const OnboardingHomeCountyPage({
     super.key,
@@ -45,72 +35,53 @@ class OnboardingHomeCountyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.splashBackground,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // No AppBackButton here -- this screen sits inside
-              // OnboardingFlow's linear PageView with no back route to
-              // go to. See AppBackButton's doc comment.
-              const Text(
-                'Which county do you call home?',
-                style: AppTextStyles.headingForeground,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Where you are from, not where life happens to have you. '
-                'you can change it anytime.',
-                style: AppTextStyles.bodyMuted,
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 36),
-                      child: AppCountyMap(
-                        selectedCounty: selectedCounty,
-                        onCountySelected: onSelected,
-                      ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      right: 4,
-                      child: _SearchIconButton(
-                        onPressed: () => _openSearchSheet(context),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      child: _MapCaptionChip(selectedCounty: selectedCounty),
-                    ),
-                  ],
+    return OnboardingShell(
+      step: 1,
+      pill: 'Earn all 47 counties',
+      title: 'Where is home?',
+      subtitle: const Text(
+        "Spend about two hours in a county and it's yours. Your map and "
+        'suggestions start from home.',
+      ),
+      primaryLabel: 'Continue',
+      onPrimary: selectedCounty == null ? null : onContinue,
+      footerCaption: 'Change it later in Settings',
+      isBusy: isSaving,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.pageBackground,
+                  borderRadius: BorderRadius.circular(24),
                 ),
-              ),
-              if (errorMessage != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  errorMessage!,
-                  style: AppTextStyles.listItemSubtitle.copyWith(
-                    color: AppColors.headingText,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 64, 12, 100),
+                  child: AppCountyMap(
+                    selectedCounty: selectedCounty,
+                    onCountySelected: onSelected,
                   ),
                 ),
-              ],
-              const SizedBox(height: 16),
-              _PrimaryPillButton(
-                label: isSaving ? 'Saving...' : 'Continue',
-                onPressed: isSaving || selectedCounty == null
-                    ? null
-                    : onContinue,
-                isBusy: isSaving,
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: _SearchBar(onPressed: () => _openSearchSheet(context)),
+            ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: _SelectedCountyCard(
+                county: selectedCounty,
+                errorMessage: errorMessage,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -127,102 +98,126 @@ class OnboardingHomeCountyPage extends StatelessWidget {
   }
 }
 
-class _SearchIconButton extends StatelessWidget {
-  const _SearchIconButton({required this.onPressed});
+/// Always on screen, so searching never needs hunting for an icon.
+class _SearchBar extends StatelessWidget {
+  const _SearchBar({required this.onPressed});
 
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 36,
-      height: 36,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.iconButtonBackground,
-          side: BorderSide.none,
-          shape: const CircleBorder(),
-          padding: EdgeInsets.zero,
-        ),
-        child: const Icon(Icons.search, size: 16, color: AppColors.foreground),
-      ),
-    );
-  }
-}
-
-/// Instruction chip over the map's bottom edge. Doubles as the
-/// selected-county label once a county is picked -- Figma's own caption
-/// ("Tap your county on the map") only ever shows the instruction, but
-/// with no other on-screen confirmation of *which* county got tapped
-/// (the map's fill change is easy to miss on a shape this small), naming
-/// it here reuses the one piece of chrome already anchored to the map
-/// instead of adding new UI for it.
-class _MapCaptionChip extends StatelessWidget {
-  const _MapCaptionChip({required this.selectedCounty});
-
-  final CountyPath? selectedCounty;
-
-  @override
-  Widget build(BuildContext context) {
-    final county = selectedCounty;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryFill,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        county == null ? 'Tap your county on the map' : county.name,
-        style: AppTextStyles.chipLabel,
-      ),
-    );
-  }
-}
-
-class _PrimaryPillButton extends StatelessWidget {
-  const _PrimaryPillButton({
-    required this.label,
-    required this.onPressed,
-    required this.isBusy,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-
-  /// True while `isSaving` -- that's a disabled-but-active state (the
-  /// request is in flight) and should still read as solid/accent, not
-  /// inert. Only a *genuinely* inactive disabled state -- nothing
-  /// selected yet, before the skip option existed this screen always
-  /// had something to save -- should look visually turned off, so a
-  /// user doesn't tap a seemingly-live button and get nothing.
-  final bool isBusy;
-
-  @override
-  Widget build(BuildContext context) {
-    final showsInactive = onPressed == null && !isBusy;
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.accent,
-          disabledBackgroundColor: isBusy
-              ? AppColors.accent
-              : AppColors.secondaryFill,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+    return Semantics(
+      button: true,
+      label: 'Search 47 counties',
+      excludeSemantics: true,
+      onTap: onPressed,
+      child: Material(
+        color: Colors.white,
+        elevation: 3,
+        shadowColor: AppColors.detailGlassShadow,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onPressed,
+          child: SizedBox(
+            height: 44,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.search,
+                    size: 18,
+                    color: AppColors.mutedForeground,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Search 47 counties',
+                    style: AppTextStyles.searchInputText.copyWith(
+                      color: AppColors.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        child: Text(
-          label,
-          style: showsInactive
-              ? AppTextStyles.buttonLabel.copyWith(
+      ),
+    );
+  }
+}
+
+/// The pick, as a card: the county's badge, its name, and a hint to tap
+/// another. Before a pick it says how to start.
+/// A save error replaces the hint line.
+class _SelectedCountyCard extends StatelessWidget {
+  const _SelectedCountyCard({
+    required this.county,
+    required this.errorMessage,
+  });
+
+  final CountyPath? county;
+  final String? errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    final picked = county;
+    final hint = errorMessage ?? 'Tap another county to change';
+    return Material(
+      color: Colors.white,
+      elevation: 4,
+      shadowColor: AppColors.detailGlassShadow,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            // The county's own badge, as it will look once earned.
+            if (picked == null)
+              Container(
+                width: 52,
+                height: 52,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.pageBackground,
+                ),
+                child: const Icon(
+                  Icons.touch_app_outlined,
+                  size: 22,
                   color: AppColors.mutedForeground,
-                )
-              : AppTextStyles.buttonLabel,
+                ),
+              )
+            else
+              CountyBadgeMedallion(county: picked, earned: true, size: 52),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    picked?.name ?? 'Tap your county on the map',
+                    style: AppTextStyles.listItemTitle,
+                  ),
+                  if (picked != null || errorMessage != null)
+                    Text(
+                      hint,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        fontSize: 12.5,
+                        color: errorMessage == null
+                            ? AppColors.mutedForeground
+                            : AppColors.danger,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (picked != null)
+              const Icon(
+                Icons.check_circle_outline,
+                size: 22,
+                color: AppColors.accent,
+              ),
+          ],
         ),
       ),
     );

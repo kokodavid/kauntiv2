@@ -15,6 +15,7 @@ import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../features/trip_planner/presentation/saved_plans_screen.dart';
@@ -44,6 +45,7 @@ GoRouter appRouter(Ref ref) {
       _gate(AppRoutes.splash, const StartupSplashPage()),
       _gate(AppRoutes.signIn, const StartupSignInPage()),
       _gate(AppRoutes.homeCounty, const StartupHomeCountyPage()),
+      _gate(AppRoutes.preferences, const StartupPreferencesPage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
       StatefulShellRoute.indexedStack(
         // Swapped in place like the gates, not slid in.
@@ -134,6 +136,10 @@ GoRouter appRouter(Ref ref) {
             onOpenSettings: () => context.push(AppRoutes.settings),
           ),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.interests,
+        builder: (context, state) => const InterestsScreen(),
       ),
       GoRoute(
         path: AppRoutes.settings,

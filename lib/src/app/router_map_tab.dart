@@ -16,6 +16,7 @@ import '../features/map_home/presentation/map_home_board_sheet.dart'
     show defaultRecordTripCardHeight;
 import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/profile/presentation/interests_prompt_card.dart';
 import '../features/trip_planner/presentation/saved_plans_home_section.dart';
 import '../services/app_supabase.dart';
 import 'app_routes.dart';
@@ -46,6 +47,11 @@ class MapTab extends ConsumerWidget {
         ref.watch(deviceMotionProvider).value == MotionState.moving;
     return MapHomeScreen(
       homeCounty: homeCounty,
+      // The card lives in the profile feature, so the app layer hands it to
+      // Home rather than Home importing it.
+      topCard: InterestsPromptCard(
+        onPick: () => context.push(AppRoutes.interests),
+      ),
       isTripRecording: isTripRecording,
       savedPlans: DetailRoutes.openPlace == null
           ? null

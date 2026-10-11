@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
@@ -11,6 +12,8 @@ import '../../detection/application/detection_controller.dart';
 import '../../journeys/application/journey_entitlement.dart';
 import '../../journeys/application/journey_recorder.dart';
 import '../../onboarding/application/startup_flow.dart';
+import '../../../app/app_routes.dart';
+import '../application/interests_providers.dart';
 import '../application/profile_settings_providers.dart';
 import '../application/public_profile_providers.dart';
 import 'confirm_dialog.dart';
@@ -20,8 +23,10 @@ import 'membership_sheet.dart';
 import 'profile_privacy_sheet.dart';
 import 'settings_account_section.dart';
 import 'settings_developer_section.dart';
+import 'settings_exploring_section.dart';
 import 'settings_location_section.dart';
 import 'settings_notifications_section.dart';
+import 'sign_out_button.dart';
 
 /// Settings, reached from Profile's gear button. Everything that used to
 /// be inline Profile tiles ("Location permission") now lives here,
@@ -154,6 +159,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 notifier: notifier,
               ),
               const SizedBox(height: 18),
+              SettingsExploringSection(
+                interests:
+                    ref.watch(myInterestsProvider).value?.interests ??
+                    const [],
+                onOpenInterests: () => context.push(AppRoutes.interests),
+              ),
+              const SizedBox(height: 18),
               SettingsLocationSection(
                 settings: settings,
                 notifier: notifier,
@@ -197,14 +209,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onOpenLocationDiagnostics: widget.onOpenLocationDiagnostics,
               ),
               const SizedBox(height: 4),
-              OutlinedButton.icon(
-                onPressed: _signingOut ? null : () => unawaited(_signOut()),
-                icon: const Icon(Icons.logout),
-                label: Text(_signingOut ? 'Signing out...' : 'Sign out'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.accent,
-                  side: const BorderSide(color: Color(0xFFD5E7FA)),
-                ),
+              SignOutButton(
+                signingOut: _signingOut,
+                onPressed: () => unawaited(_signOut()),
               ),
             ],
           ),

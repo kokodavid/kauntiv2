@@ -18,6 +18,7 @@ import 'profile_county_badges.dart';
 import 'profile_header.dart';
 import 'profile_progress_card.dart';
 import 'profile_tiles.dart';
+import 'sign_out_button.dart';
 
 /// A compact account overview. All account-bound values stay hidden until
 /// the auth stream and the current Supabase user agree.
@@ -235,14 +236,9 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                       ),
                     ),
                   const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: _signingOut ? null : () => unawaited(_signOut()),
-                    icon: const Icon(Icons.logout),
-                    label: Text(_signingOut ? 'Signing out...' : 'Sign out'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.foreground,
-                      side: const BorderSide(color: ProfilePalette.border),
-                    ),
+                  SignOutButton(
+                    signingOut: _signingOut,
+                    onPressed: () => unawaited(_signOut()),
                   ),
                 ],
               ),

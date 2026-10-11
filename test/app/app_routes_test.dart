@@ -11,14 +11,32 @@ void main() {
       AppRoutes.homeCounty,
     );
     expect(
+      AppRoutes.redirect(StartupStep.preferences, '/home-county'),
+      AppRoutes.preferences,
+    );
+    expect(
       AppRoutes.redirect(StartupStep.permission, '/county/47'),
       AppRoutes.permission,
     );
     expect(AppRoutes.redirect(StartupStep.signIn, '/sign-in'), isNull);
   });
 
+  test('only the three setup steps are numbered', () {
+    expect(StartupStep.homeCounty.setupNumber, 1);
+    expect(StartupStep.preferences.setupNumber, 2);
+    expect(StartupStep.permission.setupNumber, 3);
+    expect(StartupStep.signIn.setupNumber, isNull);
+    expect(StartupStep.ready.setupNumber, isNull);
+  });
+
   test('once ready, gate pages go to Map and the rest stay', () {
-    for (final gate in ['/splash', '/sign-in', '/home-county', '/permission']) {
+    for (final gate in [
+      '/splash',
+      '/sign-in',
+      '/home-county',
+      '/preferences',
+      '/permission',
+    ]) {
       expect(AppRoutes.redirect(StartupStep.ready, gate), AppRoutes.map);
     }
     expect(AppRoutes.redirect(StartupStep.ready, '/map'), isNull);

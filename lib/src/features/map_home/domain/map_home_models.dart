@@ -1,6 +1,7 @@
 import '../../../core/domain/app_stat_format.dart';
 import '../../../core/domain/county_tier.dart';
 import '../../../counties/county_paths.dart';
+import '../../profile/domain/place_interest.dart';
 import 'county_badge_state.dart';
 import 'map_home_promotion.dart';
 
@@ -47,6 +48,8 @@ class MapHomeSuggestion {
     this.elevationM,
     this.visitDurationMinutes,
     this.highlightImageUrl,
+    this.matchedInterest,
+    this.matchedPlaceName,
   });
 
   final CountyPath county;
@@ -59,13 +62,23 @@ class MapHomeSuggestion {
   final int? visitDurationMinutes;
   final String? highlightImageUrl;
 
+  /// The interest this county matched for the signed-in user, and the
+  /// place in it that matched (null when it matched nothing).
+  final PlaceInterest? matchedInterest;
+  final String? matchedPlaceName;
+
   String get title => placeName ?? county.name;
+
+  /// "Because you like waterfalls", when the county matched an interest.
+  String? get matchLabel => matchedInterest == null
+      ? null
+      : 'Because you like ${matchedInterest!.shortName}';
 
   String get reasonLabel {
     return switch (reason) {
       MapHomeSuggestionReason.depthRank => 'Depth rank nearby',
       MapHomeSuggestionReason.savedHere => 'Saved place here',
-      MapHomeSuggestionReason.unclaimed => 'Unclaimed county',
+      MapHomeSuggestionReason.unclaimed => matchLabel ?? 'Unclaimed county',
     };
   }
 

@@ -28,6 +28,7 @@ class MapHomeScreen extends StatefulWidget {
     this.savedPlans,
     this.recordTripCard,
     this.recordTripCardHeight = defaultRecordTripCardHeight,
+    this.topCard,
   });
 
   final CountyPath? homeCounty;
@@ -45,6 +46,9 @@ class MapHomeScreen extends StatefulWidget {
   /// The one-tap Record a Trip card, passed only while the phone is moving.
   final Widget? recordTripCard;
   final double recordTripCardHeight;
+
+  /// A card shown above Home's sections, supplied by `app/` (null hides).
+  final Widget? topCard;
   final MapHomeBoardLoader loader;
 
   /// Empty: Home shows the drawn county map only.
@@ -106,6 +110,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             savedPlans: widget.savedPlans,
             recordTripCard: widget.recordTripCard,
             recordTripCardHeight: widget.recordTripCardHeight,
+            topCard: widget.topCard,
           );
         },
       ),

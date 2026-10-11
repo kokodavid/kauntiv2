@@ -10,6 +10,7 @@ import '../features/auth/domain/auth_failure.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../screens/onboarding/onboarding_auth_page.dart';
 import '../screens/onboarding/onboarding_home_county_page.dart';
+import '../screens/onboarding/onboarding_interests_page.dart';
 import '../screens/onboarding/onboarding_permission_page.dart';
 import '../screens/splash_screen.dart';
 
@@ -69,7 +70,28 @@ class StartupHomeCountyPage extends ConsumerWidget {
   }
 }
 
-/// Location permission. Coming back from the OS settings re-checks it.
+/// Setup step 2: what kinds of places the user likes.
+class StartupPreferencesPage extends ConsumerWidget {
+  const StartupPreferencesPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(startupFlowProvider);
+    final flow = ref.read(startupFlowProvider.notifier);
+    return OnboardingInterestsPage(
+      selected: state.interests,
+      isSaving: state.isSavingInterests,
+      onToggle: flow.toggleInterest,
+      onContinue: () => unawaited(flow.continueFromInterests()),
+      onSkip: () => unawaited(flow.skipInterests()),
+      onBack: flow.back,
+    );
+  }
+}
+
+/// Setup step 3: location permission. Coming back from the OS settings
+/// re-checks it, and the "Skipped" toast from step 2 clears itself after
+/// four seconds.
 class StartupPermissionPage extends ConsumerStatefulWidget {
   const StartupPermissionPage({super.key});
 
@@ -80,16 +102,29 @@ class StartupPermissionPage extends ConsumerStatefulWidget {
 
 class _StartupPermissionPageState extends ConsumerState<StartupPermissionPage>
     with WidgetsBindingObserver {
+  static const _toastDuration = Duration(seconds: 4);
+  Timer? _toastTimer;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (ref.read(startupFlowProvider).interestsSkipped) _startToastTimer();
   }
 
   @override
   void dispose() {
+    _toastTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _startToastTimer() {
+    _toastTimer?.cancel();
+    _toastTimer = Timer(
+      _toastDuration,
+      ref.read(startupFlowProvider.notifier).dismissInterestsToast,
+    );
   }
 
   @override
@@ -102,11 +137,17 @@ class _StartupPermissionPageState extends ConsumerState<StartupPermissionPage>
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(startupFlowProvider);
+    final flow = ref.read(startupFlowProvider.notifier);
     return OnboardingPermissionPage(
       isRequesting: state.isRequestingLocation,
       isPermanentlyDenied: state.isLocationPermanentlyDenied,
       errorMessage: state.permissionError,
-      onEnableLocation: ref.read(startupFlowProvider.notifier).enableLocation,
+      interests: state.interests,
+      showSkipToast: state.interestsSkipped,
+      onEnableLocation: () => unawaited(flow.enableLocation()),
+      onNotNow: () => unawaited(flow.skipLocation()),
+      onBack: flow.back,
+      onUndoSkip: () => unawaited(flow.undoInterestsSkip()),
     );
   }
 }

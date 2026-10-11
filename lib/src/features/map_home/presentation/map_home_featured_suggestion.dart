@@ -71,6 +71,9 @@ Widget mapHomeSuggestionCard(
 String mapHomeWhyLabel(MapHomeSuggestion suggestion, {bool isHome = false}) {
   if (isHome) return 'Your home county';
   return switch (suggestion.reason) {
+    // Leaned forward by an interest match, so it may not be the nearest.
+    MapHomeSuggestionReason.unclaimed when suggestion.matchedInterest != null =>
+      'Picked for you',
     MapHomeSuggestionReason.unclaimed => 'Nearest unclaimed county',
     MapHomeSuggestionReason.savedHere => 'Saved by you',
     MapHomeSuggestionReason.depthRank => 'Suggested for you',

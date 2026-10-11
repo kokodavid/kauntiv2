@@ -25,6 +25,10 @@ class SettingsAccountSection extends StatelessWidget {
   final VoidCallback onOpenDataPrivacy;
   final VoidCallback onDeleteAccount;
 
+  /// Membership is hidden until subscriptions are fully set up. Flip this on
+  /// to bring the row back; the sheet and its wiring are still in place.
+  static const showMembership = false;
+
   Future<void> _openPrivacyPolicy() async {
     try {
       await AppExternalLinks.openPrivacyPolicy();
@@ -51,12 +55,13 @@ class SettingsAccountSection extends StatelessWidget {
                   : '${profile!.displayName} · @${profile!.handle}',
               onTap: onOpenEditProfile,
             ),
-            SettingsActionRow(
-              title: 'Membership',
-              subtitle: membershipSubtitle,
-              onTap: onOpenMembership,
-              divider: true,
-            ),
+            if (showMembership)
+              SettingsActionRow(
+                title: 'Membership',
+                subtitle: membershipSubtitle,
+                onTap: onOpenMembership,
+                divider: true,
+              ),
             SettingsActionRow(
               title: 'Data and privacy',
               subtitle: 'How county visits and Trips are stored',

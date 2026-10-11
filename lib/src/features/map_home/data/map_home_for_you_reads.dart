@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/services/app_current_location.dart';
 import '../../../counties/county_paths.dart';
+import '../../profile/domain/place_interest.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_home_promotion.dart';
 
@@ -129,28 +130,65 @@ class MapHomeForYouReads {
     );
   }
 
-  /// Every unclaimed county, nearest first (the RPC anchors on the last
-  /// visited or home county). Returns the row's first few plus the total.
+  /// A matching county's distance counts as this fraction of the real one
+  /// when ordering, so it can edge ahead of an equally close county
+  /// without one. Same factor as `for_you_candidates()`.
+  static const interestDistanceFactor = 0.6;
+
+  /// Per county code, the place that matched one of the user's interests
+  /// (`my_interest_matches`). Empty for no interests or an older database.
+  Future<Map<int, ({PlaceInterest interest, String placeName})>>
+  interestMatches() async {
+    final rows = await readOptional<List<dynamic>>(
+      () => client.rpc<List<dynamic>>('my_interest_matches').timeout(_timeout),
+      label: 'interest matches',
+    );
+    final matches = <int, ({PlaceInterest interest, String placeName})>{};
+    for (final raw in rows ?? const <dynamic>[]) {
+      if (raw is! Map) continue;
+      final code = (raw['county_id'] as num?)?.toInt();
+      final interest = PlaceInterest.fromKey(
+        raw['interest_key'] as String? ?? '',
+      );
+      final name = raw['place_name'] as String?;
+      if (code != null && interest != null && name != null) {
+        matches[code] = (interest: interest, placeName: name);
+      }
+    }
+    return matches;
+  }
+
+  /// Every unclaimed county, nearest first, with counties that match the
+  /// user's interests leaning forward (the RPC anchors on the last visited
+  /// or home county). Returns the row's first few plus the total.
   Future<({List<MapHomeSuggestion> row, int total})> unclaimed(
     Map<int, CountyCardFacts> facts,
     String Function(num? meters) distanceLabel,
   ) async {
-    final rows = await readOptional<List<dynamic>>(
-      () => client
-          .rpc<List<dynamic>>('discover_unclaimed_counties')
-          .timeout(_timeout),
-      label: 'unclaimed counties',
-    );
+    final (rows, matches) = await (
+      readOptional<List<dynamic>>(
+        () => client
+            .rpc<List<dynamic>>('discover_unclaimed_counties')
+            .timeout(_timeout),
+        label: 'unclaimed counties',
+      ),
+      interestMatches(),
+    ).wait;
+    num leaning(Map<dynamic, dynamic> raw) =>
+        _distance(raw) *
+        (matches.containsKey((raw['county_id'] as num).toInt())
+            ? interestDistanceFactor
+            : 1);
     final known = [
       for (final raw in rows ?? const <dynamic>[])
         if (raw is Map && CountyPaths.byCode.containsKey(raw['county_id'])) raw,
-    ]..sort((a, b) => _distance(a).compareTo(_distance(b)));
+    ]..sort((a, b) => leaning(a).compareTo(leaning(b)));
 
     return (
       total: known.length,
       row: [
         for (final raw in known.take(unclaimedRowLength))
-          _unclaimedCard(raw, facts, distanceLabel),
+          _unclaimedCard(raw, facts, distanceLabel, matches),
       ],
     );
   }
@@ -159,6 +197,7 @@ class MapHomeForYouReads {
     Map<dynamic, dynamic> raw,
     Map<int, CountyCardFacts> facts,
     String Function(num? meters) distanceLabel,
+    Map<int, ({PlaceInterest interest, String placeName})> matches,
   ) {
     final code = (raw['county_id'] as num).toInt();
     final meters = raw['distance_m'] as num?;
@@ -171,6 +210,8 @@ class MapHomeForYouReads {
       elevationM: facts[code]?.elevationM?.toInt(),
       visitDurationMinutes: facts[code]?.durationMinutes,
       highlightImageUrl: facts[code]?.highlightImageUrl,
+      matchedInterest: matches[code]?.interest,
+      matchedPlaceName: matches[code]?.placeName,
     );
   }
 

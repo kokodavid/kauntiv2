@@ -295,7 +295,7 @@ class _ProfileAvatar extends ConsumerWidget {
               shape: BoxShape.circle,
               image: hasPicture
                   ? DecorationImage(
-                      image: appNetworkImage(avatarUrl),
+                      image: appNetworkImage(avatarUrl, cacheWidth: 96),
                       fit: BoxFit.cover,
                     )
                   : null,

@@ -32,6 +32,7 @@ class MapHomeBoardSheet extends StatelessWidget {
     this.loadPlaces,
     this.recordTripCard,
     this.recordTripCardHeight = defaultRecordTripCardHeight,
+    this.topCard,
     this.onStartTrip,
     this.onOpenCounty,
     this.onOpenPlace,
@@ -59,6 +60,9 @@ class MapHomeBoardSheet extends StatelessWidget {
 
   /// How tall [recordTripCard] is when collapsed.
   final double recordTripCardHeight;
+
+  /// Shown first among the sections when the sheet is open.
+  final Widget? topCard;
 
   /// Starts a Trip, or null when Trips are not available.
   final VoidCallback? onStartTrip;
@@ -92,6 +96,7 @@ class MapHomeBoardSheet extends StatelessWidget {
           : MapHomeCompactCard.height,
       collapsed: _collapsed(context, picked, board, compact),
       children: [
+        ?topCard,
         for (final section in MapHomeLayoutRules.sections(picked))
           ?_section(section, picked, board),
       ],

@@ -36,6 +36,7 @@ class MapHomeBoard extends ConsumerStatefulWidget {
     this.savedPlans,
     this.recordTripCard,
     this.recordTripCardHeight = defaultRecordTripCardHeight,
+    this.topCard,
   });
 
   /// A Trip is recording; starting or stopping one re-picks the layout.
@@ -45,6 +46,7 @@ class MapHomeBoard extends ConsumerStatefulWidget {
   final Widget? savedPlans;
   final Widget? recordTripCard; // while moving or a Trip is in progress
   final double recordTripCardHeight;
+  final Widget? topCard;
 
   /// Null while the board is loading: every slot shows a same-sized
   /// placeholder, then crossfades to the real content in place.
@@ -281,6 +283,7 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
           loadPlaces: widget.loadMapPlaces,
           recordTripCard: widget.recordTripCard,
           recordTripCardHeight: widget.recordTripCardHeight,
+          topCard: widget.topCard,
           onStartTrip: widget.onStartTrip,
           onOpenCounty: widget.onOpenCounty,
           onOpenPlace: widget.onOpenPlace,

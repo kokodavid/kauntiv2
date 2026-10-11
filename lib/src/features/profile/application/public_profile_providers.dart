@@ -17,8 +17,10 @@ PublicProfileRepository? publicProfileRepository(Ref ref) {
 
 /// The signed-in account's display name, handle and avatar. Reloads when
 /// the account changes; Edit Profile invalidates this after a successful
-/// save or avatar upload.
-@riverpod
+/// save or avatar upload. Kept alive so Home's avatar and Profile read one
+/// loaded copy instead of fetching again (and flashing the initial) each
+/// time either screen appears.
+@Riverpod(keepAlive: true)
 Future<PublicProfile?> myPublicProfile(Ref ref) async {
   ref.watch(authUserIdProvider);
   final userId = ref.watch(currentUserIdProvider)();

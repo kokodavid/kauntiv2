@@ -92,7 +92,7 @@ final class MyPublicProfileProvider
         argument: null,
         retry: null,
         name: r'myPublicProfileProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );

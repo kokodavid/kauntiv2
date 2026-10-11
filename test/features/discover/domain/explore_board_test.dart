@@ -152,7 +152,7 @@ void main() {
           distanceLabel: '45 km away',
           headquarters: 'Kerugoya',
         ).statusLine,
-        '45 km away',
+        'HQ · Kerugoya',
       );
       expect(
         ExploreUnclaimedCounty(

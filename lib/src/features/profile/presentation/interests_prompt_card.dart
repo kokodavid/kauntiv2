@@ -11,11 +11,23 @@ import '../domain/place_interest.dart';
 /// itself (taking no space) unless [interestsPromptProvider] says it is
 /// due: unanswered, not dismissed, and from the third session on. Dismiss
 /// hides it for good; saving picks does too.
+///
+/// Compact layout (about 104px): an overlapping icon cluster hints at the
+/// set without looking tappable, the title and dismiss share the top row,
+/// and the line and a label-sized button share the bottom row.
 class InterestsPromptCard extends ConsumerWidget {
   const InterestsPromptCard({super.key, required this.onPick});
 
   /// Opens the Interests screen.
   final VoidCallback onPick;
+
+  static const _background = Color(0xFFEAF4FF);
+  static const _clusterInterests = [
+    PlaceInterest.water,
+    PlaceInterest.coast,
+    PlaceInterest.wild,
+    PlaceInterest.views,
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,74 +35,78 @@ class InterestsPromptCard extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+        padding: const EdgeInsets.fromLTRB(14, 14, 8, 14),
         decoration: BoxDecoration(
-          color: AppColors.accent.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(24),
+          color: _background,
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const _IconCluster(interests: _clusterInterests),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      'Tell us what you like',
-                      style: AppTextStyles.listItemTitle.copyWith(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  child: Text(
+                    'Tell us what you like',
+                    style: AppTextStyles.listItemTitle.copyWith(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Dismiss',
-                  onPressed: () =>
-                      ref.read(interestsPromptProvider.notifier).dismiss(),
-                  style: IconButton.styleFrom(
-                    minimumSize: const Size(44, 44),
-                    foregroundColor: AppColors.mutedForeground,
+                SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: IconButton(
+                    tooltip: 'Dismiss',
+                    padding: EdgeInsets.zero,
+                    onPressed: () =>
+                        ref.read(interestsPromptProvider.notifier).dismiss(),
+                    color: AppColors.mutedForeground,
+                    icon: const Icon(Icons.close, size: 16),
                   ),
-                  icon: const Icon(Icons.close, size: 20),
                 ),
               ],
             ),
+            const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: const Text(
-                "Two taps and For you leans toward the places you'd pick.",
-                style: AppTextStyles.bodySmall,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const _SampleChips(),
-            const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: onPick,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.accentForeground,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+              padding: const EdgeInsets.only(right: 6),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      "Two taps and For you leans toward places you'd pick.",
+                      style: AppTextStyles.bodySmall,
                     ),
                   ),
-                  child: const Text(
-                    'Pick interests',
-                    style: AppTextStyles.buttonLabel,
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: onPick,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: AppColors.accentForeground,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Pick interests',
+                        style: AppTextStyles.buttonLabel.copyWith(
+                          fontSize: 13.5,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -100,39 +116,48 @@ class InterestsPromptCard extends ConsumerWidget {
   }
 }
 
-/// Two example interests and "+6", so the card shows what it is asking.
-class _SampleChips extends StatelessWidget {
-  const _SampleChips();
+/// Four overlapping white circles carrying the interest icons.
+class _IconCluster extends StatelessWidget {
+  const _IconCluster({required this.interests});
+
+  final List<PlaceInterest> interests;
+
+  static const _size = 28.0;
+  static const _overlap = 8.0;
 
   @override
   Widget build(BuildContext context) {
-    final samples = [
-      PlaceInterest.water.label,
-      PlaceInterest.coast.label,
-      '+${PlaceInterest.values.length - 2}',
-    ];
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [
-        for (final label in samples)
-          Container(
-            height: 30,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              label,
-              style: AppTextStyles.chipLabel.copyWith(
-                fontWeight: FontWeight.w500,
-                fontSize: 12.5,
+    final width = _size + (interests.length - 1) * (_size - _overlap);
+    return ExcludeSemantics(
+      child: SizedBox(
+        width: width,
+        height: _size,
+        child: Stack(
+          children: [
+            for (var i = 0; i < interests.length; i++)
+              Positioned(
+                left: i * (_size - _overlap),
+                child: Container(
+                  width: _size,
+                  height: _size,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: InterestsPromptCard._background,
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    interests[i].icon,
+                    size: 14,
+                    color: AppColors.accent,
+                  ),
+                ),
               ),
-            ),
-          ),
-      ],
+          ],
+        ),
+      ),
     );
   }
 }

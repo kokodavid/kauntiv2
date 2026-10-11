@@ -1,8 +1,14 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../counties/county_paths.dart';
 
 abstract interface class ProfileSetupRepository {
+  /// The home county remembered on this phone for the signed-in account,
+  /// or null when none has been stored yet. Never touches the network, so
+  /// start-up can use it offline.
+  Future<CountyPath?> cachedHomeCounty();
+
   Future<CountyPath?> fetchHomeCounty();
   Future<void> saveHomeCounty(CountyPath? county);
 }
@@ -20,9 +26,43 @@ class SupabaseProfileSetupRepository implements ProfileSetupRepository {
     return owner;
   }
 
+  static String _cacheKey(String owner) => 'profile.home_county_slug.$owner';
+
+  Future<void> _remember(String owner, CountyPath? county) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (county == null) {
+        await prefs.remove(_cacheKey(owner));
+      } else {
+        await prefs.setString(_cacheKey(owner), county.slug);
+      }
+    } on Object {
+      // The copy on this phone is only a speed-up; losing it is harmless.
+    }
+  }
+
+  @override
+  Future<CountyPath?> cachedHomeCounty() async {
+    final owner = client.auth.currentUser?.id;
+    if (owner == null) return null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final slug = prefs.getString(_cacheKey(owner));
+      return slug == null ? null : CountyPaths.bySlug[slug];
+    } on Object {
+      return null;
+    }
+  }
+
   @override
   Future<CountyPath?> fetchHomeCounty() async {
     final owner = _owner();
+    final county = await _fetchFromServer(owner);
+    await _remember(owner, county);
+    return county;
+  }
+
+  Future<CountyPath?> _fetchFromServer(String owner) async {
     final row = await client
         .from('profiles')
         .select('home_county_id, home_county_slug')
@@ -60,5 +100,6 @@ class SupabaseProfileSetupRepository implements ProfileSetupRepository {
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         })
         .timeout(const Duration(seconds: 8));
+    await _remember(owner, county);
   }
 }

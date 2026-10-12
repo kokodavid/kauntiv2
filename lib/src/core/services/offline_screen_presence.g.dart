@@ -48,7 +48,7 @@ final class OfflineScreenPresenceProvider
 }
 
 String _$offlineScreenPresenceHash() =>
-    r'3c6ae5152a6ccf2b417e725503fef02cbde2ce55';
+    r'10ba069dce250ec4a34e409e794eea0d659088a3';
 
 /// How many full-screen "You're offline" states are showing right now. The
 /// banner steps aside while one is, so the message isn't said twice.

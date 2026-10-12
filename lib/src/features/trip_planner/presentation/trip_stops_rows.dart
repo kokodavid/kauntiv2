@@ -47,8 +47,12 @@ class TripStopsRows extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
             itemCount: stops.length,
-            // onReorderItem's newIndex is already the final position.
-            onReorderItem: onMove,
+            // CI's newer Flutter deprecates onReorder (onReorderItem replaces
+            // it) but the version pinned locally lacks onReorderItem. Move to
+            // onReorderItem once both are on the same Flutter.
+            // ignore: deprecated_member_use
+            onReorder: (oldIndex, newIndex) =>
+                onMove(oldIndex, newIndex > oldIndex ? newIndex - 1 : newIndex),
             proxyDecorator: (child, index, animation) => Material(
               color: Colors.white,
               elevation: 4,

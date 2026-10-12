@@ -7,6 +7,8 @@ import '../../profile/domain/profile_settings.dart';
 import '../data/arrival_notification_state.dart';
 import 'arrival_notifier_provider.dart';
 
+part 'notifications_prompt.g.dart';
+
 /// How many app sessions reach Home before the card first appears, so
 /// someone who just finished setup is not asked twice in a row.
 const notificationsPromptMinSessions = 2;

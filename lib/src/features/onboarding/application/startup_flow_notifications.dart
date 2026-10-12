@@ -12,7 +12,7 @@ mixin _StartupNotificationSteps on _$StartupFlow {
   Future<void> _afterLocationGranted() async {
     var allowed = false;
     try {
-      allowed = await ref.read(arrivalNotifierProvider).isPermitted();
+      allowed = await ref.read(arrivalNotifierServiceProvider).isPermitted();
     } on Object {
       allowed = false;
     }
@@ -34,7 +34,7 @@ mixin _StartupNotificationSteps on _$StartupFlow {
     if (state.isRequestingNotifications) return;
     state = state.copyWith(isRequestingNotifications: true);
     try {
-      await ref.read(arrivalNotifierProvider).requestPermission();
+      await ref.read(arrivalNotifierServiceProvider).requestPermission();
     } on Object {
       // Home opens either way.
     }

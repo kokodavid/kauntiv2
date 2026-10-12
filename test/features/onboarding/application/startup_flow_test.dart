@@ -141,7 +141,7 @@ void main() {
         setupProgressStoreProvider.overrideWithValue(progress),
         profileSettingsRepositoryProvider.overrideWithValue(settings),
         locationPermissionServiceProvider.overrideWithValue(permissions),
-        arrivalNotifierProvider.overrideWithValue(notifier),
+        arrivalNotifierServiceProvider.overrideWithValue(notifier),
         currentUserIdProvider.overrideWithValue(() => userId),
       ],
     );

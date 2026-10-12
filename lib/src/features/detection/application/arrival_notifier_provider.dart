@@ -7,4 +7,4 @@ part 'arrival_notifier_provider.g.dart';
 /// The arrival notification's OS permission and tap plumbing. Onboarding
 /// asks through it; tests override it.
 @Riverpod(keepAlive: true)
-ArrivalNotifier arrivalNotifier(Ref ref) => ArrivalNotifier();
+ArrivalNotifier arrivalNotifierService(Ref ref) => ArrivalNotifier();

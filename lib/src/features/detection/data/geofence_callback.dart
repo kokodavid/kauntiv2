@@ -111,10 +111,17 @@ Future<void> _record(
 /// failure here must never undo the recording above.
 Future<void> _notifyArrival(DetectionRepository repository) async {
   try {
+    await LocationDiagnostics.record('arrival_notification', {
+      'result': 'checking',
+    });
     final notifier = ArrivalNotifier();
     await notifier.initialize();
     await notifier.notifyIfDue(await repository.activeArrivalCandidates());
   } on Object catch (error, stackTrace) {
+    await LocationDiagnostics.record('arrival_notification', {
+      'result': 'failed',
+      'error': error.toString(),
+    });
     const AppLogger.detection().warning(
       'Arrival notification failed.',
       error: error,

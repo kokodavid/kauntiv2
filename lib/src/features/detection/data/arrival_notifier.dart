@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../../core/services/location_diagnostics.dart';
 import '../../../counties/county_paths.dart';
 import '../../../services/app_logger.dart';
 import '../domain/arrival_nudge_rules.dart';
@@ -102,10 +103,10 @@ class ArrivalNotifier {
     DateTime? now,
   }) async {
     final at = now ?? DateTime.now();
-    if (!await state.enabled()) return false;
+    if (!await state.enabled()) return _skipped('switch_off');
     final home = await state.homeCounty();
-    if (home == null) return false;
-    if (await state.inForeground(now: at)) return false;
+    if (home == null) return _skipped('home_county_unknown');
+    if (await state.inForeground(now: at)) return _skipped('app_in_foreground');
 
     final lastShown = await history.lastShownByCounty();
     (await state.lastNotifiedByCounty()).forEach((code, notifiedAt) {
@@ -121,10 +122,13 @@ class ArrivalNotifier {
       lastShown: lastShown,
       now: at,
     );
-    if (nudge == null || !await isPermitted()) return false;
+    if (nudge == null) {
+      return _skipped('nothing_due', {'candidates': candidates.length});
+    }
+    if (!await isPermitted()) return _skipped('permission_not_granted');
 
     final county = CountyPaths.byCode[nudge.countyCode];
-    if (county == null) return false;
+    if (county == null) return _skipped('unknown_county');
     await _plugin.show(
       nudge.countyCode,
       'Welcome to ${county.name}',
@@ -141,6 +145,22 @@ class ArrivalNotifier {
     );
     await state.markNotified(nudge, now: at);
     _logger.info('Arrival notification posted for county ${nudge.countyCode}.');
+    await LocationDiagnostics.record('arrival_notification', {
+      'result': 'posted',
+      'county': nudge.countyCode,
+    });
     return true;
+  }
+
+  /// Why nothing was posted, in the location diagnostics (dev builds) so a
+  /// missing notification can be explained.
+  Future<bool> _skipped(String reason, [Map<String, Object?>? extra]) async {
+    _logger.info('Arrival notification skipped: $reason.');
+    await LocationDiagnostics.record('arrival_notification', {
+      'result': 'skipped',
+      'reason': reason,
+      ...?extra,
+    });
+    return false;
   }
 }

@@ -48,8 +48,7 @@ Future<void> _pump(
       child: const MaterialApp(home: JourneyReplayScreen(journeyId: 'j')),
     ),
   );
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pumpAndSettle();
 }
 
 Future<void> _play(WidgetTester tester, String tooltip) async {

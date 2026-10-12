@@ -16,6 +16,7 @@ class ArrivalNotificationState {
   static const _homeKey = 'arrival_notify.home_county';
   static const _foregroundKey = 'arrival_notify.foreground_at_ms';
   static const _askedKey = 'arrival_notify.permission_asked';
+  static const _promptDismissedKey = 'arrival_notify.home_prompt_dismissed';
   static const _notifiedKey = 'arrival_notify.notified_keys';
   static const _lastNotifiedKey = 'arrival_notify.last_notified_by_county';
 
@@ -31,8 +32,7 @@ class ArrivalNotificationState {
     return prefs;
   }
 
-  Future<bool> enabled() async =>
-      (await _fresh()).getBool(_enabledKey) ?? true;
+  Future<bool> enabled() async => (await _fresh()).getBool(_enabledKey) ?? true;
 
   Future<int?> homeCounty() async => (await _fresh()).getInt(_homeKey);
 
@@ -79,14 +79,19 @@ class ArrivalNotificationState {
     final prefs = await _fresh();
     await prefs.setInt(
       _foregroundKey,
-      foreground
-          ? (now ?? DateTime.now()).toUtc().millisecondsSinceEpoch
-          : 0,
+      foreground ? (now ?? DateTime.now()).toUtc().millisecondsSinceEpoch : 0,
     );
   }
 
   Future<void> markPermissionAsked() async =>
       (await _fresh()).setBool(_askedKey, true);
+
+  /// Home's "turn on notifications" card was dismissed for good.
+  Future<bool> promptDismissed() async =>
+      (await _fresh()).getBool(_promptDismissedKey) ?? false;
+
+  Future<void> dismissPrompt() async =>
+      (await _fresh()).setBool(_promptDismissedKey, true);
 
   /// Records a posted notification: the crossing key (so it never repeats)
   /// and when the county last notified (the revisit cooldown). The sheet's
@@ -116,6 +121,7 @@ class ArrivalNotificationState {
       _homeKey,
       _foregroundKey,
       _askedKey,
+      _promptDismissedKey,
       _notifiedKey,
       _lastNotifiedKey,
     ]) {

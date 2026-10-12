@@ -6,6 +6,7 @@ import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
 import '../features/detection/application/detection_providers.dart';
 import '../features/detection/data/detection_repository.dart';
+import '../features/detection/presentation/notifications_prompt_card.dart';
 import '../features/journeys/application/device_motion.dart';
 import '../features/journeys/application/journey_recorder.dart';
 import '../features/journeys/domain/journey_recording.dart';
@@ -52,8 +53,14 @@ class MapTab extends ConsumerWidget {
       homeCounty: homeCounty,
       // The card lives in the profile feature, so the app layer hands it to
       // Home rather than Home importing it.
-      topCard: InterestsPromptCard(
-        onPick: () => context.push(AppRoutes.interests),
+      topCard: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const NotificationsPromptCard(
+            onOpenSettings: DetailRoutes.openAppSettings,
+          ),
+          InterestsPromptCard(onPick: () => context.push(AppRoutes.interests)),
+        ],
       ),
       isTripRecording: isTripRecording,
       savedPlans: DetailRoutes.openPlace == null

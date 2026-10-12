@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
+import 'package:kaunti47_v2/src/features/detection/application/arrival_notifier_provider.dart';
+import 'package:kaunti47_v2/src/features/detection/data/arrival_notifier.dart';
 import 'package:kaunti47_v2/src/features/onboarding/application/setup_progress_providers.dart';
 import 'package:kaunti47_v2/src/features/onboarding/application/startup_flow.dart';
 import 'package:kaunti47_v2/src/features/onboarding/data/setup_progress_store.dart';
@@ -106,6 +108,21 @@ class _FakePermissions implements AppLocationPermissionService {
   Future<bool> hasForegroundLocation() async => true;
 }
 
+class _FakeNotifier extends ArrivalNotifier {
+  var permitted = true;
+  var requested = 0;
+
+  @override
+  Future<bool> isPermitted() async => permitted;
+
+  @override
+  Future<bool> requestPermission() async {
+    requested++;
+    permitted = true;
+    return true;
+  }
+}
+
 void main() {
   final kiambu = CountyPaths.byCode[22]!;
   late _FakeProfile profile;
@@ -113,6 +130,7 @@ void main() {
   late _FakeInterests interests;
   late _FakeProgress progress;
   late _FakeSettings settings;
+  late _FakeNotifier notifier;
   String? userId;
 
   ProviderContainer container() {
@@ -123,6 +141,7 @@ void main() {
         setupProgressStoreProvider.overrideWithValue(progress),
         profileSettingsRepositoryProvider.overrideWithValue(settings),
         locationPermissionServiceProvider.overrideWithValue(permissions),
+        arrivalNotifierProvider.overrideWithValue(notifier),
         currentUserIdProvider.overrideWithValue(() => userId),
       ],
     );
@@ -136,6 +155,7 @@ void main() {
     interests = _FakeInterests();
     progress = _FakeProgress();
     settings = _FakeSettings();
+    notifier = _FakeNotifier();
     userId = 'alice';
   });
 
@@ -393,6 +413,54 @@ void main() {
     expect(settings.updates, [
       {'location_mode': 'manual'},
     ]);
+  });
+
+  test('location on, notifications not yet: the notifications step', () async {
+    notifier.permitted = false;
+    permissions.status = AppLocationPermissionResult.denied;
+    final c = container();
+    final flow = startAfterSplash(c);
+    await flow.onSignedIn();
+    flow.selectCounty(kiambu);
+    await flow.saveHomeCounty();
+    await flow.skipInterests();
+
+    await flow.enableLocation();
+    expect(c.read(startupFlowProvider).step, StartupStep.notifications);
+    expect(progress.inProgress['alice'], isTrue);
+
+    await flow.enableNotifications();
+    expect(notifier.requested, 1);
+    expect(c.read(startupFlowProvider).step, StartupStep.ready);
+    expect(progress.inProgress['alice'], isFalse);
+  });
+
+  test('"Not now" on notifications ends setup without the OS prompt', () async {
+    notifier.permitted = false;
+    final c = container();
+    final flow = startAfterSplash(c);
+    await flow.onSignedIn();
+    flow.selectCounty(kiambu);
+    await flow.saveHomeCounty();
+    await flow.skipInterests();
+    expect(c.read(startupFlowProvider).step, StartupStep.notifications);
+
+    await flow.skipNotifications();
+    expect(notifier.requested, 0);
+    expect(c.read(startupFlowProvider).step, StartupStep.ready);
+  });
+
+  test('skipping location never reaches the notifications step', () async {
+    notifier.permitted = false;
+    permissions.status = AppLocationPermissionResult.denied;
+    final c = container();
+    final flow = startAfterSplash(c);
+    await flow.onSignedIn();
+    flow.selectCounty(kiambu);
+    await flow.saveHomeCounty();
+    await flow.skipInterests();
+    await flow.skipLocation();
+    expect(c.read(startupFlowProvider).step, StartupStep.ready);
   });
 
   test('already-granted location skips the permission step', () async {

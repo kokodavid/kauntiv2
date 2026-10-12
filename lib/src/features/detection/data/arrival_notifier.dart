@@ -75,7 +75,9 @@ class ArrivalNotifier {
     return await android?.requestNotificationsPermission() ?? false;
   }
 
-  Future<bool> _permitted() async {
+  /// Whether the OS currently allows notifications (always true on
+  /// Android before 13, which has no prompt).
+  Future<bool> isPermitted() async {
     if (Platform.isIOS) {
       final ios = _plugin
           .resolvePlatformSpecificImplementation<
@@ -119,7 +121,7 @@ class ArrivalNotifier {
       lastShown: lastShown,
       now: at,
     );
-    if (nudge == null || !await _permitted()) return false;
+    if (nudge == null || !await isPermitted()) return false;
 
     final county = CountyPaths.byCode[nudge.countyCode];
     if (county == null) return false;

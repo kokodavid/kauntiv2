@@ -11,6 +11,7 @@ import '../features/onboarding/application/startup_flow.dart';
 import '../features/onboarding/presentation/onboarding_auth_page.dart';
 import '../features/onboarding/presentation/onboarding_home_county_page.dart';
 import '../features/onboarding/presentation/onboarding_interests_page.dart';
+import '../features/onboarding/presentation/onboarding_notifications_page.dart';
 import '../features/onboarding/presentation/onboarding_permission_page.dart';
 import '../screens/splash_screen.dart';
 
@@ -148,6 +149,23 @@ class _StartupPermissionPageState extends ConsumerState<StartupPermissionPage>
       onNotNow: () => unawaited(flow.skipLocation()),
       onBack: flow.back,
       onUndoSkip: () => unawaited(flow.undoInterestsSkip()),
+    );
+  }
+}
+
+/// The end of setup step 3: ask about notifications once location is on.
+class StartupNotificationsPage extends ConsumerWidget {
+  const StartupNotificationsPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final flow = ref.read(startupFlowProvider.notifier);
+    return OnboardingNotificationsPage(
+      isRequesting: ref.watch(
+        startupFlowProvider.select((s) => s.isRequestingNotifications),
+      ),
+      onEnable: () => unawaited(flow.enableNotifications()),
+      onNotNow: () => unawaited(flow.skipNotifications()),
     );
   }
 }

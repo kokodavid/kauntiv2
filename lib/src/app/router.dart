@@ -52,6 +52,7 @@ GoRouter appRouter(Ref ref) {
       _gate(AppRoutes.homeCounty, const StartupHomeCountyPage()),
       _gate(AppRoutes.preferences, const StartupPreferencesPage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
+      _gate(AppRoutes.notifications, const StartupNotificationsPage()),
       StatefulShellRoute.indexedStack(
         // Swapped in place like the gates, not slid in.
         pageBuilder: (context, state, shell) =>

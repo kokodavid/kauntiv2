@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../counties/county_paths.dart';
 import '../../../services/app_location_permission_service.dart';
 import '../../auth/application/auth_providers.dart';
+import '../../detection/application/arrival_notifier_provider.dart';
 import '../../profile/application/interests_providers.dart';
 import '../../profile/application/profile_settings_providers.dart';
 import '../../profile/application/profile_setup_providers.dart';
@@ -14,6 +15,7 @@ import 'setup_progress_providers.dart';
 
 part 'startup_flow.g.dart';
 part 'startup_flow_interests.dart';
+part 'startup_flow_notifications.dart';
 
 /// The OS location permission service. Tests override it.
 @Riverpod(keepAlive: true)
@@ -27,7 +29,8 @@ AppLocationPermissionService locationPermissionService(Ref ref) =>
 /// The router redirects on [step] (`app/router.dart`); screens call these
 /// methods. Ported from the old `app.dart` gate, with the same rules.
 @Riverpod(keepAlive: true)
-class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
+class StartupFlow extends _$StartupFlow
+    with _StartupInterestsSteps, _StartupNotificationSteps {
   static const _homeCountyCheckFailed =
       'Could not check your saved home county. Pick it again to continue.';
 
@@ -205,7 +208,7 @@ class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
     }
     if (!ref.mounted) return;
     if (result == AppLocationPermissionResult.granted) {
-      await _finishSetup();
+      await _afterLocationGranted();
       return;
     }
     state = state.copyWith(
@@ -217,6 +220,7 @@ class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
   }
 
   /// Setup is over: clear the flag and open Home.
+  @override
   Future<void> _finishSetup() async {
     await _markSetupInProgress(false);
     if (!ref.mounted) return;
@@ -260,7 +264,7 @@ class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
       final result = await _permissions.requestLocationAccess();
       if (!ref.mounted) return;
       if (result == AppLocationPermissionResult.granted) {
-        await _finishSetup();
+        await _afterLocationGranted();
         return;
       }
       state = state.copyWith(
@@ -288,13 +292,5 @@ class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
     } finally {
       if (ref.mounted) state = state.copyWith(isRequestingLocation: false);
     }
-  }
-
-  /// Back from the OS settings: carry on if permission was granted there.
-  Future<void> recheckPermission() async {
-    if (!state.isLocationPermanentlyDenied) return;
-    final result = await _permissions.checkStatus();
-    if (!ref.mounted || result != AppLocationPermissionResult.granted) return;
-    await _finishSetup();
   }
 }

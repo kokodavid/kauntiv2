@@ -12,9 +12,14 @@ class OfflineScreenPresence extends _$OfflineScreenPresence {
   @override
   int build() => 0;
 
-  void enter() => state = state + 1;
+  void enter() {
+    if (ref.mounted) state = state + 1;
+  }
 
-  void leave() => state = state > 0 ? state - 1 : 0;
+  /// A screen can close after its container is gone (app or test teardown).
+  void leave() {
+    if (ref.mounted) state = state > 0 ? state - 1 : 0;
+  }
 }
 
 /// Whether the offline banner should stay hidden: a full-screen offline

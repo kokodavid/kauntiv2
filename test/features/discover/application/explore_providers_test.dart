@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/config/app_config.dart';
+import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
 import 'package:kaunti47_v2/src/features/discover/application/explore_providers.dart';
 import 'package:kaunti47_v2/src/features/discover/data/discover_detail_repository.dart';
 import 'package:kaunti47_v2/src/features/discover/data/explore_repository.dart';
@@ -71,6 +73,7 @@ void main() {
     detail = _FakeDetailRepository();
     container = ProviderContainer(
       overrides: [
+        appConfigProvider.overrideWithValue(const AppConfig.dev()),
         exploreRepositoryProvider.overrideWithValue(explore),
         discoverDetailRepositoryProvider.overrideWithValue(detail),
       ],

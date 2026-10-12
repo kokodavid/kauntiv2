@@ -18,6 +18,8 @@ class _Fixed extends Connectivity {
 }
 
 Widget _app(ConnectivityStatus status, Widget child) => ProviderScope(
+  // A new scope per status, so the override is read again on re-pump.
+  key: ValueKey(status),
   overrides: [connectivityProvider.overrideWith(() => _Fixed(status))],
   child: MaterialApp(home: Scaffold(body: child)),
 );

@@ -47,8 +47,8 @@ class TripStopsRows extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
             itemCount: stops.length,
-            onReorder: (oldIndex, newIndex) =>
-                onMove(oldIndex, newIndex > oldIndex ? newIndex - 1 : newIndex),
+            // onReorderItem's newIndex is already the final position.
+            onReorderItem: onMove,
             proxyDecorator: (child, index, animation) => Material(
               color: Colors.white,
               elevation: 4,

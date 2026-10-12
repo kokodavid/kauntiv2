@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../design/app_colors.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_text_styles.dart';
-import '../../widgets/app_google_logo.dart';
-import '../../widgets/app_progress_indicator.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_spacing.dart';
+import '../../../design/app_text_styles.dart';
+import '../../../widgets/app_google_logo.dart';
+import '../../../widgets/app_progress_indicator.dart';
 
 class OnboardingAuthButton extends StatelessWidget {
   const OnboardingAuthButton({

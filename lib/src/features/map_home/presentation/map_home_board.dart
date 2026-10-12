@@ -57,7 +57,6 @@ class MapHomeBoard extends ConsumerStatefulWidget {
 
   /// Empty (or web, which Mapbox doesn't support): drawn map only.
   final String mapboxAccessToken;
-
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
   final OpenDirections? onRoute;
@@ -72,7 +71,9 @@ class MapHomeBoard extends ConsumerStatefulWidget {
 
 class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
   bool _isMapInteracting = false;
-  final _focus = MapHomeMapFocus();
+  late final _focus = MapHomeMapFocus(
+    onChanged: () => mounted ? setState(() {}) : null,
+  );
 
   /// The real (Mapbox) map is Home's default; the drawn map is the fallback
   /// once it fails, until the user retries.

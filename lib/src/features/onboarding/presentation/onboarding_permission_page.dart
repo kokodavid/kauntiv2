@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../design/app_colors.dart';
-import '../../design/app_text_styles.dart';
-import '../../features/profile/domain/place_interest.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
+import '../../profile/domain/place_interest.dart';
 import 'onboarding_permission_ask.dart';
 import 'onboarding_permission_parts.dart';
 import 'onboarding_shell.dart';

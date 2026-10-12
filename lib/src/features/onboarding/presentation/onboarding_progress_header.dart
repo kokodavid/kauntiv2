@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../core/widgets/app_back_button.dart';
-import '../../design/app_text_styles.dart';
+import '../../../core/widgets/app_back_button.dart';
+import '../../../design/app_text_styles.dart';
 
 /// The top of every setup step, drawn on the blue header: an optional
 /// back button, "n of 3" and three segmented bars. [step] is 1 to 3.

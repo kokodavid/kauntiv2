@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../design/app_colors.dart';
-import '../../design/app_text_styles.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
 
 /// "How a county is earned": cross a line, stay about two hours, it's
 /// yours. The whole game in three icons, so the ask has a reason.

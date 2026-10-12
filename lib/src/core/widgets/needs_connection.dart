@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -54,7 +56,7 @@ class NeedsConnection extends ConsumerWidget {
     final checking = state.status == ConnectivityStatus.checking;
     void retry() {
       onRetry?.call();
-      ref.read(connectivityProvider.notifier).recheck();
+      unawaited(ref.read(connectivityProvider.notifier).recheck());
     }
 
     return switch (size) {
@@ -106,18 +108,16 @@ class _RetryButton extends StatelessWidget {
     required this.checking,
     required this.onRetry,
     this.fontSize = 14,
-    this.fullWidth = true,
   });
 
   final bool checking;
   final VoidCallback onRetry;
   final double fontSize;
-  final bool fullWidth;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: fullWidth ? double.infinity : null,
+      width: double.infinity,
       height: 44,
       child: OutlinedButton(
         onPressed: checking ? null : onRetry,

@@ -39,9 +39,11 @@ abstract class _JourneyReplayTimelineStateBase
   /// cost per photo rather than something repeated on every rebuild.
   final _precachedPhotoIds = <String>{};
 
-  /// Bumped whenever the Trip media sheet's inputs change (media, scan
-  /// result, add-in-progress) so the open sheet rebuilds in place.
-  final _sheetTick = ValueNotifier<int>(0);
+  /// Rebuilds the open Trip media sheet in place when its inputs change
+  /// (media, scan result, add-in-progress). Null while no sheet is open.
+  StateSetter? _sheetSetState;
+
+  void _refreshSheet() => _sheetSetState?.call(() {});
 
   /// True once the user closes the camera-roll suggestion in the sheet.
   bool _matchesDismissed = false;
@@ -79,13 +81,7 @@ mixin _JourneyReplayTimelineStateBehavior
   @override
   void setState(VoidCallback fn) {
     super.setState(fn);
-    _sheetTick.value++;
-  }
-
-  @override
-  void dispose() {
-    _sheetTick.dispose();
-    super.dispose();
+    _refreshSheet();
   }
 
   GlobalKey _keyFor(JourneyMoment moment) =>
@@ -95,7 +91,7 @@ mixin _JourneyReplayTimelineStateBehavior
   void didUpdateWidget(JourneyReplayTimeline oldWidget) {
     super.didUpdateWidget(oldWidget);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _sheetTick.value++;
+      if (mounted) _refreshSheet();
     });
     if (!identical(oldWidget.moments, widget.moments)) {
       _precachePhotos();

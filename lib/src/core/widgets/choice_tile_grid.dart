@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 
-import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
-import '../domain/place_interest.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
 
-/// The place-interest tiles, shared by setup step 2 and the standalone
-/// Interests editor: two columns, each tile with its own icon square and a
+/// A multi-select grid of icon tiles, shared by setup step 2 and the
+/// standalone Interests editor: two columns, each tile with its own icon square and a
 /// label. A picked tile gets a light-blue fill, a blue border and a check
 /// badge, so the state never relies on colour alone. Each reads to a
 /// screen reader as "Waterfalls and hikes, checkbox, checked".
-class PlaceInterestTiles extends StatelessWidget {
-  const PlaceInterestTiles({
+class ChoiceTileGrid<T> extends StatelessWidget {
+  const ChoiceTileGrid({
     super.key,
+    required this.options,
     required this.selected,
+    required this.labelOf,
+    required this.iconOf,
     required this.onToggle,
   });
 
-  final List<PlaceInterest> selected;
-  final ValueChanged<PlaceInterest> onToggle;
+  final List<T> options;
+  final List<T> selected;
+  final String Function(T option) labelOf;
+  final IconData Function(T option) iconOf;
+  final ValueChanged<T> onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -32,27 +37,30 @@ class PlaceInterestTiles extends StatelessWidget {
         crossAxisSpacing: 10,
         mainAxisExtent: 72,
       ),
-      itemCount: PlaceInterest.values.length,
+      itemCount: options.length,
       itemBuilder: (context, index) {
-        final interest = PlaceInterest.values[index];
-        return _InterestTile(
-          interest: interest,
-          isSelected: selected.contains(interest),
-          onTap: () => onToggle(interest),
+        final option = options[index];
+        return _ChoiceTile(
+          label: labelOf(option),
+          icon: iconOf(option),
+          isSelected: selected.contains(option),
+          onTap: () => onToggle(option),
         );
       },
     );
   }
 }
 
-class _InterestTile extends StatelessWidget {
-  const _InterestTile({
-    required this.interest,
+class _ChoiceTile extends StatelessWidget {
+  const _ChoiceTile({
+    required this.label,
+    required this.icon,
     required this.isSelected,
     required this.onTap,
   });
 
-  final PlaceInterest interest;
+  final String label;
+  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -61,7 +69,7 @@ class _InterestTile extends StatelessWidget {
     return Semantics(
       checked: isSelected,
       button: true,
-      label: interest.label,
+      label: label,
       excludeSemantics: true,
       onTap: onTap,
       child: Stack(
@@ -98,7 +106,7 @@ class _InterestTile extends StatelessWidget {
                           borderRadius: BorderRadius.circular(11),
                         ),
                         child: Icon(
-                          interest.icon,
+                          icon,
                           size: 18,
                           color: isSelected
                               ? AppColors.accentForeground
@@ -108,7 +116,7 @@ class _InterestTile extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          interest.label,
+                          label,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.buttonLabelSecondary.copyWith(

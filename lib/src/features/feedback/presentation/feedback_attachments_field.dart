@@ -134,7 +134,7 @@ class _AddButton extends StatelessWidget {
       icon: Icon(icon, size: 18, color: color),
       label: Text(label, style: AppTextStyles.chipLabel.copyWith(color: color)),
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: AppColors.cardBorder),
+        side: const BorderSide(color: AppColors.cardBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       ),

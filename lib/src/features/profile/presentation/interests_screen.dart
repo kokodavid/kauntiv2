@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/choice_tile_grid.dart';
+import '../../../core/widgets/interest_icons.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../application/interests_providers.dart';
 import '../domain/place_interest.dart';
-import 'place_interest_tiles.dart';
 
 /// Interests, on its own screen (Settings > Interests, and the Home card's
 /// "Pick interests"): the same tiles as setup step 2, minus the progress,
@@ -47,7 +48,7 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
       await ref.read(myInterestsProvider.notifier).save(picks);
       // Answered: the Home card has nothing left to ask.
       unawaited(ref.read(interestsPromptProvider.notifier).dismiss());
-      if (mounted) Navigator.of(context).maybePop();
+      if (mounted) unawaited(Navigator.of(context).maybePop());
     } on Object {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -120,8 +121,11 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          PlaceInterestTiles(
+                          ChoiceTileGrid<PlaceInterest>(
+                            options: PlaceInterest.values,
                             selected: picks,
+                            labelOf: (interest) => interest.label,
+                            iconOf: (interest) => interestIconForKey(interest.key),
                             onToggle: _toggle,
                           ),
                         ],

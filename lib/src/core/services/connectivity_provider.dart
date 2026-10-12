@@ -43,7 +43,7 @@ class Connectivity extends _$Connectivity {
       _upToDate?.cancel();
     });
     // Not inside build(): state isn't set until it returns.
-    Future.microtask(_tick);
+    unawaited(Future.microtask(_tick));
     return const ConnectivityState();
   }
 

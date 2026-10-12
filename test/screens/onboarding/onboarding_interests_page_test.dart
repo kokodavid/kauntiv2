@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/features/onboarding/presentation/onboarding_interests_page.dart';
 import 'package:kaunti47_v2/src/features/profile/domain/place_interest.dart';
-import 'package:kaunti47_v2/src/screens/onboarding/onboarding_interests_page.dart';
 
 Widget _page({
   List<PlaceInterest> selected = const [],

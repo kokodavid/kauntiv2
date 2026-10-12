@@ -1,8 +1,10 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../data/setup_progress_store.dart';
 
+part 'setup_progress_providers.g.dart';
+
 /// Whether new-user setup is under way on this phone. Tests override it.
-final setupProgressStoreProvider = Provider<SetupProgressStore>(
-  (ref) => const SharedPreferencesSetupProgressStore(),
-);
+@Riverpod(keepAlive: true)
+SetupProgressStore setupProgressStore(Ref ref) =>
+    const SharedPreferencesSetupProgressStore();

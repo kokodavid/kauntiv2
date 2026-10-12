@@ -105,7 +105,7 @@ class _RealMapViewState extends State<RealMapView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!TickerMode.of(context)) _sheets.closePeek();
+    if (!TickerMode.valuesOf(context).enabled) _sheets.closePeek();
   }
 
   double get _pitch => _terrainEnabled ? _tiltedPitch : 0;

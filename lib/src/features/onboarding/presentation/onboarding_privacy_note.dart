@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/services/app_external_links.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_text_styles.dart';
+import '../../../core/services/app_external_links.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
 
 /// The line under the sign-in buttons: continuing means accepting the
 /// privacy policy, which opens kaunti47.com/privacy in the browser.

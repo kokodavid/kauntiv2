@@ -72,12 +72,12 @@ class _OfflineScreenState extends ConsumerState<OfflineScreen> {
     super.initState();
     _presence = ref.read(offlineScreenPresenceProvider.notifier);
     // Not during build: providers can't change while the tree is building.
-    Future.microtask(_presence.enter);
+    unawaited(Future.microtask(_presence.enter));
   }
 
   @override
   void dispose() {
-    Future.microtask(_presence.leave);
+    unawaited(Future.microtask(_presence.leave));
     super.dispose();
   }
 

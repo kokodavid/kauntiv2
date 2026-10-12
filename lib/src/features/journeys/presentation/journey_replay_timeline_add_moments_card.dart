@@ -4,8 +4,8 @@ part of 'journey_replay_timeline.dart';
 /// / "Add note" pill pair (Claude-Design "2a" reference), with an
 /// optional link to opt into the camera-roll auto-match - shown only
 /// while that access hasn't been granted yet, so it's an invitation, not
-/// a standing nag once the answer is already known. [title]/[message] and
-/// [showAddNote] let this double as both the fully-empty-timeline card
+/// a standing nag once the answer is already known. [title]/[message] let
+/// this double as both the fully-empty-timeline card
 /// and the lighter inline "no photos yet" suggestion (see
 /// the Trip media sheet) without duplicating the layout.
 class _AddMomentsCard extends StatelessWidget {
@@ -16,7 +16,6 @@ class _AddMomentsCard extends StatelessWidget {
     required this.addingPhotos,
     required this.showFindPhotosLink,
     required this.onFindPhotos,
-    this.showAddNote = true,
   });
 
   final String title;
@@ -25,11 +24,6 @@ class _AddMomentsCard extends StatelessWidget {
   final bool addingPhotos;
   final bool showFindPhotosLink;
   final VoidCallback onFindPhotos;
-
-  /// False for the inline "no photos yet" case, where the Trip may
-  /// already have other moments and offering to add a note again isn't
-  /// the point of that suggestion.
-  final bool showAddNote;
 
   @override
   Widget build(BuildContext context) {
@@ -82,30 +76,28 @@ class _AddMomentsCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (showAddNote) ...[
-                const SizedBox(width: 8),
-                SizedBox(
-                  height: 32,
-                  child: OutlinedButton(
-                    onPressed: () => showAppToast(
-                      context,
-                      variant: AppToastVariant.neutral,
-                      title: 'Notes are coming soon',
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.buttonForeground,
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: AppColors.cardBorder),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      textStyle: pillLabelStyle.copyWith(
-                        color: AppColors.buttonForeground,
-                      ),
-                      shape: const StadiumBorder(),
-                    ),
-                    child: const Text('Add note'),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 32,
+                child: OutlinedButton(
+                  onPressed: () => showAppToast(
+                    context,
+                    variant: AppToastVariant.neutral,
+                    title: 'Notes are coming soon',
                   ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.buttonForeground,
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: AppColors.cardBorder),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    textStyle: pillLabelStyle.copyWith(
+                      color: AppColors.buttonForeground,
+                    ),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: const Text('Add note'),
                 ),
-              ],
+              ),
             ],
           ),
           if (showFindPhotosLink) ...[

@@ -128,7 +128,7 @@ class MapHomeSnapshotCounty {
     this.headquarters,
   });
 
-  factory MapHomeSnapshotCounty.fromJson(Map raw) => MapHomeSnapshotCounty(
+  factory MapHomeSnapshotCounty.fromJson(Map<dynamic, dynamic> raw) => MapHomeSnapshotCounty(
     state: raw['s'] as String?,
     areaKm2: raw['a'] as num?,
     elevationM: raw['e'] as num?,

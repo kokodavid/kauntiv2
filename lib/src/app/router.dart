@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -166,6 +168,7 @@ GoRouter appRouter(Ref ref) {
         pageBuilder: (context, state) => NoTransitionPage(
           child: SettingsScreen(
             onOpenLocationSettings: DetailRoutes.openAppSettings,
+            onOpenInterests: () => context.push(AppRoutes.interests),
             onOpenLocationDiagnostics:
                 LocationDiagnostics.enabledFor(
                   isDev: ref.read(appConfigProvider).isDev,
@@ -233,9 +236,11 @@ GoRouter appRouter(Ref ref) {
   // happened. Deferred a microtask: the router notifies mid-navigation.
   void rememberScreen() {
     final path = router.routerDelegate.currentConfiguration.uri.path;
-    Future<void>.microtask(() {
-      if (ref.mounted) ref.read(lastScreenProvider.notifier).record(path);
-    });
+    unawaited(
+      Future<void>.microtask(() {
+        if (ref.mounted) ref.read(lastScreenProvider.notifier).record(path);
+      }),
+    );
   }
 
   router.routerDelegate.addListener(rememberScreen);

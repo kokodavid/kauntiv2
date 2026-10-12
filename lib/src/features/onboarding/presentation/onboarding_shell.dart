@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../design/app_colors.dart';
-import '../../design/app_text_styles.dart';
-import '../../widgets/app_progress_indicator.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
+import '../../../widgets/app_progress_indicator.dart';
 import 'onboarding_progress_header.dart';
 
 /// One shell for the three new-user setup steps (setup design v2): a blue
@@ -113,7 +113,7 @@ class OnboardingShell extends StatelessWidget {
                   ),
                 ],
               ),
-              if (overlay != null) overlay!,
+              ?overlay,
             ],
           ),
         ),

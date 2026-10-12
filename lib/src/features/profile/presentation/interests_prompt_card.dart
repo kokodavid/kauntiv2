@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/interest_icons.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/interests_providers.dart';
@@ -149,7 +150,7 @@ class _IconCluster extends StatelessWidget {
                     ),
                   ),
                   child: Icon(
-                    interests[i].icon,
+                    interestIconForKey(interests[i].key),
                     size: 14,
                     color: AppColors.accent,
                   ),

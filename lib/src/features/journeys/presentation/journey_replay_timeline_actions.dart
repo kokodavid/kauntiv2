@@ -171,7 +171,7 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
       removeJourneyMedia(context, ref, widget.summary.id, photo);
 
   /// Opens the Trip media bottom sheet (Journey Replay 3a). Rebuilds on
-  /// [_sheetTick] so photos, the camera-roll scan and the add spinner
+  /// [_refreshSheet] so photos, the camera-roll scan and the add spinner
   /// stay live while it is open.
   Future<void> _openTripMedia() {
     unawaited(_loadMediaLimit());
@@ -183,9 +183,10 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (_) => ListenableBuilder(
-        listenable: _sheetTick,
-        builder: (sheetContext, _) => SafeArea(
+      builder: (_) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          _sheetSetState = setSheetState;
+          return SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.only(top: 8, bottom: 16),
             child: Column(
@@ -229,8 +230,9 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
               ],
             ),
           ),
-        ),
+        );
+        },
       ),
-    );
+    ).whenComplete(() => _sheetSetState = null);
   }
 }

@@ -81,9 +81,7 @@ class SupabaseJourneyRepository {
   static const pageSize = 1000;
 
   /// Uploads [userId]'s completed Journey; returns the server's distance in
-  /// metres. The server rejects it unless [userId] is still the signed-in
-  /// account. Idempotent: a retry after a lost response returns the stored
-  /// one.
+  /// metres. Rejected unless [userId] is signed in. Idempotent on retry.
   Future<double> upload({
     required String userId,
     required String id,
@@ -218,14 +216,8 @@ class SupabaseJourneyRepository {
     coverMediaId: row['cover_media_id'] as String?,
   );
 
-  /// One uploaded Journey, or null if it's gone (deleted elsewhere).
-  ///
-  /// Fetches its `journey_counties` rows alongside the Journey itself -
-  /// this is the single-Journey counterpart of [history]'s batched join,
-  /// and skipping it here was previously a real bug: every screen that
-  /// reads a Journey through this method (Replay, the share sheet, the
-  /// Trip Share Card) got `countyNames: []` even when [history]'s list
-  /// view showed the right county count for the very same Trip.
+  /// One uploaded Journey, or null if it's gone. Reads its
+  /// `journey_counties` rows too, so `countyNames` matches [history].
   Future<JourneySummary?> journey(String id) async {
     final results = await Future.wait([
       _client
@@ -276,8 +268,7 @@ class SupabaseJourneyRepository {
     ];
   }
 
-  /// Reads every page of a query ordered on a unique key, [pageSize] rows
-  /// at a time, until a short page.
+  /// Reads every page of a query ordered on a unique key until a short page.
   static Future<List<Map<String, dynamic>>> readAllPages(
     Future<List<Map<String, dynamic>>> Function(int from, int to) page,
   ) async {
@@ -293,9 +284,8 @@ class SupabaseJourneyRepository {
   Future<void> delete(String journeyId) =>
       _client.from('journeys').delete().eq('id', journeyId).timeout(_timeout);
 
-  /// Renames [userId]'s Journey. The server rejects it unless [userId] is
-  /// still the signed-in account (no client update policy on `journeys`;
-  /// `rename_journey` is the only write path).
+  /// Renames [userId]'s Journey (`rename_journey` is the only write path;
+  /// rejected unless [userId] is signed in).
   Future<void> rename({
     required String userId,
     required String id,

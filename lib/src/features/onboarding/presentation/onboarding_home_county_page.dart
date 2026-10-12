@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../core/widgets/county_badge_medallion.dart';
-import '../../counties/county_paths.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_text_styles.dart';
-import '../../widgets/app_county_map.dart';
-import '../../widgets/county_picker_sheet.dart';
+import '../../../core/widgets/county_badge_medallion.dart';
+import '../../../counties/county_paths.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
+import '../../../widgets/app_county_map.dart';
+import '../../../widgets/county_picker_sheet.dart';
 import 'onboarding_shell.dart';
 
 /// Setup step 1 of 3: pick your home county (setup design v2), inside the

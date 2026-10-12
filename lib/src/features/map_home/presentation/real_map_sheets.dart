@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
 import '../../../core/domain/map_place.dart';
@@ -23,7 +22,7 @@ class RealMapSheets {
 
   final _places = RealMapSheetGuard();
   final _host = GlobalKey<_PeekHostState>();
-  final _shown = ValueNotifier<_Peek?>(null);
+  _Peek? _latest;
   OverlayEntry? _entry;
 
   bool get isPeekOpen => _entry != null;
@@ -35,12 +34,16 @@ class RealMapSheets {
     required bool isHome,
     VoidCallback? onOpen,
   }) {
-    _shown.value = _Peek(badge, isHome, onOpen);
-    if (_entry != null) return;
+    final peek = _Peek(badge, isHome, onOpen);
+    _latest = peek;
+    if (_entry != null) {
+      _host.currentState?.show(peek);
+      return;
+    }
     final entry = OverlayEntry(
       builder: (_) => _PeekHost(
         key: _host,
-        shown: _shown,
+        initial: _latest,
         onDismissed: _remove,
         onClosed: onPeekClosed,
       ),
@@ -76,14 +79,13 @@ class RealMapSheets {
   void _remove() {
     _entry?.remove();
     _entry = null;
-    _shown.value = null;
+    _latest = null;
   }
 
   /// Takes the peek away at once, without the slide-out or the callback
   /// (the map is leaving the screen).
   void dispose() {
     _remove();
-    _shown.dispose();
   }
 }
 
@@ -98,12 +100,12 @@ class _Peek {
 class _PeekHost extends StatefulWidget {
   const _PeekHost({
     super.key,
-    required this.shown,
+    required this.initial,
     required this.onDismissed,
     required this.onClosed,
   });
 
-  final ValueListenable<_Peek?> shown;
+  final _Peek? initial;
   final VoidCallback onDismissed;
   final VoidCallback onClosed;
 
@@ -114,6 +116,10 @@ class _PeekHost extends StatefulWidget {
 class _PeekHostState extends State<_PeekHost> {
   static const _slide = Duration(milliseconds: 250);
   bool _visible = false;
+  late _Peek? _peek = widget.initial;
+
+  /// Swaps in another county's peek while this one is open.
+  void show(_Peek peek) => setState(() => _peek = peek);
 
   @override
   void initState() {
@@ -165,24 +171,24 @@ class _PeekHostState extends State<_PeekHost> {
           onVerticalDragEnd: (details) {
             if ((details.primaryVelocity ?? 0) > 250) dismiss();
           },
-          child: ValueListenableBuilder<_Peek?>(
-            valueListenable: widget.shown,
-            builder: (context, peek, _) {
-              if (peek == null) return const SizedBox.shrink();
-              return AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                alignment: Alignment.bottomCenter,
-                child: CountyPeekSheet(
-                  key: ValueKey(peek.badge.county.code),
-                  badge: peek.badge,
-                  isHome: peek.isHome,
-                  onOpen: peek.onOpen,
-                  onClose: dismiss,
-                ),
-              );
-            },
-          ),
+          child: _sheetBody(),
         ),
+      ),
+    );
+  }
+
+  Widget _sheetBody() {
+    final peek = _peek;
+    if (peek == null) return const SizedBox.shrink();
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      alignment: Alignment.bottomCenter,
+      child: CountyPeekSheet(
+        key: ValueKey(peek.badge.county.code),
+        badge: peek.badge,
+        isHome: peek.isHome,
+        onOpen: peek.onOpen,
+        onClose: dismiss,
       ),
     );
   }

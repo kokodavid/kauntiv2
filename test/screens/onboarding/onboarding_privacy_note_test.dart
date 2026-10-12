@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kaunti47_v2/src/screens/onboarding/onboarding_privacy_note.dart';
+import 'package:kaunti47_v2/src/features/onboarding/presentation/onboarding_privacy_note.dart';
 
 void main() {
   testWidgets('tapping Privacy Policy opens the policy', (tester) async {

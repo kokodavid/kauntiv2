@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../design/app_colors.dart';
-import '../../design/app_text_styles.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
 
 /// One reassurance row on setup step 3: an icon in a tinted square, a
 /// bold lead-in and a short body.

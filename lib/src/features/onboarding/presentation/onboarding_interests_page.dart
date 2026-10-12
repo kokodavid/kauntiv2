@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../design/app_colors.dart';
-import '../../design/app_text_styles.dart';
-import '../../features/profile/domain/place_interest.dart';
-import '../../features/profile/presentation/place_interest_tiles.dart';
+import '../../../core/widgets/choice_tile_grid.dart';
+import '../../../core/widgets/interest_icons.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
+import '../../profile/domain/place_interest.dart';
 import 'onboarding_shell.dart';
 
 /// Setup step 2 of 3: what kinds of places the user likes. Optional:
@@ -55,7 +56,13 @@ class OnboardingInterestsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PlaceInterestTiles(selected: selected, onToggle: onToggle),
+            ChoiceTileGrid<PlaceInterest>(
+              options: PlaceInterest.values,
+              selected: selected,
+              labelOf: (interest) => interest.label,
+              iconOf: (interest) => interestIconForKey(interest.key),
+              onToggle: onToggle,
+            ),
             const SizedBox(height: 14),
             Text(
               hint(selected.length),

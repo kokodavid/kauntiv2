@@ -23,10 +23,9 @@ AppLocationPermissionService locationPermissionService(Ref ref) =>
 /// Start-up and onboarding: splash (session restore) → sign in → then, for
 /// a new user only, three setup steps (home county → place interests →
 /// location permission) → ready. A returning user, who already has a home
-/// county and no setup in progress on this phone, goes straight to ready. The router redirects on [step]
-/// (`app/router.dart`); screens call these methods. Ported from the
-/// `setState` gate that `app.dart` used to be, with the same rules and
-/// copy.
+/// county and no setup in progress on this phone, goes straight to ready.
+/// The router redirects on [step] (`app/router.dart`); screens call these
+/// methods. Ported from the old `app.dart` gate, with the same rules.
 @Riverpod(keepAlive: true)
 class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
   static const _homeCountyCheckFailed =
@@ -38,15 +37,15 @@ class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
   AppLocationPermissionService get _permissions =>
       ref.read(locationPermissionServiceProvider);
 
-  /// Splash preload: a signed-in session skips sign-in and goes straight
-  /// to its home county / permission check while the splash is still up,
-  /// so the sign-in page never flashes.
+  /// Splash preload: a signed-in session skips sign-in and goes straight to
+  /// its home county / permission check, so sign-in never flashes.
   Future<void> restoreSession() async {
     if (ref.read(currentUserIdProvider)() == null) return;
     await onSignedIn();
   }
 
   void completeSplash() => state = state.copyWith(splashComplete: true);
+
   /// Clear account-specific onboarding state before routing to sign-in.
   void resetAfterSignOut() => state = const StartupState(splashComplete: true);
 
@@ -196,6 +195,7 @@ class StartupFlow extends _$StartupFlow with _StartupInterestsSteps {
 
   /// Past step 2: the permission step, or straight to ready when location
   /// is already granted.
+  @override
   Future<void> _continuePastInterests() async {
     AppLocationPermissionResult result;
     try {

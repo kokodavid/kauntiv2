@@ -23,25 +23,35 @@ void main() {
   testWidgets('a drag hides the chrome until 3 seconds after it ends', (
     tester,
   ) async {
-    final focus = MapHomeMapFocus();
+    void Function()? rebuild;
+    final focus = MapHomeMapFocus(onChanged: () => rebuild?.call());
     addTearDown(focus.dispose);
     await tester.pumpWidget(
       MaterialApp(
-        home: Stack(
-          children: [
-            MapHomeMapTouchSensor(
-              focus: focus,
-              child: const SizedBox.expand(),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              child: MapHomeFocusFade(
-                focus: focus,
-                child: const SizedBox(key: Key('chrome'), width: 50, height: 50),
-              ),
-            ),
-          ],
+        home: StatefulBuilder(
+          builder: (context, setState) {
+            rebuild = () => setState(() {});
+            return Stack(
+              children: [
+                MapHomeMapTouchSensor(
+                  focus: focus,
+                  child: const SizedBox.expand(),
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: MapHomeFocusFade(
+                    focus: focus,
+                    child: const SizedBox(
+                      key: Key('chrome'),
+                      width: 50,
+                      height: 50,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

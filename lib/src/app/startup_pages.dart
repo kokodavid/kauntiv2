@@ -8,10 +8,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../features/auth/application/sign_in_controller.dart';
 import '../features/auth/domain/auth_failure.dart';
 import '../features/onboarding/application/startup_flow.dart';
-import '../screens/onboarding/onboarding_auth_page.dart';
-import '../screens/onboarding/onboarding_home_county_page.dart';
-import '../screens/onboarding/onboarding_interests_page.dart';
-import '../screens/onboarding/onboarding_permission_page.dart';
+import '../features/onboarding/presentation/onboarding_auth_page.dart';
+import '../features/onboarding/presentation/onboarding_home_county_page.dart';
+import '../features/onboarding/presentation/onboarding_interests_page.dart';
+import '../features/onboarding/presentation/onboarding_permission_page.dart';
 import '../screens/splash_screen.dart';
 
 /// The start-up pages, each bound to [StartupFlow] (or sign-in). Which

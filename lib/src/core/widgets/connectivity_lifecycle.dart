@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,7 +34,7 @@ class _ConnectivityLifecycleState extends ConsumerState<ConnectivityLifecycle>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.read(connectivityProvider.notifier).recheck();
+      unawaited(ref.read(connectivityProvider.notifier).recheck());
     }
   }
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../design/app_colors.dart';
-import '../../design/app_text_styles.dart';
-import '../../widgets/app_icon_badge.dart';
-import '../../widgets/app_progress_indicator.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_text_styles.dart';
+import '../../../widgets/app_icon_badge.dart';
+import '../../../widgets/app_progress_indicator.dart';
 import 'onboarding_common.dart';
 import 'onboarding_privacy_note.dart';
 

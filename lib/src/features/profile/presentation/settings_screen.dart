@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/needs_connection.dart';
@@ -13,7 +12,6 @@ import '../../detection/application/detection_controller.dart';
 import '../../journeys/application/journey_entitlement.dart';
 import '../../journeys/application/journey_recorder.dart';
 import '../../onboarding/application/startup_flow.dart';
-import '../../../app/app_routes.dart';
 import '../application/interests_providers.dart';
 import '../application/profile_settings_providers.dart';
 import '../application/public_profile_providers.dart';
@@ -38,10 +36,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({
     super.key,
     required this.onOpenLocationSettings,
+    required this.onOpenInterests,
     this.onOpenLocationDiagnostics,
   });
 
   final Future<void> Function() onOpenLocationSettings;
+  final VoidCallback onOpenInterests;
   final VoidCallback? onOpenLocationDiagnostics;
 
   @override
@@ -168,7 +168,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 interests:
                     ref.watch(myInterestsProvider).value?.interests ??
                     const [],
-                onOpenInterests: () => context.push(AppRoutes.interests),
+                onOpenInterests: widget.onOpenInterests,
               ),
               const SizedBox(height: 18),
               SettingsLocationSection(

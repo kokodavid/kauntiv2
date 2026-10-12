@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -56,7 +58,7 @@ class AppShell extends ConsumerWidget {
     // banner say "Up to date" and leave.
     ref.listen(connectivityProvider.select((s) => s.status), (prev, next) {
       if (next != ConnectivityStatus.reconnecting) return;
-      Future<void>(() async {
+      unawaited(Future<void>(() async {
         try {
           await ref.read(visitSyncProvider.notifier).drain();
         } on Object {
@@ -65,7 +67,7 @@ class AppShell extends ConsumerWidget {
         // Profile fell back to its saved copy while offline; reload it.
         ref.invalidate(myPublicProfileProvider);
         ref.read(connectivityProvider.notifier).markSynced();
-      });
+      }));
     });
     final bannerShown =
         ref.watch(connectivityProvider.select((s) => s.showsBanner)) &&

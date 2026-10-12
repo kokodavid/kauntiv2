@@ -9,6 +9,10 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
+    <!-- Arrival notifications (flutter_local_notifications): the Android 13+
+         runtime permission, asked in context after the first arrival sheet. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <!-- Replay's camera-roll photo match (photo_manager): the whole-
          library read needed to scan by timestamp, not image_picker's own
          picker. VISUAL_USER_SELECTED covers Android 14+ "select photos"

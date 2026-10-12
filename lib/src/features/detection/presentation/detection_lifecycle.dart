@@ -5,8 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_config_provider.dart';
 import '../../../core/services/location_diagnostics.dart';
+import '../../../services/app_logger.dart';
+import '../../discover/application/explore_providers.dart';
+import '../../discover/domain/county_detail.dart';
+import '../../profile/application/profile_settings_providers.dart';
+import '../application/arrival_notification_bridge.dart';
 import '../application/arrival_nudge.dart';
 import '../application/detection_controller.dart';
+import '../domain/visit_models.dart';
 import 'county_arrival_sheet.dart';
 
 /// Drives [DetectionController] from the app lifecycle: a cycle on start,
@@ -49,6 +55,7 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
   static const _locationInterval = Duration(minutes: 2);
   Timer? _timer;
   DateTime? _lastLocationReadAt;
+  final _notifications = ArrivalNotificationBridge();
 
   @override
   void initState() {
@@ -57,10 +64,21 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
     _recordLifecycle('app_foregrounded');
     _run(forceLocation: true);
     _startTimer();
+    unawaited(_notifications.syncHomeCounty(widget.homeCountyCode));
+    unawaited(_notifications.start(onOpen: _openFromNotification));
+  }
+
+  @override
+  void didUpdateWidget(DetectionLifecycle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.homeCountyCode != widget.homeCountyCode) {
+      unawaited(_notifications.syncHomeCounty(widget.homeCountyCode));
+    }
   }
 
   @override
   void dispose() {
+    unawaited(_notifications.beat(foreground: false));
     _timer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -74,6 +92,7 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
       _startTimer();
     } else {
       _recordLifecycle('app_lifecycle_${state.name}');
+      unawaited(_notifications.beat(foreground: false));
       _timer?.cancel();
       _timer = null;
     }
@@ -101,6 +120,9 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
         _lastLocationReadAt == null ||
         now.difference(_lastLocationReadAt!) >= _locationInterval;
     if (refreshLocation) _lastLocationReadAt = now;
+    // The geofence callback stays quiet while the app is in front: the
+    // sheet covers an arrival, and a notification would only repeat it.
+    unawaited(_notifications.beat(foreground: true));
     unawaited(
       ref
           .read(detectionControllerProvider.notifier)
@@ -116,27 +138,65 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
       if (!mounted) return;
       final pending = ref.read(pendingArrivalNudgeProvider.notifier).take();
       if (pending == null) return;
-      final openCounty = widget.onOpenCounty;
-      final openPlace = widget.onOpenPlace;
-      unawaited(
-        showCountyArrivalSheet(
-          context,
-          data: pending.county,
-          onOpenCounty: openCounty == null
-              ? null
-              : (code) => openCounty(context, code),
-          onOpenPlace: openPlace == null
-              ? null
-              : (id) => openPlace(context, id),
-        ),
-      );
+      unawaited(_present(pending.county, firstSheet: true));
     });
+  }
+
+  /// A tapped arrival notification: opens the sheet for that crossing, once.
+  /// The sheet the cycle may already have pending for the same county is
+  /// reused so the two never stack.
+  Future<void> _openFromNotification(CountyArrivalNudge nudge) async {
+    try {
+      final notifier = ref.read(pendingArrivalNudgeProvider.notifier);
+      final pending = ref.read(pendingArrivalNudgeProvider);
+      CountyDetailData? county;
+      if (pending?.nudge.countyCode == nudge.countyCode) {
+        county = notifier.take()?.county;
+      }
+      county ??= await ref
+          .read(discoverDetailRepositoryProvider)
+          .countyDetail(nudge.countyCode);
+      if (!mounted) return;
+      await ref.read(arrivalNudgeHistoryProvider).markShown(nudge);
+      if (!mounted) return;
+      await _present(county);
+    } on Object catch (error, stackTrace) {
+      const AppLogger.detection().warning(
+        'Could not open the arrival sheet from a notification.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _present(
+    CountyDetailData data, {
+    bool firstSheet = false,
+  }) async {
+    final openCounty = widget.onOpenCounty;
+    final openPlace = widget.onOpenPlace;
+    await showCountyArrivalSheet(
+      context,
+      data: data,
+      onOpenCounty: openCounty == null
+          ? null
+          : (code) => openCounty(context, code),
+      onOpenPlace: openPlace == null ? null : (id) => openPlace(context, id),
+    );
+    // The first arrival is the moment to ask for notifications.
+    if (firstSheet) unawaited(_notifications.askPermissionOnce());
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen(pendingArrivalNudgeProvider, (previous, next) {
       if (next != null) _showArrival();
+    });
+    ref.listen(profileSettingsControllerProvider, (previous, next) {
+      final settings = next.value;
+      if (settings != null) {
+        unawaited(_notifications.syncEnabled(settings.notifyCountyNudges));
+      }
     });
     return widget.child;
   }

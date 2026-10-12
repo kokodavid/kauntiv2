@@ -5,6 +5,7 @@ import '../../../core/services/location_diagnostics.dart';
 import '../../../services/app_logger.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
+import 'arrival_notifier.dart';
 import 'detection_repository.dart';
 import 'local/detection_database.dart';
 
@@ -38,49 +39,9 @@ Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
   try {
     if (await db.select(db.detectionOwner).getSingleOrNull() == null) return;
 
-    final location = params.location;
-    if (location != null) {
-      final entered = await repository.reconcileCurrentLocation(
-        latitude: location.latitude,
-        longitude: location.longitude,
-      );
-      if (entered != null) {
-        logger.info('Geofence fix moved the phone into county $entered.');
-        return;
-      }
-      // The fix didn't change the current county (e.g. no county was set
-      // yet): an ENTER still starts a candidate for the polygon county.
-      final polygonCounty = CountyBoundaryResolver.countyCodeFor(
-        latitude: location.latitude,
-        longitude: location.longitude,
-        minimumInsideDistanceMeters:
-            CountyBoundaryResolver.boundaryHysteresisMeters,
-      );
-      if (polygonCounty != null && kind == CrossingKind.enter) {
-        await repository.handleEvent(
-          CountyCrossingEvent(
-            countyCode: polygonCounty,
-            kind: kind,
-            occurredAt: DateTime.now(),
-          ),
-        );
-      }
-      return;
-    }
-
-    for (final geofence in params.geofences) {
-      final code = int.tryParse(geofence.id);
-      if (code == null) continue;
-      final visit = await repository.handleEvent(
-        CountyCrossingEvent(
-          countyCode: code,
-          kind: kind,
-          occurredAt: DateTime.now(),
-        ),
-      );
-      if (visit != null) {
-        logger.info('Resolved $visit from a geofence ${kind.name}.');
-      }
+    await _record(params, repository, kind);
+    if (kind == CrossingKind.enter) {
+      await _notifyArrival(repository);
     }
   } on Object catch (error, stackTrace) {
     logger.warning(
@@ -90,5 +51,74 @@ Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
     );
   } finally {
     await db.close();
+  }
+}
+
+/// Records the crossing in the local database (see the dispatcher).
+Future<void> _record(
+  GeofenceCallbackParams params,
+  DetectionRepository repository,
+  CrossingKind kind,
+) async {
+  const logger = AppLogger.detection();
+  final location = params.location;
+  if (location != null) {
+    final entered = await repository.reconcileCurrentLocation(
+      latitude: location.latitude,
+      longitude: location.longitude,
+    );
+    if (entered != null) {
+      logger.info('Geofence fix moved the phone into county $entered.');
+      return;
+    }
+    // The fix didn't change the current county (e.g. no county was set
+    // yet): an ENTER still starts a candidate for the polygon county.
+    final polygonCounty = CountyBoundaryResolver.countyCodeFor(
+      latitude: location.latitude,
+      longitude: location.longitude,
+      minimumInsideDistanceMeters:
+          CountyBoundaryResolver.boundaryHysteresisMeters,
+    );
+    if (polygonCounty != null && kind == CrossingKind.enter) {
+      await repository.handleEvent(
+        CountyCrossingEvent(
+          countyCode: polygonCounty,
+          kind: kind,
+          occurredAt: DateTime.now(),
+        ),
+      );
+    }
+    return;
+  }
+
+  for (final geofence in params.geofences) {
+    final code = int.tryParse(geofence.id);
+    if (code == null) continue;
+    final visit = await repository.handleEvent(
+      CountyCrossingEvent(
+        countyCode: code,
+        kind: kind,
+        occurredAt: DateTime.now(),
+      ),
+    );
+    if (visit != null) {
+      logger.info('Resolved $visit from a geofence ${kind.name}.');
+    }
+  }
+}
+
+/// Posts the arrival notification when a recorded crossing is due one. A
+/// failure here must never undo the recording above.
+Future<void> _notifyArrival(DetectionRepository repository) async {
+  try {
+    final notifier = ArrivalNotifier();
+    await notifier.initialize();
+    await notifier.notifyIfDue(await repository.activeArrivalCandidates());
+  } on Object catch (error, stackTrace) {
+    const AppLogger.detection().warning(
+      'Arrival notification failed.',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 }

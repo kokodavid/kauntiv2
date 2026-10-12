@@ -9,7 +9,7 @@ void main() {
   test('interestsSummary lists picks and counts the rest', () {
     expect(
       interestsSummary(const [PlaceInterest.water]),
-      PlaceInterest.water.shortName,
+      'Waterfalls',
     );
     final text = interestsSummary(const [
       PlaceInterest.water,

@@ -174,6 +174,9 @@ void main() {
   });
 
   testWidgets('the media button opens the Trip media sheet', (tester) async {
+    // bySemanticsLabel only sees anything while semantics are on.
+    final semantics = tester.ensureSemantics();
+    addTearDown(semantics.dispose);
     await _pump(
       tester,
       moments: const [

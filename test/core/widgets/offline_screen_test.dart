@@ -56,11 +56,25 @@ void main() {
   testWidgets('leaving the screen lifts the banner suppression', (
     tester,
   ) async {
-    await tester.pumpWidget(_app(ConnectivityStatus.offline, () {}));
-    await tester.pump();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(OfflineScreen)),
+    // Own the container: a ProviderScope disposes its own when it leaves
+    // the tree, which would take the presence provider with it.
+    final container = ProviderContainer(
+      overrides: [
+        connectivityProvider.overrideWith(
+          () => _Fixed(ConnectivityStatus.offline),
+        ),
+      ],
     );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(body: OfflineScreen(onRetry: () {})),
+        ),
+      ),
+    );
+    await tester.pump();
     expect(container.read(offlineScreenPresenceProvider), 1);
 
     await tester.pumpWidget(

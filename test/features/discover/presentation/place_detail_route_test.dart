@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/core/domain/connectivity_state.dart';
+import 'package:kaunti47_v2/src/core/services/connectivity_provider.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/discover/application/discover_detail_actions.dart';
 import 'package:kaunti47_v2/src/features/discover/data/county_news_flag_repository.dart';
@@ -45,18 +48,21 @@ void main() {
     final complete = Completer<void>();
     var calls = 0;
     await tester.pumpWidget(
-      MaterialApp(
-        home: PlaceDetailScreen(
-          placeId: 'place-1',
-          actions: DiscoverDetailActions(
-            repository: _Places(),
-            countyNewsFlags: _EnabledNewsFlags(),
+      ProviderScope(
+        overrides: [connectivityProvider.overrideWith(_Online.new)],
+        child: MaterialApp(
+          home: PlaceDetailScreen(
+            placeId: 'place-1',
+            actions: DiscoverDetailActions(
+              repository: _Places(),
+              countyNewsFlags: _EnabledNewsFlags(),
+            ),
+            onGetRoute: (context, place) {
+              expect(place.id, 'place-1');
+              calls++;
+              return complete.future;
+            },
           ),
-          onGetRoute: (context, place) {
-            expect(place.id, 'place-1');
-            calls++;
-            return complete.future;
-          },
         ),
       ),
     );
@@ -74,4 +80,16 @@ void main() {
 class _EnabledNewsFlags implements CountyNewsFlagRepository {
   @override
   Future<bool> isEnabled() async => true;
+}
+
+/// Always online, and never probes the real network.
+class _Online extends Connectivity {
+  @override
+  ConnectivityState build() => const ConnectivityState();
+
+  @override
+  Future<bool> checkNow() async => true;
+
+  @override
+  Future<void> recheck() async {}
 }

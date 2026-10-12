@@ -48,6 +48,8 @@ mixin _JourneyReplayScreenLayout on _JourneyReplayPlayback {
                   summary: widget.summary,
                   points: points,
                   moments: widget.moments,
+                  media: widget.media,
+                  mediaLoading: widget.mediaLoading,
                   momentsLoading: widget.momentsLoading,
                   currentMoments: _showing,
                   onJumpTo: _jumpTo,

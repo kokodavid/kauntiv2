@@ -10,6 +10,8 @@ class _CameraRollMatchCard extends StatelessWidget {
     required this.busy,
     required this.onAddAll,
     required this.onChoose,
+    this.onDismiss,
+    this.addLimit = CameraRollMatcher.maxAutoAdd,
   });
 
   final List<CameraRollMatch> matches;
@@ -17,15 +19,20 @@ class _CameraRollMatchCard extends StatelessWidget {
   final VoidCallback onAddAll;
   final VoidCallback onChoose;
 
+  /// Hides the suggestion; null leaves the card without a close button.
+  final VoidCallback? onDismiss;
+
+  /// How many photos "Add to timeline" will add (the one-tap cap, or the
+  /// Trip's free slots when fewer).
+  final int addLimit;
+
   @override
   Widget build(BuildContext context) {
     final pillLabelStyle = AppTypeScale.action.copyWith(
       fontWeight: FontWeight.w600,
     );
     final preview = matches.take(3).toList();
-    final cappedCount = matches.length > CameraRollMatcher.maxAutoAdd
-        ? CameraRollMatcher.maxAutoAdd
-        : matches.length;
+    final cappedCount = matches.length > addLimit ? addLimit : matches.length;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -71,6 +78,17 @@ class _CameraRollMatchCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onDismiss != null)
+                IconButton(
+                  onPressed: busy ? null : onDismiss,
+                  tooltip: 'Dismiss',
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(
+                    Icons.close,
+                    size: 18,
+                    color: AppColors.mutedForeground,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12),

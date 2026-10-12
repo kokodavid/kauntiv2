@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/connectivity_provider.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../badges/application/badges_providers.dart';
@@ -14,10 +16,13 @@ import '../application/public_profile_providers.dart';
 import '../application/trip_stats_providers.dart';
 import 'confirm_dialog.dart';
 import 'edit_profile_sheet.dart';
+import 'profile_app_version.dart';
 import 'profile_county_badges.dart';
+import 'profile_feedback_tile.dart';
 import 'profile_header.dart';
 import 'profile_progress_card.dart';
 import 'profile_tiles.dart';
+import 'sign_out_button.dart';
 
 /// A compact account overview. All account-bound values stay hidden until
 /// the auth stream and the current Supabase user agree.
@@ -27,10 +32,14 @@ class ProfileScreen extends ConsumerWidget {
     required this.onOpenBadges,
     this.onOpenJourneys,
     required this.onOpenSettings,
+    required this.onOpenFeedback,
   });
 
   final VoidCallback onOpenBadges;
   final VoidCallback? onOpenJourneys;
+
+  /// Opens the beta feedback form (the entry is only shown to testers).
+  final VoidCallback onOpenFeedback;
 
   /// Pushes the in-app Settings screen (architecture §2: cross-feature
   /// navigation goes through `app/router.dart`, not a direct import
@@ -60,6 +69,7 @@ class ProfileScreen extends ConsumerWidget {
       onOpenBadges: onOpenBadges,
       onOpenJourneys: onOpenJourneys,
       onOpenSettings: onOpenSettings,
+      onOpenFeedback: onOpenFeedback,
     );
   }
 }
@@ -70,11 +80,13 @@ class _ProfileContent extends ConsumerStatefulWidget {
     required this.onOpenBadges,
     this.onOpenJourneys,
     required this.onOpenSettings,
+    required this.onOpenFeedback,
   });
 
   final VoidCallback onOpenBadges;
   final VoidCallback? onOpenJourneys;
   final VoidCallback onOpenSettings;
+  final VoidCallback onOpenFeedback;
 
   @override
   ConsumerState<_ProfileContent> createState() => _ProfileContentState();
@@ -165,6 +177,11 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
     final metadata = user?.userMetadata ?? const <String, dynamic>{};
     final rawName = metadata['full_name'] ?? metadata['name'];
     final fallbackName = rawName is String ? rawName : null;
+    final offline = ref.watch(connectivityProvider.select((s) => s.isOffline));
+    // Back online: ask again about Pro if the offline attempt failed.
+    ref.listen(connectivityProvider.select((s) => s.isOffline), (was, now) {
+      if (was == true && !now && _proUnavailable) unawaited(_refreshPro());
+    });
     final homeCounty = ref.watch(startupFlowProvider).homeCounty?.name;
     final badges = ref.watch(badgeCollectionProvider);
     final tripStats = ref.watch(tripStatsProvider);
@@ -174,10 +191,11 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
     final proLabel = _checkingPro
         ? 'Checking access...'
         : _proUnavailable
-        ? "Couldn't check. Tap to retry."
+        ? (offline ? 'Needs a connection' : "Couldn't check. Tap to retry.")
         : isPro
         ? 'Pro active'
         : 'Free';
+    final savedAt = ref.watch(profileSavedAtProvider).value;
     final displayName = publicProfile?.displayName.isNotEmpty == true
         ? publicProfile!.displayName
         : (fallbackName?.isNotEmpty == true ? fallbackName! : 'Traveller');
@@ -195,11 +213,18 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
               avatarUrl: publicProfile?.avatarUrl,
               homeCounty: homeCounty,
               isPro: isPro,
+              canEdit: !offline && publicProfile != null,
+              savedAt: savedAt,
               onOpenSettings: widget.onOpenSettings,
               onEditProfile: _openEditProfile,
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                14,
+                16,
+                AppBottomNav.clearance(context) + 8,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -234,16 +259,13 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                         onTap: widget.onOpenJourneys,
                       ),
                     ),
+                  ProfileFeedbackTile(onOpen: widget.onOpenFeedback),
                   const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: _signingOut ? null : () => unawaited(_signOut()),
-                    icon: const Icon(Icons.logout),
-                    label: Text(_signingOut ? 'Signing out...' : 'Sign out'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.foreground,
-                      side: const BorderSide(color: ProfilePalette.border),
-                    ),
+                  SignOutButton(
+                    signingOut: _signingOut,
+                    onPressed: () => unawaited(_signOut()),
                   ),
+                  const ProfileAppVersion(),
                 ],
               ),
             ),

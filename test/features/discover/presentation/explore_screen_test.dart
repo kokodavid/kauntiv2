@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/config/app_config.dart';
+import 'package:kaunti47_v2/src/core/domain/connectivity_state.dart';
+import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
+import 'package:kaunti47_v2/src/core/services/connectivity_provider.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/discover/application/explore_providers.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_board.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_lists.dart';
 import 'package:kaunti47_v2/src/features/discover/presentation/explore_screen.dart';
 
+class _Online extends Connectivity {
+  @override
+  ConnectivityState build() =>
+      const ConnectivityState(status: ConnectivityStatus.online);
+
+  @override
+  Future<void> recheck() async {}
+}
+
 Widget _app(Future<ExploreBoard> Function() load) => ProviderScope(
   // No automatic retry, so an error test leaves no pending timers.
   retry: (retryCount, error) => null,
-  overrides: [exploreBoardProvider.overrideWith((ref) => load())],
+  overrides: [
+    appConfigProvider.overrideWithValue(const AppConfig.dev()),
+    connectivityProvider.overrideWith(_Online.new),
+    exploreBoardProvider.overrideWith((ref) => load()),
+  ],
   child: const MaterialApp(home: Scaffold(body: ExploreScreen())),
 );
 

@@ -10,6 +10,10 @@ abstract final class AppFeatureFlags {
   /// screen is ported.
   static const ranks = bool.fromEnvironment('RANKS_ENABLED');
 
+  /// Sharing a place from Place Detail (the Share button there only says
+  /// "coming soon" for now). Hidden until it works.
+  static const placeShare = bool.fromEnvironment('PLACE_SHARE_ENABLED');
+
   /// Local location and battery diagnostics for dev builds only.
   static const locationDiagnostics = bool.fromEnvironment(
     'LOCATION_DIAGNOSTICS',

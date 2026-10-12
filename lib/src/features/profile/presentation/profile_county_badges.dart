@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_shimmer.dart';
 import '../../../core/widgets/county_badge_medallion.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/app_progress_indicator.dart';
 import '../../badges/domain/badge_collection.dart';
 
 class ProfileCountyBadges extends StatelessWidget {
@@ -57,8 +57,23 @@ class ProfileCountyBadges extends StatelessWidget {
         SizedBox(
           height: 78,
           child: collection.when(
-            loading: () => const Center(
-              child: AppProgressIndicator(color: AppColors.accent, radius: 10),
+            // Six placeholders are wider than a phone, like the real row:
+            // clipped and not scrolling, so they run off the edge quietly.
+            loading: () => const AppShimmer(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: NeverScrollableScrollPhysics(),
+                child: Row(
+                  children: [
+                    _BadgeSkeleton(),
+                    _BadgeSkeleton(gap: true),
+                    _BadgeSkeleton(gap: true),
+                    _BadgeSkeleton(gap: true),
+                    _BadgeSkeleton(gap: true),
+                    _BadgeSkeleton(gap: true),
+                  ],
+                ),
+              ),
             ),
             error: (error, stackTrace) => const Align(
               alignment: Alignment.centerLeft,
@@ -122,6 +137,27 @@ class ProfileCountyBadges extends StatelessWidget {
           ),
         ),
       ],
+    ),
+  );
+}
+
+class _BadgeSkeleton extends StatelessWidget {
+  const _BadgeSkeleton({this.gap = false});
+
+  final bool gap;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(left: gap ? 10 : 0),
+    child: const SizedBox(
+      width: 58,
+      child: Column(
+        children: [
+          AppSkeleton(width: 54, height: 54, circle: true),
+          SizedBox(height: 6),
+          AppSkeleton(width: 36, height: 8),
+        ],
+      ),
     ),
   );
 }

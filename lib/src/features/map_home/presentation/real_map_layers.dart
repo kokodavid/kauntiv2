@@ -142,6 +142,14 @@ abstract final class RealMapLayers {
     MapPlaceLayers.addTapHandler(map, onPlace);
   }
 
+  /// Outlines only [badge]'s county; null outlines nothing.
+  static Future<void> setHighlight(MapboxMap map, MapHomeCountyBadge? badge) =>
+      map.style.setStyleLayerProperty(
+        highlightLayerId,
+        'filter',
+        highlightFilter(badge?.county.code),
+      );
+
   /// Outline only the county with [code]; null outlines nothing.
   static List<Object> highlightFilter(int? code) => [
     '==',

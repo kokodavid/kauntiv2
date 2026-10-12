@@ -22,17 +22,15 @@ import '../domain/journey_summary.dart';
 /// camera-roll auto-match already found.
 ///
 /// The system picker doesn't hand back a photo's original capture time
-/// the way [CameraRollMatch] does, so there's no real timestamp to match
-/// each photo against a route point. Rather than guess, every photo is
-/// spread evenly across the Trip's recorded span in the order it was
-/// picked - good enough to seed the replay with something, without
-/// pretending to know when each one was actually taken.
+/// the way [CameraRollMatch] does. These images stay in the Trip media
+/// album rather than being given a fictional place in the route replay.
 Future<void> addJourneyPhotosToTrip(
   BuildContext context,
   WidgetRef ref,
-  JourneySummary journey,
-) async {
-  late final List<AppPickedImage> picked;
+  JourneySummary journey, {
+  int? maxPhotos,
+}) async {
+  late List<AppPickedImage> picked;
   try {
     picked = await AppMediaPicker.pickMultiImage(
       maxWidth: 2048,
@@ -50,24 +48,34 @@ Future<void> addJourneyPhotosToTrip(
   }
   if (picked.isEmpty) return;
   if (!context.mounted) return;
+  if (maxPhotos != null && picked.length > maxPhotos) {
+    picked = picked.sublist(0, maxPhotos);
+    showAppToast(
+      context,
+      variant: AppToastVariant.warning,
+      title: maxPhotos == 1
+          ? 'Only room for 1 more photo'
+          : 'Only room for $maxPhotos more photos',
+      message: 'The rest were left out.',
+    );
+  }
 
   final userId = ref.read(currentUserIdProvider)();
   if (userId == null) return;
 
   final repository = ref.read(localJourneyMediaRepositoryProvider);
-  final span = journey.endedAt.difference(journey.startedAt);
   try {
-    for (final (i, photo) in picked.indexed) {
+    for (final photo in picked) {
       final localPath = await repository.persistPickedFile(
         journey.id,
         photo.path,
       );
-      final fraction = (i + 1) / (picked.length + 1);
       await repository.add(
         journeyId: journey.id,
         userId: userId,
         localPath: localPath,
-        capturedAt: journey.startedAt.add(span * fraction).toUtc(),
+        capturedAt: DateTime.now().toUtc(),
+        isTimelineMedia: false,
       );
     }
   } on Object {

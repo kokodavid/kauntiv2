@@ -44,7 +44,7 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -56,6 +56,7 @@ class JourneyDatabase extends _$JourneyDatabase {
       await _addTrialLimitColumn();
       await _createMediaCapturesTable();
       await _addTransportModeColumn();
+      await _addStopsColumn();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -71,6 +72,8 @@ class JourneyDatabase extends _$JourneyDatabase {
       if (from < 7) await _addTrialLimitColumn();
       if (from < 8) await _createMediaCapturesTable();
       if (from < 9) await _addTransportModeColumn();
+      if (from < 10) await _addStopsColumn();
+      if (from >= 8 && from < 11) await _addTimelinePlacementColumn();
     },
   );
 
@@ -134,12 +137,20 @@ class JourneyDatabase extends _$JourneyDatabase {
         user_id TEXT NOT NULL,
         local_path TEXT NOT NULL,
         captured_at_millis INTEGER NOT NULL,
+        timeline_placed INTEGER NOT NULL DEFAULT 1,
         latitude REAL,
         longitude REAL,
         upload_attempts INTEGER NOT NULL DEFAULT 0,
         next_upload_at_millis INTEGER
       )
     ''');
+  }
+
+  Future<void> _addTimelinePlacementColumn() async {
+    await customStatement(
+      'ALTER TABLE journey_media_captures '
+      'ADD COLUMN timeline_placed INTEGER NOT NULL DEFAULT 1',
+    );
   }
 
   /// How the Trip was travelled - 'drive', 'walk' or 'cycle' - chosen
@@ -149,6 +160,14 @@ class JourneyDatabase extends _$JourneyDatabase {
   Future<void> _addTransportModeColumn() async {
     await customStatement(
       'ALTER TABLE journey_sessions ADD COLUMN transport_mode TEXT',
+    );
+  }
+
+  /// Planned stops before the destination, as JSON text (schema 10); NULL
+  /// for a Trip with none, or recorded before this existed.
+  Future<void> _addStopsColumn() async {
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN stops_json TEXT',
     );
   }
 }

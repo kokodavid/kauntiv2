@@ -31,6 +31,9 @@ class _FakeAuth implements AppAuthService {
 
 class _NoCounty implements ProfileSetupRepository {
   @override
+  Future<CountyPath?> cachedHomeCounty() async => null;
+
+  @override
   Future<CountyPath?> fetchHomeCounty() async => null;
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,26 +7,30 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
+import '../core/services/last_screen.dart';
 import '../core/services/location_diagnostics.dart';
 import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
+import '../features/feedback/presentation/feedback_form_screen.dart';
+import '../features/feedback/presentation/feedback_reports_screen.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
-import '../features/map_home/application/map_home_board_loader.dart';
-import '../features/map_home/data/supabase_map_home_repository.dart';
-import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
-import '../services/app_supabase.dart';
+import '../features/trip_planner/presentation/saved_plans_screen.dart';
+import '../features/trip_planner/presentation/trip_plan_section.dart';
+import '../features/trip_planner/presentation/trip_start_button.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
 import 'detail_routes.dart';
 import 'journey_place_routes.dart';
+import 'router_map_tab.dart';
 import 'startup_pages.dart';
 
 part 'router.g.dart';
@@ -44,6 +50,7 @@ GoRouter appRouter(Ref ref) {
       _gate(AppRoutes.splash, const StartupSplashPage()),
       _gate(AppRoutes.signIn, const StartupSignInPage()),
       _gate(AppRoutes.homeCounty, const StartupHomeCountyPage()),
+      _gate(AppRoutes.preferences, const StartupPreferencesPage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
       StatefulShellRoute.indexedStack(
         // Swapped in place like the gates, not slid in.
@@ -54,7 +61,7 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.map,
-                builder: (context, state) => const _MapTab(),
+                builder: (context, state) => const MapTab(),
               ),
             ],
           ),
@@ -132,8 +139,24 @@ GoRouter appRouter(Ref ref) {
                 ? () => context.go(AppRoutes.journeys)
                 : null,
             onOpenSettings: () => context.push(AppRoutes.settings),
+            onOpenFeedback: () => context.push(AppRoutes.feedback),
           ),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.feedback,
+        builder: (context, state) => FeedbackFormScreen(
+          onOpenReports: () => context.push(AppRoutes.feedbackReports),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.feedbackReports,
+        builder: (context, state) =>
+            FeedbackReportsScreen(onSendFeedback: () => context.pop()),
+      ),
+      GoRoute(
+        path: AppRoutes.interests,
+        builder: (context, state) => const InterestsScreen(),
       ),
       GoRoute(
         path: AppRoutes.settings,
@@ -144,6 +167,7 @@ GoRouter appRouter(Ref ref) {
         pageBuilder: (context, state) => NoTransitionPage(
           child: SettingsScreen(
             onOpenLocationSettings: DetailRoutes.openAppSettings,
+            onOpenInterests: () => context.push(AppRoutes.interests),
             onOpenLocationDiagnostics:
                 LocationDiagnostics.enabledFor(
                   isDev: ref.read(appConfigProvider).isDev,
@@ -161,6 +185,13 @@ GoRouter appRouter(Ref ref) {
           builder: (context, state) => const LocationDiagnosticsScreen(),
         ),
       GoRoute(
+        path: AppRoutes.savedPlans,
+        builder: (context, state) => SavedPlansScreen(
+          onOpenPlace: (context, id) => context.push(AppRoutes.place(id)),
+          onBack: () => Navigator.of(context).maybePop(),
+        ),
+      ),
+      GoRoute(
         path: '/county/:code',
         builder: (context, state) => CountyDetailScreen(
           countyCode: int.parse(state.pathParameters['code']!),
@@ -174,16 +205,53 @@ GoRouter appRouter(Ref ref) {
           placeId: state.pathParameters['id']!,
           actions: DetailRoutes.actions!,
           onGetRoute: JourneyPlaceRoutes.open,
+          gettingThere: (context, place) => TripPlanSection(
+            placeId: place.id,
+            placeName: place.title,
+            latitude: place.latitude!,
+            longitude: place.longitude!,
+            onStart: (context, stops) =>
+                JourneyPlaceRoutes.startPlanned(context, place, stops),
+            onOpenPlace: DetailRoutes.openPlace,
+            onDirections: (stops) async {
+              await DetailRoutes.actions!.openDirections(
+                place,
+                waypoints: [for (final s in stops) '${s.lat},${s.lng}'],
+              );
+            },
+          ),
+          startButton: (context, place) => TripStartButton(
+            placeId: place.id,
+            latitude: place.latitude!,
+            longitude: place.longitude!,
+            onStart: (context, stops) =>
+                JourneyPlaceRoutes.startPlanned(context, place, stops),
+          ),
         ),
       ),
     ],
   );
+  // Remember the screen the user is on so a bug report can say where it
+  // happened. Deferred a microtask: the router notifies mid-navigation.
+  void rememberScreen() {
+    final path = router.routerDelegate.currentConfiguration.uri.path;
+    unawaited(
+      Future<void>.microtask(() {
+        if (ref.mounted) ref.read(lastScreenProvider.notifier).record(path);
+      }),
+    );
+  }
+
+  router.routerDelegate.addListener(rememberScreen);
   ref
     ..listen(
       startupFlowProvider.select((s) => s.step),
       (_, _) => router.refresh(),
     )
-    ..onDispose(router.dispose);
+    ..onDispose(() {
+      router.routerDelegate.removeListener(rememberScreen);
+      router.dispose();
+    });
   return router;
 }
 
@@ -192,32 +260,3 @@ GoRoute _gate(String path, Widget page) => GoRoute(
   path: path,
   pageBuilder: (context, state) => NoTransitionPage(child: page),
 );
-
-/// Home, with the saved home county and the Supabase board when
-/// configured.
-class _MapTab extends ConsumerWidget {
-  const _MapTab();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final homeCounty = ref.watch(
-      startupFlowProvider.select((s) => s.homeCounty),
-    );
-    return MapHomeScreen(
-      homeCounty: homeCounty,
-      mapboxAccessToken: ref.watch(appConfigProvider).mapboxAccessToken,
-      onOpenCounty: DetailRoutes.openCounty,
-      onOpenPlace: DetailRoutes.openPlace,
-      onRoute: DetailRoutes.openDirections,
-      onPlaceRoute: JourneyPlaceRoutes.openMapPlace,
-      onPromotedPlaceRoute: JourneyPlaceRoutes.openPromotion,
-      onSeeAllUnclaimed: DetailRoutes.openAllUnclaimed,
-      onOpenProfile: () => context.push(AppRoutes.profile),
-      loader: AppSupabase.isInitialized
-          ? MapHomeBoardLoader(
-              repository: SupabaseMapHomeRepository(AppSupabase.client),
-            )
-          : const MapHomeBoardLoader(),
-    );
-  }
-}

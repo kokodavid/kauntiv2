@@ -48,7 +48,7 @@ class CountyBadge {
 /// Every county's badge: earned ones first, then the rest, each in county
 /// code order.
 class BadgeCollection {
-  BadgeCollection(List<CountyBadge> badges)
+  BadgeCollection(List<CountyBadge> badges, {this.savedAt})
     : badges = [
         ...badges.where((b) => b.isEarned),
         ...badges.where((b) => !b.isEarned),
@@ -59,13 +59,14 @@ class BadgeCollection {
   factory BadgeCollection.from({
     required Map<int, String> visitStates,
     required Map<int, String> ranks,
+    DateTime? savedAt,
   }) {
     final counties = [...CountyPaths.all]
       ..sort((a, b) => a.code.compareTo(b.code));
     return BadgeCollection([
       for (final county in counties)
         _badge(county, visitStates[county.code], ranks[county.code]),
-    ]);
+    ], savedAt: savedAt);
   }
 
   static CountyBadge _badge(CountyPath county, String? visit, String? rank) {
@@ -82,6 +83,12 @@ class BadgeCollection {
   }
 
   final List<CountyBadge> badges;
+
+  /// Set when this is the copy kept on the phone (the server couldn't be
+  /// reached); null for a live load.
+  final DateTime? savedAt;
+
+  bool get isSavedCopy => savedAt != null;
 
   int get total => CountyPaths.all.length;
   int get claimed => badges.where((b) => b.isEarned).length;

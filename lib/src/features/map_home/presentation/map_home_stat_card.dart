@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/county_tier.dart';
+import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/app_tier_medal.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../auth/application/auth_providers.dart';
+import '../../profile/application/public_profile_providers.dart';
 import 'map_home_skeleton.dart';
 
 part 'map_home_stat_card_parts.dart';
+part 'map_home_stat_card_trailing.dart';
 
 /// The outer card's border: Figma's slate-100 (#F1F5F9), a hair lighter
 /// than the shared [AppColors.cardBorder] (slate-200) used elsewhere, so
@@ -201,97 +204,6 @@ class MapHomeStatCard extends ConsumerWidget {
             child: _maskIfLoading(const _LegendRow()),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// The tier medal and the profile avatar, top-right of the card (the top
-/// bar used to hold these; now the card does, matching the merged-header
-/// design where everything sits in one card near the top of the screen).
-class _TrailingBadges extends StatelessWidget {
-  const _TrailingBadges({
-    required this.loading,
-    required this.tier,
-    this.onOpenProfile,
-  });
-
-  final bool loading;
-  final CountyTier? tier;
-  final VoidCallback? onOpenProfile;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400),
-          child: loading
-              ? const _MedalPlaceholder(key: ValueKey('loading'))
-              : tier == null
-              ? const SizedBox.shrink(key: ValueKey('none'))
-              : Padding(
-                  key: ValueKey(tier),
-                  padding: const EdgeInsets.only(right: 8),
-                  child: AppTierPill(tier: tier!),
-                ),
-        ),
-        _ProfileAvatar(onOpenProfile: onOpenProfile),
-      ],
-    );
-  }
-}
-
-class _MedalPlaceholder extends StatelessWidget {
-  const _MedalPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(right: 8),
-      child: MapHomeSkeletonMask(
-        child: Text('Mzururaji', style: AppTextStyles.chipLabel),
-      ),
-    );
-  }
-}
-
-/// The signed-in user's initial in a circle, opening Profile.
-class _ProfileAvatar extends ConsumerWidget {
-  const _ProfileAvatar({this.onOpenProfile});
-
-  final VoidCallback? onOpenProfile;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(authUserIdProvider);
-    final initial = ref.watch(authServiceProvider).currentUserInitial;
-    return Tooltip(
-      message: 'Profile',
-      child: InkWell(
-        onTap: onOpenProfile,
-        customBorder: const CircleBorder(),
-        child: Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            color: AppColors.accent,
-            shape: BoxShape.circle,
-          ),
-          child: initial == null
-              ? const Icon(Icons.person_outline, color: Colors.white, size: 18)
-              : Text(
-                  initial,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-        ),
       ),
     );
   }

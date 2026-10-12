@@ -57,4 +57,35 @@ begin
   end;
 end $$;
 
+-- Planned stops are stored with the destination, and bad ones are refused.
+do $$
+declare
+  v_id uuid := 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  v_place uuid := 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+begin
+  perform public.upload_journey_to_place(
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', v_id, 'Trip with stops',
+    now() - interval '1 hour', now() - interval '10 minutes',
+    '[]'::jsonb, 0, '[]'::jsonb, v_place, 'Ol Donyo Sabuk', -1.14, 37.2,
+    null,
+    '[{"place_id":"p1","name":"Fourteen Falls","lat":-1.2,"lng":37.1}]'::jsonb
+  );
+  if (select jsonb_array_length(stops) from public.journeys
+      where id = v_id) <> 1 then
+    raise exception 'Stops were not stored';
+  end if;
+
+  begin
+    perform public.upload_journey_to_place(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      'ffffffff-ffff-4fff-8fff-ffffffffffff', 'Bad stops',
+      now() - interval '1 hour', now() - interval '10 minutes',
+      '[]'::jsonb, 0, '[]'::jsonb, v_place, 'Ol Donyo Sabuk', -1.14, 37.2,
+      null, '[{"place_id":"p1","name":"","lat":99,"lng":0}]'::jsonb
+    );
+    raise exception 'Invalid stops were accepted';
+  exception when invalid_parameter_value then null;
+  end;
+end $$;
+
 rollback;

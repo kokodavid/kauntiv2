@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/services/fail_fast.dart';
 import '../../auth/application/auth_providers.dart';
 import '../domain/journey_summary.dart';
 import 'journey_cloud_providers.dart';
@@ -32,7 +33,7 @@ class JourneyHistoryList extends _$JourneyHistoryList {
         : await queue.pending(userId);
     if (cloud == null) return JourneyHistory(journeys: pending);
     try {
-      final uploaded = await cloud.history();
+      final uploaded = await failFast(ref, cloud.history);
       final pendingIds = {for (final j in pending) j.id};
       return JourneyHistory(
         journeys: [

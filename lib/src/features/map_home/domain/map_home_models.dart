@@ -1,6 +1,7 @@
 import '../../../core/domain/app_stat_format.dart';
 import '../../../core/domain/county_tier.dart';
 import '../../../counties/county_paths.dart';
+import '../../profile/domain/place_interest.dart';
 import 'county_badge_state.dart';
 import 'map_home_promotion.dart';
 
@@ -47,6 +48,8 @@ class MapHomeSuggestion {
     this.elevationM,
     this.visitDurationMinutes,
     this.highlightImageUrl,
+    this.matchedInterest,
+    this.matchedPlaceName,
   });
 
   final CountyPath county;
@@ -59,13 +62,23 @@ class MapHomeSuggestion {
   final int? visitDurationMinutes;
   final String? highlightImageUrl;
 
+  /// The interest this county matched for the signed-in user, and the
+  /// place in it that matched (null when it matched nothing).
+  final PlaceInterest? matchedInterest;
+  final String? matchedPlaceName;
+
   String get title => placeName ?? county.name;
+
+  /// "Because you like waterfalls", when the county matched an interest.
+  String? get matchLabel => matchedInterest == null
+      ? null
+      : 'Because you like ${matchedInterest!.shortName}';
 
   String get reasonLabel {
     return switch (reason) {
       MapHomeSuggestionReason.depthRank => 'Depth rank nearby',
       MapHomeSuggestionReason.savedHere => 'Saved place here',
-      MapHomeSuggestionReason.unclaimed => 'Unclaimed county',
+      MapHomeSuggestionReason.unclaimed => matchLabel ?? 'Unclaimed county',
     };
   }
 
@@ -85,6 +98,16 @@ class MapHomeSuggestion {
 
 enum MapHomeSuggestionReason { depthRank, savedHere, unclaimed }
 
+/// The user's most recent claim (a county that became explored), for the
+/// celebration. [claimedAt] is `county_visits.confirmed_at`, not the latest
+/// visit, so a revisit never re-triggers it.
+class MapHomeClaim {
+  const MapHomeClaim({required this.county, required this.claimedAt});
+
+  final CountyPath county;
+  final DateTime claimedAt;
+}
+
 class MapHomeBoardData {
   const MapHomeBoardData({
     required this.tier,
@@ -95,6 +118,9 @@ class MapHomeBoardData {
     this.promotion,
     this.unclaimed = const [],
     this.unclaimedCount = 0,
+    this.lastClaim,
+    this.isOffline = false,
+    this.savedAt,
   });
 
   /// The medal earned; null before the first (the chip hides).
@@ -112,6 +138,16 @@ class MapHomeBoardData {
 
   /// How many counties are still unclaimed in total ("All N left").
   final int unclaimedCount;
+
+  /// The newest claim, null when nothing is claimed or it couldn't be read.
+  final MapHomeClaim? lastClaim;
+
+  /// Built from this phone's saved copy because the server couldn't be
+  /// reached: no suggestions, places or photos, only the drawn map.
+  final bool isOffline;
+
+  /// When the saved copy was taken; null when none exists yet.
+  final DateTime? savedAt;
 
   /// The top card when nothing is promoted: a saved place or depth-rank
   /// pick first, else the nearest unclaimed county.
@@ -137,6 +173,29 @@ class MapHomeBoardData {
             entry.county.code != top.county.code)
           entry,
     ].take(maxUnclaimedCards).toList();
+  }
+
+  /// The home county as a first target for a new user: its own suggestion
+  /// when one exists, else a plain card built from its badge.
+  MapHomeSuggestion? get homeCountySuggestion {
+    final home = homeCounty;
+    if (home == null) return null;
+    for (final s in [...unclaimed, ...suggestions]) {
+      if (s.county.code == home.code) return s;
+    }
+    final badge = countyBadges
+        .where((b) => b.county.code == home.code)
+        .firstOrNull;
+    return MapHomeSuggestion(
+      county: home,
+      reason: MapHomeSuggestionReason.unclaimed,
+      distanceAway: 'Your home county',
+      isNear: true,
+      areaKm2: badge?.areaKm2?.toDouble(),
+      elevationM: badge?.elevationM?.toInt(),
+      visitDurationMinutes: badge?.durationMinutes,
+      highlightImageUrl: badge?.highlightImageUrl,
+    );
   }
 
   int get exploredCount => countyBadges

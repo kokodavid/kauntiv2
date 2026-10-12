@@ -149,7 +149,7 @@ final class ExploreBoardProvider
   }
 }
 
-String _$exploreBoardHash() => r'e742248429224a11afa45120fd16a6e93b49fb0d';
+String _$exploreBoardHash() => r'334599a6d7916a8a630b154386903602631c29ad';
 
 /// Which Explore tab is showing. Kept alive so another tab (Home's "All N
 /// left") can pick it before Explore is first built.

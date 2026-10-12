@@ -68,27 +68,30 @@ class LocalJourneyMediaRepository {
 
   static const _columns =
       'id, journey_id, user_id, local_path, captured_at_millis, '
-      'latitude, longitude, upload_attempts, next_upload_at_millis';
+      'timeline_placed, latitude, longitude, upload_attempts, '
+      'next_upload_at_millis';
 
   Future<JourneyMediaCapture> add({
     required String journeyId,
     required String userId,
     required String localPath,
     required DateTime capturedAt,
+    bool isTimelineMedia = true,
     double? latitude,
     double? longitude,
   }) async {
     final id = JourneyIds.newId();
     await _db.customInsert(
       'INSERT INTO journey_media_captures (id, journey_id, user_id, '
-      'local_path, captured_at_millis, latitude, longitude) '
-      'VALUES (?, ?, ?, ?, ?, ?, ?)',
+      'local_path, captured_at_millis, timeline_placed, latitude, longitude) '
+      'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       variables: [
         Variable.withString(id),
         Variable.withString(journeyId),
         Variable.withString(userId),
         Variable.withString(localPath),
         Variable.withInt(capturedAt.millisecondsSinceEpoch),
+        Variable.withInt(isTimelineMedia ? 1 : 0),
         Variable<double>(latitude),
         Variable<double>(longitude),
       ],
@@ -98,6 +101,7 @@ class LocalJourneyMediaRepository {
       journeyId: journeyId,
       localPath: localPath,
       capturedAt: capturedAt,
+      isTimelineMedia: isTimelineMedia,
       latitude: latitude,
       longitude: longitude,
     );
@@ -195,6 +199,7 @@ class LocalJourneyMediaRepository {
       row['captured_at_millis'] as int,
       isUtc: true,
     ),
+    isTimelineMedia: (row['timeline_placed'] as int) == 1,
     latitude: (row['latitude'] as num?)?.toDouble(),
     longitude: (row['longitude'] as num?)?.toDouble(),
   );

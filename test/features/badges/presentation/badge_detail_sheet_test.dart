@@ -135,6 +135,64 @@ void main() {
     expect(opened, ['p1']);
   });
 
+  testWidgets('passed through: last pass, stay against 2 hours, no summing', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        badge(22),
+        CountyBadgeDetail(
+          passCount: 2,
+          lastPassAt: DateTime(2026, 10, 3, 14),
+          lastPassStay: const Duration(minutes: 40),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.textContaining('Last passed through on 3 Oct 2026'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('You stayed about 40 min of the 2 hours needed'),
+      findsOneWidget,
+    );
+    expect(find.textContaining("doesn't add up"), findsOneWidget);
+  });
+
+  testWidgets('passed through before stay times were recorded', (tester) async {
+    await tester.pumpWidget(
+      _app(badge(22), CountyBadgeDetail(lastPassAt: DateTime(2026, 10, 3, 14))),
+    );
+    await tester.pump();
+
+    expect(find.text('Last passed through on 3 Oct 2026.'), findsOneWidget);
+    expect(find.textContaining('You stayed'), findsNothing);
+  });
+
+  testWidgets('lists only the nearest three places', (tester) async {
+    BadgeSuggestedPlace place(int i) => BadgeSuggestedPlace(
+      id: 'p$i',
+      name: 'Place $i',
+      type: 'park',
+      latitude: -1.28 - i / 10,
+      longitude: 36.82,
+    );
+    await tester.pumpWidget(
+      _app(
+        badge(22),
+        CountyBadgeDetail(
+          suggestedPlaces: [for (var i = 0; i < 6; i++) place(i)],
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(AppPlaceRow), findsNWidgets(3));
+  });
+
   testWidgets('first open spins the coin; Share waits until it lands', (
     tester,
   ) async {

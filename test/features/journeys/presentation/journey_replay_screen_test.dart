@@ -43,12 +43,12 @@ Future<void> _pump(
         appConfigProvider.overrideWithValue(const AppConfig.dev()),
         journeyDetailProvider('j').overrideWith((ref) async => _detail),
         journeyMomentsProvider('j').overrideWith((ref) async => moments),
+        journeyMediaProvider('j').overrideWith((ref) async => const []),
       ],
       child: const MaterialApp(home: JourneyReplayScreen(journeyId: 'j')),
     ),
   );
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pumpAndSettle();
 }
 
 Future<void> _play(WidgetTester tester, String tooltip) async {
@@ -170,5 +170,23 @@ void main() {
     await tester.pump();
     expect(find.textContaining('0:06:00'), findsOneWidget);
     expect(find.byTooltip('Continue replay'), findsOneWidget);
+  });
+
+  testWidgets('the media button opens the Trip media sheet', (tester) async {
+    await _pump(
+      tester,
+      moments: const [
+        JourneyMoment(
+          kind: JourneyMomentKind.countyCrossing,
+          index: 6,
+          name: 'Nairobi',
+        ),
+      ],
+    );
+    expect(find.text('Trip media'), findsNothing);
+    await tester.tap(find.byIcon(Icons.photo_library_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('Trip media'), findsOneWidget);
+    expect(find.textContaining('No photos yet.'), findsOneWidget);
   });
 }

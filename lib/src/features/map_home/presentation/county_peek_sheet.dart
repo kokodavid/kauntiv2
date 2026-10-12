@@ -16,6 +16,7 @@ class CountyPeekSheet extends StatelessWidget {
     required this.badge,
     required this.isHome,
     this.onOpen,
+    this.onClose,
   });
 
   final MapHomeCountyBadge badge;
@@ -23,6 +24,10 @@ class CountyPeekSheet extends StatelessWidget {
 
   /// Opens County Detail after the sheet closes; null just closes it.
   final VoidCallback? onOpen;
+
+  /// Closes the sheet when it is not a modal route (the real map's overlay);
+  /// null pops the route it is in.
+  final VoidCallback? onClose;
 
   static Future<void> show(
     BuildContext context,
@@ -42,7 +47,7 @@ class CountyPeekSheet extends StatelessWidget {
   }
 
   void _open(BuildContext context) {
-    Navigator.of(context).pop();
+    (onClose ?? Navigator.of(context).pop)();
     onOpen?.call();
   }
 

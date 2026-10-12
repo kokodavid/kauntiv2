@@ -1,9 +1,6 @@
 {
   "_comment": "Pre-existing architecture debt. May only shrink. Regenerate with: python3 tools/check_architecture.py --update-baseline",
   "violations": {
-    "file-length": {
-      "lib/src/screens/onboarding/onboarding_permission_page.dart": 1
-    },
     "io-outside-data": {
       "lib/src/services/app_location_permission_service.dart": 1,
       "lib/src/services/app_supabase.dart": 1
@@ -15,10 +12,6 @@
       "lib/src/design/app_colors.dart": 1,
       "lib/src/design/app_spacing.dart": 1,
       "lib/src/design/app_text_styles.dart": 1,
-      "lib/src/screens/onboarding/onboarding_auth_page.dart": 1,
-      "lib/src/screens/onboarding/onboarding_common.dart": 1,
-      "lib/src/screens/onboarding/onboarding_home_county_page.dart": 1,
-      "lib/src/screens/onboarding/onboarding_permission_page.dart": 1,
       "lib/src/screens/splash_screen.dart": 1,
       "lib/src/services/app_location_permission_service.dart": 1,
       "lib/src/services/app_logger.dart": 1,

@@ -26,6 +26,7 @@ extension SupabaseJourneyRepositoryMedia on SupabaseJourneyRepository {
     required String id,
     required String localPath,
     required DateTime capturedAt,
+    required bool isTimelineMedia,
     double? latitude,
     double? longitude,
   }) async {
@@ -48,6 +49,7 @@ extension SupabaseJourneyRepositoryMedia on SupabaseJourneyRepository {
           'user_id': userId,
           'storage_path': storagePath,
           'captured_at': capturedAt.toUtc().toIso8601String(),
+          'timeline_placed': isTimelineMedia,
           'latitude': latitude,
           'longitude': longitude,
         }, onConflict: 'storage_path')
@@ -94,7 +96,9 @@ extension SupabaseJourneyRepositoryMedia on SupabaseJourneyRepository {
   Future<List<JourneyMediaItem>> media(String journeyId) async {
     final rows = await _client
         .from('journey_media')
-        .select('id, storage_path, captured_at, latitude, longitude')
+        .select(
+          'id, storage_path, captured_at, timeline_placed, latitude, longitude',
+        )
         .eq('journey_id', journeyId)
         .order('captured_at', ascending: true)
         .timeout(SupabaseJourneyRepository._timeout);
@@ -111,6 +115,7 @@ extension SupabaseJourneyRepositoryMedia on SupabaseJourneyRepository {
           id: rows[i]['id'] as String,
           url: urls[i],
           capturedAt: DateTime.parse(rows[i]['captured_at'] as String),
+          isTimelineMedia: rows[i]['timeline_placed'] as bool? ?? true,
           latitude: (rows[i]['latitude'] as num?)?.toDouble(),
           longitude: (rows[i]['longitude'] as num?)?.toDouble(),
         ),

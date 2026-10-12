@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/county_tier.dart';
+import '../../../core/widgets/app_shimmer.dart';
+import '../../../core/widgets/needs_connection.dart';
 import '../../../design/app_colors.dart';
 import '../../badges/domain/badge_collection.dart';
 import '../domain/trip_stats.dart';
+import 'profile_stats_skeleton.dart';
 
 class ProfileProgressCard extends StatelessWidget {
   const ProfileProgressCard({
@@ -34,39 +37,39 @@ class ProfileProgressCard extends StatelessWidget {
     ),
   );
 
-  Widget _loading() => const Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _Header(trailing: 'COUNTY PROGRESS'),
-      SizedBox(height: 10),
-      SizedBox(
-        height: 42,
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: SizedBox(
-            width: 128,
-            height: 24,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: AppColors.trackInactive,
-                borderRadius: BorderRadius.all(Radius.circular(6)),
-              ),
-            ),
+  Widget _loading() => const AppShimmer(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Header(trailing: 'COUNTY PROGRESS'),
+        SizedBox(height: 10),
+        SizedBox(
+          height: 42,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: AppSkeleton(width: 128, height: 24, radius: 6),
           ),
         ),
-      ),
-      SizedBox(height: 14),
-      _Segments(filled: 0, total: 47),
-      SizedBox(height: 10),
-      Text('Loading your progress...', style: AppTypeScale.meta),
-    ],
+        SizedBox(height: 14),
+        AppSkeleton(height: 10, radius: 3),
+        SizedBox(height: 10),
+        AppSkeleton(width: 150, height: 11),
+      ],
+    ),
   );
 
-  Widget _error() => Row(
-    children: [
-      const Expanded(child: Text('County progress is unavailable right now.')),
-      TextButton(onPressed: onRetry, child: const Text('Retry')),
-    ],
+  Widget _error() => NeedsConnection(
+    size: NeedsConnectionSize.row,
+    title: 'Progress needs a connection',
+    onRetry: onRetry,
+    child: Row(
+      children: [
+        const Expanded(
+          child: Text('County progress is unavailable right now.'),
+        ),
+        TextButton(onPressed: onRetry, child: const Text('Retry')),
+      ],
+    ),
   );
 
   /// "3 more counties to Mzururaji" once a next tier exists, otherwise
@@ -134,6 +137,8 @@ class _TripStatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final value = stats.value;
+    // Still loading (no saved copy either): shimmer, not dashes.
+    if (value == null && stats.isLoading) return const ProfileStatsSkeleton();
     return Row(
       children: [
         Expanded(

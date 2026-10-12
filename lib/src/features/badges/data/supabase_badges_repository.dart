@@ -15,7 +15,10 @@ class SupabaseBadgesRepository {
   static const _timeout = Duration(seconds: 8);
   static const _logger = AppLogger.badges();
 
-  Future<BadgeCollection> collection(String userId) async {
+  /// The raw inputs of [collection], so the app can keep a copy for offline.
+  Future<({Map<int, String> visitStates, Map<int, String> ranks})> raw(
+    String userId,
+  ) async {
     final visitsFuture = _client
         .from('county_visits')
         .select('county_id, state')
@@ -23,13 +26,21 @@ class SupabaseBadgesRepository {
         .timeout(_timeout);
     final ranks = await _ranks();
     final visits = await visitsFuture;
-    return BadgeCollection.from(
+    return (
       visitStates: {
         for (final row in visits)
           if (row case {'county_id': final num code, 'state': final String s})
             code.toInt(): s,
       },
       ranks: ranks,
+    );
+  }
+
+  Future<BadgeCollection> collection(String userId) async {
+    final data = await raw(userId);
+    return BadgeCollection.from(
+      visitStates: data.visitStates,
+      ranks: data.ranks,
     );
   }
 
@@ -73,6 +84,12 @@ class SupabaseBadgesRepository {
       exploredVisits: count('explored_visits'),
       exploredMonths: count('explored_months'),
       lastVisitedAt: at('last_visited_at'),
+      passCount: count('pass_count'),
+      lastPassAt: at('last_pass_at'),
+      lastPassStay: switch (row['last_pass_stay_seconds']) {
+        final num seconds => Duration(seconds: seconds.toInt()),
+        _ => null,
+      },
       journeys: count('journeys'),
       journeyMeters: (row['journey_distance_m'] as num?)?.toDouble() ?? 0,
       suggestedPlaces: [

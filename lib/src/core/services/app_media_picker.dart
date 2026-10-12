@@ -12,6 +12,18 @@ class AppPickedImage {
   String get path => _file.path;
 
   Future<Uint8List> readAsBytes() => _file.readAsBytes();
+
+  Future<int> length() => _file.length();
+}
+
+class AppPickedVideo {
+  const AppPickedVideo(this._file);
+
+  final XFile _file;
+
+  String get path => _file.path;
+
+  Future<int> length() => _file.length();
 }
 
 abstract final class AppMediaPicker {
@@ -31,6 +43,14 @@ abstract final class AppMediaPicker {
       imageQuality: imageQuality,
     );
     return file == null ? null : AppPickedImage(file);
+  }
+
+  static Future<AppPickedVideo?> pickVideo({Duration? maxDuration}) async {
+    final file = await ImagePicker().pickVideo(
+      source: ImageSource.gallery,
+      maxDuration: maxDuration,
+    );
+    return file == null ? null : AppPickedVideo(file);
   }
 
   static Future<List<AppPickedImage>> pickMultiImage({

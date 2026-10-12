@@ -13,7 +13,7 @@ class ExploreTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text('Discover', style: AppTextStyles.headingForeground);
+    return const Text('Explore', style: AppTextStyles.headingForeground);
   }
 }
 

@@ -125,6 +125,6 @@ List<JourneyMoment> _findMoments(
     points,
     countyAt: countyAt,
     countyName: (code) => names[code],
-    photos: photos,
+    photos: photos.onTimeline,
   );
 }

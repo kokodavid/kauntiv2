@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/services/fail_fast.dart';
 import '../../../core/services/supabase_client_provider.dart';
 import '../data/discover_detail_repository.dart';
 import '../data/explore_repository.dart';
@@ -29,7 +30,7 @@ const _notConfigured = 'Supabase is not configured for this build.';
 /// mounted once visited; invalidate it to reload.
 @riverpod
 Future<ExploreBoard> exploreBoard(Ref ref) =>
-    ref.watch(exploreRepositoryProvider).loadBoard();
+    failFast(ref, ref.watch(exploreRepositoryProvider).loadBoard);
 
 /// Which Explore tab is showing. Kept alive so another tab (Home's "All N
 /// left") can pick it before Explore is first built.

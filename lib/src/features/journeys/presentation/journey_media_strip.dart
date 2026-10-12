@@ -14,44 +14,84 @@ void openJourneyPhoto(
   BuildContext context,
   JourneyMediaItem item, {
   Future<bool> Function(BuildContext context, JourneyMediaItem item)? onDelete,
+}) => openJourneyPhotos(context, [item], onDelete: onDelete);
+
+/// Opens [items] full screen, starting at [initialIndex]; swipe sideways to
+/// move between photos. Pinch to zoom; paging pauses while zoomed in.
+void openJourneyPhotos(
+  BuildContext context,
+  List<JourneyMediaItem> items, {
+  int initialIndex = 0,
+  Future<bool> Function(BuildContext context, JourneyMediaItem item)? onDelete,
 }) {
+  if (items.isEmpty) return;
   unawaited(
     Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
         barrierColor: Colors.black,
         pageBuilder: (context, animation, secondaryAnimation) =>
-            _FullScreenPhoto(item: item, onDelete: onDelete),
+            _FullScreenPhotos(
+              items: items,
+              initialIndex: initialIndex.clamp(0, items.length - 1),
+              onDelete: onDelete,
+            ),
       ),
     ),
   );
 }
 
-class _FullScreenPhoto extends StatefulWidget {
-  const _FullScreenPhoto({required this.item, this.onDelete});
+class _FullScreenPhotos extends StatefulWidget {
+  const _FullScreenPhotos({
+    required this.items,
+    required this.initialIndex,
+    this.onDelete,
+  });
 
-  final JourneyMediaItem item;
+  final List<JourneyMediaItem> items;
+  final int initialIndex;
   final Future<bool> Function(BuildContext context, JourneyMediaItem item)?
   onDelete;
 
   @override
-  State<_FullScreenPhoto> createState() => _FullScreenPhotoState();
+  State<_FullScreenPhotos> createState() => _FullScreenPhotosState();
 }
 
-class _FullScreenPhotoState extends State<_FullScreenPhoto> {
+class _FullScreenPhotosState extends State<_FullScreenPhotos> {
+  late final PageController _pages = PageController(
+    initialPage: widget.initialIndex,
+  );
+  late final List<JourneyMediaItem> _items = [...widget.items];
+  late int _index = widget.initialIndex;
   var _deleting = false;
+  var _zoomed = false;
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
 
   Future<void> _delete() async {
     final onDelete = widget.onDelete;
     if (onDelete == null || _deleting) return;
+    final item = _items[_index];
     setState(() => _deleting = true);
     bool removed;
     try {
-      removed = await onDelete(context, widget.item);
+      removed = await onDelete(context, item);
     } finally {
       if (mounted) setState(() => _deleting = false);
     }
-    if (removed && mounted) unawaited(Navigator.of(context).maybePop());
+    if (!removed || !mounted) return;
+    if (_items.length == 1) {
+      unawaited(Navigator.of(context).maybePop());
+      return;
+    }
+    setState(() {
+      _items.remove(item);
+      _index = _index.clamp(0, _items.length - 1);
+    });
   }
 
   @override
@@ -63,21 +103,19 @@ class _FullScreenPhotoState extends State<_FullScreenPhoto> {
         body: SafeArea(
           child: Stack(
             children: [
-              Center(
-                child: InteractiveViewer(
-                  child: Image(
-                    image: appNetworkImage(
-                      widget.item.url,
-                      cacheKey: widget.item.id,
-                    ),
-                    fit: BoxFit.contain,
-                    gaplessPlayback: true,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.broken_image_outlined,
-                      color: Colors.white70,
-                      size: 48,
-                    ),
-                  ),
+              PageView.builder(
+                controller: _pages,
+                physics: _zoomed
+                    ? const NeverScrollableScrollPhysics()
+                    : const PageScrollPhysics(),
+                itemCount: _items.length,
+                onPageChanged: (i) => setState(() => _index = i),
+                itemBuilder: (context, i) => _ZoomablePhoto(
+                  key: ValueKey(_items[i].id),
+                  item: _items[i],
+                  onZoomChanged: (zoomed) {
+                    if (zoomed != _zoomed) setState(() => _zoomed = zoomed);
+                  },
                 ),
               ),
               // A nested GestureDetector here wins the tap gesture arena
@@ -92,6 +130,19 @@ class _FullScreenPhotoState extends State<_FullScreenPhoto> {
                   icon: Icons.close,
                 ),
               ),
+              if (_items.length > 1)
+                Positioned(
+                  top: 8,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    child: Center(
+                      child: _CountPill(
+                        label: '${_index + 1} / ${_items.length}',
+                      ),
+                    ),
+                  ),
+                ),
               if (widget.onDelete != null)
                 Positioned(
                   top: 8,
@@ -108,6 +159,78 @@ class _FullScreenPhotoState extends State<_FullScreenPhoto> {
       ),
     );
   }
+}
+
+/// One page: the photo inside a pinch-zoom viewer that reports whether it
+/// is zoomed so the pager can stop swallowing the pan gesture.
+class _ZoomablePhoto extends StatefulWidget {
+  const _ZoomablePhoto({
+    super.key,
+    required this.item,
+    required this.onZoomChanged,
+  });
+
+  final JourneyMediaItem item;
+  final ValueChanged<bool> onZoomChanged;
+
+  @override
+  State<_ZoomablePhoto> createState() => _ZoomablePhotoState();
+}
+
+class _ZoomablePhotoState extends State<_ZoomablePhoto> {
+  final _controller = TransformationController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: InteractiveViewer(
+        transformationController: _controller,
+        onInteractionEnd: (_) =>
+            widget.onZoomChanged(_controller.value.getMaxScaleOnAxis() > 1.01),
+        child: Image(
+          image: appNetworkImage(widget.item.url, cacheKey: widget.item.id),
+          fit: BoxFit.contain,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.broken_image_outlined,
+            color: Colors.white70,
+            size: 48,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CountPill extends StatelessWidget {
+  const _CountPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 40,
+    padding: const EdgeInsets.symmetric(horizontal: 14),
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: Colors.black.withValues(alpha: 0.45),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
 }
 
 /// One of the full-screen viewer's round corner buttons (close, delete).

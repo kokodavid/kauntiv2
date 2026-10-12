@@ -93,7 +93,11 @@ void main() {
           authUserIdProvider.overrideWith((ref) => auth.stream),
         ],
         child: MaterialApp(
-          home: ProfileScreen(onOpenBadges: () {}, onOpenSettings: () async {}),
+          home: ProfileScreen(
+            onOpenBadges: () {},
+            onOpenSettings: () async {},
+            onOpenFeedback: () {},
+          ),
         ),
       ),
     );

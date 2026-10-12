@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/county_tier.dart';
 import '../../../core/widgets/app_tier_medal.dart';
+import '../../../core/widgets/offline_screen.dart';
+import '../../../core/widgets/saved_chip.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/badges_providers.dart';
@@ -39,8 +41,12 @@ class BadgesScreen extends ConsumerWidget {
               onOpenCounty: onOpenCounty,
               onOpenPlace: onOpenPlace,
             ),
-            AsyncValue(hasError: true) => const _Message(
-              text: "Couldn't load your badges. Pull down to try again.",
+            // Nothing saved yet and no connection: the whole tab says so.
+            AsyncValue(hasError: true) => OfflineScreen(
+              message:
+                  'Your badges load from the internet the first time. '
+                  'Check your data or Wi‑Fi, then try again.',
+              onRetry: () => ref.invalidate(badgeCollectionProvider),
             ),
             _ => const BadgesLoading(),
           },
@@ -71,6 +77,13 @@ class _Content extends StatelessWidget {
           sliver: SliverList.list(
             children: [
               _Header(tier: collection.tier),
+              if (collection.isSavedCopy) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: SavedChip(savedAt: collection.savedAt!),
+                ),
+              ],
               const SizedBox(height: 14),
               BadgesSummarySlider(
                 pages: [
@@ -159,24 +172,6 @@ class _Header extends StatelessWidget {
           child: Text('Collection', style: AppTextStyles.headingForeground),
         ),
         if (tier != null) AppTierPill(tier: tier),
-      ],
-    );
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    // Scrollable so pull-to-refresh works.
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 120, 24, 24),
-      children: [
-        Text(text, textAlign: TextAlign.center, style: AppTypeScale.body),
       ],
     );
   }

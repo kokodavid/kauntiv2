@@ -1,13 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_external_links.dart';
+import '../../../core/services/connectivity_provider.dart';
 import '../../journeys/domain/pro_status.dart';
 import '../domain/public_profile.dart';
 import 'settings_widgets.dart';
 
-class SettingsAccountSection extends StatelessWidget {
+class SettingsAccountSection extends ConsumerWidget {
   const SettingsAccountSection({
     super.key,
     required this.profile,
@@ -25,6 +27,10 @@ class SettingsAccountSection extends StatelessWidget {
   final VoidCallback onOpenDataPrivacy;
   final VoidCallback onDeleteAccount;
 
+  /// Membership is hidden until subscriptions are fully set up. Flip this on
+  /// to bring the row back; the sheet and its wiring are still in place.
+  static const showMembership = false;
+
   Future<void> _openPrivacyPolicy() async {
     try {
       await AppExternalLinks.openPrivacyPolicy();
@@ -34,7 +40,8 @@ class SettingsAccountSection extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final offline = ref.watch(connectivityProvider.select((s) => s.isOffline));
     final membershipSubtitle = proStatus?.active == true
         ? 'Pro · active'
         : 'Free';
@@ -50,13 +57,16 @@ class SettingsAccountSection extends StatelessWidget {
                   ? 'Set up your public identity'
                   : '${profile!.displayName} · @${profile!.handle}',
               onTap: onOpenEditProfile,
+              needsConnection: offline,
             ),
-            SettingsActionRow(
-              title: 'Membership',
-              subtitle: membershipSubtitle,
-              onTap: onOpenMembership,
-              divider: true,
-            ),
+            if (showMembership)
+              SettingsActionRow(
+                title: 'Membership',
+                subtitle: membershipSubtitle,
+                onTap: onOpenMembership,
+                divider: true,
+                needsConnection: offline,
+              ),
             SettingsActionRow(
               title: 'Data and privacy',
               subtitle: 'How county visits and Trips are stored',
@@ -76,6 +86,7 @@ class SettingsAccountSection extends StatelessWidget {
               onTap: onDeleteAccount,
               danger: true,
               divider: true,
+              needsConnection: offline,
             ),
           ],
         ),

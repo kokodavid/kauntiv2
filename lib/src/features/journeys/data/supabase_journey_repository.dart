@@ -7,6 +7,7 @@ import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_media_capture.dart';
+import '../domain/journey_media_quota.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
 import '../domain/journey_transport_mode.dart';
@@ -58,13 +59,29 @@ class SupabaseJourneyRepository {
     );
   }
 
+  /// This account's per-Trip photo limit (live from the server).
+  Future<JourneyMediaLimit> mediaLimit() async {
+    final row = await _client
+        .rpc<Map<String, dynamic>>('my_journey_media_limit')
+        .timeout(_timeout);
+    return JourneyMediaLimit(
+      maxPhotos: (row['max_photos'] as num).toInt(),
+      isPro: row['is_pro'] == true,
+      proMaxPhotos: (row['pro_max_photos'] as num).toInt(),
+    );
+  }
+
+  static const _summaryColumns =
+      'id, title, started_at, ended_at, distance_m, paused_ms, '
+      'destination_place_id, destination_name, destination_latitude, '
+      'destination_longitude, stops, top_speed_mps, highest_elevation_m, '
+      'transport_mode, cover_media_id';
+
   /// Supabase caps a read at 1,000 rows by default; reads page through.
   static const pageSize = 1000;
 
   /// Uploads [userId]'s completed Journey; returns the server's distance in
-  /// metres. The server rejects it unless [userId] is still the signed-in
-  /// account. Idempotent: a retry after a lost response returns the stored
-  /// one.
+  /// metres. Rejected unless [userId] is signed in. Idempotent on retry.
   Future<double> upload({
     required String userId,
     required String id,
@@ -113,6 +130,10 @@ class SupabaseJourneyRepository {
               'p_destination_name': destination.name,
               'p_destination_latitude': destination.latitude,
               'p_destination_longitude': destination.longitude,
+              if (destination.viaStops.isNotEmpty)
+                'p_stops': [
+                  for (final stop in destination.viaStops) stop.toJson(),
+                ],
             },
           },
         )
@@ -125,13 +146,7 @@ class SupabaseJourneyRepository {
       readAllPages(
         (from, to) => _client
             .from('journeys')
-            .select(
-              'id, title, started_at, ended_at, distance_m, paused_ms, '
-              'destination_place_id, destination_name, '
-              'destination_latitude, destination_longitude, '
-              'top_speed_mps, highest_elevation_m, transport_mode, '
-              'cover_media_id',
-            )
+            .select(_summaryColumns)
             .order('started_at', ascending: false)
             // postgrest-dart's order() is descending unless told otherwise.
             .order('id', ascending: true)
@@ -190,6 +205,7 @@ class SupabaseJourneyRepository {
             name: row['destination_name'] as String,
             latitude: (row['destination_latitude'] as num?)?.toDouble(),
             longitude: (row['destination_longitude'] as num?)?.toDouble(),
+            viaStops: JourneyStop.listFrom(row['stops']),
           ),
     topSpeedMps: (row['top_speed_mps'] as num?)?.toDouble(),
     highestElevationMeters: (row['highest_elevation_m'] as num?)?.toDouble(),
@@ -200,25 +216,13 @@ class SupabaseJourneyRepository {
     coverMediaId: row['cover_media_id'] as String?,
   );
 
-  /// One uploaded Journey, or null if it's gone (deleted elsewhere).
-  ///
-  /// Fetches its `journey_counties` rows alongside the Journey itself -
-  /// this is the single-Journey counterpart of [history]'s batched join,
-  /// and skipping it here was previously a real bug: every screen that
-  /// reads a Journey through this method (Replay, the share sheet, the
-  /// Trip Share Card) got `countyNames: []` even when [history]'s list
-  /// view showed the right county count for the very same Trip.
+  /// One uploaded Journey, or null if it's gone. Reads its
+  /// `journey_counties` rows too, so `countyNames` matches [history].
   Future<JourneySummary?> journey(String id) async {
     final results = await Future.wait([
       _client
           .from('journeys')
-          .select(
-            'id, title, started_at, ended_at, distance_m, paused_ms, '
-            'destination_place_id, destination_name, '
-            'destination_latitude, destination_longitude, '
-            'top_speed_mps, highest_elevation_m, transport_mode, '
-            'cover_media_id',
-          )
+          .select(_summaryColumns)
           .eq('id', id)
           .maybeSingle()
           .timeout(_timeout),
@@ -264,8 +268,7 @@ class SupabaseJourneyRepository {
     ];
   }
 
-  /// Reads every page of a query ordered on a unique key, [pageSize] rows
-  /// at a time, until a short page.
+  /// Reads every page of a query ordered on a unique key until a short page.
   static Future<List<Map<String, dynamic>>> readAllPages(
     Future<List<Map<String, dynamic>>> Function(int from, int to) page,
   ) async {
@@ -281,9 +284,8 @@ class SupabaseJourneyRepository {
   Future<void> delete(String journeyId) =>
       _client.from('journeys').delete().eq('id', journeyId).timeout(_timeout);
 
-  /// Renames [userId]'s Journey. The server rejects it unless [userId] is
-  /// still the signed-in account (no client update policy on `journeys`;
-  /// `rename_journey` is the only write path).
+  /// Renames [userId]'s Journey (`rename_journey` is the only write path;
+  /// rejected unless [userId] is signed in).
   Future<void> rename({
     required String userId,
     required String id,

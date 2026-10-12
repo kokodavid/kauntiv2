@@ -63,6 +63,9 @@ class CountyBadgeDetail {
     this.exploredVisits = 0,
     this.exploredMonths = 0,
     this.lastVisitedAt,
+    this.passCount = 0,
+    this.lastPassAt,
+    this.lastPassStay,
     this.journeys = 0,
     this.journeyMeters = 0,
     this.suggestedPlaces = const [],
@@ -78,6 +81,14 @@ class CountyBadgeDetail {
 
   /// The latest visit, explored or passed through.
   final DateTime? lastVisitedAt;
+
+  /// Times this county was passed through without earning it, the latest
+  /// such pass, and how long that stay lasted (null before stay times
+  /// were recorded). Stays don't add up: each one is measured alone
+  /// against the 2 hours needed.
+  final int passCount;
+  final DateTime? lastPassAt;
+  final Duration? lastPassStay;
 
   /// Journeys whose route crossed the county, and how far they went in
   /// it (Journeys uploaded before counties were kept don't count).

@@ -14,18 +14,23 @@ import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../application/journey_key_moments.dart';
+import '../application/journey_media_limit.dart';
 import '../domain/journey_county_moment_facts.dart';
 import '../domain/journey_media_capture.dart';
+import '../domain/journey_media_quota.dart';
 import '../domain/journey_moments.dart';
 import '../domain/journey_point.dart';
 import '../domain/journey_summary.dart';
 import 'journey_camera_roll_sheet.dart';
+import 'journey_media_strip.dart' show openJourneyPhotos;
 import 'journey_moment_row.dart';
 import 'journey_trip_media_actions.dart';
 
 part 'journey_replay_timeline_empty_timeline_body.dart';
 part 'journey_replay_timeline_add_moments_card.dart';
-part 'journey_replay_timeline_inline_camera_roll_suggestion.dart';
+part 'journey_replay_timeline_trip_media_panel.dart';
+part 'journey_replay_timeline_trip_media_sheet.dart';
+part 'journey_replay_timeline_trip_media_row.dart';
 part 'journey_replay_timeline_camera_roll_match_card.dart';
 part 'journey_replay_timeline_thumbnail_tile.dart';
 part 'journey_replay_timeline_actions.dart';
@@ -40,10 +45,12 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
     required this.summary,
     required this.points,
     required this.moments,
+    required this.media,
     required this.currentMoments,
     required this.onJumpTo,
     this.onOpenCounty,
     this.momentsLoading = false,
+    this.mediaLoading = false,
     this.topPadding = 0,
     this.bottomPadding = 0,
   });
@@ -51,12 +58,14 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
   final JourneySummary summary;
   final List<JourneyPoint> points;
   final List<JourneyMoment> moments;
+  final List<JourneyMediaItem> media;
 
   /// True while `journeyMomentsProvider` is still resolving its first
   /// value - shows a spinner instead of the empty-timeline card, so a
   /// Trip that simply hasn't finished computing its moments isn't
   /// briefly mistaken for one with none.
   final bool momentsLoading;
+  final bool mediaLoading;
 
   /// The moment(s) replay is currently paused at, if any ("lit up").
   final List<JourneyMoment> currentMoments;

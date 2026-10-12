@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_photo_parts.dart';
+import '../../../core/widgets/offline_screen.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/explore_providers.dart';
@@ -51,7 +52,7 @@ class ExploreScreen extends ConsumerWidget {
             onOpenPlace: onOpenPlace,
             onRoute: onRoute,
           ),
-          AsyncError() => ExploreResolvingState(
+          AsyncError() => _ExploreOffline(
             onRetry: () => ref.invalidate(exploreBoardProvider),
           ),
           _ => const ExploreResolvingState(),
@@ -179,4 +180,33 @@ class _NoSearchResults extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Explore with nothing loaded and nothing saved: the title stays, the body
+/// is the shared full-screen offline state. It reloads by itself when the
+/// connection returns.
+class _ExploreOffline extends StatelessWidget {
+  const _ExploreOffline({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Padding(
+        padding: EdgeInsets.fromLTRB(16, 18, 16, 0),
+        child: ExploreTopBar(),
+      ),
+      Expanded(
+        child: OfflineScreen(
+          key: const Key('explore-offline-screen'),
+          message:
+              'Counties and places load from the internet. Check your data '
+              'or Wi‑Fi, then try again.',
+          onRetry: onRetry,
+        ),
+      ),
+    ],
+  );
 }

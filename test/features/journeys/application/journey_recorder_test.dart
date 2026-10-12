@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/config/app_config.dart';
+import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
 import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_cloud_providers.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_entitlement.dart';
@@ -127,6 +129,7 @@ void main() {
   ProviderContainer container() {
     final c = ProviderContainer(
       overrides: [
+        appConfigProvider.overrideWithValue(const AppConfig.dev()),
         journeyDatabaseProvider.overrideWithValue(db),
         journeyLocationSourceProvider.overrideWithValue(source),
         currentUserIdProvider.overrideWithValue(() => signedInUser),

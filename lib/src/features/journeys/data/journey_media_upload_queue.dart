@@ -16,6 +16,7 @@ typedef UploadJourneyMedia =
       required String id,
       required String localPath,
       required DateTime capturedAt,
+      required bool isTimelineMedia,
       double? latitude,
       double? longitude,
     });
@@ -53,6 +54,7 @@ class JourneyMediaUploadQueue {
           required id,
           required localPath,
           required capturedAt,
+          required isTimelineMedia,
           latitude,
           longitude,
         }) => cloud.uploadMedia(
@@ -61,6 +63,7 @@ class JourneyMediaUploadQueue {
           id: id,
           localPath: localPath,
           capturedAt: capturedAt,
+          isTimelineMedia: isTimelineMedia,
           latitude: latitude,
           longitude: longitude,
         ),
@@ -103,6 +106,7 @@ class JourneyMediaUploadQueue {
           id: capture.id,
           localPath: capture.localPath,
           capturedAt: capture.capturedAt,
+          isTimelineMedia: capture.isTimelineMedia,
           latitude: capture.latitude,
           longitude: capture.longitude,
         );
@@ -112,6 +116,14 @@ class JourneyMediaUploadQueue {
         uploaded++;
       } on Object catch (error, stackTrace) {
         if (_currentUserId() != userId) break;
+        if (error.toString().contains('journey_media_limit')) {
+          // The Trip is full for this plan: retrying can never succeed, so
+          // drop the queued photo instead of looping on it.
+          _logger.warning('Trip media dropped: the Trip is at its limit.');
+          await _local.remove(capture.id);
+          unawaited(_deleteFileQuietly(capture.localPath));
+          continue;
+        }
         _logger.warning(
           'Trip media upload deferred.',
           error: error,

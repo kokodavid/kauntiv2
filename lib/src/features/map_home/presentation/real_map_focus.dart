@@ -69,15 +69,18 @@ abstract final class RealMapFocus {
     );
   }
 
-  /// Stops the camera wandering far outside Kenya.
+  /// Keeps the camera near Kenya without boxing it in. The bounds are wider
+  /// than the country because on a tall phone the map can only zoom out as
+  /// far as the bounds allow: they let all of Kenya sit between Home's
+  /// header and sheet, with room to spare.
   static Future<void> keepInKenya(MapboxMap map) => map.setBounds(
     CameraBoundsOptions(
       bounds: CoordinateBounds(
-        southwest: Point(coordinates: Position(33.0, -5.5)),
-        northeast: Point(coordinates: Position(42.5, 5.5)),
+        southwest: Point(coordinates: Position(24.0, -14.0)),
+        northeast: Point(coordinates: Position(50.0, 14.0)),
         infiniteBounds: false,
       ),
-      minZoom: 4.3,
+      minZoom: 4.0,
     ),
   );
 

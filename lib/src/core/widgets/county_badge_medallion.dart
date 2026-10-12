@@ -3,14 +3,18 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../counties/county_paths.dart';
+import '../../design/app_colors.dart';
 import '../../widgets/app_county_shape.dart';
 import '../../widgets/app_svg_path.dart';
 import '../design/app_type_scale.dart';
 
+part 'county_badge_medallion_painters.dart';
+
 /// A county badge (Figma "Badge", no stars): a glossy disc with the county
 /// name across the top and its silhouette in white. Blue once earned,
-/// grey otherwise. Drawn at any [size]; the design is 74 px. With [back]
-/// it's the coin's reverse: the same disc with the Kaunti47 mark.
+/// the map's "passed" yellow when only passed through, grey otherwise.
+/// Drawn at any [size]; the design is 74 px. With [back] it's the coin's
+/// reverse: the same disc with the Kaunti47 mark.
 ///
 /// Lives in `widgets/` rather than the Badges feature because Journeys'
 /// "Entered county" timeline card (`journey_county_moment_card.dart`)
@@ -21,12 +25,17 @@ class CountyBadgeMedallion extends StatelessWidget {
     super.key,
     required this.county,
     required this.earned,
+    this.passedThrough = false,
     this.size = 74,
     this.back = false,
   });
 
   final CountyPath county;
   final bool earned;
+
+  /// Passed through but not earned: drawn in the map's "passed" colour.
+  /// Ignored once [earned].
+  final bool passedThrough;
   final double size;
   final bool back;
 
@@ -39,7 +48,12 @@ class CountyBadgeMedallion extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: CustomPaint(painter: _DiscPainter(earned: earned)),
+            child: CustomPaint(
+              painter: _DiscPainter(
+                earned: earned,
+                passedThrough: passedThrough,
+              ),
+            ),
           ),
           Positioned(
             left: 6 * unit,
@@ -88,7 +102,9 @@ extension on CountyBadgeMedallion {
     child: Stack(
       children: [
         Positioned.fill(
-          child: CustomPaint(painter: _DiscPainter(earned: earned)),
+          child: CustomPaint(
+            painter: _DiscPainter(earned: earned, passedThrough: passedThrough),
+          ),
         ),
         Positioned(
           left: 18 * unit,
@@ -116,142 +132,4 @@ extension on CountyBadgeMedallion {
       ],
     ),
   );
-}
-
-/// All 47 counties, faint, with [highlight] solid: the country outline
-/// on the coin's back. Paths are parsed once and reused every frame.
-class _KenyaPainter extends CustomPainter {
-  const _KenyaPainter(this.highlight);
-
-  final int highlight;
-
-  static final Map<int, Path> _paths = {
-    for (final county in CountyPaths.all)
-      county.code: AppSvgPath.parse(county.pathData),
-  };
-  static final Rect _bounds = _paths.values
-      .map((path) => path.getBounds())
-      .reduce((a, b) => a.expandToInclude(b));
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final scale = math.min(
-      size.width / _bounds.width,
-      size.height / _bounds.height,
-    );
-    canvas.save();
-    canvas.translate(
-      (size.width - _bounds.width * scale) / 2,
-      (size.height - _bounds.height * scale) / 2,
-    );
-    canvas.scale(scale);
-    canvas.translate(-_bounds.left, -_bounds.top);
-    final faint = Paint()..color = Colors.white.withValues(alpha: 0.35);
-    for (final MapEntry(key: code, value: path) in _paths.entries) {
-      if (code != highlight) canvas.drawPath(path, faint);
-    }
-    final picked = _paths[highlight];
-    if (picked != null) {
-      canvas.drawPath(picked, Paint()..color = Colors.white);
-    }
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_KenyaPainter oldDelegate) =>
-      oldDelegate.highlight != highlight;
-}
-
-/// The disc: a rim (lit from above) round an inner face with a soft light
-/// band down its left side. Colours sampled from the Figma badge.
-class _DiscPainter extends CustomPainter {
-  const _DiscPainter({required this.earned});
-
-  final bool earned;
-
-  static const _earnedRim = [Color(0xFF0BD9FF), Color(0xFF004BD8)];
-  static const _earnedFace = [
-    Color(0xFF00E1FB),
-    Color(0xFF2AAFF3),
-    Color(0xFF005FE9),
-  ];
-  static const _lockedRim = [Color(0xFFB4B4BB), Color(0xFF4B4B53)];
-  static const _lockedFace = [
-    Color(0xFFA1A1AA),
-    Color(0xFF7C7C85),
-    Color(0xFF52525B),
-  ];
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = size.center(Offset.zero);
-    final radius = size.shortestSide / 2;
-    final bounds = Rect.fromCircle(center: center, radius: radius);
-    final face = radius * 0.84;
-    final faceRect = Rect.fromCircle(center: center, radius: face);
-
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: earned ? _earnedRim : _lockedRim,
-        ).createShader(bounds),
-    );
-    canvas.drawCircle(
-      center,
-      face,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: earned ? _earnedFace : _lockedFace,
-        ).createShader(faceRect),
-    );
-    // Soft light down the left of the face.
-    canvas.save();
-    canvas.clipPath(Path()..addOval(faceRect));
-    canvas.drawRect(
-      Rect.fromLTRB(
-        faceRect.left,
-        faceRect.top,
-        center.dx - face * 0.15,
-        faceRect.bottom,
-      ),
-      Paint()..color = Colors.white.withValues(alpha: 0.08),
-    );
-    // Top glow.
-    canvas.drawCircle(
-      center.translate(0, -face * 0.35),
-      face * 0.75,
-      Paint()
-        ..shader =
-            RadialGradient(
-              colors: [
-                Colors.white.withValues(alpha: 0.28),
-                Colors.white.withValues(alpha: 0),
-              ],
-            ).createShader(
-              Rect.fromCircle(
-                center: center.translate(0, -face * 0.35),
-                radius: face * 0.75,
-              ),
-            ),
-    );
-    canvas.restore();
-    // Thin edge between rim and face.
-    canvas.drawCircle(
-      center,
-      face,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(0.6, radius * 0.025)
-        ..color = Colors.black.withValues(alpha: 0.12),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_DiscPainter oldDelegate) => oldDelegate.earned != earned;
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/needs_connection.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../../auth/application/auth_providers.dart';
@@ -11,6 +12,7 @@ import '../../detection/application/detection_controller.dart';
 import '../../journeys/application/journey_entitlement.dart';
 import '../../journeys/application/journey_recorder.dart';
 import '../../onboarding/application/startup_flow.dart';
+import '../application/interests_providers.dart';
 import '../application/profile_settings_providers.dart';
 import '../application/public_profile_providers.dart';
 import 'confirm_dialog.dart';
@@ -20,8 +22,10 @@ import 'membership_sheet.dart';
 import 'profile_privacy_sheet.dart';
 import 'settings_account_section.dart';
 import 'settings_developer_section.dart';
+import 'settings_exploring_section.dart';
 import 'settings_location_section.dart';
 import 'settings_notifications_section.dart';
+import 'sign_out_button.dart';
 
 /// Settings, reached from Profile's gear button. Everything that used to
 /// be inline Profile tiles ("Location permission") now lives here,
@@ -32,10 +36,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({
     super.key,
     required this.onOpenLocationSettings,
+    required this.onOpenInterests,
     this.onOpenLocationDiagnostics,
   });
 
   final Future<void> Function() onOpenLocationSettings;
+  final VoidCallback onOpenInterests;
   final VoidCallback? onOpenLocationDiagnostics;
 
   @override
@@ -135,11 +141,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           loading: () => const Center(
             child: AppProgressIndicator(color: AppColors.accent, radius: 14),
           ),
-          error: (error, stackTrace) => Center(
-            child: TextButton(
-              onPressed: () =>
-                  ref.invalidate(profileSettingsControllerProvider),
-              child: const Text('Settings are unavailable. Retry.'),
+          error: (error, stackTrace) => NeedsConnection(
+            message: 'Your settings load from the internet.',
+            onRetry: () => ref.invalidate(profileSettingsControllerProvider),
+            child: Center(
+              child: TextButton(
+                onPressed: () =>
+                    ref.invalidate(profileSettingsControllerProvider),
+                child: const Text('Settings are unavailable. Retry.'),
+              ),
             ),
           ),
           data: (settings) => ListView(
@@ -152,6 +162,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               SettingsNotificationsSection(
                 settings: settings,
                 notifier: notifier,
+              ),
+              const SizedBox(height: 18),
+              SettingsExploringSection(
+                interests:
+                    ref.watch(myInterestsProvider).value?.interests ?? const [],
+                onOpenInterests: widget.onOpenInterests,
               ),
               const SizedBox(height: 18),
               SettingsLocationSection(
@@ -197,14 +213,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onOpenLocationDiagnostics: widget.onOpenLocationDiagnostics,
               ),
               const SizedBox(height: 4),
-              OutlinedButton.icon(
-                onPressed: _signingOut ? null : () => unawaited(_signOut()),
-                icon: const Icon(Icons.logout),
-                label: Text(_signingOut ? 'Signing out...' : 'Sign out'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.accent,
-                  side: const BorderSide(color: Color(0xFFD5E7FA)),
-                ),
+              SignOutButton(
+                signingOut: _signingOut,
+                onPressed: () => unawaited(_signOut()),
               ),
             ],
           ),

@@ -16,6 +16,9 @@ class JourneyReplayScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(journeyDetailProvider(journeyId));
+    final mediaAsync = ref.watch(journeyMediaProvider(journeyId));
+    final media = mediaAsync.value ?? const <JourneyMediaItem>[];
+    final mediaLoading = mediaAsync.isLoading && !mediaAsync.hasValue;
     final momentsAsync = ref.watch(journeyMomentsProvider(journeyId));
     final moments = momentsAsync.value;
     // True only while moments has never resolved yet - a refresh that
@@ -31,6 +34,8 @@ class JourneyReplayScreen extends ConsumerWidget {
               summary: value!.summary,
               route: route,
               moments: moments ?? const [],
+              media: media,
+              mediaLoading: mediaLoading,
               momentsLoading: momentsLoading,
               onOpenCounty: onOpenCounty,
             )
@@ -39,16 +44,17 @@ class JourneyReplayScreen extends ConsumerWidget {
               children: [
                 Center(
                   child: switch (detail) {
-                    AsyncValue(:final error?) => JourneyReplayMessage(
-                      text: error is JourneyNotFound
-                          ? 'This Trip was deleted.'
-                          : "Couldn't load this Trip. Check your "
-                                'connection.',
-                      onRetry: error is JourneyNotFound
-                          ? null
-                          : () => ref.invalidate(
-                              journeyDetailProvider(journeyId),
-                            ),
+                    AsyncValue(:final error?) when error is JourneyNotFound =>
+                      const JourneyReplayMessage(
+                        text: 'This Trip was deleted.',
+                      ),
+                    AsyncValue(hasError: true) => OfflineScreen(
+                      showHint: false,
+                      message:
+                          'This Trip needs a connection to open. Check your '
+                          'data or Wi‑Fi, then try again.',
+                      onRetry: () =>
+                          ref.invalidate(journeyDetailProvider(journeyId)),
                     ),
                     AsyncValue(hasValue: true) => const JourneyReplayMessage(
                       text:
@@ -75,6 +81,8 @@ class _Player extends StatefulWidget {
     required this.summary,
     required this.route,
     required this.moments,
+    required this.media,
+    required this.mediaLoading,
     required this.momentsLoading,
     this.onOpenCounty,
   });
@@ -82,6 +90,8 @@ class _Player extends StatefulWidget {
   final JourneySummary summary;
   final JourneyRoute route;
   final List<JourneyMoment> moments;
+  final List<JourneyMediaItem> media;
+  final bool mediaLoading;
 
   /// Forwarded to [JourneyReplayTimeline] so it can show a loading
   /// indicator instead of "No key moments on this Trip yet." while

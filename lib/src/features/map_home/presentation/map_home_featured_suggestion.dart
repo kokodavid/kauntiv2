@@ -42,6 +42,7 @@ Widget mapHomePromotionCard(
 /// Opens County Detail.
 Widget mapHomeSuggestionCard(
   MapHomeSuggestion suggestion, {
+  String? whyLabel,
   OpenCountyDetail? onOpenCounty,
   OpenDirections? onRoute,
 }) => Builder(
@@ -49,10 +50,11 @@ Widget mapHomeSuggestionCard(
     county: suggestion.county,
     photoTitle: suggestion.title,
     photoCaption: suggestion.placeName == null
-        ? suggestion.distanceAway
+        ? suggestion.reasonLabel
         : '${suggestion.county.name} County',
     photoUrl: suggestion.highlightImageUrl,
-    line: '${suggestion.reasonLabel} · ${suggestion.distanceAway}',
+    label: whyLabel,
+    line: suggestion.reasonLabel,
     stats: suggestion.stats,
     actions: [
       if (onRoute != null)
@@ -64,3 +66,16 @@ Widget mapHomeSuggestionCard(
     onTap: () => openCountyOrNote(context, suggestion.county, onOpenCounty),
   ),
 );
+
+/// The pill that says why a suggestion is on top, naming its real source.
+String mapHomeWhyLabel(MapHomeSuggestion suggestion, {bool isHome = false}) {
+  if (isHome) return 'Your home county';
+  return switch (suggestion.reason) {
+    // Leaned forward by an interest match, so it may not be the nearest.
+    MapHomeSuggestionReason.unclaimed when suggestion.matchedInterest != null =>
+      'Picked for you',
+    MapHomeSuggestionReason.unclaimed => 'Nearest unclaimed county',
+    MapHomeSuggestionReason.savedHere => 'Saved by you',
+    MapHomeSuggestionReason.depthRank => 'Suggested for you',
+  };
+}

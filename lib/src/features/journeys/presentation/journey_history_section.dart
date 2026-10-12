@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/needs_connection.dart';
 import '../../../counties/county_paths.dart';
 import '../application/journey_history.dart';
 import '../domain/journey_grouping.dart';
@@ -71,8 +72,12 @@ class _JourneyHistorySectionState extends ConsumerState<JourneyHistorySection> {
     final query = _query.trim().toLowerCase();
     if (query.isEmpty) return true;
     if (journey.title.toLowerCase().contains(query)) return true;
-    final destination = journey.destination?.name;
-    if (destination != null && destination.toLowerCase().contains(query)) {
+    final destination = journey.destination;
+    if (destination != null &&
+        [
+          destination.name,
+          for (final s in destination.viaStops) s.name,
+        ].any((name) => name.toLowerCase().contains(query))) {
       return true;
     }
     // Counties the route crossed (e.g. typing "kiambu" surfaces a Trip
@@ -93,8 +98,14 @@ class _JourneyHistorySectionState extends ConsumerState<JourneyHistorySection> {
         const SizedBox(height: 10),
         switch (history) {
           AsyncValue(:final value?) => _buildList(value),
-          AsyncValue(hasError: true) => _Retry(
+          AsyncValue(hasError: true) => NeedsConnection(
+            title: 'Past Trips need a connection',
+            message:
+                'Trips you record here stay on your phone and upload later.',
             onRetry: () => ref.invalidate(journeyHistoryListProvider),
+            child: _Retry(
+              onRetry: () => ref.invalidate(journeyHistoryListProvider),
+            ),
           ),
           _ => const JourneyCardsLoading(),
         },

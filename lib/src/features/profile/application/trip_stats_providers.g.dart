@@ -58,13 +58,15 @@ String _$tripStatsRepositoryHash() =>
     r'a82f774879ded32cbf3933f4a3c89414e5570b65';
 
 /// The signed-in account's Trip count / distance stats, for Profile's
-/// progress card. Reloads when the account changes.
+/// progress card. Offline it is the copy from the last
+/// good load. Reloads when the account changes.
 
 @ProviderFor(tripStats)
 const tripStatsProvider = TripStatsProvider._();
 
 /// The signed-in account's Trip count / distance stats, for Profile's
-/// progress card. Reloads when the account changes.
+/// progress card. Offline it is the copy from the last
+/// good load. Reloads when the account changes.
 
 final class TripStatsProvider
     extends
@@ -75,7 +77,8 @@ final class TripStatsProvider
         >
     with $FutureModifier<TripStats>, $FutureProvider<TripStats> {
   /// The signed-in account's Trip count / distance stats, for Profile's
-  /// progress card. Reloads when the account changes.
+  /// progress card. Offline it is the copy from the last
+  /// good load. Reloads when the account changes.
   const TripStatsProvider._()
     : super(
         from: null,
@@ -101,4 +104,4 @@ final class TripStatsProvider
   }
 }
 
-String _$tripStatsHash() => r'0c564bdd8914bd9f3b03762e5083918181eea6e6';
+String _$tripStatsHash() => r'072a1e955e8fc8d7c5a2e3fc836646d53d728995';

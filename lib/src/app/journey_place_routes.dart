@@ -41,6 +41,37 @@ abstract final class JourneyPlaceRoutes {
         () => DetailRoutes.openDirections('${place.lat},${place.lng}'),
       );
 
+  /// Start button on Place Detail: the plan is already on screen, so skip
+  /// the chooser and record the Trip with this place as the destination
+  /// and [stops] (in driving order) as the places planned on the way.
+  static Future<void> startPlanned(
+    BuildContext context,
+    PlaceDetailData place,
+    List<MapPlace> stops,
+  ) => _open(
+    context,
+    JourneyDestination(
+      placeId: place.id,
+      name: place.title,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      viaStops: [
+        for (final stop in stops)
+          JourneyStop(
+            placeId: stop.id,
+            name: stop.name,
+            latitude: stop.lat,
+            longitude: stop.lng,
+          ),
+      ],
+    ),
+    () => DetailRoutes.actions!.openDirections(
+      place,
+      waypoints: [for (final s in stops) '${s.lat},${s.lng}'],
+    ),
+    chooser: (_) async => JourneyRouteChoice.record,
+  );
+
   static Future<void> openPromotion(
     BuildContext context,
     MapHomePromotedPlace place,
@@ -58,8 +89,9 @@ abstract final class JourneyPlaceRoutes {
   static Future<void> _open(
     BuildContext context,
     JourneyDestination destination,
-    _LaunchDirections launchDirections,
-  ) async {
+    _LaunchDirections launchDirections, {
+    Future<JourneyRouteChoice?> Function(BuildContext context)? chooser,
+  }) async {
     if (!AppFeatureFlags.journeys) {
       await _openDirections(context, launchDirections);
       return;
@@ -93,10 +125,9 @@ abstract final class JourneyPlaceRoutes {
       return;
     }
 
-    final choice = await JourneyRouteChoiceSheet.show(
-      context,
-      destination.name,
-    );
+    final choice =
+        await (chooser?.call(context) ??
+            JourneyRouteChoiceSheet.show(context, destination.name));
     if (!context.mounted || choice == null) return;
     if (choice == JourneyRouteChoice.directions) {
       await _openDirections(context, launchDirections);

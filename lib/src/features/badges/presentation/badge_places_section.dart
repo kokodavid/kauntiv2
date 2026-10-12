@@ -9,7 +9,7 @@ import '../application/badges_providers.dart';
 import '../domain/county_badge_detail.dart';
 import 'badge_sheet_parts.dart';
 
-/// "Places to start with" for a county not yet earned: the nearest few
+/// "Places to start with" for a county not yet earned: the nearest three
 /// places as the shared place rows (photo, summary, type, distance, save).
 /// Waits for the user's position first so the list doesn't reorder once
 /// distances arrive; without a position it lists them by name.
@@ -24,6 +24,9 @@ class BadgePlacesSection extends ConsumerWidget {
   final int countyCode;
   final List<BadgeSuggestedPlace> places;
   final ValueChanged<String>? onOpenPlace;
+
+  /// How many places the sheet lists; View county shows the rest.
+  static const maxPlaces = 3;
 
   static String distanceLabel(double meters) => meters < 1000
       ? '${meters.round()} m'
@@ -46,7 +49,11 @@ class BadgePlacesSection extends ConsumerWidget {
           from == null ? 'Places to start with' : 'Nearest places to start',
           style: AppTypeScale.itemTitle,
         ),
-        for (final place in BadgeSuggestedPlace.nearest(places, from: from))
+        for (final place in BadgeSuggestedPlace.nearest(
+          places,
+          from: from,
+          count: maxPlaces,
+        ))
           AppPlaceRow(
             title: place.name,
             description: place.summary ?? '',

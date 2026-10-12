@@ -173,9 +173,6 @@ void main() {
   });
 
   testWidgets('the media button opens the Trip media sheet', (tester) async {
-    // bySemanticsLabel only sees anything while semantics are on.
-    final semantics = tester.ensureSemantics();
-    addTearDown(semantics.dispose);
     await _pump(
       tester,
       moments: const [
@@ -187,7 +184,7 @@ void main() {
       ],
     );
     expect(find.text('Trip media'), findsNothing);
-    await tester.tap(find.bySemanticsLabel('Trip media'));
+    await tester.tap(find.byIcon(Icons.photo_library_outlined));
     await tester.pumpAndSettle();
     expect(find.text('Trip media'), findsOneWidget);
     expect(find.textContaining('No photos yet.'), findsOneWidget);

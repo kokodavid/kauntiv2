@@ -161,14 +161,13 @@ class MapHomeBoardSheet extends StatelessWidget {
   double _carouselPeekHeight(BuildContext context) =>
       MapHomePlacesCarousel.peekHeight + AppBottomNav.clearance(context);
 
-  Widget _carousel(MapHomeBoardData board, [Key? key]) =>
-      MapHomePlacesCarousel(
-        key: key,
-        board: board,
-        loadPlaces: loadPlaces,
-        onOpenCounty: onOpenCounty,
-        onOpenPlace: onOpenPlace,
-      );
+  Widget _carousel(MapHomeBoardData board, [Key? key]) => MapHomePlacesCarousel(
+    key: key,
+    board: board,
+    loadPlaces: loadPlaces,
+    onOpenCounty: onOpenCounty,
+    onOpenPlace: onOpenPlace,
+  );
 
   Widget _compactCard(BuildContext context, MapHomeCompact compact) {
     final start = compact.isHomeStart ? onStartTrip : null;

@@ -51,19 +51,19 @@ void main() {
       ProviderScope(
         overrides: [connectivityProvider.overrideWith(_Online.new)],
         child: MaterialApp(
-        home: PlaceDetailScreen(
-          placeId: 'place-1',
-          actions: DiscoverDetailActions(
-            repository: _Places(),
-            countyNewsFlags: _EnabledNewsFlags(),
+          home: PlaceDetailScreen(
+            placeId: 'place-1',
+            actions: DiscoverDetailActions(
+              repository: _Places(),
+              countyNewsFlags: _EnabledNewsFlags(),
+            ),
+            onGetRoute: (context, place) {
+              expect(place.id, 'place-1');
+              calls++;
+              return complete.future;
+            },
           ),
-          onGetRoute: (context, place) {
-            expect(place.id, 'place-1');
-            calls++;
-            return complete.future;
-          },
         ),
-      ),
       ),
     );
     await tester.pumpAndSettle();

@@ -19,8 +19,7 @@ FeedbackRepository? feedbackRepository(Ref ref) {
 }
 
 @riverpod
-FeedbackOutboxStore feedbackOutboxStore(Ref ref) =>
-    const FeedbackOutboxStore();
+FeedbackOutboxStore feedbackOutboxStore(Ref ref) => const FeedbackOutboxStore();
 
 @riverpod
 FeedbackContextSource feedbackContextSource(Ref ref) =>

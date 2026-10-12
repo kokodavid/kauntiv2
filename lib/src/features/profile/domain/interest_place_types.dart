@@ -34,7 +34,13 @@ class InterestPlaceTypes {
   }
 
   static const fallback = InterestPlaceTypes({
-    PlaceInterest.nature: {'park', 'forest', 'reserve', 'garden', 'conservancy'},
+    PlaceInterest.nature: {
+      'park',
+      'forest',
+      'reserve',
+      'garden',
+      'conservancy',
+    },
     PlaceInterest.water: {
       'waterfall',
       'hike',

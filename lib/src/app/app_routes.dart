@@ -34,13 +34,7 @@ abstract final class AppRoutes {
     if (AppFeatureFlags.journeys) AppNavTab.journeys,
   ];
 
-  static const _gates = {
-    splash,
-    signIn,
-    homeCounty,
-    preferences,
-    permission,
-  };
+  static const _gates = {splash, signIn, homeCounty, preferences, permission};
 
   /// Start-up gating: until onboarding is done, every location goes to
   /// the current step's page; once ready, a gate page goes to Map and

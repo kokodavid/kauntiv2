@@ -6,14 +6,8 @@ import 'package:kaunti47_v2/src/features/map_home/domain/map_home_nearby_cards.d
 import 'package:kaunti47_v2/src/features/map_home/domain/map_home_nearby_places.dart';
 import 'package:kaunti47_v2/src/features/profile/domain/place_interest.dart';
 
-MapPlace _place(String id, String type, double lat) => MapPlace(
-  id: id,
-  name: id,
-  type: type,
-  countyCode: 47,
-  lat: lat,
-  lng: 36.8,
-);
+MapPlace _place(String id, String type, double lat) =>
+    MapPlace(id: id, name: id, type: type, countyCode: 47, lat: lat, lng: 36.8);
 
 void main() {
   const from = (latitude: 0.0, longitude: 36.8);
@@ -24,7 +18,8 @@ void main() {
       _place('near-museum', 'museum', 0.09),
       _place('farther-falls', 'waterfall', 0.126),
     ];
-    PlaceInterest? water(String t) => t == 'waterfall' ? PlaceInterest.water : null;
+    PlaceInterest? water(String t) =>
+        t == 'waterfall' ? PlaceInterest.water : null;
     final plain = MapHomeNearbyPlaces.nearest(
       places: places,
       from: from,

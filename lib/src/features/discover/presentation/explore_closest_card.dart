@@ -26,9 +26,7 @@ class ExploreClosestCard extends StatelessWidget {
           : 'HQ · ${entry.headquarters}',
       photoUrl: entry.highlightImageUrl,
       line: entry.blurb,
-      stats: [
-        ...exploreCountyStats(entry.facts),
-      ],
+      stats: [...exploreCountyStats(entry.facts)],
       onTap: () => open?.call(context, entry.county.code),
     );
   }

@@ -88,9 +88,7 @@ class SupabaseFeedbackRepository implements FeedbackRepository {
   Future<bool> hasTesterSeat() async {
     final owner = _owner;
     if (owner == null) return false;
-    final seat = await client
-        .rpc<bool>('has_tester_seat')
-        .timeout(_timeout);
+    final seat = await client.rpc<bool>('has_tester_seat').timeout(_timeout);
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_seatKey(owner), seat);

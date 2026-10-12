@@ -190,14 +190,16 @@ void main() {
     expect(c.read(startupFlowProvider).homeCounty, nairobi);
   });
 
-  test('a new user starts setup at step 1 and it is marked in progress',
-      () async {
-    final c = container();
-    final flow = startAfterSplash(c);
-    await flow.onSignedIn();
-    expect(c.read(startupFlowProvider).step, StartupStep.homeCounty);
-    expect(progress.inProgress['alice'], isTrue);
-  });
+  test(
+    'a new user starts setup at step 1 and it is marked in progress',
+    () async {
+      final c = container();
+      final flow = startAfterSplash(c);
+      await flow.onSignedIn();
+      expect(c.read(startupFlowProvider).step, StartupStep.homeCounty);
+      expect(progress.inProgress['alice'], isTrue);
+    },
+  );
 
   test('a failed county check asks again with the v1 message', () async {
     profile.failFetch = true;
@@ -271,28 +273,30 @@ void main() {
     expect(c.read(startupFlowProvider).interests, isEmpty);
   });
 
-  test('skipping saves an empty answer, shows the toast, and Undo reopens',
-      () async {
-    permissions.status = AppLocationPermissionResult.denied;
-    final c = container();
-    final flow = startAfterSplash(c);
-    await flow.onSignedIn();
-    flow.selectCounty(kiambu);
-    await flow.saveHomeCounty();
+  test(
+    'skipping saves an empty answer, shows the toast, and Undo reopens',
+    () async {
+      permissions.status = AppLocationPermissionResult.denied;
+      final c = container();
+      final flow = startAfterSplash(c);
+      await flow.onSignedIn();
+      flow.selectCounty(kiambu);
+      await flow.saveHomeCounty();
 
-    await flow.skipInterests();
-    expect(interests.saved?.completed, isTrue);
-    expect(interests.saved?.interests, isEmpty);
-    var state = c.read(startupFlowProvider);
-    expect(state.step, StartupStep.permission);
-    expect(state.interestsSkipped, isTrue);
+      await flow.skipInterests();
+      expect(interests.saved?.completed, isTrue);
+      expect(interests.saved?.interests, isEmpty);
+      var state = c.read(startupFlowProvider);
+      expect(state.step, StartupStep.permission);
+      expect(state.interestsSkipped, isTrue);
 
-    await flow.undoInterestsSkip();
-    state = c.read(startupFlowProvider);
-    expect(state.step, StartupStep.preferences);
-    expect(state.interestsSkipped, isFalse);
-    expect(interests.saved?.completed, isFalse);
-  });
+      await flow.undoInterestsSkip();
+      state = c.read(startupFlowProvider);
+      expect(state.step, StartupStep.preferences);
+      expect(state.interestsSkipped, isFalse);
+      expect(interests.saved?.completed, isFalse);
+    },
+  );
 
   test('a failed interests save still moves on (kept on the phone)', () async {
     permissions.status = AppLocationPermissionResult.denied;
@@ -326,34 +330,38 @@ void main() {
     expect(c.read(startupFlowProvider).step, StartupStep.homeCounty);
   });
 
-  test('reopening mid-setup resumes at step 2 when interests are open',
-      () async {
-    profile.cached = kiambu;
-    progress.inProgress['alice'] = true;
-    final c = container();
-    final flow = c.read(startupFlowProvider.notifier);
-    await flow.restoreSession();
-    flow.completeSplash();
-    expect(c.read(startupFlowProvider).step, StartupStep.preferences);
-  });
+  test(
+    'reopening mid-setup resumes at step 2 when interests are open',
+    () async {
+      profile.cached = kiambu;
+      progress.inProgress['alice'] = true;
+      final c = container();
+      final flow = c.read(startupFlowProvider.notifier);
+      await flow.restoreSession();
+      flow.completeSplash();
+      expect(c.read(startupFlowProvider).step, StartupStep.preferences);
+    },
+  );
 
-  test('reopening mid-setup resumes at step 3 once interests are answered',
-      () async {
-    profile.cached = kiambu;
-    progress.inProgress['alice'] = true;
-    interests.answer = const InterestsAnswer(
-      interests: [PlaceInterest.coast],
-      completed: true,
-    );
-    permissions.status = AppLocationPermissionResult.denied;
-    final c = container();
-    final flow = c.read(startupFlowProvider.notifier);
-    await flow.restoreSession();
-    flow.completeSplash();
-    final state = c.read(startupFlowProvider);
-    expect(state.step, StartupStep.permission);
-    expect(state.interests, [PlaceInterest.coast]);
-  });
+  test(
+    'reopening mid-setup resumes at step 3 once interests are answered',
+    () async {
+      profile.cached = kiambu;
+      progress.inProgress['alice'] = true;
+      interests.answer = const InterestsAnswer(
+        interests: [PlaceInterest.coast],
+        completed: true,
+      );
+      permissions.status = AppLocationPermissionResult.denied;
+      final c = container();
+      final flow = c.read(startupFlowProvider.notifier);
+      await flow.restoreSession();
+      flow.completeSplash();
+      final state = c.read(startupFlowProvider);
+      expect(state.step, StartupStep.permission);
+      expect(state.interests, [PlaceInterest.coast]);
+    },
+  );
 
   test('granting location from step 3 finishes setup', () async {
     permissions.status = AppLocationPermissionResult.denied;

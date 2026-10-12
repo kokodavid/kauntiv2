@@ -19,7 +19,10 @@ void main() {
         (w) => w is RichText && w.text.toPlainText().contains('Privacy Policy'),
       ),
     );
-    expect(rich.text.toPlainText(), 'By continuing you accept our Privacy Policy.');
+    expect(
+      rich.text.toPlainText(),
+      'By continuing you accept our Privacy Policy.',
+    );
 
     late final TapGestureRecognizer tap;
     rich.text.visitChildren((span) {

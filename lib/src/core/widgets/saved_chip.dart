@@ -78,7 +78,9 @@ class SavedChipBody extends StatelessWidget {
           Icon(
             Icons.cloud_off_rounded,
             size: 13,
-            color: onMap ? AppColors.offlinePillIcon : AppColors.mutedForeground,
+            color: onMap
+                ? AppColors.offlinePillIcon
+                : AppColors.mutedForeground,
           ),
           const SizedBox(width: 5),
           Text(

@@ -58,80 +58,83 @@ class AppShell extends ConsumerWidget {
     // banner say "Up to date" and leave.
     ref.listen(connectivityProvider.select((s) => s.status), (prev, next) {
       if (next != ConnectivityStatus.reconnecting) return;
-      unawaited(Future<void>(() async {
-        try {
-          await ref.read(visitSyncProvider.notifier).drain();
-        } on Object {
-          // Queued visits retry on their own schedule.
-        }
-        // Profile fell back to its saved copy while offline; reload it.
-        ref.invalidate(myPublicProfileProvider);
-        ref.read(connectivityProvider.notifier).markSynced();
-      }));
+      unawaited(
+        Future<void>(() async {
+          try {
+            await ref.read(visitSyncProvider.notifier).drain();
+          } on Object {
+            // Queued visits retry on their own schedule.
+          }
+          // Profile fell back to its saved copy while offline; reload it.
+          ref.invalidate(myPublicProfileProvider);
+          ref.read(connectivityProvider.notifier).markSynced();
+        }),
+      );
     });
     final bannerShown =
         ref.watch(connectivityProvider.select((s) => s.showsBanner)) &&
         !ref.watch(offlineBannerSuppressedProvider);
     return ConnectivityLifecycle(
       child: DetectionLifecycle(
-      homeCountyCode: homeCounty?.code,
-      onOpenCounty: DetailRoutes.openCounty,
-      onOpenPlace: DetailRoutes.openPlace,
-      child: JourneySyncLifecycle(
-        child: Scaffold(
-          backgroundColor: AppColors.pageBackground,
-          // A Stack, not a Column: the glass nav needs the active tab's
-          // content underneath it to float over and blur.
-          body: Stack(
-            children: [
-              // The offline pill takes the top 44 px while it shows, once,
-              // on the same curve it enters on.
-              Positioned.fill(
-                child: AnimatedPadding(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  padding: EdgeInsets.only(
-                    top: bannerShown ? OfflineBanner.height : 0,
+        homeCountyCode: homeCounty?.code,
+        onOpenCounty: DetailRoutes.openCounty,
+        onOpenPlace: DetailRoutes.openPlace,
+        child: JourneySyncLifecycle(
+          child: Scaffold(
+            backgroundColor: AppColors.pageBackground,
+            // A Stack, not a Column: the glass nav needs the active tab's
+            // content underneath it to float over and blur.
+            body: Stack(
+              children: [
+                // The offline pill takes the top 44 px while it shows, once,
+                // on the same curve it enters on.
+                Positioned.fill(
+                  child: AnimatedPadding(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.only(
+                      top: bannerShown ? OfflineBanner.height : 0,
+                    ),
+                    child: navigationShell,
                   ),
-                  child: navigationShell,
                 ),
-              ),
-              Positioned(
-                top: MediaQuery.paddingOf(context).top,
-                left: 0,
-                right: 0,
-                height: OfflineBanner.height,
-                child: const OfflineBanner(),
-              ),
-              // Home and Trips show the Trip in progress themselves.
-              if (AppFeatureFlags.journeys &&
-                  AppRoutes.tabs[navigationShell.currentIndex] !=
-                      AppNavTab.journeys &&
-                  AppRoutes.tabs[navigationShell.currentIndex] != AppNavTab.map)
+                Positioned(
+                  top: MediaQuery.paddingOf(context).top,
+                  left: 0,
+                  right: 0,
+                  height: OfflineBanner.height,
+                  child: const OfflineBanner(),
+                ),
+                // Home and Trips show the Trip in progress themselves.
+                if (AppFeatureFlags.journeys &&
+                    AppRoutes.tabs[navigationShell.currentIndex] !=
+                        AppNavTab.journeys &&
+                    AppRoutes.tabs[navigationShell.currentIndex] !=
+                        AppNavTab.map)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 96,
+                    child: Center(
+                      child: JourneyActiveBanner(
+                        onTap: () => context.push(AppRoutes.journeyRecording),
+                      ),
+                    ),
+                  ),
                 Positioned(
                   left: 0,
                   right: 0,
-                  bottom: 96,
-                  child: Center(
-                    child: JourneyActiveBanner(
-                      onTap: () => context.push(AppRoutes.journeyRecording),
-                    ),
+                  bottom: 0,
+                  child: AppBottomNav(
+                    selected: AppRoutes.tabs[navigationShell.currentIndex],
+                    onSelect: (tab) => _select(context, tab),
                   ),
                 ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: AppBottomNav(
-                  selected: AppRoutes.tabs[navigationShell.currentIndex],
-                  onSelect: (tab) => _select(context, tab),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 }

@@ -80,15 +80,18 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
   }
 
   Future<void> _loadMediaLimit() async {
-    final limit = await ref.read(journeyMediaLimitProvider.future);
+    // Unreadable (offline, signed out): leave it null, as the provider does.
+    final JourneyMediaLimit? limit;
+    try {
+      limit = await ref.read(journeyMediaLimitProvider.future);
+    } on Object {
+      return;
+    }
     if (mounted) setState(() => _mediaLimit = limit);
   }
 
-  int get _slotsLeft => photosThatFit(
-    _mediaLimit,
-    used: widget.media.length,
-    wanted: 1 << 30,
-  );
+  int get _slotsLeft =>
+      photosThatFit(_mediaLimit, used: widget.media.length, wanted: 1 << 30);
 
   /// True (after telling the user) when the Trip can't take another photo.
   bool _tripIsFull() {
@@ -187,50 +190,51 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
         builder: (sheetContext, setSheetState) {
           _sheetSetState = setSheetState;
           return SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 8, bottom: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(sheetContext).pop(),
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    width: 36,
-                    height: 5,
-                    margin: const EdgeInsets.only(bottom: 14),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardBorder,
-                      borderRadius: BorderRadius.circular(3),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(top: 8, bottom: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(sheetContext).pop(),
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      width: 36,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardBorder,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
                     ),
                   ),
-                ),
-                _TripMediaSheetBody(
-                  media: widget.media,
-                  mediaLoading: widget.mediaLoading,
-                  addingPhotos: _addingPhotos,
-                  limit: _mediaLimit,
-                  onAddPhotos: _addPhotosManually,
-                  onFindPhotos: _requestCameraRollAccess,
-                  onDeletePhoto: _removePhoto,
-                ),
-                if (!_matchesDismissed &&
-                    _cameraRollScan.status == _CameraRollStatus.matchesFound)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: _CameraRollMatchCard(
-                      matches: _cameraRollScan.matches,
-                      busy: _addingPhotos,
-                      addLimit: _matchAddCap,
-                      onAddAll: _addAllMatches,
-                      onChoose: _chooseMatches,
-                      onDismiss: () => setState(() => _matchesDismissed = true),
-                    ),
+                  _TripMediaSheetBody(
+                    media: widget.media,
+                    mediaLoading: widget.mediaLoading,
+                    addingPhotos: _addingPhotos,
+                    limit: _mediaLimit,
+                    onAddPhotos: _addPhotosManually,
+                    onFindPhotos: _requestCameraRollAccess,
+                    onDeletePhoto: _removePhoto,
                   ),
-              ],
+                  if (!_matchesDismissed &&
+                      _cameraRollScan.status == _CameraRollStatus.matchesFound)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: _CameraRollMatchCard(
+                        matches: _cameraRollScan.matches,
+                        busy: _addingPhotos,
+                        addLimit: _matchAddCap,
+                        onAddAll: _addAllMatches,
+                        onChoose: _chooseMatches,
+                        onDismiss: () =>
+                            setState(() => _matchesDismissed = true),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
+          );
         },
       ),
     ).whenComplete(() => _sheetSetState = null);

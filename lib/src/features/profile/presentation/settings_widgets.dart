@@ -169,11 +169,7 @@ class _NeedsConnectionTag extends StatelessWidget {
   Widget build(BuildContext context) => const Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Icon(
-        Icons.cloud_off_rounded,
-        size: 14,
-        color: AppColors.offlinePillIcon,
-      ),
+      Icon(Icons.cloud_off_rounded, size: 14, color: AppColors.offlinePillIcon),
       SizedBox(width: 6),
       Text(
         'Needs a connection',

@@ -27,7 +27,11 @@ class _Context extends FeedbackContextSource {
 
   @override
   Future<FeedbackContext> capture({String? screen, String? flavor}) async =>
-      FeedbackContext(screen: screen, flavor: flavor, capturedAt: DateTime(2026));
+      FeedbackContext(
+        screen: screen,
+        flavor: flavor,
+        capturedAt: DateTime(2026),
+      );
 }
 
 class _MemoryOutbox extends FeedbackOutboxStore {

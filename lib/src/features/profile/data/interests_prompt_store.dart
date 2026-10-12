@@ -15,8 +15,7 @@ class SharedPreferencesInterestsPromptStore implements InterestsPromptStore {
   const SharedPreferencesInterestsPromptStore();
 
   static String _sessions(String owner) => 'interests_prompt.sessions.$owner';
-  static String _dismissed(String owner) =>
-      'interests_prompt.dismissed.$owner';
+  static String _dismissed(String owner) => 'interests_prompt.dismissed.$owner';
 
   @override
   Future<int> recordSession(String owner) async {

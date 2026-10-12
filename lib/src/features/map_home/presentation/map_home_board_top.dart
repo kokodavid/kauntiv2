@@ -54,19 +54,19 @@ class MapHomeBoardTop extends StatelessWidget {
               child: MapHomeFocusFade(
                 focus: focus,
                 child: AnimatedSwitcher(
-                duration: fade,
-                child: board == null
-                    ? MapHomeStatCard.loading(onOpenProfile: onOpenProfile)
-                    : MapHomeStatCard(
-                        key: const ValueKey('stat-card'),
-                        exploredCount: board.exploredCount,
-                        totalCounties: board.totalCounties,
-                        compact: isMapInteracting,
-                        tier: board.tier,
-                        onOpenProfile: onOpenProfile,
-                      ),
+                  duration: fade,
+                  child: board == null
+                      ? MapHomeStatCard.loading(onOpenProfile: onOpenProfile)
+                      : MapHomeStatCard(
+                          key: const ValueKey('stat-card'),
+                          exploredCount: board.exploredCount,
+                          totalCounties: board.totalCounties,
+                          compact: isMapInteracting,
+                          tier: board.tier,
+                          onOpenProfile: onOpenProfile,
+                        ),
+                ),
               ),
-            ),
             ),
             const SizedBox(height: 20),
             Expanded(

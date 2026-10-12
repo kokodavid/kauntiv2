@@ -151,9 +151,8 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: AppRoutes.feedbackReports,
-        builder: (context, state) => FeedbackReportsScreen(
-          onSendFeedback: () => context.pop(),
-        ),
+        builder: (context, state) =>
+            FeedbackReportsScreen(onSendFeedback: () => context.pop()),
       ),
       GoRoute(
         path: AppRoutes.interests,

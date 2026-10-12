@@ -12,18 +12,13 @@ import '../../../widgets/app_progress_indicator.dart';
 /// offline" screen (or "Couldn't load this page" when the phone is online)
 /// under a Back button, and loads by itself when the connection returns.
 class DetailAsyncBody<T> extends ConsumerStatefulWidget {
-  const DetailAsyncBody({
-    super.key,
-    required this.load,
-    required this.builder,
-  });
+  const DetailAsyncBody({super.key, required this.load, required this.builder});
 
   final Future<T> Function() load;
   final Widget Function(BuildContext context, T data) builder;
 
   @override
-  ConsumerState<DetailAsyncBody<T>> createState() =>
-      _DetailAsyncBodyState<T>();
+  ConsumerState<DetailAsyncBody<T>> createState() => _DetailAsyncBodyState<T>();
 }
 
 class _DetailAsyncBodyState<T> extends ConsumerState<DetailAsyncBody<T>> {

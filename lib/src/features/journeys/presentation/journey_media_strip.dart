@@ -137,7 +137,9 @@ class _FullScreenPhotosState extends State<_FullScreenPhotos> {
                   right: 0,
                   child: IgnorePointer(
                     child: Center(
-                      child: _CountPill(label: '${_index + 1} / ${_items.length}'),
+                      child: _CountPill(
+                        label: '${_index + 1} / ${_items.length}',
+                      ),
                     ),
                   ),
                 ),

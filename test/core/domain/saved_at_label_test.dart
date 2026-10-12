@@ -13,7 +13,10 @@ void main() {
       'Saved today, 9:41 AM',
     );
     expect(
-      savedAtLabel(DateTime(2026, 10, 12, 14, 59, 40), DateTime(2026, 10, 12, 15)),
+      savedAtLabel(
+        DateTime(2026, 10, 12, 14, 59, 40),
+        DateTime(2026, 10, 12, 15),
+      ),
       'Saved just now',
     );
   });

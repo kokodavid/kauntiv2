@@ -51,7 +51,10 @@ class FeedbackAttachmentsField extends StatelessWidget {
   ) async {
     final mime = FeedbackAttachmentFile.mimeForPath(path);
     if (mime == null) {
-      _say(messenger, 'That file type is not supported. Use JPG, PNG, MP4 or MOV.');
+      _say(
+        messenger,
+        'That file type is not supported. Use JPG, PNG, MP4 or MOV.',
+      );
       return;
     }
     if (size > FeedbackAttachmentFile.maxBytes) {
@@ -99,12 +102,16 @@ class FeedbackAttachmentsField extends StatelessWidget {
             _AddButton(
               icon: Icons.image_outlined,
               label: 'Add screenshot',
-              onTap: enabled && !_full ? () => unawaited(_addImage(context)) : null,
+              onTap: enabled && !_full
+                  ? () => unawaited(_addImage(context))
+                  : null,
             ),
             _AddButton(
               icon: Icons.videocam_outlined,
               label: 'Add recording',
-              onTap: enabled && !_full ? () => unawaited(_addVideo(context)) : null,
+              onTap: enabled && !_full
+                  ? () => unawaited(_addVideo(context))
+                  : null,
             ),
           ],
         ),
@@ -160,7 +167,10 @@ class _Thumb extends StatelessWidget {
             child: file.isVideo
                 ? const ColoredBox(
                     color: AppColors.secondaryFill,
-                    child: Icon(Icons.videocam, color: AppColors.mutedForeground),
+                    child: Icon(
+                      Icons.videocam,
+                      color: AppColors.mutedForeground,
+                    ),
                   )
                 : Image.file(
                     File(file.path),

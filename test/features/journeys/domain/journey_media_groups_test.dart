@@ -56,18 +56,24 @@ void main() {
     expect(cover?.id, 'taken');
   });
 
-  test('an album-only photo still works as the cover, by default or chosen', () {
-    expect(
-      TripShareCardCache.resolveCoverPhoto(_summary(), [album])?.id,
-      'album',
-    );
-    expect(
-      TripShareCardCache.resolveCoverPhoto(
-        _summary(coverMediaId: 'album'),
-        [taken, album],
-      )?.id,
-      'album',
-    );
-    expect(TripShareCardCache.resolveCoverPhoto(_summary(), const []), isNull);
-  });
+  test(
+    'an album-only photo still works as the cover, by default or chosen',
+    () {
+      expect(
+        TripShareCardCache.resolveCoverPhoto(_summary(), [album])?.id,
+        'album',
+      );
+      expect(
+        TripShareCardCache.resolveCoverPhoto(_summary(coverMediaId: 'album'), [
+          taken,
+          album,
+        ])?.id,
+        'album',
+      );
+      expect(
+        TripShareCardCache.resolveCoverPhoto(_summary(), const []),
+        isNull,
+      );
+    },
+  );
 }

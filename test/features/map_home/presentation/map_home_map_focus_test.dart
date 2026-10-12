@@ -55,9 +55,8 @@ void main() {
         ),
       ),
     );
-    double opacity() => tester
-        .widget<AnimatedOpacity>(find.byType(AnimatedOpacity))
-        .opacity;
+    double opacity() =>
+        tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity;
 
     final gesture = await tester.startGesture(const Offset(300, 400));
     await gesture.moveBy(const Offset(60, 0));

@@ -31,7 +31,10 @@ void main() {
   test('files are typed by extension and anything else is refused', () {
     expect(FeedbackAttachmentFile.mimeForPath('/a/shot.JPG'), 'image/jpeg');
     expect(FeedbackAttachmentFile.mimeForPath('/a/shot.png'), 'image/png');
-    expect(FeedbackAttachmentFile.mimeForPath('/a/clip.mov'), 'video/quicktime');
+    expect(
+      FeedbackAttachmentFile.mimeForPath('/a/clip.mov'),
+      'video/quicktime',
+    );
     expect(FeedbackAttachmentFile.mimeForPath('/a/clip.mp4'), 'video/mp4');
     expect(FeedbackAttachmentFile.mimeForPath('/a/doc.pdf'), isNull);
     expect(FeedbackAttachmentFile.mimeForPath('/a/noextension'), isNull);

@@ -43,7 +43,9 @@ class VisitSyncQueue {
         'p_entered_at': op.enteredAt.toUtc().toIso8601String(),
         // How long the stay lasted; the badge sheet compares it with the
         // 2 hours a county needs. Never a location.
-        'p_stay_seconds': op.resolvedAt.difference(op.enteredAt).inSeconds
+        'p_stay_seconds': op.resolvedAt
+            .difference(op.enteredAt)
+            .inSeconds
             .clamp(0, 1 << 30),
       },
     ),

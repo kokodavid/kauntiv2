@@ -95,79 +95,79 @@ class _Pill extends StatelessWidget {
       child: AnimatedSize(
         duration: const Duration(milliseconds: 160),
         child: Container(
-        height: 40,
-        padding: EdgeInsets.only(left: 14, right: retry ? 4 : 14),
-        decoration: BoxDecoration(
-          color: AppColors.offlinePillBackground,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x2E000000),
-              blurRadius: 18,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 160),
-              child: _Icon(key: ValueKey(status), status: status),
-            ),
-            const SizedBox(width: 10),
-            Flexible(
-              child: AnimatedSwitcher(
+          height: 40,
+          padding: EdgeInsets.only(left: 14, right: retry ? 4 : 14),
+          decoration: BoxDecoration(
+            color: AppColors.offlinePillBackground,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x2E000000),
+                blurRadius: 18,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedSwitcher(
                 duration: const Duration(milliseconds: 160),
-                child: Text(
-                  text,
-                  key: ValueKey(text),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                child: _Icon(key: ValueKey(status), status: status),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 160),
+                  child: Text(
+                    text,
+                    key: ValueKey(text),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
-            ),
-            if (retry) ...[
-              const SizedBox(width: 10),
-              Semantics(
-                button: true,
-                label: 'Retry',
-                child: GestureDetector(
-                  onTap: onRetry,
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    height: 44,
-                    child: Center(
-                      child: Container(
-                        height: 30,
-                        padding: const EdgeInsets.symmetric(horizontal: 11),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: const Text(
-                          'Retry',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
+              if (retry) ...[
+                const SizedBox(width: 10),
+                Semantics(
+                  button: true,
+                  label: 'Retry',
+                  child: GestureDetector(
+                    onTap: onRetry,
+                    behavior: HitTestBehavior.opaque,
+                    child: SizedBox(
+                      height: 44,
+                      child: Center(
+                        child: Container(
+                          height: 30,
+                          padding: const EdgeInsets.symmetric(horizontal: 11),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Text(
+                            'Retry',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
-          ],
-        ),
+          ),
         ),
       ),
     );

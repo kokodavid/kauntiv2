@@ -97,7 +97,10 @@ class FeedbackSubmitter extends _$FeedbackSubmitter {
         ref.invalidate(feedbackOutboxSyncProvider);
         if (ref.mounted) state = const AsyncData(FeedbackSubmission.queued());
       } else if (ref.mounted) {
-        state = AsyncError(FeedbackFailure(feedbackFailureMessage(error)), stack);
+        state = AsyncError(
+          FeedbackFailure(feedbackFailureMessage(error)),
+          stack,
+        );
       }
     }
   }

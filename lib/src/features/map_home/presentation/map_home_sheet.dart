@@ -98,10 +98,8 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
         var expandedSize = _maxSize;
         if (_contentHeight != null && constraints.maxHeight > 0) {
           expandedSize =
-              ((_contentHeight! + _chrome(context)) / constraints.maxHeight).clamp(
-                _peekSize,
-                _maxSize,
-              );
+              ((_contentHeight! + _chrome(context)) / constraints.maxHeight)
+                  .clamp(_peekSize, _maxSize);
         }
         final peek = hasCollapsed && constraints.maxHeight > 0
             ? (widget.collapsedHeight +
@@ -267,8 +265,9 @@ class _RenderSectionSlot extends RenderShiftedBox {
     markNeedsLayout();
   }
 
-  Size _sized(Size child) =>
-      child.height == 0 ? Size(child.width, 0) : Size(child.width, child.height + _gap);
+  Size _sized(Size child) => child.height == 0
+      ? Size(child.width, 0)
+      : Size(child.width, child.height + _gap);
 
   @override
   Size computeDryLayout(BoxConstraints constraints) {

@@ -46,7 +46,10 @@ void main() {
     );
     expect(find.text('the list'), findsNothing);
     expect(find.text('Needs a connection'), findsOneWidget);
-    expect(find.text('Unclaimed counties load from the internet.'), findsOneWidget);
+    expect(
+      find.text('Unclaimed counties load from the internet.'),
+      findsOneWidget,
+    );
     expect(find.text('Retry'), findsOneWidget);
   });
 

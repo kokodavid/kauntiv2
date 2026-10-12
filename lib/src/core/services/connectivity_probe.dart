@@ -17,9 +17,7 @@ class ConnectivityProbe {
   Future<bool> reachableWithin(Duration patience) async {
     if (kIsWeb) return true;
     try {
-      final found = await InternetAddress.lookup(
-        host,
-      ).timeout(patience);
+      final found = await InternetAddress.lookup(host).timeout(patience);
       return found.isNotEmpty && found.first.rawAddress.isNotEmpty;
     } on Object {
       return false;

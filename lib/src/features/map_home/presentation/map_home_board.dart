@@ -75,8 +75,7 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
     onChanged: () => mounted ? setState(() {}) : null,
   );
 
-  /// The real (Mapbox) map is Home's default; the drawn map is the fallback
-  /// once it fails, until the user retries.
+  /// Real (Mapbox) map by default; the drawn map is the fallback until retry.
   _RealMapStatus _realMap = _RealMapStatus.loading;
   int _realMapAttempt = 0;
 
@@ -209,18 +208,19 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
             child: MapHomeMapTouchSensor(
               focus: _focus,
               child: RealMapView(
-              key: ValueKey('real-map-$_realMapAttempt'),
-              accessToken: widget.mapboxAccessToken,
-              badges: data.countyBadges,
-              homeCountySlug: data.homeCounty?.slug,
-              loadPlaces: widget.loadMapPlaces,
-              topInset: _headerBottom + 20,
-              onReady: () => setState(() => _realMap = _RealMapStatus.ready),
-              onFailed: () => setState(() => _realMap = _RealMapStatus.failed),
-              onOpenCounty: widget.onOpenCounty,
-              onOpenPlace: widget.onOpenPlace,
-              onRoute: widget.onRoute,
-              onPlaceRoute: widget.onPlaceRoute,
+                key: ValueKey('real-map-$_realMapAttempt'),
+                accessToken: widget.mapboxAccessToken,
+                badges: data.countyBadges,
+                homeCountySlug: data.homeCounty?.slug,
+                loadPlaces: widget.loadMapPlaces,
+                topInset: _headerBottom + 20,
+                onReady: () => setState(() => _realMap = _RealMapStatus.ready),
+                onFailed: () =>
+                    setState(() => _realMap = _RealMapStatus.failed),
+                onOpenCounty: widget.onOpenCounty,
+                onOpenPlace: widget.onOpenPlace,
+                onRoute: widget.onRoute,
+                onPlaceRoute: widget.onPlaceRoute,
               ),
             ),
           ),
@@ -275,22 +275,22 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
         MapHomeFocusFade(
           focus: _focus,
           child: MapHomeBoardSheet(
-          data: data,
-          layout: _layout,
-          fade: _fade,
-          tripsNear: widget.tripsNear,
-          savedPlans: widget.savedPlans,
-          loadPlaces: widget.loadMapPlaces,
-          recordTripCard: widget.recordTripCard,
-          recordTripCardHeight: widget.recordTripCardHeight,
-          topCard: widget.topCard,
-          onStartTrip: widget.onStartTrip,
-          onOpenCounty: widget.onOpenCounty,
-          onOpenPlace: widget.onOpenPlace,
-          onRoute: widget.onRoute,
-          onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
-          onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
-        ),
+            data: data,
+            layout: _layout,
+            fade: _fade,
+            tripsNear: widget.tripsNear,
+            savedPlans: widget.savedPlans,
+            loadPlaces: widget.loadMapPlaces,
+            recordTripCard: widget.recordTripCard,
+            recordTripCardHeight: widget.recordTripCardHeight,
+            topCard: widget.topCard,
+            onStartTrip: widget.onStartTrip,
+            onOpenCounty: widget.onOpenCounty,
+            onOpenPlace: widget.onOpenPlace,
+            onRoute: widget.onRoute,
+            onPromotedPlaceRoute: widget.onPromotedPlaceRoute,
+            onSeeAllUnclaimed: widget.onSeeAllUnclaimed,
+          ),
         ),
       ],
     );

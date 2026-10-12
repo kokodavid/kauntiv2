@@ -38,11 +38,7 @@ class _Tile extends StatelessWidget {
           ),
           if (onRetry != null) ...[
             const Spacer(),
-            _RetryButton(
-              checking: checking,
-              onRetry: onRetry!,
-              fontSize: 13,
-            ),
+            _RetryButton(checking: checking, onRetry: onRetry!, fontSize: 13),
           ],
         ],
       ),

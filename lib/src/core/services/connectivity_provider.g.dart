@@ -105,7 +105,7 @@ final class ConnectivityProvider
   }
 }
 
-String _$connectivityHash() => r'18c37bf0c5ca85b76259163459c0b659233ead44';
+String _$connectivityHash() => r'f29a8196ebabf93d2ea2a74c7b5e266b7e977138';
 
 /// One app-wide answer to "are we online?". Everything offline-aware
 /// (banner, notices, chips, Home's reload) reads this; nothing is shown or

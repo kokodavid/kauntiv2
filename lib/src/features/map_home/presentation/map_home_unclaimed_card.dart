@@ -57,8 +57,7 @@ class MapHomeUnclaimedCard extends StatelessWidget {
               child: AppPhotoHeader(
                 county: suggestion.county,
                 title: suggestion.county.name,
-                caption:
-                    suggestion.matchedPlaceName ?? suggestion.reasonLabel,
+                caption: suggestion.matchedPlaceName ?? suggestion.reasonLabel,
                 imageUrl: suggestion.highlightImageUrl,
                 height: photoHeight,
                 // Narrow row cards give the whole width to the name; the section

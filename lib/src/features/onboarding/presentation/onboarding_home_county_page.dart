@@ -151,10 +151,7 @@ class _SearchBar extends StatelessWidget {
 /// another. Before a pick it says how to start.
 /// A save error replaces the hint line.
 class _SelectedCountyCard extends StatelessWidget {
-  const _SelectedCountyCard({
-    required this.county,
-    required this.errorMessage,
-  });
+  const _SelectedCountyCard({required this.county, required this.errorMessage});
 
   final CountyPath? county;
   final String? errorMessage;

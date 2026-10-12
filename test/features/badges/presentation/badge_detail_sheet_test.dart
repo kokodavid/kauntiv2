@@ -163,17 +163,11 @@ void main() {
 
   testWidgets('passed through before stay times were recorded', (tester) async {
     await tester.pumpWidget(
-      _app(
-        badge(22),
-        CountyBadgeDetail(lastPassAt: DateTime(2026, 10, 3, 14)),
-      ),
+      _app(badge(22), CountyBadgeDetail(lastPassAt: DateTime(2026, 10, 3, 14))),
     );
     await tester.pump();
 
-    expect(
-      find.text('Last passed through on 3 Oct 2026.'),
-      findsOneWidget,
-    );
+    expect(find.text('Last passed through on 3 Oct 2026.'), findsOneWidget);
     expect(find.textContaining('You stayed'), findsNothing);
   });
 

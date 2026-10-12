@@ -12,11 +12,22 @@ class FeedbackReportTile extends StatelessWidget {
   final FeedbackReport report;
 
   static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
-  static String _date(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
+  static String _date(DateTime d) =>
+      '${d.day} ${_months[d.month - 1]} ${d.year}';
 
   @override
   Widget build(BuildContext context) {

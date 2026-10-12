@@ -128,13 +128,14 @@ class MapHomeSnapshotCounty {
     this.headquarters,
   });
 
-  factory MapHomeSnapshotCounty.fromJson(Map<dynamic, dynamic> raw) => MapHomeSnapshotCounty(
-    state: raw['s'] as String?,
-    areaKm2: raw['a'] as num?,
-    elevationM: raw['e'] as num?,
-    durationMinutes: (raw['d'] as num?)?.toInt(),
-    headquarters: raw['h'] as String?,
-  );
+  factory MapHomeSnapshotCounty.fromJson(Map<dynamic, dynamic> raw) =>
+      MapHomeSnapshotCounty(
+        state: raw['s'] as String?,
+        areaKm2: raw['a'] as num?,
+        elevationM: raw['e'] as num?,
+        durationMinutes: (raw['d'] as num?)?.toInt(),
+        headquarters: raw['h'] as String?,
+      );
 
   /// 'explored', 'passed_through', 'pending', or null (unclaimed).
   final String? state;

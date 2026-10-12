@@ -30,8 +30,9 @@ void main() {
     }
   });
 
-  testWidgets('Continue is off until something is picked; skip is always on',
-      (tester) async {
+  testWidgets('Continue is off until something is picked; skip is always on', (
+    tester,
+  ) async {
     var continued = 0;
     var skipped = 0;
     await tester.pumpWidget(

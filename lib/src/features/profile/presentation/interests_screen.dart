@@ -36,7 +36,10 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
               for (final i in current)
                 if (i != interest) i,
             ]
-          : PlaceInterest.fromKeys([...current.map((i) => i.key), interest.key]);
+          : PlaceInterest.fromKeys([
+              ...current.map((i) => i.key),
+              interest.key,
+            ]);
     });
   }
 
@@ -125,7 +128,8 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                             options: PlaceInterest.values,
                             selected: picks,
                             labelOf: (interest) => interest.label,
-                            iconOf: (interest) => interestIconForKey(interest.key),
+                            iconOf: (interest) =>
+                                interestIconForKey(interest.key),
                             onToggle: _toggle,
                           ),
                         ],

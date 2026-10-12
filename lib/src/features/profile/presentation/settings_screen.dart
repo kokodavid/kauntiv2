@@ -166,8 +166,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 18),
               SettingsExploringSection(
                 interests:
-                    ref.watch(myInterestsProvider).value?.interests ??
-                    const [],
+                    ref.watch(myInterestsProvider).value?.interests ?? const [],
                 onOpenInterests: widget.onOpenInterests,
               ),
               const SizedBox(height: 18),

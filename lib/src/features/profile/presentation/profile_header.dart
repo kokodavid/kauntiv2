@@ -185,22 +185,22 @@ class _Avatar extends StatelessWidget {
         ),
         if (onEdit != null)
           Positioned(
-          right: -2,
-          bottom: -2,
-          child: GestureDetector(
-            onTap: onEdit,
-            child: Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                color: AppColors.accent,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
+            right: -2,
+            bottom: -2,
+            child: GestureDetector(
+              onTap: onEdit,
+              child: Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Icon(Icons.edit, size: 13, color: Colors.white),
               ),
-              child: const Icon(Icons.edit, size: 13, color: Colors.white),
             ),
           ),
-        ),
       ],
     ),
   );

@@ -103,11 +103,8 @@ extension on CountyBadgeMedallion {
       children: [
         Positioned.fill(
           child: CustomPaint(
-              painter: _DiscPainter(
-                earned: earned,
-                passedThrough: passedThrough,
-              ),
-            ),
+            painter: _DiscPainter(earned: earned, passedThrough: passedThrough),
+          ),
         ),
         Positioned(
           left: 18 * unit,

@@ -90,9 +90,7 @@ class PendingArrivalNudge extends _$PendingArrivalNudge {
     final nudge = pending.nudge;
     _takenKeys.add(ArrivalNudgeRules.keyFor(nudge.countyCode, nudge.enteredAt));
     _takenAt[nudge.countyCode] = now;
-    unawaited(
-      ref.read(arrivalNudgeHistoryProvider).markShown(nudge, now: now),
-    );
+    unawaited(ref.read(arrivalNudgeHistoryProvider).markShown(nudge, now: now));
     return pending;
   }
 

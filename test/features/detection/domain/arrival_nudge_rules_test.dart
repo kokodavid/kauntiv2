@@ -51,11 +51,7 @@ void main() {
     );
     // Another county is unaffected.
     expect(
-      ArrivalNudgeRules.pick(
-        [again, kiambu],
-        lastShown: lastShown,
-        now: now,
-      ),
+      ArrivalNudgeRules.pick([again, kiambu], lastShown: lastShown, now: now),
       kiambu,
     );
   });

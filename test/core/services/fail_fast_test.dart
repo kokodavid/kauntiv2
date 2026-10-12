@@ -34,10 +34,7 @@ void main() {
     final result = Provider<Future<int>>(
       (ref) => failFast(ref, () async => fail('should not be called')),
     );
-    await expectLater(
-      container.read(result),
-      throwsA(isA<OfflineException>()),
-    );
+    await expectLater(container.read(result), throwsA(isA<OfflineException>()));
   });
 
   test('online: returns the result', () async {

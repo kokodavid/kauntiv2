@@ -1,8 +1,10 @@
+import '../../../core/domain/place_type.dart';
 import 'place_interest.dart';
 
-/// Which `places.type` values count as a match for each interest. The
-/// source of truth is the `interest_place_types` table; [fallback] mirrors
-/// its seed so matching still works offline and before it has loaded.
+/// Which place types count as a match for each interest. The source of
+/// truth is the `interest_place_types` table; [fallback] mirrors it so
+/// matching still works offline and before it has loaded. Types are
+/// compared by [PlaceType] key, so old spellings ("shore") still match.
 class InterestPlaceTypes {
   const InterestPlaceTypes(this._byInterest);
 
@@ -12,8 +14,9 @@ class InterestPlaceTypes {
     final byInterest = <PlaceInterest, Set<String>>{};
     for (final row in rows) {
       final interest = PlaceInterest.fromKey('${row['interest_key']}');
-      final type = '${row['place_type']}'.trim().toLowerCase();
-      if (interest == null || type.isEmpty) continue;
+      final raw = '${row['place_type']}';
+      if (interest == null || raw.trim().isEmpty) continue;
+      final type = PlaceType.of(raw).key;
       (byInterest[interest] ??= <String>{}).add(type);
     }
     return InterestPlaceTypes(byInterest);
@@ -26,7 +29,7 @@ class InterestPlaceTypes {
   /// The first of [picks] (in the order picked) that [placeType] counts
   /// toward, or null when it matches none of them.
   PlaceInterest? matchFor(String placeType, Iterable<PlaceInterest> picks) {
-    final type = placeType.trim().toLowerCase();
+    final type = PlaceType.of(placeType).key;
     for (final pick in picks) {
       if (_byInterest[pick]?.contains(type) ?? false) return pick;
     }
@@ -37,35 +40,22 @@ class InterestPlaceTypes {
     PlaceInterest.nature: {
       'park',
       'forest',
-      'reserve',
       'garden',
       'conservancy',
+      'mountain',
+      'cave',
     },
-    PlaceInterest.water: {
-      'waterfall',
-      'hike',
-      'hiking',
-      'trail',
-      'gorge',
-      'river',
-    },
-    PlaceInterest.coast: {'shore', 'beach', 'coast', 'island'},
+    PlaceInterest.water: {'waterfall', 'hike', 'river'},
+    PlaceInterest.coast: {'beach', 'island'},
     PlaceInterest.culture: {
-      'culture',
       'museum',
-      'heritage',
-      'historic',
+      'historic_site',
       'monument',
+      'cultural_site',
     },
-    PlaceInterest.wild: {
-      'park',
-      'wildlife',
-      'reserve',
-      'conservancy',
-      'sanctuary',
-    },
-    PlaceInterest.food: {'market', 'restaurant', 'food'},
-    PlaceInterest.views: {'viewpoint', 'view', 'escarpment', 'lookout'},
-    PlaceInterest.relax: {'spring', 'hot_spring', 'lake', 'retreat', 'stay'},
+    PlaceInterest.wild: {'park', 'conservancy'},
+    PlaceInterest.food: {'market', 'food'},
+    PlaceInterest.views: {'viewpoint', 'mountain'},
+    PlaceInterest.relax: {'hot_spring', 'lake', 'stay'},
   });
 }

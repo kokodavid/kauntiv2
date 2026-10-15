@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/core/domain/place_type.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/detection/presentation/county_arrival_sheet.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/county_detail.dart';
-import 'package:kaunti47_v2/src/features/discover/domain/place_category.dart';
 
 CountyDetailPlace _place(String id, {bool saved = false}) => CountyDetailPlace(
   id: id,
   title: 'Place $id',
   description: 'About $id',
-  category: PlaceCategory.park,
+  category: PlaceType.park,
   saved: saved,
 );
 

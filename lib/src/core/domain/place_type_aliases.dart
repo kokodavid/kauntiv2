@@ -1,0 +1,58 @@
+/// Old free-text spellings of each `PlaceType` key, normalised as in
+/// `PlaceType.normalise` (lower case, single spaces). Mirrors the
+/// `place_type_aliases` table in
+/// `supabase/migrations/20261018100000_place_types.sql`.
+const placeTypeAliases = <String, List<String>>{
+  'waterfall': ['waterfalls', 'falls', 'fall'],
+  'hike': [
+    'hiking',
+    'trail',
+    'trails',
+    'hiking trail',
+    'nature trail',
+    'walk',
+    'nature walk',
+  ],
+  'mountain': ['peak', 'hill', 'hills', 'mount', 'crater', 'volcano'],
+  'viewpoint': ['view', 'views', 'view point', 'lookout', 'escarpment'],
+  'beach': ['shore', 'shores', 'coast', 'beaches'],
+  'island': ['islands'],
+  'lake': ['dam', 'reservoir', 'lakes'],
+  'river': ['gorge', 'rapids', 'rivers'],
+  'hot_spring': ['hot springs', 'spring', 'springs', 'geyser'],
+  'park': [
+    'national park',
+    'national reserve',
+    'reserve',
+    'game reserve',
+    'parks',
+  ],
+  'conservancy': ['sanctuary', 'wildlife', 'wildlife sanctuary'],
+  'forest': ['forest reserve', 'woodland', 'forests'],
+  'cave': ['caves', 'lava cave'],
+  'garden': ['arboretum', 'botanical garden', 'gardens'],
+  'museum': ['museums'],
+  'historic_site': ['heritage', 'historic', 'heritage site', 'ruins', 'fort'],
+  'monument': ['memorial', 'statue'],
+  'cultural_site': [
+    'culture',
+    'cultural',
+    'cultural centre',
+    'cultural center',
+    'shrine',
+  ],
+  'market': ['markets'],
+  'food': ['eat', 'restaurant', 'cafe', 'vineyard', 'winery'],
+  'stay': [
+    'retreat',
+    'hotel',
+    'lodge',
+    'camp',
+    'campsite',
+    'camping',
+    'resort',
+  ],
+  'marine_park': ['marine park', 'marine national park', 'marine reserve'],
+  'desert': ['deserts', 'dunes', 'sand dunes'],
+  'landmark': ['landmarks', 'wind farm'],
+};

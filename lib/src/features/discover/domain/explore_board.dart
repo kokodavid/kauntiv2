@@ -1,8 +1,8 @@
 import '../../../core/domain/app_stat_format.dart';
+import '../../../core/domain/place_type.dart';
 import '../../../counties/county_paths.dart';
 import 'explore_labels.dart';
 import 'explore_lists.dart';
-import 'place_category.dart';
 
 /// Explore's three tabs (v1 Discover: MINE / UNCLAIMED / SAVED).
 enum ExploreTab { mine, unclaimed, saved }
@@ -25,7 +25,7 @@ class ExplorePlace {
   final String id;
   final String title;
   final String description;
-  final PlaceCategory category;
+  final PlaceType category;
   final bool saved;
 
   /// SAVED only: ticked by hand as visited (`wishlist_items.ticked_at`).

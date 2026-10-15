@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/domain/place_type.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/discover_detail_actions.dart';
 import '../domain/county_detail.dart';
 import '../domain/county_safety_feed.dart';
-import '../domain/place_category.dart';
 import 'county_detail_title_row.dart';
 import 'county_news_gate.dart';
 import 'county_place_filters.dart';
@@ -72,7 +72,7 @@ class _CountyDetailBody extends StatefulWidget {
 
 class _CountyDetailBodyState extends State<_CountyDetailBody> {
   /// The place filter; null is All.
-  PlaceCategory? _category;
+  PlaceType? _category;
 
   /// Saves made here, so a card filtered out and back shows its latest
   /// state rather than the loaded one.

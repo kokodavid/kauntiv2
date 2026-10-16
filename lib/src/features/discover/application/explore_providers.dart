@@ -113,7 +113,9 @@ class ExploreTickedPlaces extends _$ExploreTickedPlaces {
   Map<String, bool> build() => const {};
 
   /// Applies [ticked] optimistically, then writes it; restores and
-  /// rethrows on failure. No board refresh: only the checkbox changes.
+  /// rethrows on failure. On success the board refreshes in place (the
+  /// screen keeps showing the old one meanwhile), so the tick survives this
+  /// provider being dropped when the traveller leaves SAVED.
   Future<void> setTicked({
     required String placeId,
     required bool ticked,
@@ -128,5 +130,6 @@ class ExploreTickedPlaces extends _$ExploreTickedPlaces {
       if (ref.mounted) state = before;
       rethrow;
     }
+    if (ref.mounted) ref.invalidate(exploreBoardProvider);
   }
 }

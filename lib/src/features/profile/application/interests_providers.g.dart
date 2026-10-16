@@ -154,7 +154,7 @@ final class MyInterestsProvider
   MyInterests create() => MyInterests();
 }
 
-String _$myInterestsHash() => r'0aea22aa59a4afda74ed0eb575b388f6789b38b2';
+String _$myInterestsHash() => r'46d994477f7dbf02745327553c0db97074724213';
 
 /// The signed-in user's saved interests (Settings, the editor, and the
 /// Home card). Starts from the answer remembered on this phone so it works
@@ -340,3 +340,157 @@ final class InterestPlaceTypesProvider
 
 String _$interestPlaceTypesHash() =>
     r'245110a11289c5ffd95e833aa3c879455bd094b5';
+
+/// The interests a traveller can pick from, ordered by the backend's
+/// `sort_order`. Starts at once from the list remembered on this phone (or
+/// the built-in set), then swaps in the server's active list when it
+/// arrives. Never errors and never empty.
+
+@ProviderFor(InterestCatalogue)
+const interestCatalogueProvider = InterestCatalogueProvider._();
+
+/// The interests a traveller can pick from, ordered by the backend's
+/// `sort_order`. Starts at once from the list remembered on this phone (or
+/// the built-in set), then swaps in the server's active list when it
+/// arrives. Never errors and never empty.
+final class InterestCatalogueProvider
+    extends $AsyncNotifierProvider<InterestCatalogue, List<PlaceInterest>> {
+  /// The interests a traveller can pick from, ordered by the backend's
+  /// `sort_order`. Starts at once from the list remembered on this phone (or
+  /// the built-in set), then swaps in the server's active list when it
+  /// arrives. Never errors and never empty.
+  const InterestCatalogueProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'interestCatalogueProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$interestCatalogueHash();
+
+  @$internal
+  @override
+  InterestCatalogue create() => InterestCatalogue();
+}
+
+String _$interestCatalogueHash() => r'adc2c2adcff9b993762fa7a808529c4e61e43f4e';
+
+/// The interests a traveller can pick from, ordered by the backend's
+/// `sort_order`. Starts at once from the list remembered on this phone (or
+/// the built-in set), then swaps in the server's active list when it
+/// arrives. Never errors and never empty.
+
+abstract class _$InterestCatalogue extends $AsyncNotifier<List<PlaceInterest>> {
+  FutureOr<List<PlaceInterest>> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref =
+        this.ref as $Ref<AsyncValue<List<PlaceInterest>>, List<PlaceInterest>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<List<PlaceInterest>>, List<PlaceInterest>>,
+              AsyncValue<List<PlaceInterest>>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// Codes of the coastal counties; empty set reads as "not known".
+
+@ProviderFor(coastalCountyCodes)
+const coastalCountyCodesProvider = CoastalCountyCodesProvider._();
+
+/// Codes of the coastal counties; empty set reads as "not known".
+
+final class CoastalCountyCodesProvider
+    extends
+        $FunctionalProvider<AsyncValue<Set<int>>, Set<int>, FutureOr<Set<int>>>
+    with $FutureModifier<Set<int>>, $FutureProvider<Set<int>> {
+  /// Codes of the coastal counties; empty set reads as "not known".
+  const CoastalCountyCodesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'coastalCountyCodesProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$coastalCountyCodesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Set<int>> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Set<int>> create(Ref ref) {
+    return coastalCountyCodes(ref);
+  }
+}
+
+String _$coastalCountyCodesHash() =>
+    r'92b2bfb77e8517449ba88b83260c96b66ec14680';
+
+/// Type and county rules for matching a place to an interest, from the
+/// backend. Reads as the bundled rules until they load.
+
+@ProviderFor(interestMatcher)
+const interestMatcherProvider = InterestMatcherProvider._();
+
+/// Type and county rules for matching a place to an interest, from the
+/// backend. Reads as the bundled rules until they load.
+
+final class InterestMatcherProvider
+    extends
+        $FunctionalProvider<InterestMatcher, InterestMatcher, InterestMatcher>
+    with $Provider<InterestMatcher> {
+  /// Type and county rules for matching a place to an interest, from the
+  /// backend. Reads as the bundled rules until they load.
+  const InterestMatcherProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'interestMatcherProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$interestMatcherHash();
+
+  @$internal
+  @override
+  $ProviderElement<InterestMatcher> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  InterestMatcher create(Ref ref) {
+    return interestMatcher(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(InterestMatcher value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<InterestMatcher>(value),
+    );
+  }
+}
+
+String _$interestMatcherHash() => r'bbb835a9d57e0129f440897b6b2c377998e1f477';

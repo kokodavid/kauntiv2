@@ -59,6 +59,7 @@ void main() {
       repository: repository,
       locationSource: source,
       clock: () => now,
+      streamRecoveryDelays: const [Duration.zero],
       onDiagnosticEvent: (event, data) async => diagnosticEvents.add(event),
     );
   });
@@ -180,13 +181,15 @@ void main() {
     );
   });
 
-  test('a location stream failure pauses capture', () async {
+  test('a location stream failure recovers and starts a new segment', () async {
+    var pauseNotifications = 0;
+    capture.onUnexpectedPause = (_) => pauseNotifications++;
     final session = await repository.start(id: 'one', userId: 'alice', at: t0);
     final attaching = capture.attachStarted(session: session, userId: 'alice');
     await pumpEventQueue();
     source.controller.add(
       JourneyFix(
-        recordedAt: t0,
+        recordedAt: t0.add(const Duration(seconds: 1)),
         latitude: -1.28,
         longitude: 36.82,
         accuracyMeters: 7,
@@ -194,6 +197,56 @@ void main() {
     );
     await attaching;
     now = t0.add(const Duration(seconds: 2));
+    source.controller.addError(StateError('GPS stopped'));
+    await pumpEventQueue();
+    expect(capture.session?.recording.phase, JourneyRecordingPhase.recording);
+    for (
+      var attempt = 0;
+      attempt < 100 && !diagnosticEvents.contains('journey_location_recovered');
+      attempt++
+    ) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(capture.lastError, isA<StateError>());
+    expect(capture.session?.recording.phase, JourneyRecordingPhase.recording);
+    expect(source.started, isTrue);
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 10)),
+        latitude: -1.27,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await pumpEventQueue();
+    await capture.pause();
+    expect(
+      (await repository.points(
+        'one',
+        'alice',
+      )).map((point) => point.segmentNumber),
+      [0, 1],
+    );
+    expect(diagnosticEvents, contains('journey_location_recovered'));
+    expect(pauseNotifications, 0);
+  });
+
+  test('capture pauses only after all stream recovery attempts fail', () async {
+    var pauseNotifications = 0;
+    capture.onUnexpectedPause = (_) => pauseNotifications++;
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    final attaching = capture.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 1)),
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
+    source.failStart = true;
     source.controller.addError(StateError('GPS stopped'));
     for (
       var attempt = 0;
@@ -203,9 +256,55 @@ void main() {
     ) {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
-    expect(capture.lastError, isA<StateError>());
     expect(capture.session?.recording.phase, JourneyRecordingPhase.paused);
-    expect(source.started, isFalse);
+    expect(diagnosticEvents, contains('journey_location_recovery_failed'));
+    expect(pauseNotifications, 1);
+  });
+
+  test('an unexpectedly closed location stream is restarted', () async {
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    final attaching = capture.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 1)),
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
+    final replacement = StreamController<JourneyFix>.broadcast(sync: true);
+    addTearDown(replacement.close);
+    source.overrideFixes = replacement.stream;
+    final oldController = source.controller;
+    await oldController.close();
+    for (
+      var attempt = 0;
+      attempt < 100 && !diagnosticEvents.contains('journey_location_recovered');
+      attempt++
+    ) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(capture.session?.recording.phase, JourneyRecordingPhase.recording);
+    expect(source.started, isTrue);
+    replacement.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 10)),
+        latitude: -1.27,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await pumpEventQueue();
+    await capture.pause();
+    expect(
+      (await repository.points(
+        'one',
+        'alice',
+      )).map((point) => point.segmentNumber),
+      [0, 1],
+    );
   });
 
   test('Stop waits for confirmed native shutdown and can be retried', () async {

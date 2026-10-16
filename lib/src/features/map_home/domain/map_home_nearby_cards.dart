@@ -112,5 +112,4 @@ abstract final class MapHomeNearbyCards {
     if (match == null) return null;
     return (value: match.group(1)!, unit: match.group(2)!);
   }
-
 }

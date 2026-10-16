@@ -3,6 +3,8 @@
 
 drop policy if exists "Signed in users read live places, admins read all" on public.places;
 
+drop policy if exists "Reviewed places visible to users, admins read all"
+  on public.places;
 create policy "Reviewed places visible to users, admins read all"
   on public.places
   for select

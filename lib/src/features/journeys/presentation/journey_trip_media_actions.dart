@@ -97,17 +97,18 @@ Future<void> addJourneyPhotosToTrip(
 /// "2b" reference's "Add to timeline" and "Choose" actions) - unlike
 /// [addJourneyPhotosToTrip]'s manually-picked photos, these carry a real
 /// capture time and, when the OS has it, a real location, both read
-/// straight from [CameraRollMatch] rather than guessed.
-Future<void> addCameraRollMatchesToTrip(
+/// straight from [CameraRollMatch] rather than guessed. Returns whether any
+/// photo was added.
+Future<bool> addCameraRollMatchesToTrip(
   BuildContext context,
   WidgetRef ref,
   JourneySummary journey,
   List<CameraRollMatch> matches,
 ) async {
-  if (matches.isEmpty) return;
+  if (matches.isEmpty) return false;
 
   final userId = ref.read(currentUserIdProvider)();
-  if (userId == null) return;
+  if (userId == null) return false;
 
   final repository = ref.read(localJourneyMediaRepositoryProvider);
   var added = 0;
@@ -128,29 +129,30 @@ Future<void> addCameraRollMatchesToTrip(
       added++;
     }
   } on Object {
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
     showAppToast(
       context,
       variant: AppToastVariant.error,
       title: "Couldn't add those photos",
       message: 'Try again.',
     );
-    return;
+    return false;
   }
 
   if (added == 0) {
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
     showAppToast(
       context,
       variant: AppToastVariant.error,
       title: "Couldn't add those photos",
       message: 'They may need to finish downloading from iCloud first.',
     );
-    return;
+    return false;
   }
 
-  if (!context.mounted) return;
+  if (!context.mounted) return true;
   await _uploadAndNotify(context, ref, journey.id, added);
+  return true;
 }
 
 /// Uploads whatever's newly queued right away rather than waiting for the

@@ -169,4 +169,19 @@ void main() {
     );
     expect(ticked.read(), {'p1': true});
   });
+
+  test(
+    'a successful tick refreshes the board so it survives leaving',
+    () async {
+      final board = container.listen(exploreBoardProvider, (_, _) {});
+      await container.read(exploreBoardProvider.future);
+      container.listen(exploreTickedPlacesProvider, (_, _) {});
+      await container
+          .read(exploreTickedPlacesProvider.notifier)
+          .setTicked(placeId: 'p1', ticked: true);
+      await container.read(exploreBoardProvider.future);
+      expect(explore.loads, 2);
+      board.close();
+    },
+  );
 }

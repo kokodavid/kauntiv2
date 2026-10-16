@@ -14,7 +14,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/go-router | `app/app_shell.dart` on a go_router `StatefulShellRoute.indexedStack`: tab branches keep their own stacks and state, built lazily (v1 parity). County / Place Detail are routes (`/county/:code`, `/place/:id`). Map + Explore live; Badges / Ranks show "coming next" |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In review | codex/home-sheet-v2 | Board, compact sheet, nearby-place layout, v1 map interactions and Supabase data ported. See [Map Home](#map-home-4) below |
 | 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 coded. Foreground local detection/dwell/sync checks run every 15 s, while hardware location is read on start/resume and at most every 2 min; background crossing relies on OS geofences. Dev-only opt-in diagnostics can log cycle/GPS-read counts and geofence transitions. Physical-device validation still needed. |
-| 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; offline cache deferred. See [Discover](#discover-6) |
+| 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; Explore Field Guide v2 Places landing is in progress; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | In progress | codex/badges | [Plan](badges-port-plan.md). Step 1: Badges tab on the new design (Figma 491:1394, star-less badge 277:19839): title + tier pill, claimed hero with 47-segment bar, collection grid with depth rings (county_visits + county_depth_ranks). "Since reset", the activity card, avatar and saved-data time wait on product rules. |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | In progress | codex/journey-place-handoff | First-release account overview from Home avatar: auth identity, home county, badges, live Pro status, Journeys link, OS location settings, privacy summary and sign-out (removes native county geofences first). Full settings, published policy/support links and account deletion remain. |
 | 9 | Ranks, leaderboards, seasons | `features/ranks` | Not started | | Tab hidden from the bottom nav until ported (`AppFeatureFlags.ranks`, `--dart-define=RANKS_ENABLED=true` to show it). |
@@ -249,6 +249,16 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 
 - First feature on `@riverpod` codegen (`application/explore_providers.dart`):
   board, selected tab, search text and saved-place overrides.
+- Explore Field Guide v2 Slices 4-8 are in progress: Places mode now derives a
+  sentence headline, lead place card, nearby chapter and category chapters
+  from the single loaded board snapshot; the frosted dock supports interest,
+  type and distance filters with result counts and filter-aware empty states;
+  search now presents matching places before matching counties; Counties mode
+  uses the Field Guide's two-column photo-card grid with county highlight
+  images and badge/silhouette fallbacks; Saved has a dedicated summary,
+  visited progress and County Detail links; settled edge states cover no
+  interests, unavailable location, thin filters, all counties claimed, and
+  clearer empty results.
 - Header: "Discover" title, search (county name or place text), MINE /
   UNCLAIMED / SAVED pills with counts (MINE's count excludes the featured
   county, v1 parity).
@@ -482,6 +492,12 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-16 | working tree | 13 | Journey capture: retry transient location-stream errors/closure before pausing, restart Android background location, and split the route at the first post-recovery fix; added recovery/fallback regression tests. Flutter/device verification pending. |
+| 2026-10-15 | working tree | 6 | Explore Field Guide v2 Slice 8: added intentional no-interests, unavailable-location, thin-filter, all-counties-claimed and clearer search/filter empty states while retaining resolving/offline states. Flutter/device transition verification pending. |
+| 2026-10-15 | working tree | 6 | Explore Field Guide v2 Slice 7: Saved now has a dedicated summary with visited progress, retains hand-ticked place rows, and exposes County Detail links for each saved group. Flutter/device verification pending. |
+| 2026-10-15 | working tree | 6 | Explore Field Guide v2 Slice 6: Counties mode now uses a two-column 171 x 214 photo-card grid with claimed/unclaimed county badges, highlight-image fallback, ordering and County Detail navigation. Flutter/device verification pending. |
+| 2026-10-15 | working tree | 6 | Explore Field Guide v2 Slice 5: search results show matching places first and matching counties second, with place and county navigation preserved. Flutter/device verification pending. |
+| 2026-10-15 | working tree | 6 | Explore Field Guide v2 Slice 4: Places landing plus interactive interest, type and distance filters, result counts, filter-aware empty states, and static architecture checks. Flutter/device verification pending. |
 | 2026-10-08 | codex/home-sheet-v2 | 4, 6, 13 | Home v2 compact sheet and nearby-place composition; Place Detail About/Plan trip split; saved, ordered route plans with migrations; and a guarded inline-to-full-screen Mapbox handoff that releases one native surface before creating the next. Architecture guard passes; Flutter/device transition verification remains pending. |
 | 2026-10-07 | codex/scraper-foundation | Infrastructure | Added the Dev-only manual Wikidata collector: a bounded, CC0 structured-data query feeds only the authenticated ingest function and review queue. It defaults to dry-run, has no schedule or Production credentials, imports no images, and cannot publish public places. |
 | 2026-10-07 | codex/candidate-moderation | Infrastructure | Added role-checked candidate review RPCs for dashboard detail, profile correction, rejection, and guarded publication; candidates remain invisible to the app until published. |

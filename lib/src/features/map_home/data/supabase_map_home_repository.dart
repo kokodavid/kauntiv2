@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/data/supabase_map_place_reads.dart';
 import '../../../core/domain/county_tier.dart';
 import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
@@ -7,7 +8,6 @@ import '../../../services/app_logger.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_county_reads.dart';
 import 'map_home_for_you_reads.dart';
-import 'map_home_place_reads.dart';
 import 'map_home_repository.dart';
 
 class SupabaseMapHomeRepository implements MapHomeRepository {
@@ -71,7 +71,7 @@ class SupabaseMapHomeRepository implements MapHomeRepository {
 
   @override
   Future<List<MapPlace>> loadMapPlaces() =>
-      MapHomePlaceReads(client).loadMapPlaces();
+      SupabaseMapPlaceReads(client).loadMapPlaces();
 
   Future<CountyPath?> _homeCounty(
     String userId, {

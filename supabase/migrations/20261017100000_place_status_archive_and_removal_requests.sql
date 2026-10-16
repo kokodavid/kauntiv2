@@ -77,6 +77,8 @@ create unique index if not exists place_removal_requests_one_pending
 
 alter table public.place_removal_requests enable row level security;
 
+drop policy if exists "Dashboard members read removal requests"
+  on public.place_removal_requests;
 create policy "Dashboard members read removal requests"
   on public.place_removal_requests
   for select

@@ -32,19 +32,18 @@ void main() {
       sql.indexOf('insert into public.place_types'),
       sql.indexOf('on conflict (key)'),
     );
-    final keys = RegExp(r"\('([a-z_]+)', '")
-        .allMatches(typesBlock)
-        .map((match) => match.group(1))
-        .toList();
+    final keys = RegExp(
+      r"\('([a-z_]+)', '",
+    ).allMatches(typesBlock).map((match) => match.group(1)).toList();
     expect(keys, [for (final type in PlaceType.all) type.key]);
 
     final aliasBlock = sql.substring(
       sql.indexOf('insert into public.place_type_aliases'),
       sql.indexOf('on conflict (alias)'),
     );
-    final aliases = RegExp(r"\('([a-z ]+)', '([a-z_]+)'\)").allMatches(
-      aliasBlock,
-    );
+    final aliases = RegExp(
+      r"\('([a-z ]+)', '([a-z_]+)'\)",
+    ).allMatches(aliasBlock);
     expect(aliases, isNotEmpty);
     for (final alias in aliases) {
       expect(

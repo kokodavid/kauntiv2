@@ -14,6 +14,7 @@ abstract final class ExploreRows {
     required bool saved,
     required AppLocationFix? location,
     bool seen = false,
+    DateTime? seenAt,
   }) => ExplorePlace(
     id: id,
     title: row['name'] as String,
@@ -22,16 +23,36 @@ abstract final class ExploreRows {
     category: PlaceType.of(row['type'] as String? ?? ''),
     saved: saved,
     seen: seen,
+    seenAt: seenAt,
     isPromoted: activePromotion(row) != null,
     promotionLabel:
         (activePromotion(row)?['disclosure_label'] as String?) ?? 'AD',
     thumbnailUrl: thumbnail(row['place_images']),
+    distanceMeters: _distanceMeters(
+      from: location,
+      latitude: (row['lat'] as num?)?.toDouble(),
+      longitude: (row['lng'] as num?)?.toDouble(),
+    ),
     distanceLabel: ExploreLabels.placeDistance(
       from: location,
       latitude: (row['lat'] as num?)?.toDouble(),
       longitude: (row['lng'] as num?)?.toDouble(),
     ),
   );
+
+  static double? _distanceMeters({
+    required AppLocationFix? from,
+    required double? latitude,
+    required double? longitude,
+  }) {
+    if (from == null || latitude == null || longitude == null) return null;
+    return ExploreLabels.haversineMeters(
+      from.latitude,
+      from.longitude,
+      latitude,
+      longitude,
+    );
+  }
 
   static Map<String, dynamic>? activePromotion(Map<String, dynamic> row) {
     final promotions = row['place_promotions'];
@@ -129,6 +150,9 @@ abstract final class ExploreRows {
                 id: row['place_id'] as String,
                 saved: true,
                 seen: row['ticked_at'] != null,
+                seenAt: DateTime.tryParse(
+                  row['ticked_at'] as String? ?? '',
+                )?.toLocal(),
                 location: location,
               ),
           ],

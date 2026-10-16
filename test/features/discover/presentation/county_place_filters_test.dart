@@ -4,14 +4,13 @@ import 'package:kaunti47_v2/src/core/domain/place_type.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/county_detail.dart';
 import 'package:kaunti47_v2/src/features/discover/presentation/county_place_filters.dart';
 
-CountyDetailPlace _place(String id, PlaceType category) =>
-    CountyDetailPlace(
-      id: id,
-      title: id,
-      description: '',
-      category: category,
-      saved: false,
-    );
+CountyDetailPlace _place(String id, PlaceType category) => CountyDetailPlace(
+  id: id,
+  title: id,
+  description: '',
+  category: category,
+  saved: false,
+);
 
 void main() {
   final places = [

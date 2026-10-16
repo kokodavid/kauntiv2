@@ -82,8 +82,7 @@ insert into public.place_type_aliases (alias, place_type) values
   ('mount', 'mountain'), ('crater', 'mountain'), ('volcano', 'mountain'),
   ('view', 'viewpoint'), ('views', 'viewpoint'), ('view point', 'viewpoint'),
   ('lookout', 'viewpoint'), ('escarpment', 'viewpoint'),
-  ('shore', 'beach'), ('shores', 'beach'), ('coast', 'beach'),
-  ('beaches', 'beach'),
+  ('coast', 'beach'), ('beaches', 'beach'),
   ('islands', 'island'),
   ('dam', 'lake'), ('reservoir', 'lake'), ('lakes', 'lake'),
   ('gorge', 'river'), ('rapids', 'river'), ('rivers', 'river'),
@@ -148,9 +147,11 @@ $$;
 grant execute on function public.resolve_place_type(text) to authenticated;
 
 -- 4. Rewrite existing rows, then refuse anything unmapped -------------------
--- Vague old values ("nature", "energy", "pool", "desert") are assigned place
--- by place (prod list, 2026-10-15). Any other place still carrying one of
--- them stops the migration below.
+-- Vague or misleading old values ("nature", "energy", "pool", "desert",
+-- "shore", and a few "culture", "heritage", "park", "waterfall" rows) are
+-- assigned place by place (prod list, 2026-10-15 and 2026-10-16). Any other
+-- place still carrying one of the vague values is read by the aliases above
+-- or stops the migration below.
 update public.places p
 set type = fix.place_type
 from (values
@@ -178,10 +179,43 @@ from (values
   ('Taita Hills', 'mountain'),
   ('Wasini Island', 'island'),
   ('Yatta Plateau', 'viewpoint'),
-  ('Kipepeo Butterfly Project', 'conservancy')
+  ('Kipepeo Butterfly Project', 'conservancy'),
+  -- "shore" was used for lake shores, creeks and springs, so it is no longer
+  -- an alias for beach. Each one is placed by hand (audit 2026-10-16).
+  ('Takawiri Island', 'island'),
+  ('Lake Ol Bolossat', 'lake'),
+  ('Mida Creek', 'beach'),
+  ('Mambrui dunes', 'beach'),
+  ('Sabaki River Mouth', 'river'),
+  ('Nyakanja Spring', 'river'),
+  ('Turtle beach Watamu', 'beach'),
+  -- "culture" was a catch-all.
+  ('Marafa Hells Kitchen', 'viewpoint'),
+  ('Mount Kipipiri', 'mountain'),
+  ('Koobi Fora', 'historic_site'),
+  ('Namoratunga', 'historic_site'),
+  ('Chesowanja', 'historic_site'),
+  ('Ruins of Gedi', 'historic_site'),
+  ('Karsa, Kenya', 'cultural_site'),
+  ('Kazuri Beads Centre', 'cultural_site'),
+  ('Vasco da Gama Pillar', 'monument'),
+  -- Wildlife places stored as "park".
+  ('Ol Pejeta Conservancy', 'conservancy'),
+  ('Kigio Wildlife Conservancy', 'conservancy'),
+  ('Nguuni Nature Sanctuary', 'conservancy'),
+  ('Taita Hills Wildlife Sanctuary', 'conservancy'),
+  ('Haller Park', 'conservancy'),
+  ('Kathandeini Forest', 'forest'),
+  -- Added to prod after the first audit (2026-10-16).
+  ('Ol Jogi Wildlife Conservancy', 'conservancy'),
+  ('William Holden Wildlife Education Centre', 'conservancy'),
+  ('Wine & Spine', 'market')
 ) as fix (name, place_type)
 where p.name = fix.name
-  and lower(btrim(p.type)) in ('nature', 'energy', 'pool', 'desert');
+  and lower(btrim(p.type)) in (
+    'nature', 'energy', 'pool', 'desert', 'shore', 'culture', 'heritage',
+    'park', 'waterfall', 'shop'
+  );
 
 update public.places
 set type = public.resolve_place_type(type)
@@ -240,21 +274,10 @@ create trigger places_normalise_type
   for each row execute function public.places_normalise_type();
 
 -- 6. Interests on canonical keys --------------------------------------------
+-- Old rows use raw spellings; drop any that are not on the list. The final
+-- interest -> type mapping is written by 20261018130000_interests_table.sql.
 delete from public.interest_place_types
 where place_type not in (select key from public.place_types);
-
-insert into public.interest_place_types (interest_key, place_type) values
-  ('nature', 'park'), ('nature', 'forest'), ('nature', 'garden'),
-  ('nature', 'conservancy'), ('nature', 'mountain'), ('nature', 'cave'),
-  ('water', 'waterfall'), ('water', 'hike'), ('water', 'river'),
-  ('coast', 'beach'), ('coast', 'island'), ('coast', 'marine_park'),
-  ('culture', 'museum'), ('culture', 'historic_site'),
-  ('culture', 'monument'), ('culture', 'cultural_site'), ('culture', 'landmark'),
-  ('wild', 'park'), ('wild', 'conservancy'), ('wild', 'marine_park'),
-  ('food', 'market'), ('food', 'food'),
-  ('views', 'viewpoint'), ('views', 'mountain'), ('views', 'desert'),
-  ('relax', 'hot_spring'), ('relax', 'lake'), ('relax', 'stay')
-on conflict do nothing;
 
 alter table public.interest_place_types
   drop constraint if exists interest_place_types_place_type_fkey;

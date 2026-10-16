@@ -11,6 +11,7 @@ Widget _page({
   VoidCallback? onSkip,
 }) => MaterialApp(
   home: OnboardingInterestsPage(
+    options: PlaceInterest.values,
     selected: selected,
     isSaving: isSaving,
     onToggle: onToggle ?? (_) {},
@@ -57,7 +58,7 @@ void main() {
   testWidgets('tapping a chip reports it', (tester) async {
     PlaceInterest? toggled;
     await tester.pumpWidget(_page(onToggle: (i) => toggled = i));
-    await tester.tap(find.text('Waterfalls and hikes'));
+    await tester.tap(find.text('Lakes, rivers and waterfalls'));
     expect(toggled, PlaceInterest.water);
   });
 

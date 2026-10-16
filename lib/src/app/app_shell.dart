@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/domain/app_feature_flags.dart';
 import '../core/domain/connectivity_state.dart';
+import '../core/services/bottom_nav_hidden_provider.dart';
 import '../core/services/connectivity_provider.dart';
 import '../core/services/offline_screen_presence.dart';
 import '../core/widgets/app_bottom_nav.dart';
@@ -74,6 +75,10 @@ class AppShell extends ConsumerWidget {
     final bannerShown =
         ref.watch(connectivityProvider.select((s) => s.showsBanner)) &&
         !ref.watch(offlineBannerSuppressedProvider);
+    // Explore tucks the bar away while scrolling; no other tab does.
+    final navHidden =
+        AppRoutes.tabs[navigationShell.currentIndex] == AppNavTab.explore &&
+        ref.watch(bottomNavHiddenProvider);
     return ConnectivityLifecycle(
       child: DetectionLifecycle(
         homeCountyCode: homeCounty?.code,
@@ -125,9 +130,23 @@ class AppShell extends ConsumerWidget {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: AppBottomNav(
-                    selected: AppRoutes.tabs[navigationShell.currentIndex],
-                    onSelect: (tab) => _select(context, tab),
+                  child: IgnorePointer(
+                    ignoring: navHidden,
+                    child: AnimatedSlide(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      offset: navHidden ? const Offset(0, 1.4) : Offset.zero,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        opacity: navHidden ? 0 : 1,
+                        child: AppBottomNav(
+                          selected:
+                              AppRoutes.tabs[navigationShell.currentIndex],
+                          onSelect: (tab) => _select(context, tab),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],

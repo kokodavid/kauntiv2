@@ -11,6 +11,7 @@ class ExploreUnclaimedCounty {
     this.distanceLabel,
     this.distanceMeters,
     this.previewPlaces = const [],
+    this.allPlaces = const [],
     this.isSavedAlone = false,
     this.highlightImageUrl,
     this.facts = noCountyFacts,
@@ -30,6 +31,13 @@ class ExploreUnclaimedCounty {
   final String? distanceLabel;
   final num? distanceMeters;
   final List<ExplorePlace> previewPlaces;
+
+  /// Every place in the county, for search, filters and the Explore dock's
+  /// counts. [previewPlaces] is only the few shown on the card; boards built
+  /// without the full list fall back to it.
+  final List<ExplorePlace> allPlaces;
+  List<ExplorePlace> get catalogue =>
+      allPlaces.isEmpty ? previewPlaces : allPlaces;
 
   /// Saved as a county (a `wishlist_items` row with no place).
   final bool isSavedAlone;

@@ -53,12 +53,12 @@ WHAT WE ASK
 
 ---
 
-Need help? Reply to this email and the Kaunti47 team will help you get set up.
+Need help? Email hello@kaunti47.com and the Kaunti47 team will help you get set up. Please write to that address, not to the one this email came from.
 
 The Kaunti47 team
 
 --
 You received this because you applied for a Kaunti47 beta seat.
-Questions? Reply to this email and it reaches the Kaunti47 team.
+Questions? Email hello@kaunti47.com.
 [Company or postal line: to be confirmed]
 `

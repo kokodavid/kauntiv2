@@ -5,6 +5,141 @@ import '../../../design/app_text_styles.dart';
 import '../domain/explore_board.dart';
 import 'explore_pill.dart';
 
+/// The Field Guide v2 header actions. The content switch is deliberately
+/// text-first, matching the design source and keeping both modes legible at
+/// small widths.
+class ExploreFieldGuideHeader extends StatelessWidget {
+  const ExploreFieldGuideHeader({
+    super.key,
+    required this.mode,
+    required this.savedCount,
+    required this.onModeChanged,
+    required this.onSavedTap,
+  });
+
+  final ExploreViewMode mode;
+  final int savedCount;
+  final ValueChanged<ExploreViewMode> onModeChanged;
+  final VoidCallback onSavedTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Expanded(child: ExploreTopBar()),
+        _ExploreModeSwitch(mode: mode, onChanged: onModeChanged),
+        const SizedBox(width: 8),
+        Semantics(
+          button: true,
+          label: savedCount == 0 ? 'Saved' : 'Saved, $savedCount',
+          child: IconButton(
+            onPressed: onSavedTap,
+            tooltip: 'Saved',
+            icon: Icon(
+              savedCount == 0
+                  ? Icons.bookmark_border_rounded
+                  : Icons.bookmark_rounded,
+              color: savedCount == 0 ? AppColors.exploreText : AppColors.accent,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.exploreSurface,
+              side: const BorderSide(color: AppColors.exploreBorder),
+              fixedSize: const Size(44, 44),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExploreModeSwitch extends StatelessWidget {
+  const _ExploreModeSwitch({required this.mode, required this.onChanged});
+
+  final ExploreViewMode mode;
+  final ValueChanged<ExploreViewMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.secondaryFill,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _ExploreModeButton(
+              label: 'Places',
+              selected: mode == ExploreViewMode.places,
+              onTap: () => onChanged(ExploreViewMode.places),
+            ),
+            _ExploreModeButton(
+              label: 'Counties',
+              selected: mode == ExploreViewMode.counties,
+              onTap: () => onChanged(ExploreViewMode.counties),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExploreModeButton extends StatelessWidget {
+  const _ExploreModeButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.exploreSurface : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: selected
+                ? const [
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 2,
+                      offset: Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.chipLabel.copyWith(
+              color: selected
+                  ? AppColors.exploreText
+                  : AppColors.mutedForeground,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Explore's title row (v1 `_DiscoverTopBar`). v1's tier pill and avatar
 /// were hard-coded placeholders ("Tier 1", a gradient dot), so they wait
 /// for real tier and profile data instead of being copied over.

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/app_colors.dart';
+import '../application/explore_providers.dart';
 import '../domain/explore_board.dart';
 import 'explore_county_card.dart';
 import 'explore_place_row.dart';
@@ -11,14 +13,20 @@ import 'explore_wishlist_row.dart';
 /// places grouped by county, most recently saved first, each with a
 /// hand-ticked checkbox. Ticks are a personal checklist: the app only
 /// confirms counties, never individual places.
-class ExploreSavedTab extends StatelessWidget {
-  const ExploreSavedTab({super.key, required this.board, this.onOpenPlace});
+class ExploreSavedTab extends ConsumerWidget {
+  const ExploreSavedTab({
+    super.key,
+    required this.board,
+    this.onOpenPlace,
+    this.onOpenCounty,
+  });
 
   final ExploreBoard board;
   final OpenExplorePlace? onOpenPlace;
+  final OpenExploreCounty? onOpenCounty;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final groups = board.saved;
     if (groups.isEmpty) {
       return const SliverPadding(
@@ -27,13 +35,22 @@ class ExploreSavedTab extends StatelessWidget {
       );
     }
 
+    final places = [for (final group in groups) ...group.places];
+    final ticked = ref.watch(exploreTickedPlacesProvider);
+    final visited = places
+        .where((place) => ticked[place.id] ?? place.seen)
+        .length;
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList.list(
         children: [
+          const Text('Your saved places', style: ExploreStyles.landingHeadline),
+          const SizedBox(height: 6),
           Text(
-            '${_count(board.savedCount, 'place', 'places')} saved across '
-            '${_count(groups.length, 'county', 'counties')}',
+            '${_count(board.savedCount, 'place', 'places')} across '
+            '${_count(groups.length, 'county', 'counties')} · '
+            '${_count(visited, 'visited', 'visited')}',
             style: ExploreStyles.savedMeta,
           ),
           const SizedBox(height: 12),
@@ -44,23 +61,23 @@ class ExploreSavedTab extends StatelessWidget {
               statusLabel: groups[i].statusLabel,
               placeCount: groups[i].places.length,
               initiallyExpanded: i == 0,
-              child: groups[i].places.isEmpty
-                  ? const _SavedCountyOnly()
-                  : Column(
-                      children: [
-                        for (var j = 0; j < groups[i].places.length; j++) ...[
-                          if (j != 0)
-                            const Divider(
-                              height: 1,
-                              color: AppColors.exploreBorder,
-                            ),
-                          ExploreWishlistRow(
-                            place: groups[i].places[j],
-                            onOpen: onOpenPlace,
-                          ),
-                        ],
-                      ],
+              child: Column(
+                children: [
+                  if (groups[i].places.isEmpty) const _SavedCountyOnly(),
+                  for (var j = 0; j < groups[i].places.length; j++) ...[
+                    if (j != 0)
+                      const Divider(height: 1, color: AppColors.exploreBorder),
+                    ExploreWishlistRow(
+                      place: groups[i].places[j],
+                      onOpen: onOpenPlace,
                     ),
+                  ],
+                  ExploreCountyPageLink(
+                    countyCode: groups[i].county.code,
+                    onOpenCounty: onOpenCounty,
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
           ],

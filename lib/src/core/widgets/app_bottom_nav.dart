@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -59,43 +58,84 @@ class AppBottomNav extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(24, 16, 24, bottomGap(context)),
       alignment: Alignment.center,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(999),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            // Wider when the fifth (Journeys) tab is on.
-            constraints: BoxConstraints(maxWidth: _tabs.length > 4 ? 360 : 300),
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.tabBarShell,
-              borderRadius: BorderRadius.circular(999),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  offset: Offset(0, 2),
-                  blurRadius: 17,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final entry in _tabs)
-                  Expanded(
-                    child: _NavTabButton(
-                      icon: entry.icon,
-                      label: entry.label,
-                      isActive: entry.tab == selected,
-                      onTap: () => onSelect(entry.tab),
+      child: RepaintBoundary(
+        child: Container(
+          // Wider when the fifth (Journeys) tab is on.
+          constraints: BoxConstraints(maxWidth: _tabs.length > 4 ? 360 : 300),
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            // Keep the glass treatment inexpensive while content scrolls
+            // beneath the floating navigation.
+            color: AppColors.tabBarShell,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A000000),
+                offset: Offset(0, 2),
+                blurRadius: 17,
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // One pill that glides to the chosen tab, rather than two pills
+              // fading in and out in place.
+              Positioned.fill(
+                child: AnimatedAlign(
+                  duration: _slide,
+                  curve: Curves.easeInOutCubic,
+                  alignment: Alignment(_pillX, 0),
+                  child: FractionallySizedBox(
+                    widthFactor: 1 / _tabs.length,
+                    heightFactor: 1,
+                    child: const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.tabPillBackground,
+                            AppColors.tabPillWashEnd,
+                          ],
+                        ),
+                        border: Border.fromBorderSide(
+                          BorderSide(color: AppColors.tabPillEdge),
+                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(999)),
+                      ),
                     ),
                   ),
-              ],
-            ),
+                ),
+              ),
+              Row(
+                children: [
+                  for (final entry in _tabs)
+                    Expanded(
+                      child: _NavTabButton(
+                        icon: entry.icon,
+                        label: entry.label,
+                        isActive: entry.tab == selected,
+                        onTap: () => onSelect(entry.tab),
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  /// How long the pill takes to glide (and the icon and label to follow).
+  /// Raise it to slow the whole effect down, lower it to speed it up.
+  static const _slide = Duration(milliseconds: 450);
+
+  /// Where the pill sits, from -1 (first tab) to 1 (last).
+  double get _pillX {
+    final index = _tabs.indexWhere((t) => t.tab == selected);
+    if (index < 0 || _tabs.length < 2) return -1;
+    return -1 + 2 * index / (_tabs.length - 1);
   }
 }
 
@@ -119,29 +159,38 @@ class _NavTabButton extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 6),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.tabPillBackground : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
-        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon case final icon?)
-              Icon(icon, size: 16, color: color)
-            else
-              SizedBox.square(
-                dimension: 16,
-                child: AppCountryShape(fill: color),
+            // A small lift on the chosen tab, in step with the pill.
+            AnimatedScale(
+              scale: isActive ? 1.12 : 1,
+              duration: AppBottomNav._slide,
+              curve: Curves.easeOutBack,
+              child: TweenAnimationBuilder<Color?>(
+                tween: ColorTween(end: color),
+                duration: AppBottomNav._slide,
+                builder: (context, tint, _) {
+                  final shade = tint ?? color;
+                  return icon == null
+                      ? SizedBox.square(
+                          dimension: 16,
+                          child: AppCountryShape(fill: shade),
+                        )
+                      : Icon(icon, size: 16, color: shade);
+                },
               ),
+            ),
             const SizedBox(height: 2),
-            Text(
-              label,
+            AnimatedDefaultTextStyle(
+              duration: AppBottomNav._slide,
+              curve: Curves.easeInOutCubic,
               style: isActive
                   ? AppTextStyles.tabBarLabelActive
                   : AppTextStyles.tabBarLabelInactive,
+              child: Text(label),
             ),
           ],
         ),

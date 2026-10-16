@@ -5,6 +5,7 @@ import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
 import '../design/app_type_scale.dart';
 import '../domain/map_place.dart';
+import '../domain/place_type.dart';
 import 'app_photo_parts.dart';
 
 /// Opens Place Detail for a place id. Supplied by `app/`.
@@ -66,15 +67,7 @@ class AppPlaceSheet extends StatelessWidget {
   }
 
   /// One place's type, singular ("Park"), for the photo pill.
-  static String typeLabel(String type) => switch (type) {
-    'park' => 'Park',
-    'museum' => 'Museum',
-    'culture' => 'Culture',
-    'heritage' => 'Heritage',
-    'shore' => 'Shore',
-    '' => 'Place',
-    _ => '${type[0].toUpperCase()}${type.substring(1)}',
-  };
+  static String typeLabel(String type) => PlaceType.of(type).label;
 
   @override
   Widget build(BuildContext context) {

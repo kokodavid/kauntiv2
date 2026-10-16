@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/domain/place_type.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/county_detail.dart';
-import '../domain/place_category.dart';
 import '../domain/place_detail.dart';
 import 'discover_detail_repository.dart';
 
@@ -100,7 +100,7 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
                 (row['summary'] as String?) ??
                 (row['description'] as String?) ??
                 '',
-            category: PlaceCategory.fromType(row['type'] as String),
+            category: PlaceType.of(row['type'] as String),
             saved: savedIds.contains(row['id']),
             thumbnailUrl: _sortedImages(
               row['place_images'],
@@ -145,7 +145,7 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
     return PlaceDetailData(
       id: placeId,
       title: row['name'] as String,
-      category: PlaceCategory.fromType(row['type'] as String),
+      category: PlaceType.of(row['type'] as String),
       county: county,
       description:
           (row['description'] as String?) ?? (row['summary'] as String?) ?? '',

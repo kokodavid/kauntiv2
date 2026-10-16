@@ -1,5 +1,5 @@
+import '../../../core/domain/place_type.dart';
 import '../../../counties/county_paths.dart';
-import 'place_category.dart';
 
 class PlaceDetailData {
   const PlaceDetailData({
@@ -17,7 +17,7 @@ class PlaceDetailData {
 
   final String id;
   final String title;
-  final PlaceCategory category;
+  final PlaceType category;
   final CountyPath county;
   final String description;
   final List<String> images;

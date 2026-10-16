@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 
 import '../../design/app_colors.dart';
+import '../domain/place_type.dart';
+import '../widgets/place_type_style.dart';
 
-/// Pin colour and label per place type, shared by the map layers, the
-/// legend and the place sheet.
+/// Pin colours, icons and the legend for the map's place layers.
 abstract final class MapPlaceTypes {
-  static const known = <String, (String, Color)>{
-    'park': ('Parks', AppColors.placePark),
-    'museum': ('Museums', AppColors.placeMuseum),
-    'culture': ('Culture', AppColors.placeCulture),
-    'heritage': ('Heritage', AppColors.placeHeritage),
-    'shore': ('Shores', AppColors.placeShore),
+  /// Pin colour per listed type key, for the map's colour match.
+  static final known = <String, Color>{
+    for (final type in PlaceType.all) type.key: type.pinColor,
   };
 
-  static Color colorFor(String type) => known[type]?.$2 ?? AppColors.placeOther;
+  /// The map legend: one row per pin colour.
+  static const legend = <(String, Color)>[
+    ('Nature', AppColors.placePark),
+    ('Water and coast', AppColors.placeShore),
+    ('History', AppColors.placeHeritage),
+    ('Museums', AppColors.placeMuseum),
+    ('Culture', AppColors.placeCulture),
+    ('Other', AppColors.placeOther),
+  ];
 
-  static IconData iconFor(String type) => switch (type) {
-    'park' => Icons.forest,
-    'museum' => Icons.museum,
-    'culture' => Icons.theater_comedy,
-    'heritage' => Icons.account_balance,
-    'shore' => Icons.beach_access,
-    _ => Icons.place,
-  };
+  static Color colorFor(String type) => PlaceType.of(type).pinColor;
+
+  static IconData iconFor(String type) => PlaceType.of(type).icon;
 }

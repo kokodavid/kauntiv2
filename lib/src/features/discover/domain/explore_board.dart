@@ -1,11 +1,14 @@
 import '../../../core/domain/app_stat_format.dart';
+import '../../../core/domain/place_type.dart';
 import '../../../counties/county_paths.dart';
 import 'explore_labels.dart';
 import 'explore_lists.dart';
-import 'place_category.dart';
 
 /// Explore's three tabs (v1 Discover: MINE / UNCLAIMED / SAVED).
 enum ExploreTab { mine, unclaimed, saved }
+
+/// The two content modes in Explore Field Guide v2.
+enum ExploreViewMode { places, counties }
 
 /// One place row in an Explore county card.
 class ExplorePlace {
@@ -16,20 +19,25 @@ class ExplorePlace {
     required this.category,
     required this.saved,
     this.seen = false,
+    this.seenAt,
     this.isPromoted = false,
     this.promotionLabel = 'AD',
     this.thumbnailUrl,
     this.distanceLabel,
+    this.distanceMeters,
   });
 
   final String id;
   final String title;
   final String description;
-  final PlaceCategory category;
+  final PlaceType category;
   final bool saved;
 
   /// SAVED only: ticked by hand as visited (`wishlist_items.ticked_at`).
   final bool seen;
+
+  /// When it was ticked (`wishlist_items.ticked_at`), if it was.
+  final DateTime? seenAt;
 
   /// Paid placement inside Discover previews. Editorial rows stay unmarked.
   final bool isPromoted;
@@ -39,10 +47,35 @@ class ExplorePlace {
   /// Straight-line "N km away" from the traveller's current fix; null
   /// when there's no fix or the place has no coordinates.
   final String? distanceLabel;
+  final num? distanceMeters;
 
   bool matches(String needle) =>
       title.toLowerCase().contains(needle) ||
       description.toLowerCase().contains(needle);
+}
+
+List<ExplorePlace> exploreAllPlaces(ExploreBoard board) {
+  final result = <ExplorePlace>[];
+  final seen = <String>{};
+  void add(Iterable<ExplorePlace> places) {
+    for (final place in places) {
+      if (seen.add(place.id)) result.add(place);
+    }
+  }
+
+  if (board.featuredUnlock case final unlock?) {
+    add(unlock.catalogue);
+  }
+  for (final entry in board.mine) {
+    add(entry.catalogue);
+  }
+  for (final entry in board.unclaimed) {
+    add(entry.catalogue);
+  }
+  for (final group in board.saved) {
+    add(group.places);
+  }
+  return result;
 }
 
 /// A county's Area / Elevation / Duration, when on file.
@@ -74,13 +107,18 @@ class ExploreFeaturedUnlock {
     required this.rarityLabel,
     required this.previewPlaces,
     required this.totalPlaceCount,
+    this.allPlaces = const [],
     this.blurb = '',
     this.highlightImageUrl,
     this.facts = noCountyFacts,
     this.headquarters,
+    this.lastVisitedAt,
   });
 
   final CountyPath county;
+
+  /// The most recent visit (`discover_mine_counties().last_visited_at`).
+  final DateTime? lastVisitedAt;
 
   /// Rarity when tracked, else "Rarity not tracked yet".
   final String rarityLabel;
@@ -96,6 +134,13 @@ class ExploreFeaturedUnlock {
   final List<ExplorePlace> previewPlaces;
   final int totalPlaceCount;
 
+  /// Every place in the county, for search, filters and the Explore dock's
+  /// counts. [previewPlaces] is only the few shown on the card; boards built
+  /// without the full list fall back to it.
+  final List<ExplorePlace> allPlaces;
+  List<ExplorePlace> get catalogue =>
+      allPlaces.isEmpty ? previewPlaces : allPlaces;
+
   /// "N places to see, including A and B."
   final String blurb;
   final String? highlightImageUrl;
@@ -110,15 +155,29 @@ class ExploreMineCounty {
     required this.placeCount,
     required this.isLocalExpert,
     required this.previewPlaces,
+    this.allPlaces = const [],
+    this.highlightImageUrl,
+    this.lastVisitedAt,
   });
 
   final CountyPath county;
+
+  /// The most recent visit (`discover_mine_counties().last_visited_at`).
+  final DateTime? lastVisitedAt;
 
   /// "Explored" or "Local expert · N visits".
   final String statusLabel;
   final int placeCount;
   final bool isLocalExpert;
   final List<ExplorePlace> previewPlaces;
+
+  /// Every place in the county, for search, filters and the Explore dock's
+  /// counts. [previewPlaces] is only the few shown on the card; boards built
+  /// without the full list fall back to it.
+  final List<ExplorePlace> allPlaces;
+  List<ExplorePlace> get catalogue =>
+      allPlaces.isEmpty ? previewPlaces : allPlaces;
+  final String? highlightImageUrl;
 }
 
 /// Everything Explore renders, loaded together so chip counts always
@@ -169,16 +228,16 @@ class ExploreBoard {
     final unlock = featuredUnlock;
     return ExploreBoard(
       featuredUnlock:
-          unlock != null && countyMatches(unlock.county, unlock.previewPlaces)
+          unlock != null && countyMatches(unlock.county, unlock.catalogue)
           ? unlock
           : null,
       mine: [
         for (final entry in mine)
-          if (countyMatches(entry.county, entry.previewPlaces)) entry,
+          if (countyMatches(entry.county, entry.catalogue)) entry,
       ],
       unclaimed: [
         for (final entry in unclaimed)
-          if (countyMatches(entry.county, entry.previewPlaces) ||
+          if (countyMatches(entry.county, entry.catalogue) ||
               entry.blurb.toLowerCase().contains(needle))
             entry,
       ],

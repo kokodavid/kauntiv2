@@ -1,16 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/core/domain/place_type.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/discover/data/explore_rows.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_board.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_labels.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/explore_lists.dart';
-import 'package:kaunti47_v2/src/features/discover/domain/place_category.dart';
 
 ExplorePlace _place(String id, String title) => ExplorePlace(
   id: id,
   title: title,
   description: '$title summary',
-  category: PlaceCategory.park,
+  category: PlaceType.park,
   saved: false,
 );
 

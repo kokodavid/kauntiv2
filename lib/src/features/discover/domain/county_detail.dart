@@ -1,5 +1,5 @@
+import '../../../core/domain/place_type.dart';
 import '../../../counties/county_paths.dart';
-import 'place_category.dart';
 
 /// Static facts about a county. Nulls mean "not on file yet" and are
 /// shown as such, never guessed.
@@ -34,7 +34,7 @@ class CountyDetailPlace {
   final String id;
   final String title;
   final String description;
-  final PlaceCategory category;
+  final PlaceType category;
   final bool saved;
   final String? thumbnailUrl;
 }

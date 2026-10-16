@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/domain/place_type.dart';
 import '../../../core/widgets/app_network_image.dart';
+import '../../../core/widgets/place_type_style.dart';
 import '../../../design/app_colors.dart';
-import '../domain/place_category.dart';
-import 'place_category_style.dart';
 
 /// Place Detail's 240 pt header: swipeable photos with the category, the
 /// name and county over a gradient, and a photo counter (the back button
@@ -24,7 +24,7 @@ class PlaceDetailHeader extends StatefulWidget {
   final List<String> images;
   final String title;
   final String countyName;
-  final PlaceCategory category;
+  final PlaceType category;
 
   @override
   State<PlaceDetailHeader> createState() => _PlaceDetailHeaderState();
@@ -167,7 +167,7 @@ class _NoPhoto extends StatelessWidget {
 class _CategoryPill extends StatelessWidget {
   const _CategoryPill({required this.category});
 
-  final PlaceCategory category;
+  final PlaceType category;
 
   @override
   Widget build(BuildContext context) {

@@ -67,6 +67,47 @@ abstract final class CameraRollMatcher {
   /// pins onto the timeline from a single tap.
   static const maxAutoAdd = 24;
 
+  /// A photo already on the Trip is recognised by its capture time (the
+  /// upload is re-encoded, so the library's own id is gone): same second,
+  /// give or take this much.
+  static const _sameShotTolerance = Duration(seconds: 2);
+
+  /// [matches] minus every cluster that already has a shot on the Trip.
+  /// A cluster is a burst, so once one frame of it has been added (this
+  /// time or an earlier one) the whole burst is done: the same frame is
+  /// not offered again, and neither are its siblings. [addedAt] is the
+  /// capture time of everything already on the Trip, uploaded or queued.
+  static List<CameraRollMatch> withoutAdded(
+    List<CameraRollMatch> matches,
+    Iterable<DateTime> addedAt,
+  ) {
+    final added = [for (final at in addedAt) at.millisecondsSinceEpoch];
+    final slack = _sameShotTolerance.inMilliseconds;
+    bool onTrip(CameraRollMatch match) => [match, ...match.alternates].any(
+      (shot) => added.any(
+        (ms) => (ms - shot.capturedAt.millisecondsSinceEpoch).abs() <= slack,
+      ),
+    );
+    return [
+      for (final match in matches)
+        if (!onTrip(match)) match,
+    ];
+  }
+
+  /// [matches] minus the clusters whose representative or any alternate is
+  /// one of [assetIds], so a burst vanishes as soon as one frame is added.
+  static List<CameraRollMatch> withoutAssets(
+    List<CameraRollMatch> matches,
+    Set<String> assetIds,
+  ) => [
+    for (final match in matches)
+      if (![
+        match,
+        ...match.alternates,
+      ].any((s) => assetIds.contains(s.asset.id)))
+        match,
+  ];
+
   /// The current photo-library access, without prompting for it.
   static Future<PermissionState> permissionState() =>
       PhotoManager.getPermissionState(

@@ -76,17 +76,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final startup = ref.read(startupFlowProvider.notifier);
     final auth = ref.read(authServiceProvider);
     final detection = ref.read(detectionControllerProvider.notifier);
+    // Taken now: this screen is gone by the time a failure is known.
+    final messenger = ScaffoldMessenger.of(context);
     try {
       await detection.suspendForSignOut();
-      await auth.signOut();
-      startup.resetAfterSignOut();
+      await startup.signOutTo(auth.signOut);
     } on Object {
       detection.resumeAfterSignOutFailure();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't sign out. Try again.")),
-        );
-      }
+      messenger.showSnackBar(
+        const SnackBar(content: Text("Couldn't sign out. Try again.")),
+      );
     } finally {
       if (mounted) setState(() => _signingOut = false);
     }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/choice_tile_grid.dart';
-import '../../../core/widgets/interest_icons.dart';
+import '../../../core/widgets/interest_icon.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../profile/domain/place_interest.dart';
@@ -13,6 +13,7 @@ import 'onboarding_shell.dart';
 class OnboardingInterestsPage extends StatelessWidget {
   const OnboardingInterestsPage({
     super.key,
+    required this.options,
     required this.selected,
     required this.isSaving,
     required this.onToggle,
@@ -21,6 +22,8 @@ class OnboardingInterestsPage extends StatelessWidget {
     required this.onBack,
   });
 
+  /// What can be picked: the backend's active interests.
+  final List<PlaceInterest> options;
   final List<PlaceInterest> selected;
   final bool isSaving;
   final ValueChanged<PlaceInterest> onToggle;
@@ -57,10 +60,14 @@ class OnboardingInterestsPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ChoiceTileGrid<PlaceInterest>(
-              options: PlaceInterest.values,
+              options: options,
               selected: selected,
               labelOf: (interest) => interest.label,
-              iconOf: (interest) => interestIconForKey(interest.key),
+              iconBuilder: (interest, color) => InterestIcon(
+                iconName: interest.iconName,
+                imageUrl: interest.iconUrl,
+                color: color,
+              ),
               onToggle: onToggle,
             ),
             const SizedBox(height: 14),

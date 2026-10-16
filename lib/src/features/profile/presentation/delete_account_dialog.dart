@@ -52,8 +52,7 @@ Future<void> showDeleteAccountDialog(
     await repository.deleteAccount();
     // The row behind this session's refresh token is gone; sign out
     // locally so the router's redirect sends the app back to sign-in.
-    await auth.signOut();
-    startup.resetAfterSignOut();
+    await startup.signOutTo(auth.signOut);
     if (context.mounted) Navigator.of(context).pop();
   } on Object {
     detection.resumeAfterSignOutFailure();

@@ -28,7 +28,7 @@ abstract final class MapPlaceLayers {
           ['get', 'type'],
           for (final entry in MapPlaceTypes.known.entries) ...[
             entry.key,
-            _hex(entry.value.$2),
+            _hex(entry.value),
           ],
           _hex(MapPlaceTypes.colorFor('')),
         ],

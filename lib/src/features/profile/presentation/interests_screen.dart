@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/choice_tile_grid.dart';
-import '../../../core/widgets/interest_icons.dart';
+import '../../../core/widgets/interest_icon.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../widgets/app_progress_indicator.dart';
@@ -36,10 +36,7 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
               for (final i in current)
                 if (i != interest) i,
             ]
-          : PlaceInterest.fromKeys([
-              ...current.map((i) => i.key),
-              interest.key,
-            ]);
+          : PlaceInterest.withPick(current, interest);
     });
   }
 
@@ -125,11 +122,16 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                           ),
                           const SizedBox(height: 18),
                           ChoiceTileGrid<PlaceInterest>(
-                            options: PlaceInterest.values,
+                            options:
+                                ref.watch(interestCatalogueProvider).value ??
+                                PlaceInterest.values,
                             selected: picks,
                             labelOf: (interest) => interest.label,
-                            iconOf: (interest) =>
-                                interestIconForKey(interest.key),
+                            iconBuilder: (interest, color) => InterestIcon(
+                              iconName: interest.iconName,
+                              imageUrl: interest.iconUrl,
+                              color: color,
+                            ),
                             onToggle: _toggle,
                           ),
                         ],

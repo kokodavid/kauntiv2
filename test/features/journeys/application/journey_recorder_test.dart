@@ -354,19 +354,22 @@ void main() {
     expect(alice?.recording.phase, JourneyRecordingPhase.paused);
   });
 
-  test('location stream failure updates recording state', () async {
-    cloud.status = ProStatus(active: true, checkedAt: now);
-    final c = container();
-    c.listen(journeyRecorderProvider, (_, _) {});
-    await c.read(journeyRecorderProvider.notifier).start(now: now);
-    source.controller.addError(StateError('Location stream stopped'));
-    await pumpEventQueue();
-    expect(
-      c.read(journeyRecorderProvider)?.recording.phase,
-      JourneyRecordingPhase.paused,
-    );
-    expect(source.started, isFalse);
-  });
+  test(
+    'location stream failure recovers without pausing the Journey',
+    () async {
+      cloud.status = ProStatus(active: true, checkedAt: now);
+      final c = container();
+      c.listen(journeyRecorderProvider, (_, _) {});
+      await c.read(journeyRecorderProvider.notifier).start(now: now);
+      source.controller.addError(StateError('Location stream stopped'));
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      expect(
+        c.read(journeyRecorderProvider)?.recording.phase,
+        JourneyRecordingPhase.recording,
+      );
+      expect(source.started, isTrue);
+    },
+  );
 
   test("a phone that can't record drops the Journey", () async {
     cloud.status = ProStatus(active: true, checkedAt: now);

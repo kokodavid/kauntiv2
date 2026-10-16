@@ -50,7 +50,7 @@ class SupabaseInterestsRepository implements InterestsRepository {
       final keys = (map['interests'] as List).cast<String>();
       return (
         InterestsAnswer(
-          interests: PlaceInterest.fromKeys(keys),
+          interests: PlaceInterest.fromStoredKeys(keys),
           completed: map['completed'] as bool? ?? false,
         ),
         map['pending'] as bool? ?? false,
@@ -103,7 +103,7 @@ class SupabaseInterestsRepository implements InterestsRepository {
         .timeout(_timeout);
     if (row == null) return null;
     final answer = InterestsAnswer(
-      interests: PlaceInterest.fromKeys(
+      interests: PlaceInterest.fromStoredKeys(
         ((row['interests'] as List?) ?? const []).cast<String>(),
       ),
       completed: row['preferences_completed'] as bool? ?? false,

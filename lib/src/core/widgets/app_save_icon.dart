@@ -6,9 +6,21 @@ import '../../design/app_colors.dart';
 /// Explore and the arrival sheet. Flips
 /// immediately, then reverts with a note if [onChanged] throws.
 class AppSaveIcon extends StatefulWidget {
-  const AppSaveIcon({super.key, required this.saved, required this.onChanged});
+  const AppSaveIcon({
+    super.key,
+    required this.saved,
+    required this.onChanged,
+    this.dimension = 28,
+    this.iconSize = 18,
+    this.unsavedColor = AppColors.exploreMutedText,
+  });
 
   final bool saved;
+
+  /// Tap target edge and glyph size. Lists with larger rows pass 44 / 22.
+  final double dimension;
+  final double iconSize;
+  final Color unsavedColor;
   final Future<void> Function(bool saved) onChanged;
 
   @override
@@ -48,15 +60,15 @@ class _AppSaveIconState extends State<AppSaveIcon> {
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
-      dimension: 28,
+      dimension: widget.dimension,
       child: IconButton(
         padding: EdgeInsets.zero,
-        iconSize: 18,
+        iconSize: widget.iconSize,
         tooltip: _saved ? 'Remove from saved' : 'Save',
         onPressed: _toggle,
         icon: Icon(
           _saved ? Icons.bookmark : Icons.bookmark_border,
-          color: _saved ? AppColors.accent : AppColors.exploreMutedText,
+          color: _saved ? AppColors.accent : widget.unsavedColor,
         ),
       ),
     );

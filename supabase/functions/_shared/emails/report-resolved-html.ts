@@ -102,7 +102,7 @@ a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important
 </td></tr>
 <tr><td class="dm-faint" style="padding:24px 8px 0 8px;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;mso-line-height-rule:exactly;color:#71717A;">
 You received this because you applied for a Kaunti47 beta seat.<br>
-Questions? Reply to this email and it reaches the Kaunti47 team.<br>
+Questions? Email <a href="mailto:hello@kaunti47.com" style="color:#0A84FF;text-decoration:underline;">hello@kaunti47.com</a>.<br>
 <!-- PLACEHOLDER: company or postal line, not decided yet -->
 <span style="color:#A1A1AA;">[Company or postal line: to be confirmed]</span>
 </td></tr>

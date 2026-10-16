@@ -26,3 +26,7 @@ export async function sendWithResend(input: {
   if (!response.ok || !payload.id) throw new Error(payload.message ?? 'Email provider rejected the message')
   return payload.id
 }
+
+/// Where testers write for help. Set as the Reply-To on every email so a
+/// reply works even though the sending address (beta@) has no inbox.
+export const SUPPORT_EMAIL = 'hello@kaunti47.com'

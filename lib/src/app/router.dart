@@ -32,6 +32,7 @@ import '../features/trip_planner/presentation/saved_plans_screen.dart';
 import '../features/trip_planner/presentation/trip_plan_section.dart';
 import '../features/trip_planner/presentation/trip_start_button.dart';
 import 'app_routes.dart';
+import 'dev_tool_routes.dart';
 import 'app_shell.dart';
 import 'app_update_routes.dart';
 import 'detail_routes.dart';
@@ -202,10 +203,10 @@ GoRouter appRouter(Ref ref) {
                 ? () => context.push(AppRoutes.locationDiagnostics)
                 : null,
             onOpenPushStatus: ref.read(appConfigProvider).isDev
-                ? () => PushRoutes.openStatus(context)
+                ? () => context.push(AppRoutes.pushStatus)
                 : null,
             onOpenCountyOrder: ref.read(appConfigProvider).isDev
-                ? () => PushRoutes.openCountyOrderBackfill(context)
+                ? () => context.push(AppRoutes.countyOrder)
                 : null,
           ),
         ),
@@ -217,6 +218,7 @@ GoRouter appRouter(Ref ref) {
           path: AppRoutes.locationDiagnostics,
           builder: (context, state) => const LocationDiagnosticsScreen(),
         ),
+      if (ref.read(appConfigProvider).isDev) ...devToolRoutes,
       GoRoute(
         path: AppRoutes.savedPlans,
         builder: (context, state) => SavedPlansScreen(

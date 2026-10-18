@@ -21,6 +21,8 @@ abstract final class AppRoutes {
   static const feedbackReports = '/feedback/reports';
   static const myPhotos = '/my-photos';
   static const locationDiagnostics = '/location-diagnostics';
+  static const pushStatus = '/push-status';
+  static const countyOrder = '/county-order';
   static const journeyRecording = '/journey-recording';
   static const savedPlans = '/saved-plans';
 

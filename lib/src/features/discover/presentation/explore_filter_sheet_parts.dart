@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_choice_pill.dart';
 import '../../../design/app_colors.dart';
 import '../domain/explore_filters.dart';
 
@@ -105,38 +106,13 @@ class ExploreWherePill extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final color = selected ? Colors.white : AppColors.exploreMutedText;
-    return Material(
-      color: selected ? AppColors.accent : AppColors.exploreSurface,
-      shape: StadiumBorder(
-        side: BorderSide(
-          color: selected ? AppColors.accent : AppColors.exploreBorder,
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const StadiumBorder(),
-        child: SizedBox(
-          height: 36,
-          child: Padding(
-            padding: EdgeInsets.only(left: 14, right: chevron ? 8 : 14),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 17, color: color),
-                  const SizedBox(width: 5),
-                ],
-                Text(label, style: AppTypeScale.pill.copyWith(color: color)),
-                if (chevron) Icon(Icons.chevron_right, size: 17, color: color),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AppChoicePill(
+    label: label,
+    icon: icon,
+    selected: selected,
+    chevron: chevron,
+    onTap: onTap,
+  );
 }
 
 /// A 56 pt switch row with a leading badge or icon.

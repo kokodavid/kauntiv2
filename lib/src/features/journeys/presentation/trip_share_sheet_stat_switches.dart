@@ -11,8 +11,8 @@ enum _ShareStat {
   final IconData icon;
 }
 
-/// "Show on image" tiles under the preview, the same multi-select tile
-/// grid the Interests picker uses. Only stats the Trip actually recorded
+/// "Show on image" tiles under the preview, the same pills as the Explore
+/// filter sheet. Only stats the Trip actually recorded
 /// get a tile - there's nothing to hide otherwise.
 class _StatSwitches extends StatelessWidget {
   const _StatSwitches({
@@ -61,16 +61,19 @@ class _StatSwitches extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Show on image', style: _Styles.stripHeading),
-        const SizedBox(height: 10),
-        ChoiceTileGrid<_ShareStat>(
-          options: options,
-          selected: [
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
             for (final stat in options)
-              if (_shown(stat)) stat,
+              AppChoicePill(
+                label: stat.label,
+                icon: stat.icon,
+                selected: _shown(stat),
+                onTap: () => _toggle(stat),
+              ),
           ],
-          labelOf: (stat) => stat.label,
-          iconBuilder: (stat, color) => Icon(stat.icon, size: 18, color: color),
-          onToggle: _toggle,
         ),
       ],
     );

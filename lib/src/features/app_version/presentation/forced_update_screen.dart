@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/connectivity_provider.dart';
 import '../../../design/app_colors.dart';
+import '../../onboarding/application/startup_flow.dart';
 import '../application/app_update_providers.dart';
 import '../domain/app_update_policy.dart';
 import '../domain/update_notes.dart';
 import 'forced_update_footer.dart';
 import 'update_copy.dart';
+import 'update_entrance.dart';
 import 'update_notes_list.dart';
 import 'update_widgets.dart';
 
@@ -31,6 +33,8 @@ class _ForcedUpdateScreenState extends ConsumerState<ForcedUpdateScreen>
   bool _busy = false;
   bool _stillNoLink = false;
   UpdateProblem _problem = UpdateProblem.none;
+  final _iconSlot = GlobalKey();
+  late final bool _fromSplash = !ref.read(startupFlowProvider).splashComplete;
 
   @override
   void initState() {
@@ -97,11 +101,10 @@ class _ForcedUpdateScreenState extends ConsumerState<ForcedUpdateScreen>
       canPop: false,
       child: Scaffold(
         backgroundColor: AppColors.pageBackground,
-        body: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 250),
-          builder: (context, t, child) => Opacity(opacity: t, child: child),
-          child: Column(
+        body: UpdateEntrance(
+          slotKey: _iconSlot,
+          morph: _fromSplash,
+          builder: (context, flying) => Column(
             children: [
               Expanded(
                 child: SafeArea(
@@ -113,6 +116,10 @@ class _ForcedUpdateScreenState extends ConsumerState<ForcedUpdateScreen>
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                           child: _Content(
+                            icon: UpdateIconSlot(
+                              slotKey: _iconSlot,
+                              flying: flying,
+                            ),
                             version: version,
                             notes: notes,
                             long: long,
@@ -144,6 +151,7 @@ class _ForcedUpdateScreenState extends ConsumerState<ForcedUpdateScreen>
 
 class _Content extends StatelessWidget {
   const _Content({
+    required this.icon,
     required this.version,
     required this.notes,
     required this.long,
@@ -151,6 +159,7 @@ class _Content extends StatelessWidget {
     required this.onToggle,
   });
 
+  final Widget icon;
   final Object? version;
   final List<String> notes;
   final bool long;
@@ -165,7 +174,7 @@ class _Content extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       const SizedBox(height: 16),
-      const UpdateAppIcon(size: 88, halo: true),
+      icon,
       const SizedBox(height: 16),
       const Text(
         'Time to update Kaunti47',
@@ -184,7 +193,11 @@ class _Content extends StatelessWidget {
         child: const Text(
           'This version includes changes the app needs to keep working.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.bodyText),
+          style: TextStyle(
+            fontSize: 14,
+            height: 1.5,
+            color: AppColors.bodyText,
+          ),
         ),
       ),
       if (version != null) ...[

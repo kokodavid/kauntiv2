@@ -172,9 +172,7 @@ class AppColors {
   static const infoTint = Color(0xFFE6F3FF);
   static const infoBorder = Color(0xFFCFE6FF);
   static const warningTint = Color(0xFFFFF7E6);
-  static const warningBorder = Color(0xFFFCDDA4);
   static const warningIcon = Color(0xFFD97706);
-  static const warningText = Color(0xFF92400E);
   static const updateScrim = Color(0x6609090B);
   static const sheetGrabber = Color(0xFFE2E8F0);
 }

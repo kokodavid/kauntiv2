@@ -84,7 +84,9 @@ class UpdateSettingsRow extends ConsumerWidget {
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: () => unawaited(
-                      ref.read(appUpdateControllerProvider.notifier).openStore(),
+                      ref
+                          .read(appUpdateControllerProvider.notifier)
+                          .openStore(),
                     ),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.accent,

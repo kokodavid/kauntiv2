@@ -1,48 +1,46 @@
 import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
+import '../../../widgets/app_icon_badge.dart';
 import '../../../widgets/app_progress_indicator.dart';
 
-/// The real launcher icon, optionally with the soft blue halo rings.
+/// The app icon mark. [halo] runs 0 (none) to 1 (full rings), so the forced
+/// screen can grow the halo while the icon settles into place.
 class UpdateAppIcon extends StatelessWidget {
-  const UpdateAppIcon({super.key, this.size = 52, this.halo = false});
+  const UpdateAppIcon({super.key, this.size = 52, this.halo = 0});
 
   final double size;
-  final bool halo;
+  final double halo;
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(size * 0.273);
-    final icon = ClipRRect(
-      borderRadius: radius,
-      child: Image.asset(
-        'assets/images/kaunti47_icon.png',
-        width: size,
-        height: size,
-        semanticLabel: 'Kaunti47',
-      ),
+    final icon = Semantics(
+      label: 'Kaunti47',
+      image: true,
+      child: AppIconBadge(size: size),
     );
-    if (!halo) return icon;
+    if (halo <= 0) return icon;
+    final r = size * 0.3;
     return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.273 + 34),
-        color: AppColors.accent.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(r + 34 * halo),
+        color: AppColors.accent.withValues(alpha: 0.06 * halo),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24 * halo),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(size * 0.273 + 10),
-            color: AppColors.infoTint,
+            borderRadius: BorderRadius.circular(r + 10 * halo),
+            color: AppColors.infoTint.withValues(alpha: halo),
             boxShadow: [
               BoxShadow(
-                color: AppColors.accentDark.withValues(alpha: 0.18),
+                color: AppColors.accentDark.withValues(alpha: 0.18 * halo),
                 blurRadius: 30,
                 offset: const Offset(0, 14),
               ),
             ],
           ),
-          child: Padding(padding: const EdgeInsets.all(10), child: icon),
+          child: Padding(padding: EdgeInsets.all(10 * halo), child: icon),
         ),
       ),
     );

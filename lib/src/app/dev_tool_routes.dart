@@ -1,6 +1,5 @@
 import 'package:go_router/go_router.dart';
 
-import '../features/journeys/presentation/county_order_backfill_screen.dart';
 import '../features/notifications/presentation/push_status_screen.dart';
 import 'app_routes.dart';
 
@@ -11,9 +10,5 @@ final devToolRoutes = <GoRoute>[
   GoRoute(
     path: AppRoutes.pushStatus,
     builder: (context, state) => const PushStatusScreen(),
-  ),
-  GoRoute(
-    path: AppRoutes.countyOrder,
-    builder: (context, state) => const CountyOrderBackfillScreen(),
   ),
 ];

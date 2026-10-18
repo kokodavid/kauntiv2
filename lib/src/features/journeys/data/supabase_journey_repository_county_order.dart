@@ -38,3 +38,19 @@ abstract final class _JourneyCountyNames {
   static int _compare((int, int) a, (int, int) b) =>
       a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.compareTo(b.$2);
 }
+
+/// Trips of the signed-in user whose counties have no saved order yet.
+extension SupabaseJourneyCountyOrderGaps on SupabaseJourneyRepository {
+  Future<List<String>> tripsMissingCountyOrder({int limit = 25}) async {
+    final rows = await _client
+        .from('journey_counties')
+        .select('journey_id')
+        .isFilter('position', null)
+        .order('journey_id')
+        .limit(limit * 4)
+        .timeout(SupabaseJourneyRepository._timeout);
+    return {for (final row in rows) row['journey_id'] as String}
+        .take(limit)
+        .toList();
+  }
+}

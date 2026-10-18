@@ -206,9 +206,6 @@ GoRouter appRouter(Ref ref) {
             onOpenPushStatus: isDev
                 ? () => context.push(AppRoutes.pushStatus)
                 : null,
-            onOpenCountyOrder: isDev
-                ? () => context.push(AppRoutes.countyOrder)
-                : null,
           ),
         ),
       ),

@@ -32,10 +32,10 @@ import '../features/trip_planner/presentation/saved_plans_screen.dart';
 import '../features/trip_planner/presentation/trip_plan_section.dart';
 import '../features/trip_planner/presentation/trip_start_button.dart';
 import 'app_routes.dart';
-import 'dev_tool_routes.dart';
 import 'app_shell.dart';
 import 'app_update_routes.dart';
 import 'detail_routes.dart';
+import 'dev_tool_routes.dart';
 import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
 import 'push_routes.dart';
@@ -49,6 +49,7 @@ part 'router.g.dart';
 /// Place Detail push over the shell on the root navigator.
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
+  final isDev = ref.read(appConfigProvider).isDev;
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
     redirect: (context, state) {
@@ -198,27 +199,25 @@ GoRouter appRouter(Ref ref) {
             onOpenInterests: () => context.push(AppRoutes.interests),
             onOpenLocationDiagnostics:
                 LocationDiagnostics.enabledFor(
-                  isDev: ref.read(appConfigProvider).isDev,
+                  isDev: isDev,
                 )
                 ? () => context.push(AppRoutes.locationDiagnostics)
                 : null,
-            onOpenPushStatus: ref.read(appConfigProvider).isDev
+            onOpenPushStatus: isDev
                 ? () => context.push(AppRoutes.pushStatus)
                 : null,
-            onOpenCountyOrder: ref.read(appConfigProvider).isDev
+            onOpenCountyOrder: isDev
                 ? () => context.push(AppRoutes.countyOrder)
                 : null,
           ),
         ),
       ),
-      if (LocationDiagnostics.enabledFor(
-        isDev: ref.read(appConfigProvider).isDev,
-      ))
+      if (LocationDiagnostics.enabledFor(isDev: isDev))
         GoRoute(
           path: AppRoutes.locationDiagnostics,
           builder: (context, state) => const LocationDiagnosticsScreen(),
         ),
-      if (ref.read(appConfigProvider).isDev) ...devToolRoutes,
+      if (isDev) ...devToolRoutes,
       GoRoute(
         path: AppRoutes.savedPlans,
         builder: (context, state) => SavedPlansScreen(

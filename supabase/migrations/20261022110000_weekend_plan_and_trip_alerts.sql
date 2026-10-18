@@ -5,10 +5,11 @@ alter table public.profiles
   add column if not exists notify_trip_alerts boolean not null default true;
 
 -- Picks one place per opted-in person and queues a push. A place is chosen
--- from reviewed, unarchived places in the person's home county that match
--- their interests (any place when they have none), skipping places they
--- saved and places already suggested to them. People with no match get
--- nothing: a weak suggestion is worse than none. Runs Thursdays 16:30 EAT.
+-- from reviewed, unarchived places anywhere in Kenya that match the
+-- person's interests (any place when they have none), skipping places they
+-- saved and places already suggested to them. Home county plays no part.
+-- People with no match get nothing: a weak suggestion is worse than none.
+-- Runs Thursdays 16:30 EAT.
 create or replace function public.enqueue_weekend_plans()
 returns integer
 language plpgsql
@@ -31,7 +32,7 @@ begin
              order by md5(p.id::text || pl.id::text || v_week)
            ) as rn
     from public.profiles p
-    join public.places pl on pl.county_id = p.home_county_id
+    join public.places pl on true
     join public.counties c on c.id = pl.county_id
     where p.notify_weekend_plans
       and pl.status = 'reviewed'

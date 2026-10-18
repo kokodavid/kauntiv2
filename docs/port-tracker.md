@@ -23,6 +23,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 12 | Pro / M-Pesa monetization | docs only in v1 | Not started | | |
 | 13 | Journeys (new Pro feature) | New in v2 | In review | codex/home-sheet-v2 | [Plan](journeys-plan.md). Schema, local store/native capture, private sync/history, route handoff, rename, stats, county splits, camera-roll photo matching, replay moments, saved trip plans and share-card media. Free accounts may save up to 3 Trips per UTC month; Pro is unlimited. Server migration owns the counter and upload limit; offline Trips rejected at the limit remain local and can retry after reset. Search/date filters appear after 8 Trips. Free-tier migration deployment, export, long-route performance and device checks pending. Subcounty coverage deferred. |
 | 14 | Production place candidate intake | New in v2 | In progress | codex/candidate-research-intake | Explicit Dev place copies route only publicly ready records into `places`; incomplete or non-portable records remain in an app-inaccessible candidate queue, where an editor can revise, reject, or publish only when all publication checks pass. Dashboard editors can import page-derived names or ask AI to discover a county-specific shortlist from multiple web sources, then select which leads reach the private queue. AI research fills the candidate only; discovery pages remain provenance, researched sources are stored separately, and image review still blocks publication. Scraped data now has a Dev-only, manual Wikidata collector that can create review-only candidates but cannot import images or publish places. See [place-candidate-intake.md](place-candidate-intake.md) and [scraper-ingest.md](scraper-ingest.md). |
+| 15 | App version management | New in v2 | In progress | codex/app-versioning | Semantic release policy checked in the app at startup/resume and controlled from owner/admin dashboard tools. SQL deployment and rollout guide: [app-version-management.md](app-version-management.md). Riverpod code generated; pending Flutter analyze/tests, SQL application, and device verification. |
 
 ## Baseline burn-down
 
@@ -32,6 +33,24 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2026-09-25 | 28 | `app.dart` state machine and the `ChangeNotifier` sign-in controller replaced (go_router work) |
 
 ## Feature notes
+
+### App Version Management (#15)
+
+- Strict stable SemVer comparison ignores the Flutter build suffix; build
+  numbers increase independently for each platform and release channel.
+- Major releases and the first release on a track are required. Minor releases
+  are required unless an owner/admin explicitly makes them optional. Patches
+  remain optional; SQL RPCs enforce the rule.
+- The app resolves policy during splash restoration and on resume (after local
+  Journey recovery), persists a dismissed optional version, and defers prompts
+  while a local Journey is active. Network failure fails open; an offline
+  mandatory-policy cache is not implemented.
+- The dashboard exposes App versions to owner/admin only. Direct table access
+  is revoked; dashboard RPCs repeat the role check. Apply the new migration to
+  both Supabase environments as documented in
+  [app-version-management.md](app-version-management.md).
+- Pending Flutter analyze/tests, migration application in dev and production,
+  and physical Android/iOS screen and store-link verification.
 
 ### Journeys (#13)
 
@@ -492,6 +511,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-18 | working tree | 15 | Added SemVer-based app release policy, owner/admin dashboard release drafts and publishing, optional minor control, store-update gates and DB migration/deployment guide. Riverpod generation, dashboard build and architecture checks pass; Flutter tests/analyze, DB application and device verification pending. |
 | 2026-10-16 | working tree | 13 | Journey capture: retry transient location-stream errors/closure before pausing, restart Android background location, and split the route at the first post-recovery fix; added recovery/fallback regression tests. Flutter/device verification pending. |
 | 2026-10-15 | working tree | 6 | Explore Field Guide v2 Slice 8: added intentional no-interests, unavailable-location, thin-filter, all-counties-claimed and clearer search/filter empty states while retaining resolving/offline states. Flutter/device transition verification pending. |
 | 2026-10-15 | working tree | 6 | Explore Field Guide v2 Slice 7: Saved now has a dedicated summary with visited progress, retains hand-ticked place rows, and exposes County Detail links for each saved group. Flutter/device verification pending. |

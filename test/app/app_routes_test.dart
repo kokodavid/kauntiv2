@@ -43,4 +43,46 @@ void main() {
     expect(AppRoutes.redirect(StartupStep.ready, '/explore'), isNull);
     expect(AppRoutes.redirect(StartupStep.ready, '/county/47'), isNull);
   });
+
+  test('a required update overrides sign-in and setup gates', () {
+    expect(
+      AppRoutes.redirect(
+        StartupStep.preferences,
+        AppRoutes.preferences,
+        updateRequired: true,
+      ),
+      AppRoutes.updateRequired,
+    );
+  });
+
+  test('optional updates prompt only after onboarding is ready', () {
+    expect(
+      AppRoutes.redirect(
+        StartupStep.preferences,
+        AppRoutes.preferences,
+        updateAvailable: true,
+      ),
+      isNull,
+    );
+    expect(
+      AppRoutes.redirect(
+        StartupStep.ready,
+        AppRoutes.map,
+        updateAvailable: true,
+      ),
+      AppRoutes.updateAvailable,
+    );
+    expect(
+      AppRoutes.redirect(
+        StartupStep.ready,
+        AppRoutes.updateAvailable,
+        updateAvailable: true,
+      ),
+      isNull,
+    );
+    expect(
+      AppRoutes.redirect(StartupStep.ready, AppRoutes.updateAvailable),
+      AppRoutes.map,
+    );
+  });
 }

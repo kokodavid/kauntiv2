@@ -13,7 +13,6 @@ import 'forced_update_footer.dart';
 import 'update_copy.dart';
 import 'update_entrance.dart';
 import 'update_notes_list.dart';
-import 'update_widgets.dart';
 
 enum UpdateProblem { none, offline, storeFailed }
 

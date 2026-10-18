@@ -30,7 +30,7 @@ class AppUpdateRepository {
     };
     if (platform == null) return null;
     final response = await client
-        .rpc(
+        .rpc<Map<String, dynamic>>(
           'get_app_update_policy',
           params: {
             'p_platform': platform,

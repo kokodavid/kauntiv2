@@ -31,15 +31,17 @@ by building with `--dart-define=APP_RELEASE_CHANNEL=beta`.
   returns only the latest public version, required floor, store URL, notes and
   comparison booleans. It exposes no user, admin, or draft data.
 
-Published releases are immutable. Correct a bad listing by publishing a
-newer release; this implementation intentionally has no rollback/withdrawal
-control that could weaken an already-enforced minimum.
+Release metadata remains immutable after publication, but an owner/admin can
+deactivate a published release or reactivate it when no newer release is active
+on the same platform/channel. Deactivating a release removes it from the
+mobile policy lookup; it does not delete its history.
 
 ## Database change
 
 Migrations: `supabase/migrations/20261023100000_app_version_management.sql`,
 the follow-up `supabase/migrations/20261023110000_app_version_build_optional.sql`,
-and `supabase/migrations/20261023120000_app_version_store_url_optional.sql`.
+`supabase/migrations/20261023120000_app_version_store_url_optional.sql`, and
+`supabase/migrations/20261023130000_app_version_status_controls.sql`.
 Apply the complete files to **both** Supabase projects independently, dev first
 and production only after dev verification. Do not run these against the
 production project while the dashboard is still configured for dev.
@@ -51,6 +53,7 @@ The migration creates `public.app_version_releases` and these functions:
 - `public.create_app_version_release_dashboard(text, text, text, integer, text, text, boolean)` - validate and create a draft. The integer build and store URL arguments may be null.
 - `public.publish_app_version_release_dashboard(uuid)` - activate an existing draft.
 - `public.delete_app_version_release_draft_dashboard(uuid)` - remove a draft before publication.
+- `public.set_app_version_release_status_dashboard(uuid, boolean)` - activate or deactivate a published release.
 
 There are no Edge Functions, secrets, external cron jobs, or Storage changes
 for this feature.
@@ -91,7 +94,8 @@ where n.nspname = 'public'
     'list_app_version_releases_dashboard',
     'create_app_version_release_dashboard',
     'publish_app_version_release_dashboard',
-    'delete_app_version_release_draft_dashboard'
+    'delete_app_version_release_draft_dashboard',
+    'set_app_version_release_status_dashboard'
   )
 order by p.proname;
 

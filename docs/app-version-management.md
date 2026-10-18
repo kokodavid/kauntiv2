@@ -2,8 +2,9 @@
 
 ## Release policy
 
-The app compares stable `MAJOR.MINOR.PATCH` values; Flutter's `+build`
-number is stored separately and must increase for every platform/channel.
+The app compares stable `MAJOR.MINOR.PATCH` values. Flutter's `+build`
+number may be stored separately when a platform store build needs to be
+distinguished, but it is optional and is not used for update policy decisions.
 Major releases are always required. Minor releases are required by default,
 but an owner/admin can deliberately mark a minor release optional. Patch
 releases are always optional. The first published release establishes the
@@ -33,16 +34,17 @@ control that could weaken an already-enforced minimum.
 
 ## Database change
 
-Migration: `supabase/migrations/20261023100000_app_version_management.sql`.
-Apply the complete file to **both** Supabase projects independently, dev first
-and production only after dev verification. Do not run this against the
+Migrations: `supabase/migrations/20261023100000_app_version_management.sql` and
+the follow-up `supabase/migrations/20261023110000_app_version_build_optional.sql`.
+Apply the complete files to **both** Supabase projects independently, dev first
+and production only after dev verification. Do not run these against the
 production project while the dashboard is still configured for dev.
 
 The migration creates `public.app_version_releases` and these functions:
 
 - `public.get_app_update_policy(text, text, text)` - public app check.
 - `public.list_app_version_releases_dashboard()` - owner/admin release list.
-- `public.create_app_version_release_dashboard(text, text, text, integer, text, text, boolean)` - validate and create a draft.
+- `public.create_app_version_release_dashboard(text, text, text, integer, text, text, boolean)` - validate and create a draft. The integer build argument may be null.
 - `public.publish_app_version_release_dashboard(uuid)` - activate an existing draft.
 - `public.delete_app_version_release_draft_dashboard(uuid)` - remove a draft before publication.
 
@@ -105,7 +107,7 @@ result contains public release metadata only.
 ## Dashboard workflow
 
 Open Operations → App versions. Select platform and channel, enter a strict
-three-part version, increasing build number, HTTPS store URL and release notes.
+three-part version, an optional build number, HTTPS store URL and release notes.
 The dashboard explains the required/optional rule. Save creates a draft; review
 its metadata, make sure the store listing is available, then publish. Only
 publishing changes the policy seen by app clients. Keep each environment's

@@ -1,7 +1,19 @@
 part of 'trip_share_sheet.dart';
 
-/// "Show on image" switches under the preview. Only stats the Trip
-/// actually recorded get a switch - there's nothing to hide otherwise.
+enum _ShareStat {
+  distance('Distance', Icons.straighten_rounded),
+  topSpeed('Top speed', Icons.speed_rounded),
+  averageSpeed('Average speed', Icons.timer_outlined),
+  elevation('Peak elevation', Icons.terrain_rounded);
+
+  const _ShareStat(this.label, this.icon);
+  final String label;
+  final IconData icon;
+}
+
+/// "Show on image" tiles under the preview, the same multi-select tile
+/// grid the Interests picker uses. Only stats the Trip actually recorded
+/// get a tile - there's nothing to hide otherwise.
 class _StatSwitches extends StatelessWidget {
   const _StatSwitches({
     required this.summary,
@@ -13,57 +25,54 @@ class _StatSwitches extends StatelessWidget {
   final TripShareStatVisibility visibility;
   final ValueChanged<TripShareStatVisibility> onChanged;
 
+  bool _recorded(_ShareStat stat) => switch (stat) {
+    _ShareStat.distance => summary.distanceMeters != null,
+    _ShareStat.topSpeed => summary.topSpeedMps != null,
+    _ShareStat.averageSpeed => summary.averageSpeedMps != null,
+    _ShareStat.elevation => summary.highestElevationMeters != null,
+  };
+
+  bool _shown(_ShareStat stat) => switch (stat) {
+    _ShareStat.distance => visibility.distance,
+    _ShareStat.topSpeed => visibility.topSpeed,
+    _ShareStat.averageSpeed => visibility.averageSpeed,
+    _ShareStat.elevation => visibility.elevation,
+  };
+
+  void _toggle(_ShareStat stat) => onChanged(switch (stat) {
+    _ShareStat.distance => visibility.copyWith(distance: !visibility.distance),
+    _ShareStat.topSpeed => visibility.copyWith(topSpeed: !visibility.topSpeed),
+    _ShareStat.averageSpeed => visibility.copyWith(
+      averageSpeed: !visibility.averageSpeed,
+    ),
+    _ShareStat.elevation => visibility.copyWith(
+      elevation: !visibility.elevation,
+    ),
+  });
+
   @override
   Widget build(BuildContext context) {
-    final rows = <Widget>[
-      if (summary.distanceMeters != null)
-        _row(
-          'Distance',
-          visibility.distance,
-          (v) => onChanged(visibility.copyWith(distance: v)),
-        ),
-      if (summary.topSpeedMps != null)
-        _row(
-          'Top speed',
-          visibility.topSpeed,
-          (v) => onChanged(visibility.copyWith(topSpeed: v)),
-        ),
-      if (summary.averageSpeedMps != null)
-        _row(
-          'Average speed',
-          visibility.averageSpeed,
-          (v) => onChanged(visibility.copyWith(averageSpeed: v)),
-        ),
-      if (summary.highestElevationMeters != null)
-        _row(
-          'Peak elevation',
-          visibility.elevation,
-          (v) => onChanged(visibility.copyWith(elevation: v)),
-        ),
+    final options = [
+      for (final stat in _ShareStat.values)
+        if (_recorded(stat)) stat,
     ];
-    if (rows.isEmpty) return const SizedBox.shrink();
+    if (options.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Show on image', style: _Styles.stripHeading),
-        const SizedBox(height: 4),
-        ...rows,
+        const SizedBox(height: 10),
+        ChoiceTileGrid<_ShareStat>(
+          options: options,
+          selected: [
+            for (final stat in options)
+              if (_shown(stat)) stat,
+          ],
+          labelOf: (stat) => stat.label,
+          iconBuilder: (stat, color) => Icon(stat.icon, size: 18, color: color),
+          onToggle: _toggle,
+        ),
       ],
     );
   }
-
-  Widget _row(String label, bool value, ValueChanged<bool> onChanged) =>
-      SizedBox(
-        height: 40,
-        child: Row(
-          children: [
-            Expanded(child: Text(label, style: _Styles.shapeLabel)),
-            Switch.adaptive(
-              value: value,
-              activeTrackColor: AppColors.accent,
-              onChanged: onChanged,
-            ),
-          ],
-        ),
-      );
 }

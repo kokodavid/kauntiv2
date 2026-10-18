@@ -818,6 +818,15 @@ begin
 
   update public.push_campaigns set status = 'sending', started_at = now() where id = p_id;
 
+  -- Counted before inserting, so this send does not count as "already
+  -- had a broadcast this week".
+  select count(*) filter (where not a.opted_in),
+         count(*) filter (where a.opted_in and a.recently_broadcast and v_scope <> 'me'),
+         count(*) filter (where a.opted_in and (v_scope = 'me' or not a.recently_broadcast)
+                            and not a.has_push and not (v_c.include_email and a.email is not null))
+  into v_out, v_cap, v_none
+  from public.push_audience_internal(v_c.filters, v_c.created_by) a;
+
   with a as (select * from public.push_audience_internal(v_c.filters, v_c.created_by)),
   ins as (
     insert into public.push_events (user_id, kind, delivery, payload, campaign_id, dedupe_key, send_after)
@@ -837,13 +846,6 @@ begin
   select count(*) filter (where delivery = 'push'),
          count(*) filter (where delivery = 'email')
   into v_push, v_email from ins;
-
-  select count(*) filter (where not a.opted_in),
-         count(*) filter (where a.opted_in and a.recently_broadcast and v_scope <> 'me'),
-         count(*) filter (where a.opted_in and (v_scope = 'me' or not a.recently_broadcast)
-                            and not a.has_push and not (v_c.include_email and a.email is not null))
-  into v_out, v_cap, v_none
-  from public.push_audience_internal(v_c.filters, v_c.created_by) a;
 
   v_counts := jsonb_build_object('push', v_push, 'email', v_email,
     'opted_out', v_out, 'capped', v_cap, 'unreachable', v_none);

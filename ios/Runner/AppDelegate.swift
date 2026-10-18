@@ -1,7 +1,6 @@
 import Flutter
 import CoreLocation
 import UIKit
-import UserNotifications
 import native_geofence
 
 @main
@@ -74,13 +73,6 @@ import native_geofence
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-    // firebase_messaging (push) and flutter_local_notifications (county
-    // arrivals) each want to be the notification centre's delegate, and the
-    // last to register wins, so the other loses taps and foreground
-    // messages. Making the app delegate the one delegate lets Flutter hand
-    // every notification to every plugin, which then claims its own.
-    UNUserNotificationCenter.current().delegate =
-      self as? UNUserNotificationCenterDelegate
   }
 
   /// One-shot foreground fix (~5 s budget), never stored: ported from v1.

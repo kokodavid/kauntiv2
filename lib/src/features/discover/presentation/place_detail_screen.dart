@@ -12,6 +12,7 @@ import 'detail_async_body.dart';
 import 'place_detail_about_tile.dart';
 import 'place_detail_bar.dart';
 import 'place_detail_header.dart';
+import 'place_detail_tabs.dart';
 
 typedef PlaceDetailSectionBuilder =
     Widget Function(BuildContext context, PlaceDetailData place);
@@ -30,6 +31,7 @@ class PlaceDetailScreen extends StatelessWidget {
     this.onGetRoute,
     this.gettingThere,
     this.startButton,
+    this.photos,
   });
 
   final String placeId;
@@ -43,6 +45,10 @@ class PlaceDetailScreen extends StatelessWidget {
   /// The bottom bar's main button while [gettingThere] is shown: the trip
   /// builder's own "Start trip".
   final PlaceDetailSectionBuilder? startButton;
+
+  /// The Photos section (strip, add tile, status chip), supplied by app/
+  /// (features compose there). Shown on the About tab.
+  final PlaceDetailSectionBuilder? photos;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +64,7 @@ class PlaceDetailScreen extends StatelessWidget {
             onGetRoute: onGetRoute,
             gettingThere: gettingThere,
             startButton: startButton,
+            photos: photos,
           ),
         ),
       ),
@@ -72,6 +79,7 @@ class _PlaceDetailBody extends StatefulWidget {
     this.onGetRoute,
     this.gettingThere,
     this.startButton,
+    this.photos,
   });
 
   final PlaceDetailData data;
@@ -79,6 +87,7 @@ class _PlaceDetailBody extends StatefulWidget {
   final OpenPlaceRoute? onGetRoute;
   final PlaceDetailSectionBuilder? gettingThere;
   final PlaceDetailSectionBuilder? startButton;
+  final PlaceDetailSectionBuilder? photos;
 
   @override
   State<_PlaceDetailBody> createState() => _PlaceDetailBodyState();
@@ -86,6 +95,7 @@ class _PlaceDetailBody extends StatefulWidget {
 
 class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
   bool _openingRoute = false;
+  PlaceDetailTab _tab = PlaceDetailTab.about;
 
   bool get _planned =>
       widget.gettingThere != null &&
@@ -112,6 +122,24 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
     }
   }
 
+  /// The place's story: description, every photo, and a way into the planner.
+  Widget _about(BuildContext context, PlaceDetailData data) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      PlaceDetailAboutTile(description: data.description),
+      if (widget.photos != null) ...[
+        const SizedBox(height: 20),
+        widget.photos!(context, data),
+      ],
+      if (_planned) ...[
+        const SizedBox(height: 20),
+        PlaceDetailPlanNudge(
+          onTap: () => setState(() => _tab = PlaceDetailTab.plan),
+        ),
+      ],
+    ],
+  );
+
   void _say(BuildContext context, String message) => ScaffoldMessenger.of(
     context,
   ).showSnackBar(SnackBar(content: Text(message)));
@@ -135,19 +163,18 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
                         title: data.title,
                         countyName: '${data.county.name} County',
                         category: data.category,
+                        credits: data.imageCredits,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            PlaceDetailAboutTile(description: data.description),
-                            if (_planned) ...[
-                              const SizedBox(height: 22),
-                              widget.gettingThere!(context, data),
-                            ],
-                          ],
+                      if (_planned)
+                        PlaceDetailTabs(
+                          selected: _tab,
+                          onChanged: (tab) => setState(() => _tab = tab),
                         ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16, _planned ? 14 : 12, 16, 0),
+                        child: _planned && _tab == PlaceDetailTab.plan
+                            ? widget.gettingThere!(context, data)
+                            : _about(context, data),
                       ),
                     ],
                   ),

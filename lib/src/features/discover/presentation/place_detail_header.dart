@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/place_type.dart';
 import '../../../core/widgets/app_network_image.dart';
+import '../../../core/widgets/app_photo_viewer.dart';
 import '../../../core/widgets/place_type_style.dart';
 import '../../../design/app_colors.dart';
 
@@ -17,14 +18,18 @@ class PlaceDetailHeader extends StatefulWidget {
     required this.title,
     required this.countyName,
     required this.category,
+    this.credits = const [],
   });
 
-  static const height = 240.0;
+  static const height = 220.0;
 
   final List<String> images;
   final String title;
   final String countyName;
   final PlaceType category;
+
+  /// "@username" per photo, null where nobody needs crediting.
+  final List<String?> credits;
 
   @override
   State<PlaceDetailHeader> createState() => _PlaceDetailHeaderState();
@@ -40,9 +45,25 @@ class _PlaceDetailHeaderState extends State<PlaceDetailHeader> {
     super.dispose();
   }
 
+  void _open(BuildContext context, int index) => openAppPhotoViewer(
+    context,
+    [
+      for (var i = 0; i < widget.images.length; i++)
+        AppViewerPhoto(
+          id: widget.images[i],
+          url: widget.images[i],
+          caption: i < widget.credits.length && widget.credits[i] != null
+              ? 'Photo by ${widget.credits[i]}'
+              : null,
+        ),
+    ],
+    initialIndex: index,
+  );
+
   @override
   Widget build(BuildContext context) {
     final images = widget.images;
+    final credit = _page < widget.credits.length ? widget.credits[_page] : null;
     return Container(
       height: PlaceDetailHeader.height,
       margin: const EdgeInsets.symmetric(horizontal: 12),
@@ -58,10 +79,14 @@ class _PlaceDetailHeaderState extends State<PlaceDetailHeader> {
               controller: _controller,
               itemCount: images.length,
               onPageChanged: (index) => setState(() => _page = index),
-              itemBuilder: (context, index) => Image(
-                image: appNetworkImage(images[index]),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const _NoPhoto(),
+              itemBuilder: (context, index) => GestureDetector(
+                onTap: () => _open(context, index),
+                child: Image(
+                  image: appNetworkImage(images[index]),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const _NoPhoto(),
+                ),
               ),
             ),
           const IgnorePointer(
@@ -113,6 +138,15 @@ class _PlaceDetailHeaderState extends State<PlaceDetailHeader> {
                             color: Colors.white,
                           ),
                         ),
+                        if (credit != null)
+                          Text(
+                            'Photo by $credit',
+                            style: const TextStyle(
+                              fontFamily: AppTypeScale.family,
+                              fontSize: 11,
+                              color: Colors.white70,
+                            ),
+                          ),
                       ],
                     ),
                   ),

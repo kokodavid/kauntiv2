@@ -126,7 +126,8 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
           .from('places')
           .select(
             'id, county_id, name, type, summary, description, source, '
-            'lat, lng, place_images(image_url, sort_order)',
+            'status, archived_at, lat, lng, '
+            'place_images(image_url, sort_order, source, attribution, width, height)',
           )
           .eq('id', placeId)
           .maybeSingle(),
@@ -150,6 +151,10 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
       description:
           (row['description'] as String?) ?? (row['summary'] as String?) ?? '',
       images: _sortedImages(row['place_images'], 'image_url'),
+      imageCredits: _imageCredits(row['place_images']),
+      imageAspects: _imageAspects(row['place_images']),
+      acceptsPhotos:
+          row['status'] == 'reviewed' && row['archived_at'] == null,
       source: (row['source'] as String?) ?? 'Unknown',
       saved: results[1] != null,
       latitude: (row['lat'] as num?)?.toDouble(),
@@ -184,6 +189,44 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
       'county_id': countyCode,
       'place_id': placeId,
     });
+  }
+
+  /// "@username" for each photo a user took, in the same order as
+  /// [_sortedImages] (null for photos from other sources).
+  static List<String?> _imageCredits(Object? images) {
+    if (images is! List) return const [];
+    final rows = images.whereType<Map<String, dynamic>>().toList()
+      ..sort(
+        (a, b) => ((a['sort_order'] as num?) ?? 0).compareTo(
+          (b['sort_order'] as num?) ?? 0,
+        ),
+      );
+    return [
+      for (final row in rows)
+        if (row['image_url'] is String)
+          row['source'] == 'kaunti47_user' && row['attribution'] is String
+              ? row['attribution'] as String
+              : null,
+    ];
+  }
+
+  /// Width / height per photo, in the same order as [_sortedImages].
+  static List<double?> _imageAspects(Object? images) {
+    if (images is! List) return const [];
+    final rows = images.whereType<Map<String, dynamic>>().toList()
+      ..sort(
+        (a, b) => ((a['sort_order'] as num?) ?? 0).compareTo(
+          (b['sort_order'] as num?) ?? 0,
+        ),
+      );
+    return [
+      for (final row in rows)
+        if (row['image_url'] is String)
+          switch ((row['width'], row['height'])) {
+            (final num w, final num h) when w > 0 && h > 0 => w / h,
+            _ => null,
+          },
+    ];
   }
 
   static List<String> _sortedImages(Object? images, String urlKey) {

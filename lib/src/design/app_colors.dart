@@ -155,4 +155,13 @@ class AppColors {
   static const offlineTick = Color(0xFF16A34A);
   static const offlineScreenButtonChecking = Color(0xFF5AABFF);
   static const offlineMapChipBackground = Color(0xD1181B18);
+
+  // Place photos (add tile, status chip, My photos).
+  static const softDivider = Color(0xFFF0F1F3);
+  static const disabledText = Color(0xFF9CA3AF);
+  static const photoTileFill = Color(0xFFE9EDF2);
+  static const successTint = Color(0xFFE8F8EE);
+  static const photoDisabledFill = Color(0xFFF1F3F6);
+  static const photoSendingFill = Color(0xFFD6E8FF);
+  static const scrim = Color(0x730A0E14);
 }

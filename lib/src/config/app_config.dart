@@ -92,6 +92,16 @@ class AppConfig {
 
   bool get isDev => environment == AppEnvironment.dev;
 
+  String get appReleaseChannel {
+    const override = String.fromEnvironment('APP_RELEASE_CHANNEL');
+    if (override == 'development' ||
+        override == 'beta' ||
+        override == 'production') {
+      return override;
+    }
+    return isDev ? 'development' : 'production';
+  }
+
   bool get hasSupabaseConfig =>
       supabaseUrl.isNotEmpty && supabasePublishableKey.isNotEmpty;
 }

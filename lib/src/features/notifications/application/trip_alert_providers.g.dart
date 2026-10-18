@@ -11,7 +11,7 @@ part of 'trip_alert_providers.dart';
 /// The paused-trip reminder. Tests override it.
 
 @ProviderFor(tripAlertNotifier)
-const tripAlertNotifierProvider = TripAlertNotifierProvider._();
+const tripAlertProvider = TripAlertNotifierProvider._();
 
 /// The paused-trip reminder. Tests override it.
 
@@ -29,7 +29,7 @@ final class TripAlertNotifierProvider
         from: null,
         argument: null,
         retry: null,
-        name: r'tripAlertNotifierProvider',
+        name: r'tripAlertProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
@@ -58,4 +58,4 @@ final class TripAlertNotifierProvider
   }
 }
 
-String _$tripAlertNotifierHash() => r'0000000000000000000000000000000000000005';
+String _$tripAlertNotifierHash() => r'ee0e51b330d687cc52b09e2517481ecbba1f0094';

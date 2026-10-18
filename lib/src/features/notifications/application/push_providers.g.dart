@@ -62,7 +62,7 @@ final class PushMessagingServiceProvider
 }
 
 String _$pushMessagingServiceHash() =>
-    r'0000000000000000000000000000000000000001';
+    r'e3f824ba9a1c1cffea34f5d3be308e1e4c373342';
 
 @ProviderFor(pushDeviceRepository)
 const pushDeviceRepositoryProvider = PushDeviceRepositoryProvider._();
@@ -110,7 +110,7 @@ final class PushDeviceRepositoryProvider
 }
 
 String _$pushDeviceRepositoryHash() =>
-    r'0000000000000000000000000000000000000002';
+    r'3b035292d45ce79f060a64b5184ea9d2121d58b1';
 
 @ProviderFor(pushRegistrar)
 const pushRegistrarProvider = PushRegistrarProvider._();
@@ -151,4 +151,4 @@ final class PushRegistrarProvider
   }
 }
 
-String _$pushRegistrarHash() => r'0000000000000000000000000000000000000003';
+String _$pushRegistrarHash() => r'8a2fe1cc8c7983c3a5f788559571555bb12cb3ff';

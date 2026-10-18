@@ -9,12 +9,15 @@ import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
 import '../core/services/last_screen.dart';
 import '../core/services/location_diagnostics.dart';
+import '../features/app_version/application/app_update_providers.dart';
+import '../features/app_version/presentation/app_update_screen.dart';
 import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
 import '../features/feedback/presentation/feedback_form_screen.dart';
 import '../features/feedback/presentation/feedback_reports_screen.dart';
+import '../features/journeys/application/journey_recorder.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
@@ -46,10 +49,17 @@ part 'router.g.dart';
 GoRouter appRouter(Ref ref) {
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
-    redirect: (context, state) => AppRoutes.redirect(
-      ref.read(startupFlowProvider).step,
-      state.matchedLocation,
-    ),
+    redirect: (context, state) {
+      final journeyActive = AppFeatureFlags.journeys &&
+          ref.read(journeyRecorderProvider) != null;
+      final update = ref.read(appUpdateControllerProvider);
+      return AppRoutes.redirect(
+        ref.read(startupFlowProvider).step,
+        state.matchedLocation,
+        updateRequired: update?.required == true && !journeyActive,
+        updateAvailable: update?.available == true && !journeyActive,
+      );
+    },
     routes: [
       _gate(AppRoutes.splash, const StartupSplashPage()),
       _gate(AppRoutes.signIn, const StartupSignInPage()),
@@ -57,6 +67,21 @@ GoRouter appRouter(Ref ref) {
       _gate(AppRoutes.preferences, const StartupPreferencesPage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
       _gate(AppRoutes.notifications, const StartupNotificationsPage()),
+      GoRoute(
+        path: AppRoutes.updateRequired,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: AppUpdateScreen(key: state.pageKey),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.updateAvailable,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: AppUpdateScreen(
+            key: state.pageKey,
+            onLater: () => context.go(AppRoutes.map),
+          ),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         // Swapped in place like the gates, not slid in.
         pageBuilder: (context, state, shell) => NoTransitionPage(
@@ -262,15 +287,18 @@ GoRouter appRouter(Ref ref) {
   }
 
   router.routerDelegate.addListener(rememberScreen);
-  ref
-    ..listen(
-      startupFlowProvider.select((s) => s.step),
-      (_, _) => router.refresh(),
-    )
-    ..onDispose(() {
-      router.routerDelegate.removeListener(rememberScreen);
-      router.dispose();
-    });
+  ref.listen(
+    startupFlowProvider.select((s) => s.step),
+    (_, _) => router.refresh(),
+  );
+  ref.listen(appUpdateControllerProvider, (_, _) => router.refresh());
+  if (AppFeatureFlags.journeys) {
+    ref.listen(journeyRecorderProvider, (_, _) => router.refresh());
+  }
+  ref.onDispose(() {
+    router.routerDelegate.removeListener(rememberScreen);
+    router.dispose();
+  });
   return router;
 }
 

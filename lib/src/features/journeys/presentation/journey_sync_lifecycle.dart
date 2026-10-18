@@ -18,9 +18,14 @@ import '../application/journey_sync.dart';
 ///
 /// Stops in the background; wraps the signed-in app only.
 class JourneySyncLifecycle extends ConsumerStatefulWidget {
-  const JourneySyncLifecycle({super.key, required this.child});
+  const JourneySyncLifecycle({
+    super.key,
+    required this.child,
+    this.onRecovered,
+  });
 
   final Widget child;
+  final Future<void> Function()? onRecovered;
 
   @override
   ConsumerState<JourneySyncLifecycle> createState() =>
@@ -66,6 +71,7 @@ class _JourneySyncLifecycleState extends ConsumerState<JourneySyncLifecycle>
   Future<void> _recoverThenDrain() async {
     try {
       await ref.read(journeyRecorderProvider.notifier).recover();
+      if (mounted) await widget.onRecovered?.call();
     } on Object catch (error, stackTrace) {
       _logger.warning(
         'Journey recovery failed.',

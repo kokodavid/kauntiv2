@@ -51,4 +51,4 @@ final class NotificationsBlockedProvider
 }
 
 String _$notificationsBlockedHash() =>
-    r'0000000000000000000000000000000000000004';
+    r'78c7aae45d399b5d1ebfd99ac909b645809f771d';

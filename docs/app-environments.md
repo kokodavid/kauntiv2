@@ -288,3 +288,11 @@ $$);
 ```
 
 Keep the `push_broadcasts` flag off in prod until a test campaign to yourself works.
+
+### Firebase for the app (per environment)
+
+Create one Firebase project per environment (dev and prod). Add an Android app (`com.giglab.kaunti47`) and an iOS app (same bundle id) in each, then put the values in `dart_defines/dev.json` and `dart_defines/prod.json`: `FIREBASE_PROJECT_ID`, `FIREBASE_API_KEY`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_ANDROID_APP_ID`, `FIREBASE_IOS_APP_ID` (see the `.example.json` files). The app starts Firebase from these, so no `google-services.json` or `GoogleService-Info.plist` is needed. Leave them empty and push is simply off in that build.
+
+For iPhone: upload an APNs authentication key (.p8) to the Firebase project (Project settings > Cloud Messaging), and enable the Push Notifications capability on the app id in the Apple developer portal. `ios/Runner/Runner.entitlements` sets `aps-environment` to `development`; distribution signing switches it to production.
+
+The service account for the server (`FCM_SERVICE_ACCOUNT`) is created in Firebase: Project settings > Service accounts > Generate new private key. Store the whole JSON as a Supabase secret.

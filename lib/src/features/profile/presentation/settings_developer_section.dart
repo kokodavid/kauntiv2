@@ -13,6 +13,7 @@ class SettingsDeveloperSection extends StatelessWidget {
     super.key,
     required this.onOpenLocationDiagnostics,
     this.onOpenPushStatus,
+    this.onOpenCountyOrder,
   });
 
   final VoidCallback? onOpenLocationDiagnostics;
@@ -20,11 +21,17 @@ class SettingsDeveloperSection extends StatelessWidget {
   /// Dev builds only; null hides the row.
   final VoidCallback? onOpenPushStatus;
 
+  /// Dev builds only; null hides the row.
+  final VoidCallback? onOpenCountyOrder;
+
   @override
   Widget build(BuildContext context) {
     final onTap = onOpenLocationDiagnostics;
     final onPush = onOpenPushStatus;
-    if (onTap == null && onPush == null) return const SizedBox.shrink();
+    final onOrder = onOpenCountyOrder;
+    if (onTap == null && onPush == null && onOrder == null) {
+      return const SizedBox.shrink();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -45,14 +52,21 @@ class SettingsDeveloperSection extends StatelessWidget {
               SettingsActionRow(
                 title: 'Location diagnostics',
                 subtitle: 'Record and share a device report',
-                divider: onPush != null,
+                divider: onPush != null || onOrder != null,
                 onTap: onTap,
               ),
             if (onPush != null)
               SettingsActionRow(
                 title: 'Push status',
                 subtitle: 'Why this phone is or is not registered',
+                divider: onOrder != null,
                 onTap: onPush,
+              ),
+            if (onOrder != null)
+              SettingsActionRow(
+                title: 'County order',
+                subtitle: 'Save the county order for your existing trips',
+                onTap: onOrder,
               ),
           ],
         ),

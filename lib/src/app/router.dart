@@ -204,6 +204,9 @@ GoRouter appRouter(Ref ref) {
             onOpenPushStatus: ref.read(appConfigProvider).isDev
                 ? () => PushRoutes.openStatus(context)
                 : null,
+            onOpenCountyOrder: ref.read(appConfigProvider).isDev
+                ? () => PushRoutes.openCountyOrderBackfill(context)
+                : null,
           ),
         ),
       ),

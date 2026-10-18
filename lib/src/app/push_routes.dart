@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/journeys/presentation/county_order_backfill_screen.dart';
 import '../features/notifications/domain/push_destination.dart';
 import '../features/notifications/presentation/push_status_screen.dart';
 import 'app_routes.dart';
@@ -16,6 +17,18 @@ abstract final class PushRoutes {
     unawaited(
       Navigator.of(context).push<void>(
         MaterialPageRoute<void>(builder: (_) => const PushStatusScreen()),
+      ),
+    );
+  }
+
+  /// Dev builds only (Settings, Developer): saves the county order for
+  /// this account's existing trips.
+  static void openCountyOrderBackfill(BuildContext context) {
+    unawaited(
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => const CountyOrderBackfillScreen(),
+        ),
       ),
     );
   }

@@ -17,6 +17,7 @@ import 'journey_place_thumbnail.dart';
 
 part 'supabase_journey_repository_places.dart';
 part 'supabase_journey_repository_media.dart';
+part 'supabase_journey_repository_county_order.dart';
 
 /// Journeys in the cloud: the Pro check, the one upload RPC, and private
 /// history reads and deletion (RLS keeps every read to the owner).
@@ -138,6 +139,8 @@ class SupabaseJourneyRepository {
           },
         )
         .timeout(_uploadTimeout);
+    // Best effort: a failure leaves the counties unordered until backfilled.
+    await setCountyOrder(id, counties.keys.toList()).onError((error, stackTrace) {});
     return (result['distance_m'] as num).toDouble();
   }
 
@@ -156,33 +159,19 @@ class SupabaseJourneyRepository {
       readAllPages(
         (from, to) => _client
             .from('journey_counties')
-            .select('journey_id, county_id')
+            .select('journey_id, county_id, position')
+            // Primary key order, so paging never skips or repeats a row.
+            .order('journey_id')
+            .order('county_id')
             .range(from, to)
             .timeout(_timeout),
       ),
     ]);
-    final countyNames = _countyNamesByJourney(results[1]);
+    final countyNames = _JourneyCountyNames.byJourney(results[1]);
     return [
       for (final row in results[0])
         _summary(row, countyNames[row['id']] ?? const []),
     ];
-  }
-
-  /// Maps `journey_id` -> the (deduped) county names a route crossed, from
-  /// [rows] of `journey_counties` (`journey_id, county_id`).
-  static Map<String, List<String>> _countyNamesByJourney(
-    List<Map<String, dynamic>> rows,
-  ) {
-    final namesByCode = {for (final c in CountyPaths.all) c.code: c.name};
-    final result = <String, List<String>>{};
-    for (final row in rows) {
-      final journeyId = row['journey_id'] as String?;
-      final code = (row['county_id'] as num?)?.toInt();
-      final name = code == null ? null : namesByCode[code];
-      if (journeyId == null || name == null) continue;
-      (result[journeyId] ??= []).add(name);
-    }
-    return result;
   }
 
   static JourneySummary _summary(
@@ -228,14 +217,15 @@ class SupabaseJourneyRepository {
           .timeout(_timeout),
       _client
           .from('journey_counties')
-          .select('journey_id, county_id')
+          .select('journey_id, county_id, position')
           .eq('journey_id', id)
           .timeout(_timeout),
     ]);
     final row = results[0] as Map<String, dynamic>?;
     if (row == null) return null;
     final countyRows = results[1] as List<Map<String, dynamic>>;
-    final countyNames = _countyNamesByJourney(countyRows)[id] ?? const [];
+    final countyNames =
+        _JourneyCountyNames.byJourney(countyRows)[id] ?? const [];
     return _summary(row, countyNames);
   }
 

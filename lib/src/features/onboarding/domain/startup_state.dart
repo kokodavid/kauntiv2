@@ -13,12 +13,10 @@ enum StartupStep {
   /// New-user setup step 2 of 3: what kinds of places the user likes.
   preferences,
 
-  /// New-user setup step 3 of 3.
+  /// New-user setup step 3 of 3. Also shown once, without the step
+  /// numbering, to a returning user on a phone that has never been asked
+  /// (see [StartupState.isDeviceLocationAsk]).
   permission,
-
-  /// The last part of setup step 3, after location is granted: an
-  /// optional ask to turn on county-arrival notifications.
-  notifications,
 
   /// Signed in and past setup (or never needed it).
   ready;
@@ -28,7 +26,6 @@ enum StartupStep {
     homeCounty => 1,
     preferences => 2,
     permission => 3,
-    notifications => 3,
     _ => null,
   };
 }
@@ -47,7 +44,7 @@ class StartupState {
     this.interestsSkipped = false,
     this.isRequestingLocation = false,
     this.isLocationPermanentlyDenied = false,
-    this.isRequestingNotifications = false,
+    this.isDeviceLocationAsk = false,
     this.permissionError,
   });
 
@@ -71,7 +68,10 @@ class StartupState {
   final bool interestsSkipped;
   final bool isRequestingLocation;
   final bool isLocationPermanentlyDenied;
-  final bool isRequestingNotifications;
+
+  /// The permission page is showing for a returning user on a new phone
+  /// (not as setup step 3): no "3 of 3", no back button.
+  final bool isDeviceLocationAsk;
   final String? permissionError;
 
   StartupStep get step => splashComplete ? phase : StartupStep.splash;
@@ -87,7 +87,7 @@ class StartupState {
     bool? interestsSkipped,
     bool? isRequestingLocation,
     bool? isLocationPermanentlyDenied,
-    bool? isRequestingNotifications,
+    bool? isDeviceLocationAsk,
     String? Function()? permissionError,
   }) => StartupState(
     splashComplete: splashComplete ?? this.splashComplete,
@@ -103,8 +103,7 @@ class StartupState {
     isRequestingLocation: isRequestingLocation ?? this.isRequestingLocation,
     isLocationPermanentlyDenied:
         isLocationPermanentlyDenied ?? this.isLocationPermanentlyDenied,
-    isRequestingNotifications:
-        isRequestingNotifications ?? this.isRequestingNotifications,
+    isDeviceLocationAsk: isDeviceLocationAsk ?? this.isDeviceLocationAsk,
     permissionError: permissionError == null
         ? this.permissionError
         : permissionError(),

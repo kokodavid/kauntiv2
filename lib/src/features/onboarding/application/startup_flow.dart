@@ -5,7 +5,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../counties/county_paths.dart';
 import '../../../services/app_location_permission_service.dart';
 import '../../auth/application/auth_providers.dart';
-import '../../detection/application/arrival_notifier_provider.dart';
 import '../../notifications/application/push_providers.dart';
 import '../../profile/application/interests_providers.dart';
 import '../../profile/application/profile_settings_providers.dart';
@@ -16,7 +15,6 @@ import 'setup_progress_providers.dart';
 
 part 'startup_flow.g.dart';
 part 'startup_flow_interests.dart';
-part 'startup_flow_notifications.dart';
 part 'startup_flow_permissions.dart';
 
 /// The OS location permission service. Tests override it.
@@ -32,10 +30,7 @@ AppLocationPermissionService locationPermissionService(Ref ref) =>
 /// methods. Ported from the old `app.dart` gate, with the same rules.
 @Riverpod(keepAlive: true)
 class StartupFlow extends _$StartupFlow
-    with
-        _StartupInterestsSteps,
-        _StartupPermissionSteps,
-        _StartupNotificationSteps {
+    with _StartupInterestsSteps, _StartupPermissionSteps {
   static const _homeCountyCheckFailed =
       'Could not check your saved home county. Pick it again to continue.';
 
@@ -120,7 +115,7 @@ class StartupFlow extends _$StartupFlow
       );
       unawaited(_refreshHomeCounty());
       unawaited(_syncInterests());
-      await (inProgress ? _continueSetup() : _finishSetup());
+      await (inProgress ? _continueSetup() : _readyOrAskLocation());
       return;
     }
 
@@ -142,7 +137,7 @@ class StartupFlow extends _$StartupFlow
     );
     if (county != null) {
       unawaited(_syncInterests());
-      await (inProgress ? _continueSetup() : _finishSetup());
+      await (inProgress ? _continueSetup() : _readyOrAskLocation());
     } else if (error == null) {
       // Confirmed new user: setup has started.
       await _markSetupInProgress(true);
@@ -236,7 +231,7 @@ class StartupFlow extends _$StartupFlow
     }
     if (!ref.mounted) return;
     if (result == AppLocationPermissionResult.granted) {
-      await _afterLocationGranted();
+      await _finishSetup();
       return;
     }
     state = state.copyWith(
@@ -254,22 +249,9 @@ class StartupFlow extends _$StartupFlow
     if (!ref.mounted) return;
     state = state.copyWith(
       phase: StartupStep.ready,
+      isDeviceLocationAsk: false,
       isLocationPermanentlyDenied: false,
       permissionError: () => null,
     );
-  }
-
-  /// Step 3's "Not now": Home in manual mode (turn location on in Settings).
-  Future<void> skipLocation() async {
-    if (state.isRequestingLocation) return;
-    try {
-      await ref.read(profileSettingsRepositoryProvider)?.update({
-        'location_mode': 'manual',
-      });
-    } on Object {
-      // A preference only; Home opens either way.
-    }
-    if (!ref.mounted) return;
-    await _finishSetup();
   }
 }

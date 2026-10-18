@@ -10,7 +10,6 @@ abstract final class AppRoutes {
   static const homeCounty = '/home-county';
   static const preferences = '/preferences';
   static const permission = '/permission';
-  static const notifications = '/notifications';
   static const map = '/map';
   static const badges = '/badges';
   static const explore = '/explore';
@@ -43,7 +42,6 @@ abstract final class AppRoutes {
     homeCounty,
     preferences,
     permission,
-    notifications,
   };
 
   /// Startup gating keeps onboarding and release prompts ahead of app routes.
@@ -59,7 +57,6 @@ abstract final class AppRoutes {
       StartupStep.homeCounty => homeCounty,
       StartupStep.preferences => preferences,
       StartupStep.permission => permission,
-      StartupStep.notifications => notifications,
       StartupStep.ready => null,
     };
     if (updateRequired) {

@@ -54,15 +54,6 @@ class ArrivalNotificationBridge {
   Future<void> beat({required bool foreground}) =>
       _guard('heartbeat', () => state.setForeground(foreground));
 
-  /// The OS prompt, once per install, in context (after the first arrival
-  /// sheet) rather than at launch.
-  Future<void> askPermissionOnce() {
-    return _guard('permission', () async {
-      if (await state.permissionAsked()) return;
-      await _notifier.requestPermission();
-    });
-  }
-
   Future<void> _guard(String what, Future<void> Function() run) async {
     try {
       await run();

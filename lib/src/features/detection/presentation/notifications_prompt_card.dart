@@ -7,12 +7,11 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/notifications_prompt.dart';
 
-/// Home's "Know when you cross a line" card, for people whose phone does
-/// not allow notifications (they never saw the setup step, or said "Not
-/// now"). It hides itself, taking no space, unless
-/// [notificationsPromptProvider] says it is due. The button asks the phone
-/// once, then sends the person to the app's settings; coming back with
-/// notifications on removes the card.
+/// Home's "Stay in the loop" card, the app's one ask for notifications, for
+/// anyone whose phone does not allow them yet. It hides itself, taking no
+/// space, unless [notificationsPromptProvider] says it is due. The button
+/// asks the phone once, then sends the person to the app's settings; coming
+/// back with notifications on removes the card.
 class NotificationsPromptCard extends ConsumerStatefulWidget {
   const NotificationsPromptCard({super.key, required this.onOpenSettings});
 
@@ -78,7 +77,7 @@ class _NotificationsPromptCardState
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Know when you cross a line',
+                    'Stay in the loop',
                     style: AppTextStyles.listItemTitle.copyWith(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -105,8 +104,9 @@ class _NotificationsPromptCardState
                 children: [
                   const Expanded(
                     child: Text(
-                      'Get a heads-up the moment you enter a new county, '
-                      'even when the app is closed.',
+                      'Get a heads-up when you enter a new county, and when '
+                      'your photos and trips are reviewed, even with the '
+                      'app closed.',
                       style: AppTextStyles.bodySmall,
                     ),
                   ),

@@ -4,10 +4,6 @@ import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
 import 'package:kaunti47_v2/src/features/detection/application/arrival_notifier_provider.dart';
 import 'package:kaunti47_v2/src/features/detection/application/notifications_prompt.dart';
 import 'package:kaunti47_v2/src/features/detection/data/arrival_notifier.dart';
-import 'package:kaunti47_v2/src/features/profile/application/interests_providers.dart';
-import 'package:kaunti47_v2/src/features/profile/application/profile_settings_providers.dart';
-import 'package:kaunti47_v2/src/features/profile/data/profile_settings_repository.dart';
-import 'package:kaunti47_v2/src/features/profile/domain/profile_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeNotifier extends ArrivalNotifier {
@@ -25,37 +21,16 @@ class _FakeNotifier extends ArrivalNotifier {
   }
 }
 
-class _FakeSettings implements ProfileSettingsRepository {
-  ProfileSettings value = const ProfileSettings(
-    mapVisibility: MapVisibility.friends,
-    showOnLeaderboards: true,
-    notifyBadgeUnlocks: true,
-    notifyCountyNudges: true,
-    sideQuestRadiusKm: 100,
-    locationMode: LocationMode.automatic,
-  );
-
-  @override
-  Future<ProfileSettings> fetch() async => value;
-
-  @override
-  Future<void> update(Map<String, Object?> columns) async {}
-}
-
 void main() {
   late _FakeNotifier notifier;
-  late _FakeSettings settings;
-  var sessions = 3;
   String? userId = 'alice';
 
   ProviderContainer container() {
     final c = ProviderContainer(
       overrides: [
         arrivalNotifierServiceProvider.overrideWithValue(notifier),
-        profileSettingsRepositoryProvider.overrideWithValue(settings),
         authUserIdProvider.overrideWith((ref) => Stream.value(userId)),
         currentUserIdProvider.overrideWithValue(() => userId),
-        interestsSessionCountProvider.overrideWith((ref) async => sessions),
       ],
     );
     addTearDown(c.dispose);
@@ -65,12 +40,10 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     notifier = _FakeNotifier();
-    settings = _FakeSettings();
-    sessions = 3;
     userId = 'alice';
   });
 
-  test('due: not allowed yet, nudges on, automatic, past session 2', () async {
+  test('due on first Home: not allowed yet, whatever the settings', () async {
     final c = container();
     expect(await c.read(notificationsPromptProvider.future), isTrue);
   });
@@ -81,32 +54,8 @@ void main() {
     expect(await c.read(notificationsPromptProvider.future), isFalse);
   });
 
-  test('hidden in the first session, and when signed out', () async {
-    sessions = 1;
-    expect(await container().read(notificationsPromptProvider.future), isFalse);
-    sessions = 3;
+  test('hidden when signed out', () async {
     userId = null;
-    expect(await container().read(notificationsPromptProvider.future), isFalse);
-  });
-
-  test('hidden with county nudges off or manual detection', () async {
-    settings.value = const ProfileSettings(
-      mapVisibility: MapVisibility.friends,
-      showOnLeaderboards: true,
-      notifyBadgeUnlocks: true,
-      notifyCountyNudges: false,
-      sideQuestRadiusKm: 100,
-      locationMode: LocationMode.automatic,
-    );
-    expect(await container().read(notificationsPromptProvider.future), isFalse);
-    settings.value = const ProfileSettings(
-      mapVisibility: MapVisibility.friends,
-      showOnLeaderboards: true,
-      notifyBadgeUnlocks: true,
-      notifyCountyNudges: true,
-      sideQuestRadiusKm: 100,
-      locationMode: LocationMode.manual,
-    );
     expect(await container().read(notificationsPromptProvider.future), isFalse);
   });
 

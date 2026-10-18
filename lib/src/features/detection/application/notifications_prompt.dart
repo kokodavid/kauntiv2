@@ -1,24 +1,20 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../auth/application/auth_providers.dart';
-import '../../profile/application/interests_providers.dart';
-import '../../profile/application/profile_settings_providers.dart';
-import '../../profile/domain/profile_settings.dart';
 import '../data/arrival_notification_state.dart';
 import 'arrival_notifier_provider.dart';
 
 part 'notifications_prompt.g.dart';
 
-/// How many app sessions reach Home before the card first appears, so
-/// someone who just finished setup is not asked twice in a row.
-const notificationsPromptMinSessions = 2;
-
-/// Whether Home shows the "Turn on notifications" card: for someone whose
-/// phone does not allow notifications yet (an older install that never saw
-/// the setup step, or a "Not now" there), who still has county nudges on
-/// and automatic detection, has not dismissed it, and has opened Home at
-/// least [notificationsPromptMinSessions] times. It goes away once the
-/// phone allows notifications.
+/// Whether Home shows the "Turn on notifications" card. This is the one
+/// place the app asks for notification permission: Home, on the first visit
+/// on any phone (permission belongs to the phone, so a new phone is asked
+/// again), once location has been dealt with in start-up, so two system
+/// prompts never come back to back. It shows while the phone does not allow
+/// notifications and the card has not been dismissed on this phone, and goes
+/// away once the phone allows them. Notifications cover county arrivals,
+/// replies to photos and trips, and announcements, so it no longer depends
+/// on the county-nudge switch or on automatic detection.
 @Riverpod(keepAlive: true)
 class NotificationsPrompt extends _$NotificationsPrompt {
   static const _state = ArrivalNotificationState();
@@ -26,17 +22,8 @@ class NotificationsPrompt extends _$NotificationsPrompt {
   @override
   Future<bool> build() async {
     if (ref.read(currentUserIdProvider)() == null) return false;
-    final sessions = await ref.watch(interestsSessionCountProvider.future);
-    if (sessions < notificationsPromptMinSessions) return false;
     try {
       if (await _state.promptDismissed()) return false;
-      final settings = await ref.watch(
-        profileSettingsControllerProvider.future,
-      );
-      if (settings.locationMode != LocationMode.automatic ||
-          !settings.notifyCountyNudges) {
-        return false;
-      }
       return !await ref.read(arrivalNotifierServiceProvider).isPermitted();
     } on Object {
       return false;

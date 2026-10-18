@@ -148,7 +148,7 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
       if (!mounted) return;
       final pending = ref.read(pendingArrivalNudgeProvider.notifier).take();
       if (pending == null) return;
-      unawaited(_present(pending.county, firstSheet: true));
+      unawaited(_present(pending.county));
     });
   }
 
@@ -188,10 +188,7 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
     }
   }
 
-  Future<void> _present(
-    CountyDetailData data, {
-    bool firstSheet = false,
-  }) async {
+  Future<void> _present(CountyDetailData data) async {
     final openCounty = widget.onOpenCounty;
     final openPlace = widget.onOpenPlace;
     await showCountyArrivalSheet(
@@ -202,8 +199,6 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
           : (code) => openCounty(context, code),
       onOpenPlace: openPlace == null ? null : (id) => openPlace(context, id),
     );
-    // The first arrival is the moment to ask for notifications.
-    if (firstSheet) unawaited(_notifications.askPermissionOnce());
   }
 
   @override

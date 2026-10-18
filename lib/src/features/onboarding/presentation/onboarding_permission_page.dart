@@ -21,6 +21,7 @@ class OnboardingPermissionPage extends StatelessWidget {
   const OnboardingPermissionPage({
     super.key,
     required this.isRequesting,
+    required this.isDeviceAsk,
     required this.isPermanentlyDenied,
     required this.errorMessage,
     required this.interests,
@@ -32,6 +33,10 @@ class OnboardingPermissionPage extends StatelessWidget {
   });
 
   final bool isRequesting;
+
+  /// A returning user on a new phone: not setup step 3, so no "3 of 3" and
+  /// nothing to go back to.
+  final bool isDeviceAsk;
   final bool isPermanentlyDenied;
 
   /// Set after the OS said no without it being permanent.
@@ -71,10 +76,10 @@ class OnboardingPermissionPage extends StatelessWidget {
           )
         : ('Let counties unlock on their own', _askLine());
     return OnboardingShell(
-      step: 3,
+      step: isDeviceAsk ? null : 3,
       title: title,
       subtitle: subtitle,
-      onBack: onBack,
+      onBack: isDeviceAsk ? null : onBack,
       primaryLabel: isPermanentlyDenied
           ? 'Open Settings'
           : (_denied ? 'Try again' : 'Enable location'),

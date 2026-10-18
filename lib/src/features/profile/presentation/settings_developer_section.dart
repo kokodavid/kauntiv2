@@ -12,14 +12,19 @@ class SettingsDeveloperSection extends StatelessWidget {
   const SettingsDeveloperSection({
     super.key,
     required this.onOpenLocationDiagnostics,
+    this.onOpenPushStatus,
   });
 
   final VoidCallback? onOpenLocationDiagnostics;
 
+  /// Dev builds only; null hides the row.
+  final VoidCallback? onOpenPushStatus;
+
   @override
   Widget build(BuildContext context) {
     final onTap = onOpenLocationDiagnostics;
-    if (onTap == null) return const SizedBox.shrink();
+    final onPush = onOpenPushStatus;
+    if (onTap == null && onPush == null) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -36,11 +41,19 @@ class SettingsDeveloperSection extends StatelessWidget {
         ),
         SettingsCard(
           children: [
-            SettingsActionRow(
-              title: 'Location diagnostics',
-              subtitle: 'Record and share a device report',
-              onTap: onTap,
-            ),
+            if (onTap != null)
+              SettingsActionRow(
+                title: 'Location diagnostics',
+                subtitle: 'Record and share a device report',
+                divider: onPush != null,
+                onTap: onTap,
+              ),
+            if (onPush != null)
+              SettingsActionRow(
+                title: 'Push status',
+                subtitle: 'Why this phone is or is not registered',
+                onTap: onPush,
+              ),
           ],
         ),
         const SizedBox(height: 14),

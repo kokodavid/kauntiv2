@@ -26,6 +26,7 @@ class PushLifecycle extends ConsumerStatefulWidget {
 class _PushLifecycleState extends ConsumerState<PushLifecycle>
     with WidgetsBindingObserver {
   static const _resyncAfter = Duration(minutes: 30);
+  static const _retryAfter = Duration(seconds: 5);
 
   final _subscriptions = <StreamSubscription<Object?>>[];
   DateTime? _lastSync;
@@ -76,10 +77,18 @@ class _PushLifecycleState extends ConsumerState<PushLifecycle>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
-    final last = _lastSync;
-    if (last != null && DateTime.now().difference(last) < _resyncAfter) return;
+    final registrar = ref.read(pushRegistrarProvider);
+    final sinceLast = _lastSync == null
+        ? null
+        : DateTime.now().difference(_lastSync!);
+    // Normally every 30 minutes. While this phone is not fully registered
+    // (the user has just allowed notifications from the system prompt or the
+    // phone's settings, which both bring the app back to the front), try
+    // again straight away.
+    final wait = registrar.isSettled ? _resyncAfter : _retryAfter;
+    if (sinceLast != null && sinceLast < wait) return;
     _lastSync = DateTime.now();
-    unawaited(ref.read(pushRegistrarProvider).sync());
+    unawaited(registrar.sync());
   }
 
   @override

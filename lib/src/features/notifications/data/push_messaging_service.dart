@@ -20,6 +20,10 @@ abstract interface class PushMessagingService {
 
   Future<String?> token();
 
+  /// iOS only: the token Apple gave the phone (null elsewhere or before it
+  /// arrives). Shown in the dev Push status screen.
+  Future<String?> apnsToken();
+
   Future<void> deleteToken();
 
   Stream<String> get tokenRefreshes;
@@ -38,7 +42,7 @@ class FirebasePushMessagingService implements PushMessagingService {
   FirebasePushMessagingService(this.settings);
 
   static const _logger = AppLogger.push();
-  static const _iosBundleId = 'com.giglab.kaunti47';
+  static const _iosBundleId = 'com.giglab.kaunti47.app';
 
   final FirebaseSettings settings;
   Future<bool>? _started;
@@ -120,7 +124,26 @@ class FirebasePushMessagingService implements PushMessagingService {
   @override
   Future<String?> token() async {
     if (!await start()) return null;
-    return FirebaseMessaging.instance.getToken();
+    final messaging = FirebaseMessaging.instance;
+    if (Platform.isIOS) {
+      // Already allowed (for example from Home's card): this re-registers
+      // for remote notifications without showing a prompt. Not asked yet:
+      // left alone, so Firebase never shows its own prompt at the wrong
+      // moment.
+      final status = (await messaging.getNotificationSettings())
+          .authorizationStatus;
+      if (status == AuthorizationStatus.authorized ||
+          status == AuthorizationStatus.provisional) {
+        await messaging.requestPermission();
+      }
+    }
+    return messaging.getToken();
+  }
+
+  @override
+  Future<String?> apnsToken() async {
+    if (!Platform.isIOS || !await start()) return null;
+    return FirebaseMessaging.instance.getAPNSToken();
   }
 
   @override

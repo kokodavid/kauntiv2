@@ -201,6 +201,9 @@ GoRouter appRouter(Ref ref) {
                 )
                 ? () => context.push(AppRoutes.locationDiagnostics)
                 : null,
+            onOpenPushStatus: ref.read(appConfigProvider).isDev
+                ? () => PushRoutes.openStatus(context)
+                : null,
           ),
         ),
       ),

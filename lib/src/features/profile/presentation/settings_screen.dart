@@ -38,12 +38,14 @@ class SettingsScreen extends ConsumerStatefulWidget {
     required this.onOpenLocationSettings,
     required this.onOpenInterests,
     this.onOpenLocationDiagnostics,
+    this.onOpenPushStatus,
     this.topSlot,
   });
 
   final Future<void> Function() onOpenLocationSettings;
   final VoidCallback onOpenInterests;
   final VoidCallback? onOpenLocationDiagnostics;
+  final VoidCallback? onOpenPushStatus;
 
   /// Wired by the app layer: the "Update available" row (app_version).
   final Widget? topSlot;
@@ -224,6 +226,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 18),
               SettingsDeveloperSection(
                 onOpenLocationDiagnostics: widget.onOpenLocationDiagnostics,
+                onOpenPushStatus: widget.onOpenPushStatus,
               ),
               const SizedBox(height: 4),
               SignOutButton(

@@ -4,11 +4,22 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/notifications/domain/push_destination.dart';
+import '../features/notifications/presentation/push_status_screen.dart';
 import 'app_routes.dart';
 
 /// Where a tapped push notification goes. The server sends one of a fixed
 /// list of destinations; anything unknown or incomplete opens Home.
 abstract final class PushRoutes {
+  /// Dev builds only (Settings, Developer): why this phone's push token is
+  /// or is not registered.
+  static void openStatus(BuildContext context) {
+    unawaited(
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(builder: (_) => const PushStatusScreen()),
+      ),
+    );
+  }
+
   static void open(BuildContext context, PushDestination destination) {
     final router = GoRouter.of(context);
     final id = destination.id;

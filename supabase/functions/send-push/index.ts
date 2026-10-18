@@ -98,6 +98,15 @@ Deno.serve(async (request) => {
             eventId: event.event_id, title: event.title, body: event.body, kind: event.kind,
             destKind: event.dest_kind ?? 'home', destId: event.dest_id,
           })))
+          // One event can go to several phones and counts as sent if any
+          // accepts it, so a failing phone would otherwise leave no trace.
+          // Log each result (only the last 6 characters of the token).
+          for (const r of results) {
+            console.log(JSON.stringify({
+              event: event.event_id, kind: event.kind, token: `…${r.token.slice(-6)}`,
+              ok: r.ok, dead: r.dead, error: r.error ?? null,
+            }))
+          }
           const dead = results.filter((r) => r.dead).map((r) => r.token)
           const ok = results.some((r) => r.ok)
           const allDead = results.length > 0 && results.every((r) => !r.ok && r.dead)

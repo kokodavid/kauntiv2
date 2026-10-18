@@ -38,11 +38,15 @@ class SettingsScreen extends ConsumerStatefulWidget {
     required this.onOpenLocationSettings,
     required this.onOpenInterests,
     this.onOpenLocationDiagnostics,
+    this.topSlot,
   });
 
   final Future<void> Function() onOpenLocationSettings;
   final VoidCallback onOpenInterests;
   final VoidCallback? onOpenLocationDiagnostics;
+
+  /// Wired by the app layer: the "Update available" row (app_version).
+  final Widget? topSlot;
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -165,6 +169,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // removed -- `settings_privacy_section.dart` and
               // `settings_side_quests_section.dart` are still there to
               // bring back).
+              if (widget.topSlot != null) widget.topSlot!,
               SettingsNotificationsSection(
                 settings: settings,
                 notifier: notifier,

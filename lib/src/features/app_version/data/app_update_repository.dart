@@ -42,18 +42,30 @@ class AppUpdateRepository {
     return AppUpdatePolicy.fromJson(response, current);
   }
 
-  Future<bool> wasOptionalDismissed(String version) async =>
-      (await SharedPreferences.getInstance()).getString(_dismissedVersionKey) ==
-      version;
+  String get _snoozedAtKey => 'app_update_snoozed_at_$_channel';
 
-  Future<void> dismissOptional(String version) async =>
-      (await SharedPreferences.getInstance()).setString(
-        _dismissedVersionKey,
-        version,
-      );
+  /// True while a soft prompt for [version] was dismissed within [snooze].
+  Future<bool> isSoftSnoozed(String version, Duration snooze) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getString(_dismissedVersionKey) != version) return false;
+    final at = prefs.getInt(_snoozedAtKey);
+    if (at == null) return false;
+    final age = DateTime.now().millisecondsSinceEpoch - at;
+    return age < snooze.inMilliseconds;
+  }
+
+  Future<void> snoozeSoft(String version) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_dismissedVersionKey, version);
+    await prefs.setInt(_snoozedAtKey, DateTime.now().millisecondsSinceEpoch);
+  }
 
   Future<bool> openStore(Uri? uri) async {
     if (uri == null) return false;
-    return launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } on Object {
+      return false;
+    }
   }
 }

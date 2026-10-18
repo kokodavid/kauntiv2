@@ -6,7 +6,6 @@ import '../features/onboarding/domain/startup_state.dart';
 abstract final class AppRoutes {
   static const splash = '/splash';
   static const updateRequired = '/update-required';
-  static const updateAvailable = '/update-available';
   static const signIn = '/sign-in';
   static const homeCounty = '/home-county';
   static const preferences = '/preferences';
@@ -53,7 +52,6 @@ abstract final class AppRoutes {
     StartupStep step,
     String location, {
     bool updateRequired = false,
-    bool updateAvailable = false,
   }) {
     final target = switch (step) {
       StartupStep.splash => splash,
@@ -69,13 +67,7 @@ abstract final class AppRoutes {
           ? null
           : AppRoutes.updateRequired;
     }
-    if (updateAvailable && step == StartupStep.ready) {
-      return location == AppRoutes.updateAvailable
-          ? null
-          : AppRoutes.updateAvailable;
-    }
-    if (location == AppRoutes.updateRequired ||
-        location == AppRoutes.updateAvailable) {
+    if (location == AppRoutes.updateRequired) {
       return target ?? map;
     }
     if (target != null) return location == target ? null : target;

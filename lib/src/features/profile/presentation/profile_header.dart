@@ -4,6 +4,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/saved_chip.dart';
 import '../../../design/app_colors.dart';
+import 'profile_pill_button.dart';
 import 'profile_tiles.dart';
 
 /// Full-width account band: back + Settings row, then avatar (with a
@@ -18,6 +19,7 @@ class ProfileHeader extends StatelessWidget {
     this.homeCounty,
     required this.isPro,
     required this.onOpenSettings,
+    this.updateAvailable = false,
     this.canEdit = true,
     this.savedAt,
     required this.onEditProfile,
@@ -37,6 +39,9 @@ class ProfileHeader extends StatelessWidget {
   final DateTime? savedAt;
   final VoidCallback onOpenSettings;
   final VoidCallback onEditProfile;
+
+  /// A newer release exists: a blue dot on the Settings pill points at it.
+  final bool updateAvailable;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
@@ -61,10 +66,11 @@ class ProfileHeader extends StatelessWidget {
                     }
                   },
                 ),
-                _PillButton(
+                ProfilePillButton(
                   icon: Icons.settings_outlined,
                   label: 'Settings',
                   onTap: onOpenSettings,
+                  showDot: updateAvailable,
                 ),
               ],
             ),
@@ -247,46 +253,6 @@ class _ProPill extends StatelessWidget {
         fontWeight: FontWeight.w700,
         color: Colors.white,
         letterSpacing: 0.4,
-      ),
-    ),
-  );
-}
-
-class _PillButton extends StatelessWidget {
-  const _PillButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(999),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: AppColors.foreground),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                color: AppColors.foreground,
-              ),
-            ),
-          ],
-        ),
       ),
     ),
   );

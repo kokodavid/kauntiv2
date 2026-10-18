@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/connectivity_provider.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
+import '../../app_version/application/app_update_providers.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../badges/application/badges_providers.dart';
 import '../../detection/application/detection_controller.dart';
@@ -223,6 +224,9 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
               canEdit: !offline && publicProfile != null,
               savedAt: savedAt,
               onOpenSettings: widget.onOpenSettings,
+              updateAvailable: ref.watch(
+                appUpdateControllerProvider.select((p) => p?.available == true),
+              ),
               onEditProfile: _openEditProfile,
             ),
             Padding(

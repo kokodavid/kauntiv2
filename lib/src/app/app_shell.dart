@@ -14,6 +14,7 @@ import '../core/widgets/connectivity_lifecycle.dart';
 import '../core/widgets/offline_banner.dart';
 import '../design/app_colors.dart';
 import '../features/app_version/application/app_update_providers.dart';
+import '../features/app_version/presentation/soft_update_host.dart';
 import '../features/detection/application/visit_sync.dart';
 import '../features/detection/presentation/detection_lifecycle.dart';
 import '../features/journeys/presentation/journey_active_banner.dart';
@@ -86,7 +87,8 @@ class AppShell extends ConsumerWidget {
         onOpenCounty: DetailRoutes.openCounty,
         onOpenPlace: DetailRoutes.openPlace,
         onOpenTrip: (context) => context.push(AppRoutes.journeyRecording),
-        child: JourneySyncLifecycle(
+        child: SoftUpdateHost(
+          child: JourneySyncLifecycle(
           onRecovered: () =>
               ref.read(appUpdateControllerProvider.notifier).check(),
           child: Scaffold(
@@ -155,6 +157,7 @@ class AppShell extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
           ),
         ),
       ),

@@ -10,6 +10,7 @@ import '../core/services/app_config_provider.dart';
 import '../core/services/last_screen.dart';
 import '../core/services/location_diagnostics.dart';
 import '../features/app_version/application/app_update_providers.dart';
+import '../features/app_version/presentation/update_settings_row.dart';
 import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
@@ -57,7 +58,6 @@ GoRouter appRouter(Ref ref) {
         ref.read(startupFlowProvider).step,
         state.matchedLocation,
         updateRequired: update?.required == true && !journeyActive,
-        updateAvailable: update?.available == true && !journeyActive,
       );
     },
     routes: [
@@ -193,6 +193,7 @@ GoRouter appRouter(Ref ref) {
         // already-signed-out state while it slides away.
         pageBuilder: (context, state) => NoTransitionPage(
           child: SettingsScreen(
+            topSlot: const UpdateSettingsRow(),
             onOpenLocationSettings: DetailRoutes.openAppSettings,
             onOpenInterests: () => context.push(AppRoutes.interests),
             onOpenLocationDiagnostics:

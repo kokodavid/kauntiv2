@@ -15,6 +15,7 @@ class AppConfig {
     this.firebaseMessagingSenderId = '',
     this.firebaseAndroidAppId = '',
     this.firebaseIosAppId = '',
+    this.firebaseIosApiKey = '',
   });
 
   const AppConfig.dev()
@@ -37,7 +38,8 @@ class AppConfig {
       firebaseAndroidAppId = const String.fromEnvironment(
         'FIREBASE_ANDROID_APP_ID',
       ),
-      firebaseIosAppId = const String.fromEnvironment('FIREBASE_IOS_APP_ID');
+      firebaseIosAppId = const String.fromEnvironment('FIREBASE_IOS_APP_ID'),
+      firebaseIosApiKey = const String.fromEnvironment('FIREBASE_IOS_API_KEY');
 
   const AppConfig.prod()
     : environment = AppEnvironment.prod,
@@ -59,7 +61,8 @@ class AppConfig {
       firebaseAndroidAppId = const String.fromEnvironment(
         'FIREBASE_ANDROID_APP_ID',
       ),
-      firebaseIosAppId = const String.fromEnvironment('FIREBASE_IOS_APP_ID');
+      firebaseIosAppId = const String.fromEnvironment('FIREBASE_IOS_APP_ID'),
+      firebaseIosApiKey = const String.fromEnvironment('FIREBASE_IOS_API_KEY');
 
   final AppEnvironment environment;
   final String appName;
@@ -80,6 +83,10 @@ class AppConfig {
   final String firebaseMessagingSenderId;
   final String firebaseAndroidAppId;
   final String firebaseIosAppId;
+
+  /// Firebase issues a separate key per platform; empty falls back to
+  /// [firebaseApiKey].
+  final String firebaseIosApiKey;
 
   bool get hasMapboxConfig => mapboxAccessToken.isNotEmpty;
 

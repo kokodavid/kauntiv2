@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/app_config_provider.dart';
@@ -18,7 +19,11 @@ PushMessagingService pushMessagingService(Ref ref) {
   return FirebasePushMessagingService(
     FirebaseSettings(
       projectId: config.firebaseProjectId,
-      apiKey: config.firebaseApiKey,
+      apiKey:
+          defaultTargetPlatform == TargetPlatform.iOS &&
+              config.firebaseIosApiKey.isNotEmpty
+          ? config.firebaseIosApiKey
+          : config.firebaseApiKey,
       messagingSenderId: config.firebaseMessagingSenderId,
       androidAppId: config.firebaseAndroidAppId,
       iosAppId: config.firebaseIosAppId,

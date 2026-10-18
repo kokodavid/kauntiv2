@@ -87,6 +87,16 @@ class ProfileSettingsController extends _$ProfileSettingsController {
     {'notify_photo_reviews': value},
   );
 
+  Future<void> setNotifyTripAlerts(bool value) => _apply(
+    (s) => s.copyWith(notifyTripAlerts: value),
+    {'notify_trip_alerts': value},
+  );
+
+  Future<void> setNotifyWeekendPlans(bool value) => _apply(
+    (s) => s.copyWith(notifyWeekendPlans: value),
+    {'notify_weekend_plans': value},
+  );
+
   /// Saved as a preference only -- see [LocationMode]'s doc comment: this
   /// does not yet change what [DetectionController] actually does.
   Future<void> setLocationMode(LocationMode value) => _apply(

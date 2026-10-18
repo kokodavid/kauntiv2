@@ -54,6 +54,8 @@ class ProfileSettings {
     required this.locationMode,
     this.notifyAnnouncements = true,
     this.notifyPhotoReviews = true,
+    this.notifyTripAlerts = true,
+    this.notifyWeekendPlans = false,
   });
 
   final MapVisibility mapVisibility;
@@ -69,6 +71,12 @@ class ProfileSettings {
   /// "Your photo was reviewed" notifications.
   final bool notifyPhotoReviews;
 
+  /// The reminder when a trip you are recording has been paused for a while.
+  final bool notifyTripAlerts;
+
+  /// One place idea on Thursday afternoons (opt-in).
+  final bool notifyWeekendPlans;
+
   /// The radii the radius chooser offers (`side_quest_radius_km`'s check
   /// constraint: `in (25, 50, 100, 250, 500)`).
   static const radiusChoicesKm = [25, 50, 100, 250, 500];
@@ -82,6 +90,8 @@ class ProfileSettings {
     LocationMode? locationMode,
     bool? notifyAnnouncements,
     bool? notifyPhotoReviews,
+    bool? notifyTripAlerts,
+    bool? notifyWeekendPlans,
   }) => ProfileSettings(
     mapVisibility: mapVisibility ?? this.mapVisibility,
     showOnLeaderboards: showOnLeaderboards ?? this.showOnLeaderboards,
@@ -91,5 +101,7 @@ class ProfileSettings {
     locationMode: locationMode ?? this.locationMode,
     notifyAnnouncements: notifyAnnouncements ?? this.notifyAnnouncements,
     notifyPhotoReviews: notifyPhotoReviews ?? this.notifyPhotoReviews,
+    notifyTripAlerts: notifyTripAlerts ?? this.notifyTripAlerts,
+    notifyWeekendPlans: notifyWeekendPlans ?? this.notifyWeekendPlans,
   );
 }

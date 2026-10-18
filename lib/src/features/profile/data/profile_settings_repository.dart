@@ -23,7 +23,8 @@ class SupabaseProfileSettingsRepository implements ProfileSettingsRepository {
   static const _columns =
       'map_visibility, show_on_leaderboards, notify_badge_unlocks, '
       'notify_county_nudges, side_quest_radius_km, location_mode, '
-      'notify_announcements, notify_photo_reviews';
+      'notify_announcements, notify_photo_reviews, notify_trip_alerts, '
+      'notify_weekend_plans';
 
   String _owner() {
     final owner = client.auth.currentUser?.id;
@@ -55,6 +56,8 @@ class SupabaseProfileSettingsRepository implements ProfileSettingsRepository {
       ),
       notifyAnnouncements: row?['notify_announcements'] as bool? ?? true,
       notifyPhotoReviews: row?['notify_photo_reviews'] as bool? ?? true,
+      notifyTripAlerts: row?['notify_trip_alerts'] as bool? ?? true,
+      notifyWeekendPlans: row?['notify_weekend_plans'] as bool? ?? false,
     );
   }
 

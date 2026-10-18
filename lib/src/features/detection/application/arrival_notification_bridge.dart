@@ -25,11 +25,18 @@ class ArrivalNotificationBridge {
 
   /// Registers the tap handler and reports the crossing of a notification
   /// that cold-started the app. [onOpen] runs for either.
-  Future<void> start({required void Function(CountyArrivalNudge) onOpen}) {
+  Future<void> start({
+    required void Function(CountyArrivalNudge) onOpen,
+    void Function(String payload)? onOtherPayload,
+  }) {
     return _guard('start', () async {
       void open(String payload) {
         final nudge = ArrivalNudgeRules.parseKey(payload);
-        if (nudge != null) onOpen(nudge);
+        if (nudge != null) {
+          onOpen(nudge);
+        } else {
+          onOtherPayload?.call(payload);
+        }
       }
 
       await _notifier.initialize(onTap: open);

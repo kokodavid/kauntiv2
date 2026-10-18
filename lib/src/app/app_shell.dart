@@ -84,6 +84,7 @@ class AppShell extends ConsumerWidget {
         homeCountyCode: homeCounty?.code,
         onOpenCounty: DetailRoutes.openCounty,
         onOpenPlace: DetailRoutes.openPlace,
+        onOpenTrip: (context) => context.push(AppRoutes.journeyRecording),
         child: JourneySyncLifecycle(
           child: Scaffold(
             backgroundColor: AppColors.pageBackground,

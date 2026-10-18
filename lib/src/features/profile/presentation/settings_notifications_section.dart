@@ -70,6 +70,20 @@ class SettingsNotificationsSection extends ConsumerWidget {
               divider: true,
             ),
             SettingsToggleRow(
+              title: 'Trip reminders',
+              subtitle: 'When a trip you are recording stays paused',
+              value: settings.notifyTripAlerts,
+              onChanged: (v) => unawaited(notifier.setNotifyTripAlerts(v)),
+              divider: true,
+            ),
+            SettingsToggleRow(
+              title: 'Weekend ideas',
+              subtitle: 'One place worth a visit, on Thursday afternoons',
+              value: settings.notifyWeekendPlans,
+              onChanged: (v) => unawaited(notifier.setNotifyWeekendPlans(v)),
+              divider: true,
+            ),
+            SettingsToggleRow(
               title: 'Announcements',
               subtitle: 'News about Kaunti47: new features and regions',
               value: settings.notifyAnnouncements,

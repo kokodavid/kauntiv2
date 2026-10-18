@@ -9,6 +9,7 @@ import '../../../services/app_logger.dart';
 import '../../discover/application/explore_providers.dart';
 import '../../discover/domain/county_detail.dart';
 import '../../profile/application/profile_settings_providers.dart';
+import '../../notifications/domain/trip_alert.dart';
 import '../application/arrival_notification_bridge.dart';
 import '../application/arrival_nudge.dart';
 import '../application/detection_controller.dart';
@@ -34,6 +35,7 @@ class DetectionLifecycle extends ConsumerStatefulWidget {
     this.homeCountyCode,
     this.onOpenCounty,
     this.onOpenPlace,
+    this.onOpenTrip,
   });
 
   final Widget child;
@@ -44,6 +46,9 @@ class DetectionLifecycle extends ConsumerStatefulWidget {
   /// County / Place Detail from the arrival sheet, supplied by `app/`.
   final void Function(BuildContext context, int countyCode)? onOpenCounty;
   final void Function(BuildContext context, String placeId)? onOpenPlace;
+
+  /// The recording screen, for a tapped "your trip is paused" reminder.
+  final void Function(BuildContext context)? onOpenTrip;
 
   @override
   ConsumerState<DetectionLifecycle> createState() => _DetectionLifecycleState();
@@ -65,7 +70,12 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
     _run(forceLocation: true);
     _startTimer();
     unawaited(_notifications.syncHomeCounty(widget.homeCountyCode));
-    unawaited(_notifications.start(onOpen: _openFromNotification));
+    unawaited(
+      _notifications.start(
+        onOpen: _openFromNotification,
+        onOtherPayload: _openOtherPayload,
+      ),
+    );
   }
 
   @override
@@ -139,6 +149,15 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
       final pending = ref.read(pendingArrivalNudgeProvider.notifier).take();
       if (pending == null) return;
       unawaited(_present(pending.county, firstSheet: true));
+    });
+  }
+
+  /// A tapped notification that is not an arrival: today only the paused
+  /// trip reminder. Deferred a frame so a cold start has a navigator.
+  void _openOtherPayload(String payload) {
+    if (payload != tripPausedPayload) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onOpenTrip?.call(context);
     });
   }
 

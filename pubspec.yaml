@@ -87,6 +87,9 @@ dependencies:
   # google-services.json / GoogleService-Info.plist is needed.
   firebase_core: ^4.0.0
   firebase_messaging: ^16.0.0
+  # Absolute-time scheduling of the paused-trip reminder (already a
+  # dependency of flutter_local_notifications).
+  timezone: ">=0.9.0 <1.0.0"
 
   # Opt-in Journey route capture while the app process is alive. County
   # detection continues to use native_geofence, not this continuous stream.

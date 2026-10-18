@@ -20,6 +20,7 @@ import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
 import '../features/notifications/presentation/push_lifecycle.dart';
+import '../features/notifications/presentation/trip_alert_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
@@ -63,7 +64,9 @@ GoRouter appRouter(Ref ref) {
           // until start-up is done.
           child: PushLifecycle(
             onOpen: PushRoutes.open,
-            child: AppShell(navigationShell: shell),
+            child: TripAlertLifecycle(
+              child: AppShell(navigationShell: shell),
+            ),
           ),
         ),
         branches: [

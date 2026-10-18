@@ -39,11 +39,7 @@ class AppUpdateRepository {
           },
         )
         .timeout(const Duration(seconds: 3));
-    if (response is! Map) return null;
-    return AppUpdatePolicy.fromJson(
-      Map<String, dynamic>.from(response),
-      current,
-    );
+    return AppUpdatePolicy.fromJson(response, current);
   }
 
   Future<bool> wasOptionalDismissed(String version) async =>

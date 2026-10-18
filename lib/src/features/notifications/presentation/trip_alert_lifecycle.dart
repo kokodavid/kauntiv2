@@ -67,12 +67,12 @@ class _TripAlertLifecycleState extends ConsumerState<TripAlertLifecycle>
     final due = pausedAt.add(tripPausedReminderDelay);
     final earliest = now.add(tripPausedReminderMinLead);
     final at = due.isAfter(earliest) ? due : earliest;
-    final notifier = ref.read(tripAlertNotifierProvider);
+    final notifier = ref.read(tripAlertProvider);
     unawaited(_guard('schedule', () => notifier.schedule(at)));
   }
 
   Future<void> _cancel() =>
-      _guard('cancel', () => ref.read(tripAlertNotifierProvider).cancel());
+      _guard('cancel', () => ref.read(tripAlertProvider).cancel());
 
   Future<void> _guard(String what, Future<void> Function() run) async {
     try {

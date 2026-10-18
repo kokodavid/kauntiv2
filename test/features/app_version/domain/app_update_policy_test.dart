@@ -11,7 +11,7 @@ void main() {
       'required': true,
       'store_url': 'http://example.test/app',
       'release_notes': 'Important update',
-    }, SemanticVersion(1, 9, 2));
+    }, const SemanticVersion(1, 9, 2));
 
     expect(policy.available, isTrue);
     expect(policy.required, isTrue);

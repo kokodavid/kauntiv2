@@ -7,6 +7,7 @@ import '../../../core/widgets/app_shimmer.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_county_shape.dart';
 import '../domain/journey_transport_mode.dart';
+import '../domain/trip_share_stat_visibility.dart';
 import 'journey_transport_mode_ui.dart';
 
 part 'trip_share_card_thumbnail_content.dart';
@@ -55,6 +56,7 @@ class TripShareCard extends StatelessWidget {
     this.topSpeedMps,
     this.averageSpeedMps,
     this.highestElevationMeters,
+    this.statVisibility = TripShareStatVisibility.all,
     this.countyNames = const [],
     this.photo,
     this.routePoints = const [],
@@ -81,6 +83,10 @@ class TripShareCard extends StatelessWidget {
   final double? topSpeedMps;
   final double? averageSpeedMps;
   final double? highestElevationMeters;
+
+  /// Stats the user chose to hide are passed to the layout as null, so the
+  /// grid drops them like a stat the Trip never recorded.
+  final TripShareStatVisibility statVisibility;
 
   /// Counties the Trip crossed, in trip order. The count shown ("5
   /// counties") is just this list's length - there's no separate count
@@ -159,10 +165,17 @@ class TripShareCard extends StatelessWidget {
     final icon = transportMode == null
         ? null
         : journeyTransportModeIcon(transportMode!);
-    final distance = _TripShareStats.distance(distanceMeters);
-    final topSpeed = _TripShareStats.speed(topSpeedMps);
-    final avgSpeed = _TripShareStats.speed(averageSpeedMps);
-    final peak = _TripShareStats.elevation(highestElevationMeters);
+    final vis = statVisibility;
+    final distance = vis.distance
+        ? _TripShareStats.distance(distanceMeters)
+        : null;
+    final topSpeed = vis.topSpeed ? _TripShareStats.speed(topSpeedMps) : null;
+    final avgSpeed = vis.averageSpeed
+        ? _TripShareStats.speed(averageSpeedMps)
+        : null;
+    final peak = vis.elevation
+        ? _TripShareStats.elevation(highestElevationMeters)
+        : null;
 
     return SizedBox(
       width: width,

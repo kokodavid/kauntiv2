@@ -128,3 +128,37 @@ description. Don't claim it passed.
   section (ported / differences from v1 / pending / known debt) and a
   progress-log line. Add a baseline burn-down row whenever the baseline
   count changes.
+
+## UI and design tokens
+
+Screens must look like the rest of the app. Never fall back to Material
+defaults. The full standing rule lives in the project doc
+`claude/design-tokens-rule.md`; the working checklist is:
+
+- **Colours:** only `AppColors` (`lib/src/design/app_colors.dart`). Accent is
+  `AppColors.accent` (0xFF0A84FF), text is `AppColors.ink` /
+  `AppColors.foreground`, muted text `AppColors.mutedForeground`, borders
+  `AppColors.cardBorder`, page background `AppColors.pageBackground`. No
+  raw `Color(0x...)`, no `Colors.green/blue/red`, no `Theme.of(context)`
+  colour roles (`colorScheme.primary` etc.) in feature code. If a colour is
+  missing, add a named token to `AppColors` in its own commit.
+- **Type:** `AppTypeScale` (`lib/src/core/design/app_type_scale.dart`) and
+  `AppTextStyles`. Inter only. No ad-hoc `fontSize` literals.
+- **Spacing:** `AppSpacing`; follow the neighbouring screen's rhythm.
+- **Controls are always explicitly styled.** An unstyled `FilledButton`,
+  `ElevatedButton`, `Switch`, `Checkbox`, `Slider` or `SegmentedButton` picks
+  up the Material seed colour (green) and is treated as a bug. Style
+  buttons, switches and toggles with the tokens above, or reuse the existing
+  ones (`SettingsSegmented`, `AppConfirmSheet`, `AppActionsMenu`,
+  `AppTextInputSheet`, `AppBackButton`).
+- **Loading:** `AppProgressIndicator`, never `CircularProgressIndicator` or
+  `LinearProgressIndicator`. Use `AppShimmer` for skeletons.
+- **Feedback:** `showAppToast` for transient messages, `AppConfirmSheet` for
+  confirmations. No `SnackBar`, `AlertDialog` or `showDialog` for new work.
+- **Reuse before creating:** look in `lib/src/core/widgets` and
+  `lib/src/widgets` first. A new shared widget needs a reason in the PR.
+- **Known debt, do not copy:** `lib/src/app/app.dart` seeds the Material theme
+  with 0xFF0E7A45 (green). Do not change it without an explicit go-ahead.
+- **Check visually.** Say which screens you looked at (phone width, light
+  mode) and which states (loading, empty, error). If you could not run the app,
+  say so; never claim a screen "matches the design" unseen.

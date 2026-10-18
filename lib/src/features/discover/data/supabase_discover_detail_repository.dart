@@ -153,8 +153,7 @@ class SupabaseDiscoverDetailRepository implements DiscoverDetailRepository {
       images: _sortedImages(row['place_images'], 'image_url'),
       imageCredits: _imageCredits(row['place_images']),
       imageAspects: _imageAspects(row['place_images']),
-      acceptsPhotos:
-          row['status'] == 'reviewed' && row['archived_at'] == null,
+      acceptsPhotos: row['status'] == 'reviewed' && row['archived_at'] == null,
       source: (row['source'] as String?) ?? 'Unknown',
       saved: results[1] != null,
       latitude: (row['lat'] as num?)?.toDouble(),

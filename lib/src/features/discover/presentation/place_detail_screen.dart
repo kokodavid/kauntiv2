@@ -171,7 +171,12 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
                           onChanged: (tab) => setState(() => _tab = tab),
                         ),
                       Padding(
-                        padding: EdgeInsets.fromLTRB(16, _planned ? 14 : 12, 16, 0),
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          _planned ? 14 : 12,
+                          16,
+                          0,
+                        ),
                         child: _planned && _tab == PlaceDetailTab.plan
                             ? widget.gettingThere!(context, data)
                             : _about(context, data),

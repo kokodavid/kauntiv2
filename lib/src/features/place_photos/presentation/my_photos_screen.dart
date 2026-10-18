@@ -45,9 +45,14 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
 
   void _capture(List<PhotoSubmission> all) {
     if (_unseen != null) return;
-    _unseen = {for (final s in all) if (s.unseen) s.id};
+    _unseen = {
+      for (final s in all)
+        if (s.unseen) s.id,
+    };
     if (_unseen!.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_markSeen()));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => unawaited(_markSeen()),
+      );
     }
   }
 
@@ -62,7 +67,9 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
       _refresh();
     } on Object {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure)));
     }
   }
 
@@ -133,7 +140,9 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
                       child: async.hasError
                           ? TextButton(
                               onPressed: () => ref.invalidate(myPhotosProvider),
-                              style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.accent,
+                              ),
                               child: const Text(
                                 "Couldn't load your photos. Try again.",
                               ),
@@ -156,19 +165,41 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
         s == null ? all.length : all.where((x) => x.status == s).length;
     final filters = [
       (_Filter.all, 'All', count(null)),
-      (_Filter.pending, 'Awaiting review', count(PhotoSubmissionStatus.pending)),
+      (
+        _Filter.pending,
+        'Awaiting review',
+        count(PhotoSubmissionStatus.pending),
+      ),
       (_Filter.approved, 'Published', count(PhotoSubmissionStatus.approved)),
-      (_Filter.rejected, 'Not published', count(PhotoSubmissionStatus.rejected)),
+      (
+        _Filter.rejected,
+        'Not published',
+        count(PhotoSubmissionStatus.rejected),
+      ),
     ];
     const groups = [
-      (PhotoSubmissionStatus.pending, _Filter.pending, 'Awaiting review',
-          'Waiting for the team', null),
-      (PhotoSubmissionStatus.approved, _Filter.approved, 'Published',
-          'Shown in the app', null),
-      (PhotoSubmissionStatus.rejected, _Filter.rejected, 'Not published',
-          'Only you can see these',
-          'Not published photos leave this list after 30 days. You can send '
-              'another any time.'),
+      (
+        PhotoSubmissionStatus.pending,
+        _Filter.pending,
+        'Awaiting review',
+        'Waiting for the team',
+        null,
+      ),
+      (
+        PhotoSubmissionStatus.approved,
+        _Filter.approved,
+        'Published',
+        'Shown in the app',
+        null,
+      ),
+      (
+        PhotoSubmissionStatus.rejected,
+        _Filter.rejected,
+        'Not published',
+        'Only you can see these',
+        'Not published photos leave this list after 30 days. You can send '
+            'another any time.',
+      ),
     ];
     return Column(
       children: [
@@ -204,7 +235,10 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
                       title: title,
                       note: note,
                       foot: foot,
-                      rows: [for (final s in all) if (s.status == status) s],
+                      rows: [
+                        for (final s in all)
+                          if (s.status == status) s,
+                      ],
                       handle: handle,
                       unseen: _unseen ?? const {},
                       onOpenPlace: widget.onOpenPlace,

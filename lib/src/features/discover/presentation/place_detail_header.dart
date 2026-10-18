@@ -45,20 +45,16 @@ class _PlaceDetailHeaderState extends State<PlaceDetailHeader> {
     super.dispose();
   }
 
-  void _open(BuildContext context, int index) => openAppPhotoViewer(
-    context,
-    [
-      for (var i = 0; i < widget.images.length; i++)
-        AppViewerPhoto(
-          id: widget.images[i],
-          url: widget.images[i],
-          caption: i < widget.credits.length && widget.credits[i] != null
-              ? 'Photo by ${widget.credits[i]}'
-              : null,
-        ),
-    ],
-    initialIndex: index,
-  );
+  void _open(BuildContext context, int index) => openAppPhotoViewer(context, [
+    for (var i = 0; i < widget.images.length; i++)
+      AppViewerPhoto(
+        id: widget.images[i],
+        url: widget.images[i],
+        caption: i < widget.credits.length && widget.credits[i] != null
+            ? 'Photo by ${widget.credits[i]}'
+            : null,
+      ),
+  ], initialIndex: index);
 
   @override
   Widget build(BuildContext context) {

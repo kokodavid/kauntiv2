@@ -93,7 +93,10 @@ class SupabasePlacePhotosRepository implements PlacePhotosRepository {
   @override
   Future<List<PhotoSubmission>> mine({String? placeId}) async {
     final rows = await client
-        .rpc<dynamic>('my_place_photo_submissions', params: {'p_place_id': placeId})
+        .rpc<dynamic>(
+          'my_place_photo_submissions',
+          params: {'p_place_id': placeId},
+        )
         .timeout(_timeout);
     return [
       for (final row in (rows as List).cast<Map<String, dynamic>>())
@@ -103,26 +106,36 @@ class SupabasePlacePhotosRepository implements PlacePhotosRepository {
 
   @override
   Future<int> unseenCount() async {
-    final result = await client.rpc<dynamic>('unseen_place_photo_count').timeout(_timeout);
+    final result = await client
+        .rpc<dynamic>('unseen_place_photo_count')
+        .timeout(_timeout);
     return (result as num?)?.toInt() ?? 0;
   }
 
   @override
   Future<void> markResultsSeen() async {
-    await client.rpc<dynamic>('mark_place_photo_results_seen').timeout(_timeout);
+    await client
+        .rpc<dynamic>('mark_place_photo_results_seen')
+        .timeout(_timeout);
   }
 
   @override
   Future<void> dismiss(String submissionId) async {
     await client
-        .rpc<dynamic>('dismiss_place_photo_submission', params: {'p_id': submissionId})
+        .rpc<dynamic>(
+          'dismiss_place_photo_submission',
+          params: {'p_id': submissionId},
+        )
         .timeout(_timeout);
   }
 
   @override
   Future<void> withdraw(String submissionId) async {
     final rows = await client
-        .rpc<dynamic>('withdraw_place_photo_submission', params: {'p_id': submissionId})
+        .rpc<dynamic>(
+          'withdraw_place_photo_submission',
+          params: {'p_id': submissionId},
+        )
         .timeout(_timeout);
     final paths = <String>[
       for (final row in (rows as List).cast<Map<String, dynamic>>()) ...[

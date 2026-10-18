@@ -277,7 +277,11 @@ class SheetSentBody extends StatelessWidget {
           color: AppColors.successTint,
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.check, size: 28, color: AppColors.newCountyText),
+        child: const Icon(
+          Icons.check,
+          size: 28,
+          color: AppColors.newCountyText,
+        ),
       ),
       const Text('Sent for review', style: AppTypeScale.sectionTitle),
       const Text(

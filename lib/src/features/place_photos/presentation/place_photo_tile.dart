@@ -33,49 +33,49 @@ class PlacePhotoTile extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
     child: ClipRRect(
-    borderRadius: BorderRadius.circular(16),
-    child: SizedBox(
-      width: size,
-      height: height ?? size,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          const ColoredBox(color: AppColors.photoTileFill),
-          Image(
-            image: appNetworkImage(photo.url, cacheWidth: 400),
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => const SizedBox.shrink(),
-          ),
-          if (photo.isUser && showCredit)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(10, 18, 10, 8),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0x00000000), Color(0xB3000000)],
+      borderRadius: BorderRadius.circular(16),
+      child: SizedBox(
+        width: size,
+        height: height ?? size,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const ColoredBox(color: AppColors.photoTileFill),
+            Image(
+              image: appNetworkImage(photo.url, cacheWidth: 400),
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            ),
+            if (photo.isUser && showCredit)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(10, 18, 10, 8),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x00000000), Color(0xB3000000)],
+                    ),
                   ),
-                ),
-                child: Text(
-                  photo.creditLine,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: AppTypeScale.family,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                  child: Text(
+                    photo.creditLine,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: AppTypeScale.family,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     ),
-  ),
   );
 }

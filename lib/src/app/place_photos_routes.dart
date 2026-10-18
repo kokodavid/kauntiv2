@@ -23,8 +23,12 @@ abstract final class PlacePhotosRoutes {
         for (var i = 0; i < place.images.length; i++)
           PlacePhotoItem(
             url: place.images[i],
-            credit: i < place.imageCredits.length ? place.imageCredits[i] : null,
-            aspect: i < place.imageAspects.length ? place.imageAspects[i] : null,
+            credit: i < place.imageCredits.length
+                ? place.imageCredits[i]
+                : null,
+            aspect: i < place.imageAspects.length
+                ? place.imageAspects[i]
+                : null,
           ),
       ],
       onOpenMyPhotos: () => context.push(AppRoutes.myPhotos),

@@ -115,7 +115,8 @@ class PhotoSubmitFailure implements Exception {
 
   static const _messages = {
     'feature_off': 'Adding photos is paused for now. Please try again later.',
-    'username_required': 'Choose a username first. Your photo is credited to it.',
+    'username_required':
+        'Choose a username first. Your photo is credited to it.',
     'place_unavailable': "This place isn't open for photos yet.",
     'upload_missing': "The upload didn't finish. Try again.",
     'image_too_small':

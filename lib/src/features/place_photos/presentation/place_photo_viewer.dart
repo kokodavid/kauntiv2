@@ -9,15 +9,11 @@ void openPlacePhotos(
   BuildContext context,
   List<PlacePhotoItem> photos,
   int index,
-) => openAppPhotoViewer(
-  context,
-  [
-    for (final photo in photos)
-      AppViewerPhoto(
-        id: photo.url,
-        url: photo.url,
-        caption: photo.isUser ? photo.creditLine : null,
-      ),
-  ],
-  initialIndex: index,
-);
+) => openAppPhotoViewer(context, [
+  for (final photo in photos)
+    AppViewerPhoto(
+      id: photo.url,
+      url: photo.url,
+      caption: photo.isUser ? photo.creditLine : null,
+    ),
+], initialIndex: index);

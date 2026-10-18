@@ -27,7 +27,11 @@ class PlacePhotoChip extends StatelessWidget {
     final (String? text, Color? dot, String? action) = live
         ? ('Your photo is live', AppColors.newCountyText, 'View')
         : notPublished
-        ? ("Your photo wasn't published", AppColors.dangerSoftForeground, 'See why')
+        ? (
+            "Your photo wasn't published",
+            AppColors.dangerSoftForeground,
+            'See why',
+          )
         : waiting > 0
         ? (
             waiting == 1

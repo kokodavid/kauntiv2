@@ -33,8 +33,18 @@ class MyPhotoRow extends ConsumerWidget {
   final bool last;
 
   static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   String get _meta {
@@ -167,7 +177,11 @@ class MyPhotoRow extends ConsumerWidget {
                   Row(
                     children: [
                       if (s.isPending)
-                        _Action('Remove', AppColors.dangerSoftForeground, onRemove),
+                        _Action(
+                          'Remove',
+                          AppColors.dangerSoftForeground,
+                          onRemove,
+                        ),
                       if (s.isRejected) ...[
                         _Action('Send another', AppColors.accent, onOpenPlace),
                         _Action('Dismiss', AppColors.headingText, onDismiss),
@@ -221,7 +235,9 @@ class _Thumb extends ConsumerWidget {
     final path = submission.thumbPath;
     final url =
         submission.publishedThumbnailUrl ??
-        (path == null ? null : ref.watch(pendingThumbnailUrlProvider(path)).value);
+        (path == null
+            ? null
+            : ref.watch(pendingThumbnailUrlProvider(path)).value);
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: SizedBox(

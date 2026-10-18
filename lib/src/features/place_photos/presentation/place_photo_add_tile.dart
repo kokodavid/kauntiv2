@@ -69,7 +69,9 @@ class PlacePhotoAddTile extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
-                    color: offline ? AppColors.disabledText : AppColors.foreground,
+                    color: offline
+                        ? AppColors.disabledText
+                        : AppColors.foreground,
                   ),
                 ),
               ],
@@ -177,10 +179,7 @@ class _DashedBorder extends CustomPainter {
     for (final metric in path.computeMetrics()) {
       var distance = 0.0;
       while (distance < metric.length) {
-        canvas.drawPath(
-          metric.extractPath(distance, distance + 6),
-          paint,
-        );
+        canvas.drawPath(metric.extractPath(distance, distance + 6), paint);
         distance += 10;
       }
     }

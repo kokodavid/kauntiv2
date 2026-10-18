@@ -27,8 +27,6 @@ void openJourneyPhotos(
   initialIndex: initialIndex,
   onDelete: onDelete == null
       ? null
-      : (context, photo) => onDelete(
-          context,
-          items.firstWhere((item) => item.id == photo.id),
-        ),
+      : (context, photo) =>
+            onDelete(context, items.firstWhere((item) => item.id == photo.id)),
 );

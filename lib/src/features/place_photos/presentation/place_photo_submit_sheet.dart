@@ -96,7 +96,8 @@ class _SheetState extends ConsumerState<PlacePhotoSubmitSheet> {
   }
 
   void _fail(String message) {
-    if (mounted) setState(() => _refusal = PhotoSubmitFailure('local', message));
+    if (!mounted) return;
+    setState(() => _refusal = PhotoSubmitFailure('local', message));
   }
 
   Future<void> _send() async {
@@ -179,7 +180,7 @@ class _SheetState extends ConsumerState<PlacePhotoSubmitSheet> {
       SheetHeading(
         'Add a photo',
         "We check every photo before it appears. Once it's live, it shows "
-        'as$credit',
+            'as$credit',
       ),
       Row(
         spacing: 10,

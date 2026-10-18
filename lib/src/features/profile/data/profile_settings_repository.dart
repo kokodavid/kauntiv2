@@ -24,7 +24,8 @@ class SupabaseProfileSettingsRepository implements ProfileSettingsRepository {
       'map_visibility, show_on_leaderboards, notify_badge_unlocks, '
       'notify_county_nudges, side_quest_radius_km, location_mode, '
       'notify_announcements, notify_photo_reviews, notify_trip_alerts, '
-      'notify_weekend_plans';
+      'notify_weekend_plans, weekend_use_saved, weekend_include_nearby, '
+      'weekend_radius_km';
 
   String _owner() {
     final owner = client.auth.currentUser?.id;
@@ -58,6 +59,9 @@ class SupabaseProfileSettingsRepository implements ProfileSettingsRepository {
       notifyPhotoReviews: row?['notify_photo_reviews'] as bool? ?? true,
       notifyTripAlerts: row?['notify_trip_alerts'] as bool? ?? true,
       notifyWeekendPlans: row?['notify_weekend_plans'] as bool? ?? false,
+      weekendUseSaved: row?['weekend_use_saved'] as bool? ?? true,
+      weekendIncludeNearby: row?['weekend_include_nearby'] as bool? ?? true,
+      weekendRadiusKm: row?['weekend_radius_km'] as int? ?? 200,
     );
   }
 

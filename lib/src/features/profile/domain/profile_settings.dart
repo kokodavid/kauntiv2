@@ -56,6 +56,9 @@ class ProfileSettings {
     this.notifyPhotoReviews = true,
     this.notifyTripAlerts = true,
     this.notifyWeekendPlans = false,
+    this.weekendUseSaved = true,
+    this.weekendIncludeNearby = true,
+    this.weekendRadiusKm = 200,
   });
 
   final MapVisibility mapVisibility;
@@ -77,6 +80,18 @@ class ProfileSettings {
   /// One place idea on Thursday afternoons (opt-in).
   final bool notifyWeekendPlans;
 
+  /// Weekend ideas come from places and plans the user saved first.
+  final bool weekendUseSaved;
+
+  /// With nothing saved, suggest places near home that match interests.
+  final bool weekendIncludeNearby;
+
+  /// How far from the home county's centre nearby ideas may be.
+  final int weekendRadiusKm;
+
+  /// `weekend_radius_km`'s check constraint: `in (50, 100, 200, 300)`.
+  static const weekendRadiusChoicesKm = [50, 100, 200, 300];
+
   /// The radii the radius chooser offers (`side_quest_radius_km`'s check
   /// constraint: `in (25, 50, 100, 250, 500)`).
   static const radiusChoicesKm = [25, 50, 100, 250, 500];
@@ -92,6 +107,9 @@ class ProfileSettings {
     bool? notifyPhotoReviews,
     bool? notifyTripAlerts,
     bool? notifyWeekendPlans,
+    bool? weekendUseSaved,
+    bool? weekendIncludeNearby,
+    int? weekendRadiusKm,
   }) => ProfileSettings(
     mapVisibility: mapVisibility ?? this.mapVisibility,
     showOnLeaderboards: showOnLeaderboards ?? this.showOnLeaderboards,
@@ -103,5 +121,8 @@ class ProfileSettings {
     notifyPhotoReviews: notifyPhotoReviews ?? this.notifyPhotoReviews,
     notifyTripAlerts: notifyTripAlerts ?? this.notifyTripAlerts,
     notifyWeekendPlans: notifyWeekendPlans ?? this.notifyWeekendPlans,
+    weekendUseSaved: weekendUseSaved ?? this.weekendUseSaved,
+    weekendIncludeNearby: weekendIncludeNearby ?? this.weekendIncludeNearby,
+    weekendRadiusKm: weekendRadiusKm ?? this.weekendRadiusKm,
   );
 }

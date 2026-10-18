@@ -7,6 +7,7 @@ import '../../../design/app_colors.dart';
 import '../../notifications/application/notification_permission_provider.dart';
 import '../domain/profile_settings.dart';
 import 'settings_privacy_section.dart' show ProfileSettingsControllerRef;
+import 'settings_weekend_section.dart';
 import 'settings_widgets.dart';
 
 class SettingsNotificationsSection extends ConsumerWidget {
@@ -78,7 +79,7 @@ class SettingsNotificationsSection extends ConsumerWidget {
             ),
             SettingsToggleRow(
               title: 'Weekend ideas',
-              subtitle: 'One place worth a visit, on Thursday afternoons',
+              subtitle: 'A saved plan or place worth a trip, Thursday afternoons',
               value: settings.notifyWeekendPlans,
               onChanged: (v) => unawaited(notifier.setNotifyWeekendPlans(v)),
               divider: true,
@@ -92,6 +93,10 @@ class SettingsNotificationsSection extends ConsumerWidget {
             ),
           ],
         ),
+        if (settings.notifyWeekendPlans) ...[
+          const SizedBox(height: 12),
+          SettingsWeekendSection(settings: settings, notifier: notifier),
+        ],
       ],
     );
   }

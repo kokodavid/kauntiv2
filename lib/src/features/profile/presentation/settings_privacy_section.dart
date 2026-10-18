@@ -71,6 +71,9 @@ typedef ProfileSettingsControllerRef = ({
   Future<void> Function(bool) setNotifyPhotoReviews,
   Future<void> Function(bool) setNotifyTripAlerts,
   Future<void> Function(bool) setNotifyWeekendPlans,
+  Future<void> Function(bool) setWeekendUseSaved,
+  Future<void> Function(bool) setWeekendIncludeNearby,
+  Future<void> Function(int) setWeekendRadiusKm,
   Future<void> Function(int) setSideQuestRadiusKm,
   Future<void> Function(LocationMode) setLocationMode,
 });

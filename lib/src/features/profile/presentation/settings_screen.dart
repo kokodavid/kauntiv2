@@ -106,6 +106,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setNotifyPhotoReviews: controller.setNotifyPhotoReviews,
       setNotifyTripAlerts: controller.setNotifyTripAlerts,
       setNotifyWeekendPlans: controller.setNotifyWeekendPlans,
+      setWeekendUseSaved: controller.setWeekendUseSaved,
+      setWeekendIncludeNearby: controller.setWeekendIncludeNearby,
+      setWeekendRadiusKm: controller.setWeekendRadiusKm,
       setSideQuestRadiusKm: controller.setSideQuestRadiusKm,
       setLocationMode: controller.setLocationMode,
     );

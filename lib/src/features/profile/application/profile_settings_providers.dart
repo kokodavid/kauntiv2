@@ -97,6 +97,21 @@ class ProfileSettingsController extends _$ProfileSettingsController {
     {'notify_weekend_plans': value},
   );
 
+  Future<void> setWeekendUseSaved(bool value) => _apply(
+    (s) => s.copyWith(weekendUseSaved: value),
+    {'weekend_use_saved': value},
+  );
+
+  Future<void> setWeekendIncludeNearby(bool value) => _apply(
+    (s) => s.copyWith(weekendIncludeNearby: value),
+    {'weekend_include_nearby': value},
+  );
+
+  Future<void> setWeekendRadiusKm(int value) => _apply(
+    (s) => s.copyWith(weekendRadiusKm: value),
+    {'weekend_radius_km': value},
+  );
+
   /// Saved as a preference only -- see [LocationMode]'s doc comment: this
   /// does not yet change what [DetectionController] actually does.
   Future<void> setLocationMode(LocationMode value) => _apply(

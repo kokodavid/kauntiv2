@@ -42,7 +42,8 @@ Migrations: `supabase/migrations/20261023100000_app_version_management.sql`,
 the follow-up `supabase/migrations/20261023110000_app_version_build_optional.sql`,
 `supabase/migrations/20261023120000_app_version_store_url_optional.sql`, and
 `supabase/migrations/20261023130000_app_version_status_controls.sql`, and
-`supabase/migrations/20261023140000_app_version_draft_editing.sql`.
+`supabase/migrations/20261023140000_app_version_draft_editing.sql`, and
+`supabase/migrations/20261023150000_app_version_release_deletion.sql`.
 Apply the complete files to **both** Supabase projects independently, dev first
 and production only after dev verification. Do not run these against the
 production project while the dashboard is still configured for dev.
@@ -56,6 +57,7 @@ The migration creates `public.app_version_releases` and these functions:
 - `public.delete_app_version_release_draft_dashboard(uuid)` - remove a draft before publication.
 - `public.set_app_version_release_status_dashboard(uuid, boolean)` - activate or deactivate a published release.
 - `public.update_app_version_release_draft_dashboard(uuid, text, text, text, integer, text, text, boolean)` - edit an existing draft.
+- `public.delete_app_version_release_dashboard(uuid)` - permanently delete a draft or withdrawn release; live releases are protected.
 
 There are no Edge Functions, secrets, external cron jobs, or Storage changes
 for this feature.
@@ -97,7 +99,9 @@ where n.nspname = 'public'
     'create_app_version_release_dashboard',
     'publish_app_version_release_dashboard',
     'delete_app_version_release_draft_dashboard',
-    'set_app_version_release_status_dashboard'
+    'set_app_version_release_status_dashboard',
+    'update_app_version_release_draft_dashboard',
+    'delete_app_version_release_dashboard'
   )
 order by p.proname;
 

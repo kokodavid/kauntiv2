@@ -79,7 +79,8 @@ class SettingsNotificationsSection extends ConsumerWidget {
             ),
             SettingsToggleRow(
               title: 'Weekend ideas',
-              subtitle: 'A saved plan or place worth a trip, Thursday afternoons',
+              subtitle:
+                  'A saved plan or place worth a trip, Thursday afternoons',
               value: settings.notifyWeekendPlans,
               onChanged: (v) => unawaited(notifier.setNotifyWeekendPlans(v)),
               divider: true,

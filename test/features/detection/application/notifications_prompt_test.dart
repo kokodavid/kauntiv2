@@ -83,16 +83,10 @@ void main() {
 
   test('hidden in the first session, and when signed out', () async {
     sessions = 1;
-    expect(
-      await container().read(notificationsPromptProvider.future),
-      isFalse,
-    );
+    expect(await container().read(notificationsPromptProvider.future), isFalse);
     sessions = 3;
     userId = null;
-    expect(
-      await container().read(notificationsPromptProvider.future),
-      isFalse,
-    );
+    expect(await container().read(notificationsPromptProvider.future), isFalse);
   });
 
   test('hidden with county nudges off or manual detection', () async {
@@ -104,10 +98,7 @@ void main() {
       sideQuestRadiusKm: 100,
       locationMode: LocationMode.automatic,
     );
-    expect(
-      await container().read(notificationsPromptProvider.future),
-      isFalse,
-    );
+    expect(await container().read(notificationsPromptProvider.future), isFalse);
     settings.value = const ProfileSettings(
       mapVisibility: MapVisibility.friends,
       showOnLeaderboards: true,
@@ -116,10 +107,7 @@ void main() {
       sideQuestRadiusKm: 100,
       locationMode: LocationMode.manual,
     );
-    expect(
-      await container().read(notificationsPromptProvider.future),
-      isFalse,
-    );
+    expect(await container().read(notificationsPromptProvider.future), isFalse);
   });
 
   test('turning on asks the phone once, then the card goes', () async {
@@ -153,9 +141,6 @@ void main() {
     expect(await c.read(notificationsPromptProvider.future), isTrue);
     await c.read(notificationsPromptProvider.notifier).dismiss();
     expect(c.read(notificationsPromptProvider).value, isFalse);
-    expect(
-      await container().read(notificationsPromptProvider.future),
-      isFalse,
-    );
+    expect(await container().read(notificationsPromptProvider.future), isFalse);
   });
 }

@@ -32,10 +32,7 @@ void main() {
 
   group('PushTap.fromData', () {
     test('keeps the event id for open tracking', () {
-      final tap = PushTap.fromData({
-        'event_id': 'abc',
-        'dest_kind': 'badges',
-      });
+      final tap = PushTap.fromData({'event_id': 'abc', 'dest_kind': 'badges'});
       expect(tap.eventId, 'abc');
       expect(tap.destination.kind, PushDestinationKind.badges);
     });

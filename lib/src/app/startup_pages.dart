@@ -31,8 +31,7 @@ class StartupSplashPage extends ConsumerWidget {
 
   Future<void> _prepare(WidgetRef ref) async {
     await ref.read(startupFlowProvider.notifier).restoreSession();
-    if (AppFeatureFlags.journeys &&
-        ref.read(currentUserIdProvider)() != null) {
+    if (AppFeatureFlags.journeys && ref.read(currentUserIdProvider)() != null) {
       try {
         await ref.read(journeyRecorderProvider.notifier).recover();
       } on Object {

@@ -30,14 +30,20 @@ class AppUpdateRepository {
     };
     if (platform == null) return null;
     final response = await client
-        .rpc('get_app_update_policy', params: {
-          'p_platform': platform,
-          'p_channel': _channel,
-          'p_current_version': current.toString(),
-        })
+        .rpc(
+          'get_app_update_policy',
+          params: {
+            'p_platform': platform,
+            'p_channel': _channel,
+            'p_current_version': current.toString(),
+          },
+        )
         .timeout(const Duration(seconds: 3));
     if (response is! Map) return null;
-    return AppUpdatePolicy.fromJson(Map<String, dynamic>.from(response), current);
+    return AppUpdatePolicy.fromJson(
+      Map<String, dynamic>.from(response),
+      current,
+    );
   }
 
   Future<bool> wasOptionalDismissed(String version) async =>

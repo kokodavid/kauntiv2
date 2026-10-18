@@ -17,8 +17,7 @@ class PushLifecycle extends ConsumerStatefulWidget {
   const PushLifecycle({super.key, required this.child, required this.onOpen});
 
   final Widget child;
-  final void Function(BuildContext context, PushDestination destination)
-  onOpen;
+  final void Function(BuildContext context, PushDestination destination) onOpen;
 
   @override
   ConsumerState<PushLifecycle> createState() => _PushLifecycleState();

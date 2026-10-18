@@ -10,7 +10,6 @@ import '../core/services/app_config_provider.dart';
 import '../core/services/last_screen.dart';
 import '../core/services/location_diagnostics.dart';
 import '../features/app_version/application/app_update_providers.dart';
-import '../features/app_version/presentation/app_update_screen.dart';
 import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
@@ -33,6 +32,7 @@ import '../features/trip_planner/presentation/trip_plan_section.dart';
 import '../features/trip_planner/presentation/trip_start_button.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
+import 'app_update_routes.dart';
 import 'detail_routes.dart';
 import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
@@ -50,8 +50,8 @@ GoRouter appRouter(Ref ref) {
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
     redirect: (context, state) {
-      final journeyActive = AppFeatureFlags.journeys &&
-          ref.read(journeyRecorderProvider) != null;
+      final journeyActive =
+          AppFeatureFlags.journeys && ref.read(journeyRecorderProvider) != null;
       final update = ref.read(appUpdateControllerProvider);
       return AppRoutes.redirect(
         ref.read(startupFlowProvider).step,
@@ -67,21 +67,7 @@ GoRouter appRouter(Ref ref) {
       _gate(AppRoutes.preferences, const StartupPreferencesPage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
       _gate(AppRoutes.notifications, const StartupNotificationsPage()),
-      GoRoute(
-        path: AppRoutes.updateRequired,
-        pageBuilder: (context, state) => NoTransitionPage(
-          child: AppUpdateScreen(key: state.pageKey),
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.updateAvailable,
-        pageBuilder: (context, state) => NoTransitionPage(
-          child: AppUpdateScreen(
-            key: state.pageKey,
-            onLater: () => context.go(AppRoutes.map),
-          ),
-        ),
-      ),
+      ...appUpdateRoutes(),
       StatefulShellRoute.indexedStack(
         // Swapped in place like the gates, not slid in.
         pageBuilder: (context, state, shell) => NoTransitionPage(
@@ -89,9 +75,7 @@ GoRouter appRouter(Ref ref) {
           // until start-up is done.
           child: PushLifecycle(
             onOpen: PushRoutes.open,
-            child: TripAlertLifecycle(
-              child: AppShell(navigationShell: shell),
-            ),
+            child: TripAlertLifecycle(child: AppShell(navigationShell: shell)),
           ),
         ),
         branches: [

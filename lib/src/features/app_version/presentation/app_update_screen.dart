@@ -62,14 +62,13 @@ class _UpdateContent extends ConsumerWidget {
                     onPressed: policy.storeUrl == null
                         ? null
                         : () => ref
-                            .read(appUpdateControllerProvider.notifier)
-                            .openStore(),
+                              .read(appUpdateControllerProvider.notifier)
+                              .openStore(),
                     child: const Text('Update app'),
                   ),
                   TextButton(
-                    onPressed: () => ref
-                        .read(appUpdateControllerProvider.notifier)
-                        .check(),
+                    onPressed: () =>
+                        ref.read(appUpdateControllerProvider.notifier).check(),
                     child: const Text('Check again'),
                   ),
                   if (!policy.required) ...[

@@ -23,7 +23,8 @@ class AppUpdateController extends _$AppUpdateController {
       final repository = ref.read(appUpdateRepositoryProvider);
       final policy = await repository.check();
       if (policy == null) return;
-      final dismissed = policy.available &&
+      final dismissed =
+          policy.available &&
           !policy.required &&
           policy.latestVersion != null &&
           await repository.wasOptionalDismissed(
@@ -49,7 +50,6 @@ class AppUpdateController extends _$AppUpdateController {
     }
   }
 
-  Future<bool> openStore() => ref
-      .read(appUpdateRepositoryProvider)
-      .openStore(state?.storeUrl);
+  Future<bool> openStore() =>
+      ref.read(appUpdateRepositoryProvider).openStore(state?.storeUrl);
 }

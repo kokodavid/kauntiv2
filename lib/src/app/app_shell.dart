@@ -87,9 +87,8 @@ class AppShell extends ConsumerWidget {
         onOpenPlace: DetailRoutes.openPlace,
         onOpenTrip: (context) => context.push(AppRoutes.journeyRecording),
         child: JourneySyncLifecycle(
-          onRecovered: () => ref
-              .read(appUpdateControllerProvider.notifier)
-              .check(),
+          onRecovered: () =>
+              ref.read(appUpdateControllerProvider.notifier).check(),
           child: Scaffold(
             backgroundColor: AppColors.pageBackground,
             // A Stack, not a Column: the glass nav needs the active tab's

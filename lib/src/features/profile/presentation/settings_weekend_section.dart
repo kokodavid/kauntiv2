@@ -31,7 +31,8 @@ class SettingsWeekendSection extends StatelessWidget {
       ),
       SettingsToggleRow(
         title: 'Ideas near me',
-        subtitle: 'When you have nothing saved, suggest places that match '
+        subtitle:
+            'When you have nothing saved, suggest places that match '
             'your interests',
         value: settings.weekendIncludeNearby,
         onChanged: (v) => unawaited(notifier.setWeekendIncludeNearby(v)),

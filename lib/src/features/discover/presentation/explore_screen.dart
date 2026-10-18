@@ -189,6 +189,8 @@ class _ExploreBoardViewState extends ConsumerState<_ExploreBoardView>
                 },
                 child: CustomScrollView(
                   key: PageStorageKey('explore-scroll-${tab.name}'),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   slivers: [
                     if (searching)
                       ExploreSearchBody(

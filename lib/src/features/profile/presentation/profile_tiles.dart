@@ -36,6 +36,7 @@ class ProfileTile extends StatelessWidget {
     required this.subtitle,
     this.onTap,
     this.style = ProfileTileStyle.row,
+    this.showDot = false,
   });
 
   final IconData icon;
@@ -43,6 +44,9 @@ class ProfileTile extends StatelessWidget {
   final String subtitle;
   final VoidCallback? onTap;
   final ProfileTileStyle style;
+
+  /// A small blue dot before the chevron: something here is new.
+  final bool showDot;
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +113,16 @@ class ProfileTile extends StatelessWidget {
                   ],
                 ),
               ),
+              if (showDot)
+                Container(
+                  width: 10,
+                  height: 10,
+                  margin: const EdgeInsets.only(right: 6),
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
               if (onTap != null) Icon(Icons.chevron_right, color: muted),
             ],
           ),

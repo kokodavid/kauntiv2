@@ -33,6 +33,7 @@ class ProfileScreen extends ConsumerWidget {
     this.onOpenJourneys,
     required this.onOpenSettings,
     required this.onOpenFeedback,
+    this.photosEntry,
   });
 
   final VoidCallback onOpenBadges;
@@ -40,6 +41,10 @@ class ProfileScreen extends ConsumerWidget {
 
   /// Opens the beta feedback form (the entry is only shown to testers).
   final VoidCallback onOpenFeedback;
+
+  /// The "My photos" entry, built in app/ (features do not import each
+  /// other). Null, or building nothing, while photo submissions are off.
+  final WidgetBuilder? photosEntry;
 
   /// Pushes the in-app Settings screen (architecture §2: cross-feature
   /// navigation goes through `app/router.dart`, not a direct import
@@ -70,6 +75,7 @@ class ProfileScreen extends ConsumerWidget {
       onOpenJourneys: onOpenJourneys,
       onOpenSettings: onOpenSettings,
       onOpenFeedback: onOpenFeedback,
+      photosEntry: photosEntry,
     );
   }
 }
@@ -81,12 +87,14 @@ class _ProfileContent extends ConsumerStatefulWidget {
     this.onOpenJourneys,
     required this.onOpenSettings,
     required this.onOpenFeedback,
+    this.photosEntry,
   });
 
   final VoidCallback onOpenBadges;
   final VoidCallback? onOpenJourneys;
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenFeedback;
+  final WidgetBuilder? photosEntry;
 
   @override
   ConsumerState<_ProfileContent> createState() => _ProfileContentState();
@@ -258,6 +266,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                         onTap: widget.onOpenJourneys,
                       ),
                     ),
+                  if (widget.photosEntry != null) widget.photosEntry!(context),
                   ProfileFeedbackTile(onOpen: widget.onOpenFeedback),
                   const SizedBox(height: 16),
                   SignOutButton(

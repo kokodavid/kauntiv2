@@ -92,7 +92,7 @@ class TripPlanSummaryCard extends StatelessWidget {
             Row(
               children: [
                 _Stat(value: plan.route.distanceLabel, label: 'DISTANCE'),
-                _Stat(value: plan.route.durationLabel, label: 'BY ROAD'),
+                _Stat(value: plan.route.durationLabel, label: 'EST. BY ROAD'),
                 _Stat(value: '${stops.length}', label: 'STOPS'),
               ],
             ),

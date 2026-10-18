@@ -214,7 +214,7 @@ class _StatsPill extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 12),
             color: AppColors.cardBorder,
           ),
-          _Stat(value: plan.route.durationLabel, label: 'BY ROAD'),
+          _Stat(value: plan.route.durationLabel, label: 'EST. BY ROAD'),
         ],
       ),
     );

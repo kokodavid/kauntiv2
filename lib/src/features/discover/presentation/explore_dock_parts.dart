@@ -40,6 +40,10 @@ class ExploreDockSearchBox extends StatelessWidget {
               controller: controller,
               onChanged: onChanged,
               textInputAction: TextInputAction.search,
+              // Tapping anywhere else, or the keyboard's Search key, puts
+              // the keyboard away (iOS has no back button to do it).
+              onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
               style: const TextStyle(
                 fontFamily: AppTypeScale.family,
                 fontSize: 14,

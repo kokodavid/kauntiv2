@@ -212,8 +212,8 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       backgroundColor: AppColors.pageBackground,
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: EdgeInsets.zero,
+        // The header stays put; only the cards below it scroll.
+        child: Column(
           children: [
             ProfileHeader(
               name: displayName,
@@ -229,15 +229,14 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
               ),
               onEditProfile: _openEditProfile,
             ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                14,
-                16,
-                AppBottomNav.clearance(context) + 8,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  14,
+                  16,
+                  AppBottomNav.clearance(context) + 8,
+                ),
                 children: [
                   ProfileProgressCard(
                     collection: badges,

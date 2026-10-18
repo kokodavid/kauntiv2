@@ -264,3 +264,27 @@ defines above. `SUPABASE_ANON_KEY` is still accepted as a fallback define for
 older Supabase project settings, but `SUPABASE_PUBLISHABLE_KEY` is preferred.
 Database schema, migrations, and RLS policies are handled in the Supabase
 schema PR.
+
+## Push notifications (server)
+
+Secrets per Supabase environment (dev and prod each use their own Firebase project):
+
+- `FCM_SERVICE_ACCOUNT`: the Firebase service account JSON for that environment's project.
+- `APP_OPEN_URL`: link used by the email fallback button (store or landing link).
+- `ANNOUNCEMENTS_OFF_URL`: optional link that explains how to turn announcements off.
+- Existing: `RESEND_API_KEY`, `BETA_INVITE_FROM` (email fallback shares the feedback email pipeline and its `delivery_enabled` switch).
+
+Deploy: `supabase functions deploy send-push`. Run it every minute with pg_cron + pg_net, using the service role key from Vault:
+
+```sql
+select cron.schedule('send-push', '* * * * *', $$
+  select net.http_post(
+    url := 'https://<project-ref>.supabase.co/functions/v1/send-push',
+    headers := jsonb_build_object(
+      'authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key'),
+      'content-type', 'application/json'),
+    body := '{}'::jsonb);
+$$);
+```
+
+Keep the `push_broadcasts` flag off in prod until a test campaign to yourself works.

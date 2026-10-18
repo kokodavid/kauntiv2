@@ -10,6 +10,11 @@ class AppConfig {
     required this.googleWebClientId,
     required this.googleIosClientId,
     this.mapboxAccessToken = '',
+    this.firebaseProjectId = '',
+    this.firebaseApiKey = '',
+    this.firebaseMessagingSenderId = '',
+    this.firebaseAndroidAppId = '',
+    this.firebaseIosAppId = '',
   });
 
   const AppConfig.dev()
@@ -23,7 +28,16 @@ class AppConfig {
       authRedirectUrl = 'kaunti47-dev://login-callback',
       googleWebClientId = const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
       googleIosClientId = const String.fromEnvironment('GOOGLE_IOS_CLIENT_ID'),
-      mapboxAccessToken = const String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
+      mapboxAccessToken = const String.fromEnvironment('MAPBOX_ACCESS_TOKEN'),
+      firebaseProjectId = const String.fromEnvironment('FIREBASE_PROJECT_ID'),
+      firebaseApiKey = const String.fromEnvironment('FIREBASE_API_KEY'),
+      firebaseMessagingSenderId = const String.fromEnvironment(
+        'FIREBASE_MESSAGING_SENDER_ID',
+      ),
+      firebaseAndroidAppId = const String.fromEnvironment(
+        'FIREBASE_ANDROID_APP_ID',
+      ),
+      firebaseIosAppId = const String.fromEnvironment('FIREBASE_IOS_APP_ID');
 
   const AppConfig.prod()
     : environment = AppEnvironment.prod,
@@ -36,7 +50,16 @@ class AppConfig {
       authRedirectUrl = 'kaunti47-prod://login-callback',
       googleWebClientId = const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
       googleIosClientId = const String.fromEnvironment('GOOGLE_IOS_CLIENT_ID'),
-      mapboxAccessToken = const String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
+      mapboxAccessToken = const String.fromEnvironment('MAPBOX_ACCESS_TOKEN'),
+      firebaseProjectId = const String.fromEnvironment('FIREBASE_PROJECT_ID'),
+      firebaseApiKey = const String.fromEnvironment('FIREBASE_API_KEY'),
+      firebaseMessagingSenderId = const String.fromEnvironment(
+        'FIREBASE_MESSAGING_SENDER_ID',
+      ),
+      firebaseAndroidAppId = const String.fromEnvironment(
+        'FIREBASE_ANDROID_APP_ID',
+      ),
+      firebaseIosAppId = const String.fromEnvironment('FIREBASE_IOS_APP_ID');
 
   final AppEnvironment environment;
   final String appName;
@@ -49,6 +72,14 @@ class AppConfig {
   /// Public Mapbox token for Home's real map. Empty means Home uses the
   /// drawn county map.
   final String mapboxAccessToken;
+
+  /// The Firebase project for this environment, used only for push
+  /// notifications. All empty means push is off in this build.
+  final String firebaseProjectId;
+  final String firebaseApiKey;
+  final String firebaseMessagingSenderId;
+  final String firebaseAndroidAppId;
+  final String firebaseIosAppId;
 
   bool get hasMapboxConfig => mapboxAccessToken.isNotEmpty;
 

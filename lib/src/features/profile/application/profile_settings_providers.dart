@@ -77,6 +77,16 @@ class ProfileSettingsController extends _$ProfileSettingsController {
     {'side_quest_radius_km': value},
   );
 
+  Future<void> setNotifyAnnouncements(bool value) => _apply(
+    (s) => s.copyWith(notifyAnnouncements: value),
+    {'notify_announcements': value},
+  );
+
+  Future<void> setNotifyPhotoReviews(bool value) => _apply(
+    (s) => s.copyWith(notifyPhotoReviews: value),
+    {'notify_photo_reviews': value},
+  );
+
   /// Saved as a preference only -- see [LocationMode]'s doc comment: this
   /// does not yet change what [DetectionController] actually does.
   Future<void> setLocationMode(LocationMode value) => _apply(

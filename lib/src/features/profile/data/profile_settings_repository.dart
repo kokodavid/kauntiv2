@@ -22,7 +22,8 @@ class SupabaseProfileSettingsRepository implements ProfileSettingsRepository {
   static const _timeout = Duration(seconds: 8);
   static const _columns =
       'map_visibility, show_on_leaderboards, notify_badge_unlocks, '
-      'notify_county_nudges, side_quest_radius_km, location_mode';
+      'notify_county_nudges, side_quest_radius_km, location_mode, '
+      'notify_announcements, notify_photo_reviews';
 
   String _owner() {
     final owner = client.auth.currentUser?.id;
@@ -52,6 +53,8 @@ class SupabaseProfileSettingsRepository implements ProfileSettingsRepository {
       locationMode: LocationMode.fromColumn(
         row?['location_mode'] as String? ?? 'automatic',
       ),
+      notifyAnnouncements: row?['notify_announcements'] as bool? ?? true,
+      notifyPhotoReviews: row?['notify_photo_reviews'] as bool? ?? true,
     );
   }
 

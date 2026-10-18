@@ -19,6 +19,7 @@ import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
+import '../features/notifications/presentation/push_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
@@ -31,6 +32,7 @@ import 'app_shell.dart';
 import 'detail_routes.dart';
 import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
+import 'push_routes.dart';
 import 'router_map_tab.dart';
 import 'startup_pages.dart';
 
@@ -56,8 +58,14 @@ GoRouter appRouter(Ref ref) {
       _gate(AppRoutes.notifications, const StartupNotificationsPage()),
       StatefulShellRoute.indexedStack(
         // Swapped in place like the gates, not slid in.
-        pageBuilder: (context, state, shell) =>
-            NoTransitionPage(child: AppShell(navigationShell: shell)),
+        pageBuilder: (context, state, shell) => NoTransitionPage(
+          // Push runs for the onboarded app only: the shell is not built
+          // until start-up is done.
+          child: PushLifecycle(
+            onOpen: PushRoutes.open,
+            child: AppShell(navigationShell: shell),
+          ),
+        ),
         branches: [
           StatefulShellBranch(
             routes: [

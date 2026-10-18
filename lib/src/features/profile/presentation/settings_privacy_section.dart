@@ -67,6 +67,8 @@ typedef ProfileSettingsControllerRef = ({
   Future<void> Function(bool) setShowOnLeaderboards,
   Future<void> Function(bool) setNotifyBadgeUnlocks,
   Future<void> Function(bool) setNotifyCountyNudges,
+  Future<void> Function(bool) setNotifyAnnouncements,
+  Future<void> Function(bool) setNotifyPhotoReviews,
   Future<void> Function(int) setSideQuestRadiusKm,
   Future<void> Function(LocationMode) setLocationMode,
 });

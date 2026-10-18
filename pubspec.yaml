@@ -82,6 +82,12 @@ dependencies:
   # the positional initialize/show API below is that line's.
   flutter_local_notifications: ">=19.0.0 <20.0.0"
 
+  # Push notifications from the server (photo reviews, announcements).
+  # Firebase is initialised from dart-defines (per environment), so no
+  # google-services.json / GoogleService-Info.plist is needed.
+  firebase_core: ^4.0.0
+  firebase_messaging: ^16.0.0
+
   # Opt-in Journey route capture while the app process is alive. County
   # detection continues to use native_geofence, not this continuous stream.
   location: ^10.0.2

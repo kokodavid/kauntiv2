@@ -52,6 +52,8 @@ class ProfileSettings {
     required this.notifyCountyNudges,
     required this.sideQuestRadiusKm,
     required this.locationMode,
+    this.notifyAnnouncements = true,
+    this.notifyPhotoReviews = true,
   });
 
   final MapVisibility mapVisibility;
@@ -60,6 +62,12 @@ class ProfileSettings {
   final bool notifyCountyNudges;
   final int sideQuestRadiusKm;
   final LocationMode locationMode;
+
+  /// Product announcements from the team (on by default).
+  final bool notifyAnnouncements;
+
+  /// "Your photo was reviewed" notifications.
+  final bool notifyPhotoReviews;
 
   /// The radii the radius chooser offers (`side_quest_radius_km`'s check
   /// constraint: `in (25, 50, 100, 250, 500)`).
@@ -72,6 +80,8 @@ class ProfileSettings {
     bool? notifyCountyNudges,
     int? sideQuestRadiusKm,
     LocationMode? locationMode,
+    bool? notifyAnnouncements,
+    bool? notifyPhotoReviews,
   }) => ProfileSettings(
     mapVisibility: mapVisibility ?? this.mapVisibility,
     showOnLeaderboards: showOnLeaderboards ?? this.showOnLeaderboards,
@@ -79,5 +89,7 @@ class ProfileSettings {
     notifyCountyNudges: notifyCountyNudges ?? this.notifyCountyNudges,
     sideQuestRadiusKm: sideQuestRadiusKm ?? this.sideQuestRadiusKm,
     locationMode: locationMode ?? this.locationMode,
+    notifyAnnouncements: notifyAnnouncements ?? this.notifyAnnouncements,
+    notifyPhotoReviews: notifyPhotoReviews ?? this.notifyPhotoReviews,
   );
 }

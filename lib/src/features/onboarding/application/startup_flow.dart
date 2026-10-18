@@ -6,6 +6,7 @@ import '../../../counties/county_paths.dart';
 import '../../../services/app_location_permission_service.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../detection/application/arrival_notifier_provider.dart';
+import '../../notifications/application/push_providers.dart';
 import '../../profile/application/interests_providers.dart';
 import '../../profile/application/profile_settings_providers.dart';
 import '../../profile/application/profile_setup_providers.dart';
@@ -64,6 +65,12 @@ class StartupFlow extends _$StartupFlow
   /// [signOut] fails the session is still valid, so start-up is restored and
   /// the error is rethrown for the caller to report.
   Future<void> signOutTo(Future<void> Function() signOut) async {
+    // This phone stops receiving this account's notifications. Needs the
+    // session, so it runs first; never blocks sign-out for long.
+    await ref
+        .read(pushRegistrarProvider)
+        .unregister()
+        .timeout(const Duration(seconds: 3), onTimeout: () {});
     resetAfterSignOut();
     try {
       await signOut();

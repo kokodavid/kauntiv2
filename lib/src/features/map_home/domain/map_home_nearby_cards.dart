@@ -1,4 +1,5 @@
 import '../../../core/domain/map_place.dart';
+import '../../../core/domain/place_type.dart';
 import '../../../counties/county_paths.dart';
 import 'map_home_models.dart';
 import 'map_home_nearby_places.dart';
@@ -69,7 +70,9 @@ abstract final class MapHomeNearbyCards {
 
   static MapHomeNearbyCard _place(MapHomeNearbyPlace entry) {
     final distance = splitDistance(entry.distanceLabel);
-    final type = _capitalise(entry.place.type);
+    final type = entry.place.type.trim().isEmpty
+        ? ''
+        : PlaceType.of(entry.place.type).label;
     final basePill = type.isEmpty ? 'Place near you' : type;
     return MapHomeNearbyCard(
       kind: MapHomeNearbyKind.place,
@@ -109,7 +112,4 @@ abstract final class MapHomeNearbyCards {
     if (match == null) return null;
     return (value: match.group(1)!, unit: match.group(2)!);
   }
-
-  static String _capitalise(String text) =>
-      text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
 }

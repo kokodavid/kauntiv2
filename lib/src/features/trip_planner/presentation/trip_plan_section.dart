@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/map_place.dart';
 import '../../../design/app_colors.dart';
 import '../application/saved_trips_providers.dart';
@@ -104,6 +105,19 @@ class TripPlanSection extends ConsumerWidget {
             ..invalidate(tripPlanProvider)
             ..invalidate(tripOriginProvider),
         ),
+        if (ready) ...const [
+          SizedBox(height: 8),
+          Text(
+            'Travel time is an estimate. Traffic, road conditions and your '
+            'stops can change it.',
+            style: TextStyle(
+              fontFamily: AppTypeScale.family,
+              fontSize: 12,
+              height: 1.35,
+              color: AppColors.mutedForeground,
+            ),
+          ),
+        ],
         const SizedBox(height: 22),
         TripStopsList(
           stops: stops,

@@ -30,6 +30,7 @@ import 'app_routes.dart';
 import 'app_shell.dart';
 import 'detail_routes.dart';
 import 'journey_place_routes.dart';
+import 'place_photos_routes.dart';
 import 'router_map_tab.dart';
 import 'startup_pages.dart';
 
@@ -141,8 +142,13 @@ GoRouter appRouter(Ref ref) {
                 : null,
             onOpenSettings: () => context.push(AppRoutes.settings),
             onOpenFeedback: () => context.push(AppRoutes.feedback),
+            photosEntry: PlacePhotosRoutes.profileEntry,
           ),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.myPhotos,
+        builder: (context, state) => PlacePhotosRoutes.myPhotos(context),
       ),
       GoRoute(
         path: AppRoutes.feedback,
@@ -228,6 +234,7 @@ GoRouter appRouter(Ref ref) {
             onStart: (context, stops) =>
                 JourneyPlaceRoutes.startPlanned(context, place, stops),
           ),
+          photos: PlacePhotosRoutes.placeSection,
         ),
       ),
     ],

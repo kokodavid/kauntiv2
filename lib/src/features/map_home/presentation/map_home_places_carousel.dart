@@ -8,7 +8,6 @@ import '../../../core/domain/map_place.dart';
 import '../../../core/services/app_current_location.dart';
 import '../../../design/app_colors.dart';
 import '../../profile/application/interests_providers.dart';
-import '../../profile/domain/interest_place_types.dart';
 import '../application/real_map_start_focus.dart';
 import '../domain/map_home_models.dart';
 import '../domain/map_home_nearby_cards.dart';
@@ -114,15 +113,15 @@ class _MapHomePlacesCarouselState extends ConsumerState<MapHomePlacesCarousel> {
     final fix = _fix;
     if (fix == null || !mounted) return;
     final picks = ref.read(myInterestsProvider).value?.interests ?? const [];
-    final types =
-        ref.read(interestPlaceTypesProvider).value ??
-        InterestPlaceTypes.fallback;
+    final matcher = ref.read(interestMatcherProvider);
     final nearest = MapHomeNearbyPlaces.nearest(
       places: _allPlaces,
       from: fix,
       claimedCountyCodes: _claimed,
       limit: MapHomeNearbyCards.maxCards,
-      interestFor: picks.isEmpty ? null : (t) => types.matchFor(t, picks),
+      interestFor: picks.isEmpty
+          ? null
+          : (t, county) => matcher.matchFor(t, picks, countyCode: county),
     );
     setState(() => _places = nearest);
   }
@@ -179,7 +178,7 @@ class _MapHomePlacesCarouselState extends ConsumerState<MapHomePlacesCarousel> {
   Widget build(BuildContext context) {
     ref
       ..listen(myInterestsProvider, (_, _) => _rank())
-      ..listen(interestPlaceTypesProvider, (_, _) => _rank());
+      ..listen(interestMatcherProvider, (_, _) => _rank());
     final cards = _cards;
     return SizedBox(
       height: MapHomePlacesCarousel.height,

@@ -2,6 +2,25 @@ import 'dart:math' as math;
 
 /// Copy and distance helpers shared by Explore's cards (v1 parity).
 abstract final class ExploreLabels {
+  /// "12 Oct".
+  static String dayMonth(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${date.day} ${months[date.month - 1]}';
+  }
+
   /// `counties.rarity_pct` is null until a real rarity job runs; that gap
   /// is shown, not filled with an invented percentage.
   static String rarity(num? percent) {

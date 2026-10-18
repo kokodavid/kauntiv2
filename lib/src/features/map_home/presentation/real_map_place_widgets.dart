@@ -22,7 +22,7 @@ class RealMapPlaceLegend extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final entry in MapPlaceTypes.known.values)
+            for (final entry in MapPlaceTypes.legend)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(

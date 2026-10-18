@@ -56,6 +56,98 @@ abstract final class ExploreStyles {
 
   static const emptyBody = AppTypeScale.body;
 
+  static const landingKicker = TextStyle(
+    fontFamily: _family,
+    fontSize: AppTypeScale.labelSize,
+    fontWeight: FontWeight.w600,
+    letterSpacing: .5,
+    color: AppColors.exploreCategoryText,
+  );
+
+  static const landingHeadline = TextStyle(
+    fontFamily: _family,
+    fontSize: 24,
+    height: 1.25,
+    fontWeight: FontWeight.w600,
+    color: AppColors.exploreText,
+  );
+
+  static const landingCardTitle = TextStyle(
+    fontFamily: _family,
+    fontSize: 20,
+    height: 1.25,
+    fontWeight: FontWeight.w600,
+    color: AppColors.exploreText,
+  );
+
+  static const chapterTitle = TextStyle(
+    fontFamily: _family,
+    fontSize: 18,
+    height: 1.3,
+    fontWeight: FontWeight.w600,
+    color: AppColors.exploreText,
+  );
+
+  static const fieldPlaceTitle = TextStyle(
+    fontFamily: _family,
+    fontSize: AppTypeScale.itemTitleSize,
+    height: 21 / 14,
+    fontWeight: FontWeight.w500,
+    color: AppColors.exploreText,
+  );
+
+  static const fieldPlaceMeta = TextStyle(
+    fontFamily: _family,
+    fontSize: AppTypeScale.smallSize,
+    height: 18 / 12,
+    color: AppColors.exploreMutedText,
+  );
+
+  static const fieldPlaceBadge = TextStyle(
+    fontFamily: _family,
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    letterSpacing: AppTypeScale.labelTracking,
+    color: AppColors.exploreCategoryText,
+  );
+
+  static TextStyle fieldCardTitle({required bool onImage}) => TextStyle(
+    fontFamily: _family,
+    fontSize: 16,
+    height: 1.2,
+    fontWeight: FontWeight.w600,
+    color: onImage ? Colors.white : AppColors.exploreText,
+  );
+
+  static TextStyle fieldCardMeta({required bool onImage}) => TextStyle(
+    fontFamily: _family,
+    fontSize: 12,
+    color: onImage ? Colors.white70 : AppColors.mutedForeground,
+  );
+
+  static TextStyle fieldCardCounty({required bool onImage}) => TextStyle(
+    fontFamily: _family,
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: onImage ? Colors.white : AppColors.exploreText,
+  );
+
+  static TextStyle countyFieldTitle({required bool onImage}) => TextStyle(
+    fontFamily: _family,
+    fontSize: 16,
+    height: 1.2,
+    fontWeight: FontWeight.w600,
+    color: onImage ? Colors.white : AppColors.exploreText,
+  );
+
+  static TextStyle countyFieldMeta({required bool onImage}) => TextStyle(
+    fontFamily: _family,
+    fontSize: 11,
+    height: 1.25,
+    letterSpacing: .3,
+    color: onImage ? Colors.white70 : AppColors.mutedForeground,
+  );
+
   static const insightTitle = TextStyle(
     fontFamily: _family,
     fontSize: AppTypeScale.itemTitleSize,
@@ -85,5 +177,53 @@ abstract final class ExploreStyles {
     fontWeight: FontWeight.w600,
     color: seen ? AppColors.mutedForeground : AppColors.exploreText,
     decoration: seen ? TextDecoration.lineThrough : TextDecoration.none,
+  );
+
+  // Field Guide v2 filter and band pieces.
+  static const filterPillFill = AppColors.accentTint;
+  static const filterPillText = AppColors.accentPressed;
+
+  static const resultsSentence = TextStyle(
+    fontFamily: _family,
+    fontSize: 24,
+    height: 1.25,
+    letterSpacing: -0.24,
+    fontWeight: FontWeight.w600,
+    color: AppColors.exploreText,
+  );
+
+  static const bandLabel = TextStyle(
+    fontFamily: _family,
+    fontSize: AppTypeScale.labelSize,
+    fontWeight: FontWeight.w600,
+    letterSpacing: AppTypeScale.labelTracking,
+    color: AppColors.mutedForeground,
+  );
+
+  static const bandCount = TextStyle(
+    fontFamily: _family,
+    fontSize: AppTypeScale.metaSize,
+    fontWeight: FontWeight.w500,
+    color: AppColors.mutedForeground,
+  );
+
+  static const rowTitle = TextStyle(
+    fontFamily: _family,
+    fontSize: AppTypeScale.itemTitleSize,
+    fontWeight: FontWeight.w500,
+    color: AppColors.exploreText,
+  );
+
+  static const rowMeta = TextStyle(
+    fontFamily: _family,
+    fontSize: AppTypeScale.smallSize,
+    color: AppColors.mutedForeground,
+  );
+
+  static const rowCounty = TextStyle(
+    fontFamily: _family,
+    fontSize: AppTypeScale.smallSize,
+    fontWeight: FontWeight.w500,
+    color: AppColors.exploreText,
   );
 }

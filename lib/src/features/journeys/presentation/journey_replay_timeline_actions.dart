@@ -48,16 +48,50 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
       );
       return;
     }
-    final matches = await CameraRollMatcher.find(
+    final found = await CameraRollMatcher.find(
       startedAt: widget.summary.startedAt,
       endedAt: widget.summary.endedAt,
     );
+    final matches = await _withoutAddedShots(found);
     if (!mounted) return;
+    _setMatches(matches);
+  }
+
+  void _setMatches(List<CameraRollMatch> matches) {
     setState(() {
       _cameraRollScan = matches.isEmpty
           ? const _CameraRollScan(_CameraRollStatus.noMatches)
           : _CameraRollScan(_CameraRollStatus.matchesFound, matches);
     });
+    _refreshSheet();
+  }
+
+  /// Drops suggestions already on the Trip, uploaded or still queued, so
+  /// the same photo, or another frame of its burst, is never added twice.
+  Future<List<CameraRollMatch>> _withoutAddedShots(
+    List<CameraRollMatch> matches,
+  ) async {
+    final times = [for (final item in widget.media) item.capturedAt];
+    try {
+      final queued = await ref
+          .read(localJourneyMediaRepositoryProvider)
+          .forJourney(widget.summary.id);
+      times.addAll(queued.map((capture) => capture.capturedAt));
+    } on Object {
+      // Uploaded photos alone still catch the usual repeat.
+    }
+    return CameraRollMatcher.withoutAdded(matches, times);
+  }
+
+  /// Removes what was just added (and the rest of each burst) from the
+  /// suggestions without waiting for the Trip's media to reload.
+  void _dropAdded(List<CameraRollMatch> added) {
+    if (!mounted) return;
+    _setMatches(
+      CameraRollMatcher.withoutAssets(_cameraRollScan.matches, {
+        for (final match in added) match.asset.id,
+      }),
+    );
   }
 
   /// The "Find photos from this trip" link's tap target - the only place
@@ -77,6 +111,15 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
       return;
     }
     await _scanCameraRoll();
+    if (!mounted || _cameraRollScan.status != _CameraRollStatus.noMatches) {
+      return;
+    }
+    showAppToast(
+      context,
+      variant: AppToastVariant.neutral,
+      title: 'No new photos',
+      message: 'Nothing else from this trip is in your photo library.',
+    );
   }
 
   Future<void> _loadMediaLimit() async {
@@ -131,7 +174,13 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
       // "Choose" rather than silently never making it onto the Trip.
       final cap = _matchAddCap;
       final capped = matches.length > cap ? matches.sublist(0, cap) : matches;
-      await addCameraRollMatchesToTrip(context, ref, widget.summary, capped);
+      final done = await addCameraRollMatchesToTrip(
+        context,
+        ref,
+        widget.summary,
+        capped,
+      );
+      if (done) _dropAdded(capped);
     } finally {
       if (mounted) setState(() => _addingPhotos = false);
     }
@@ -161,7 +210,13 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
     }
     setState(() => _addingPhotos = true);
     try {
-      await addCameraRollMatchesToTrip(context, ref, widget.summary, chosen);
+      final done = await addCameraRollMatchesToTrip(
+        context,
+        ref,
+        widget.summary,
+        chosen,
+      );
+      if (done) _dropAdded(chosen);
     } finally {
       if (mounted) setState(() => _addingPhotos = false);
     }

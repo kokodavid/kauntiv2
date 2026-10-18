@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/core/domain/place_type.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/discover/application/discover_detail_actions.dart';
 import 'package:kaunti47_v2/src/features/discover/data/county_news_flag_repository.dart';
 import 'package:kaunti47_v2/src/features/discover/data/directions_launcher.dart';
 import 'package:kaunti47_v2/src/features/discover/data/discover_detail_repository.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/county_detail.dart';
-import 'package:kaunti47_v2/src/features/discover/domain/place_category.dart';
 import 'package:kaunti47_v2/src/features/discover/domain/place_detail.dart';
 
 class _FakeRepository implements DiscoverDetailRepository {
@@ -19,7 +19,7 @@ class _FakeRepository implements DiscoverDetailRepository {
   Future<PlaceDetailData> placeDetail(String placeId) async => PlaceDetailData(
     id: placeId,
     title: 'Fort Jesus',
-    category: PlaceCategory.heritage,
+    category: PlaceType.historicSite,
     county: CountyPaths.byCode[1]!,
     description: '',
     images: const [],

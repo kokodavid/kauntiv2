@@ -27,6 +27,21 @@ const json = (body: unknown, status = 200) =>
     headers: { ...cors, 'content-type': 'application/json', 'cache-control': 'no-store' },
   })
 
+type SimilarPlace = {
+  id: string
+  name: string
+  type: string
+  county_id: number
+  county_name: string | null
+  status: string
+  archived: boolean
+  lat: number | null
+  lng: number | null
+  distance_m: number | null
+  reason: 'name' | 'near' | 'both'
+  score: number
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { headers: cors })
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
@@ -49,7 +64,15 @@ Deno.serve(async (request) => {
     return json({ error: 'Dashboard access required' }, 403)
   }
 
-  let body: { action?: unknown; query?: unknown; county_id?: unknown; theme?: unknown; lead_url?: unknown; limit?: unknown }
+  let body: {
+    action?: unknown
+    query?: unknown
+    county_id?: unknown
+    theme?: unknown
+    lead_url?: unknown
+    limit?: unknown
+    force?: unknown
+  }
   try {
     body = await request.json()
   } catch {
@@ -109,8 +132,15 @@ Deno.serve(async (request) => {
     const logQuery = `Discover ${county.name}${theme ? `: ${theme}` : ''}`
     try {
       const discovery = await discoverPlaces(apiKey, settings.model, county.name, theme, leadUrl, limit)
-      await log(discovery.suggestions.length ? 'ok' : 'not_found', discovery.usage, logQuery)
-      return json({ status: 'ok', model: settings.model, suggestions: discovery.suggestions, notes: discovery.notes })
+      // Flag suggestions that already exist so they are not researched twice.
+      const suggestions = await Promise.all(
+        discovery.suggestions.map(async (suggestion) => {
+          const { data } = await service.rpc('place_similar_core', { p_name: suggestion.name })
+          return { ...suggestion, matches: ((data ?? []) as SimilarPlace[]).slice(0, 3) }
+        }),
+      )
+      await log(suggestions.length ? 'ok' : 'not_found', discovery.usage, logQuery)
+      return json({ status: 'ok', model: settings.model, suggestions, notes: discovery.notes })
     } catch (error) {
       console.error('candidate discovery failed', error)
       await log('error', undefined, logQuery)
@@ -118,10 +148,14 @@ Deno.serve(async (request) => {
     }
   }
 
-  const { data: similar } = await service.rpc('place_ai_similar_places', { p_name: query })
-  if (similar && similar.length > 0) {
-    await log('duplicate')
-    return json({ status: 'duplicate', existing: similar })
+  // Stop before spending a model call when the name already exists. The
+  // admin can say it is a different place (force) and draft anyway.
+  if (body.force !== true) {
+    const { data: similar } = await service.rpc('place_similar_core', { p_name: query })
+    if (similar && similar.length > 0) {
+      await log('duplicate')
+      return json({ status: 'duplicate', existing: similar as SimilarPlace[] })
+    }
   }
 
   try {
@@ -156,8 +190,20 @@ Deno.serve(async (request) => {
       }
     }
 
+    // The drafted pin may sit on a place that is already listed under
+    // another name. After an explicit "different place", only new location
+    // matches are worth showing again.
+    const { data: nearby } = await service.rpc('place_similar_core', {
+      p_name: draft.name || query,
+      p_lat: draft.lat,
+      p_lng: draft.lng,
+    })
+    const matches = ((nearby ?? []) as SimilarPlace[]).filter(
+      (place) => body.force !== true || place.reason !== 'name',
+    )
+
     await log('ok', usage)
-    return json({ status: 'ok', model: settings.model, county_id, draft })
+    return json({ status: 'ok', model: settings.model, county_id, draft, matches })
   } catch (error) {
     console.error('draft-place-details failed', error)
     await log('error')

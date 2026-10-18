@@ -22,10 +22,7 @@ mixin _StartupInterestsSteps on _$StartupFlow {
             for (final i in state.interests)
               if (i != interest) i,
           ]
-        : PlaceInterest.fromKeys([
-            ...state.interests.map((i) => i.key),
-            interest.key,
-          ]);
+        : PlaceInterest.withPick(state.interests, interest);
     state = state.copyWith(interests: next);
   }
 

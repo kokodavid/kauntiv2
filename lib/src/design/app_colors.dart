@@ -48,6 +48,11 @@ class AppColors {
   static const placeOther = Color(0xFF475569);
   static const tabBarShell = Color(0xCCFFFFFF);
   static const tabPillBackground = Colors.white;
+
+  /// The active tab's pill: white at the top washing into a light accent
+  /// blue, with a faint accent edge, so it shows up on the frosted bar.
+  static const tabPillWashEnd = Color(0xFFD6E8FF);
+  static const tabPillEdge = Color(0x330A84FF);
   static const permissionHeaderGradientEnd = Color(0xFF0A5FD4);
   static const heroSubheadingText = Color(0xFFCBD5E1);
   static const factTitleText = Color(0xFF0F172B);
@@ -83,6 +88,11 @@ class AppColors {
   static const exploreCategoryText = Color(0xFF2D5A3D);
   static const explorePromotionFill = Color(0xFFFFF2E4);
   static const explorePromotionText = Color(0xFFB45309);
+  // Explore's floating dock: a light blue wash (the Trips stat card's) so
+  // it reads against white pages and photo cards.
+  static const exploreDockTint = Color(0xFFE6F3FF);
+  // A place ticked as seen on Saved.
+  static const exploreSeen = Color(0xFF15803D);
   static const explorePhotoPlaceholder = Color(0xFFE8E8E8);
 
   // "..." actions menu popover (Claude-Design "Menu" reference).
@@ -145,4 +155,13 @@ class AppColors {
   static const offlineTick = Color(0xFF16A34A);
   static const offlineScreenButtonChecking = Color(0xFF5AABFF);
   static const offlineMapChipBackground = Color(0xD1181B18);
+
+  // Place photos (add tile, status chip, My photos).
+  static const softDivider = Color(0xFFF0F1F3);
+  static const disabledText = Color(0xFF9CA3AF);
+  static const photoTileFill = Color(0xFFE9EDF2);
+  static const successTint = Color(0xFFE8F8EE);
+  static const photoDisabledFill = Color(0xFFF1F3F6);
+  static const photoSendingFill = Color(0xFFD6E8FF);
+  static const scrim = Color(0x730A0E14);
 }

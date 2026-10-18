@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/domain/place_type.dart';
 import '../domain/county_detail.dart';
-import '../domain/place_category.dart';
 import 'explore_pill.dart';
 
 /// County Detail's place filters: "ALL · N" first, then one pill per
@@ -16,22 +16,28 @@ class CountyPlaceFilters extends StatelessWidget {
   });
 
   final List<CountyDetailPlace> places;
-  final PlaceCategory? selected;
-  final ValueChanged<PlaceCategory?> onSelected;
+  final PlaceType? selected;
+  final ValueChanged<PlaceType?> onSelected;
 
-  /// The categories present in [places], in [PlaceCategory] order.
-  static List<PlaceCategory> categoriesIn(List<CountyDetailPlace> places) => [
-    for (final category in PlaceCategory.values)
-      if (places.any((place) => place.category == category)) category,
-  ];
+  /// The types present in [places], in list order ([PlaceType.all]);
+  /// unlisted types come last.
+  static List<PlaceType> categoriesIn(List<CountyDetailPlace> places) {
+    int rank(PlaceType type) {
+      final index = PlaceType.all.indexOf(type);
+      return index < 0 ? PlaceType.all.length : index;
+    }
+
+    return {for (final place in places) place.category}.toList()
+      ..sort((a, b) => rank(a).compareTo(rank(b)));
+  }
 
   @override
   Widget build(BuildContext context) {
-    int count(PlaceCategory c) => places.where((p) => p.category == c).length;
-    final pills = <(String, PlaceCategory?)>[
+    int count(PlaceType c) => places.where((p) => p.category == c).length;
+    final pills = <(String, PlaceType?)>[
       ('All · ${places.length}', null),
       for (final category in categoriesIn(places))
-        ('${category.label} · ${count(category)}', category),
+        ('${category.pluralLabel} · ${count(category)}', category),
     ];
 
     return SingleChildScrollView(

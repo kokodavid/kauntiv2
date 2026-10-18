@@ -14,14 +14,16 @@ class ChoiceTileGrid<T> extends StatelessWidget {
     required this.options,
     required this.selected,
     required this.labelOf,
-    required this.iconOf,
+    required this.iconBuilder,
     required this.onToggle,
   });
 
   final List<T> options;
   final List<T> selected;
   final String Function(T option) labelOf;
-  final IconData Function(T option) iconOf;
+
+  /// Builds the option's icon in the colour the tile wants for its state.
+  final Widget Function(T option, Color color) iconBuilder;
   final ValueChanged<T> onToggle;
 
   @override
@@ -42,7 +44,7 @@ class ChoiceTileGrid<T> extends StatelessWidget {
         final option = options[index];
         return _ChoiceTile(
           label: labelOf(option),
-          icon: iconOf(option),
+          iconBuilder: (color) => iconBuilder(option, color),
           isSelected: selected.contains(option),
           onTap: () => onToggle(option),
         );
@@ -54,13 +56,13 @@ class ChoiceTileGrid<T> extends StatelessWidget {
 class _ChoiceTile extends StatelessWidget {
   const _ChoiceTile({
     required this.label,
-    required this.icon,
+    required this.iconBuilder,
     required this.isSelected,
     required this.onTap,
   });
 
   final String label;
-  final IconData icon;
+  final Widget Function(Color color) iconBuilder;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -105,10 +107,9 @@ class _ChoiceTile extends StatelessWidget {
                               : AppColors.pageBackground,
                           borderRadius: BorderRadius.circular(11),
                         ),
-                        child: Icon(
-                          icon,
-                          size: 18,
-                          color: isSelected
+                        alignment: Alignment.center,
+                        child: iconBuilder(
+                          isSelected
                               ? AppColors.accentForeground
                               : AppColors.foreground,
                         ),

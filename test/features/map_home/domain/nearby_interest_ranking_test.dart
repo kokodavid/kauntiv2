@@ -18,7 +18,7 @@ void main() {
       _place('near-museum', 'museum', 0.09),
       _place('farther-falls', 'waterfall', 0.126),
     ];
-    PlaceInterest? water(String t) =>
+    PlaceInterest? water(String t, int county) =>
         t == 'waterfall' ? PlaceInterest.water : null;
     final plain = MapHomeNearbyPlaces.nearest(
       places: places,
@@ -42,7 +42,7 @@ void main() {
       places: [_place('a', 'museum', 0.02), _place('b', 'waterfall', 0.9)],
       from: from,
       claimedCountyCodes: const {},
-      interestFor: (t) => t == 'waterfall' ? PlaceInterest.water : null,
+      interestFor: (t, county) => t == 'waterfall' ? PlaceInterest.water : null,
     );
     expect(result.first.place.id, 'a');
   });

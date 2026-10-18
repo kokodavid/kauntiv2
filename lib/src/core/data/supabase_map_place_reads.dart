@@ -1,9 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/domain/map_place.dart';
+import '../domain/map_place.dart';
 
-class MapHomePlaceReads {
-  const MapHomePlaceReads(this._client);
+/// Shared Supabase read for map/discovery surfaces that need place locations.
+class SupabaseMapPlaceReads {
+  const SupabaseMapPlaceReads(this._client);
 
   final SupabaseClient _client;
 

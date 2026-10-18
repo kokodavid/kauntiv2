@@ -5,7 +5,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { reportResolvedEmail } from '../_shared/emails/templates.ts'
-import { sendWithResend } from '../_shared/emails/resend.ts'
+import { SUPPORT_EMAIL, sendWithResend } from '../_shared/emails/resend.ts'
 
 const corsHeaders = {
   'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
@@ -71,6 +71,7 @@ Deno.serve(async (request) => {
         const messageId = await sendWithResend({
           from,
           to: item.email,
+          replyTo: SUPPORT_EMAIL,
           subject: content.subject,
           html: content.html,
           text: content.text,

@@ -43,7 +43,7 @@ abstract final class MapHomeNearbyPlaces {
     required ({double latitude, double longitude}) from,
     required Set<int> claimedCountyCodes,
     int limit = maxCards,
-    PlaceInterest? Function(String placeType)? interestFor,
+    PlaceInterest? Function(String placeType, int countyCode)? interestFor,
   }) {
     final found = <MapHomeNearbyPlace>[];
     for (final place in places) {
@@ -60,7 +60,7 @@ abstract final class MapHomeNearbyPlaces {
             place.lng,
           ),
           countyClaimed: claimedCountyCodes.contains(place.countyCode),
-          matchedInterest: interestFor?.call(place.type),
+          matchedInterest: interestFor?.call(place.type, place.countyCode),
         ),
       );
     }

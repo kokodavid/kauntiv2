@@ -22,8 +22,8 @@ void main() {
 
   test('a matched county says why it was suggested', () {
     final s = _suggestion(interest: PlaceInterest.water, place: 'Chania Falls');
-    expect(s.matchLabel, 'Because you like waterfalls');
-    expect(s.reasonLabel, 'Because you like waterfalls');
+    expect(s.matchLabel, 'Because you like lakes and waterfalls');
+    expect(s.reasonLabel, 'Because you like lakes and waterfalls');
     expect(s.title, CountyPaths.byCode[47]!.name);
   });
 }

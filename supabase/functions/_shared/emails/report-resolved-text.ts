@@ -30,6 +30,6 @@ The Kaunti47 team
 
 --
 You received this because you applied for a Kaunti47 beta seat.
-Questions? Reply to this email and it reaches the Kaunti47 team.
+Questions? Email hello@kaunti47.com.
 [Company or postal line: to be confirmed]
 `

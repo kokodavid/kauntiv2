@@ -4,9 +4,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/supabase_client_provider.dart';
 import '../../auth/application/auth_providers.dart';
+import '../data/interest_catalogue_repository.dart';
 import '../data/interest_place_types_repository.dart';
 import '../data/interests_prompt_store.dart';
 import '../data/interests_repository.dart';
+import '../domain/interest_matcher.dart';
 import '../domain/interest_place_types.dart';
 import '../domain/place_interest.dart';
 
@@ -41,23 +43,43 @@ class MyInterests extends _$MyInterests {
   Future<InterestsAnswer> build() async {
     // A different account (or signing out) starts from scratch.
     ref.watch(authUserIdProvider);
+    // Picks are shown against the live list: an interest an admin switched
+    // off disappears, a renamed one shows its new name.
+    final catalogue = await ref.watch(interestCatalogueProvider.future);
     try {
       final repository = ref.read(interestsRepositoryProvider);
       final cached = await repository.cached();
       if (cached != null) {
-        unawaited(_refresh(repository));
-        return cached;
+        unawaited(_refresh(repository, catalogue));
+        return _resolve(cached, catalogue);
       }
-      return await repository.fetch() ?? const InterestsAnswer.unanswered();
+      final fetched = await repository.fetch();
+      return fetched == null
+          ? const InterestsAnswer.unanswered()
+          : _resolve(fetched, catalogue);
     } on Object {
       return const InterestsAnswer.unanswered();
     }
   }
 
-  Future<void> _refresh(InterestsRepository repository) async {
+  static InterestsAnswer _resolve(
+    InterestsAnswer answer,
+    List<PlaceInterest> catalogue,
+  ) => answer.copyWith(
+    interests: PlaceInterest.fromKeys([
+      for (final i in answer.interests) i.key,
+    ], catalogue: catalogue),
+  );
+
+  Future<void> _refresh(
+    InterestsRepository repository,
+    List<PlaceInterest> catalogue,
+  ) async {
     try {
       final latest = await repository.fetch();
-      if (latest != null && ref.mounted) state = AsyncData(latest);
+      if (latest != null && ref.mounted) {
+        state = AsyncData(_resolve(latest, catalogue));
+      }
     } on Object {
       // Keep the answer from this phone.
     }
@@ -123,4 +145,58 @@ Future<InterestPlaceTypes> interestPlaceTypes(Ref ref) async {
   } on Object {
     return InterestPlaceTypes.fallback;
   }
+}
+
+/// The interests a traveller can pick from, ordered by the backend's
+/// `sort_order`. Starts at once from the list remembered on this phone (or
+/// the built-in set), then swaps in the server's active list when it
+/// arrives. Never errors and never empty.
+@Riverpod(keepAlive: true)
+class InterestCatalogue extends _$InterestCatalogue {
+  @override
+  Future<List<PlaceInterest>> build() async {
+    final client = ref.watch(supabaseClientProvider);
+    if (client == null) return PlaceInterest.values;
+    final repository = InterestCatalogueRepository(client);
+    final cached = await repository.cached();
+    unawaited(_refresh(repository));
+    return cached.isEmpty ? PlaceInterest.values : cached;
+  }
+
+  Future<void> _refresh(InterestCatalogueRepository repository) async {
+    try {
+      final loaded = await repository.fetch();
+      if (loaded.isNotEmpty && ref.mounted) state = AsyncData(loaded);
+    } on Object {
+      // Offline, or the interests migration has not run: keep what we have.
+    }
+  }
+}
+
+/// Codes of the coastal counties; empty set reads as "not known".
+@Riverpod(keepAlive: true)
+Future<Set<int>> coastalCountyCodes(Ref ref) async {
+  final client = ref.watch(supabaseClientProvider);
+  if (client == null) return const {};
+  try {
+    return await InterestCatalogueRepository(client).coastalCountyCodes();
+  } on Object {
+    return const {};
+  }
+}
+
+/// Type and county rules for matching a place to an interest, from the
+/// backend. Reads as the bundled rules until they load.
+@Riverpod(keepAlive: true)
+InterestMatcher interestMatcher(Ref ref) {
+  final types =
+      ref.watch(interestPlaceTypesProvider).value ??
+      InterestPlaceTypes.fallback;
+  final coastal = ref.watch(coastalCountyCodesProvider).value;
+  return InterestMatcher(
+    types,
+    (coastal == null || coastal.isEmpty)
+        ? CountyCoast.unknown
+        : CountyCoast(coastal),
+  );
 }

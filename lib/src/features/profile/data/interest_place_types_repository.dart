@@ -8,11 +8,22 @@ class InterestPlaceTypesRepository {
 
   final SupabaseClient client;
 
+  static const _timeout = Duration(seconds: 8);
+
   Future<InterestPlaceTypes> fetch() async {
-    final rows = await client
-        .from('interest_place_types')
-        .select('interest_key, place_type')
-        .timeout(const Duration(seconds: 8));
+    List<Map<String, dynamic>> rows;
+    try {
+      rows = await client
+          .from('interest_place_types')
+          .select('interest_key, place_type, is_primary, county_scope')
+          .timeout(_timeout);
+    } on PostgrestException {
+      // A database that has not run the interests migration yet.
+      rows = await client
+          .from('interest_place_types')
+          .select('interest_key, place_type')
+          .timeout(_timeout);
+    }
     return InterestPlaceTypes.fromRows(rows);
   }
 }

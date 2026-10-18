@@ -15,6 +15,7 @@ import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../application/journey_key_moments.dart';
 import '../application/journey_media_limit.dart';
+import '../application/journey_providers.dart';
 import '../domain/journey_county_moment_facts.dart';
 import '../domain/journey_media_capture.dart';
 import '../domain/journey_media_quota.dart';

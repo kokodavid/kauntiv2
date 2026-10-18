@@ -52,8 +52,10 @@ void main() {
     expect(find.byKey(const Key('explore-resolving-state')), findsOneWidget);
 
     await tester.pumpAndSettle();
-    expect(find.text('Mine · 1'), findsOneWidget);
-    expect(find.text(CountyPaths.byCode[1]!.name), findsOneWidget);
+    expect(
+      find.text('Places will appear here as the guide grows.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('shows the empty MINE card for a new traveller', (tester) async {
@@ -61,7 +63,10 @@ void main() {
       _app(() async => const ExploreBoard(featuredUnlock: null, mine: [])),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Nothing here yet'), findsOneWidget);
+    expect(
+      find.text('Places will appear here as the guide grows.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a load error offers a retry', (tester) async {
@@ -70,7 +75,9 @@ void main() {
     expect(find.text('Try again'), findsOneWidget);
   });
 
-  testWidgets('switches to UNCLAIMED and SAVED', (tester) async {
+  testWidgets('Counties shows the claimed sentence and All/Mine/Open', (
+    tester,
+  ) async {
     final county = CountyPaths.byCode[9]!;
     await tester.pumpWidget(
       _app(
@@ -89,15 +96,36 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Unclaimed · 1'), findsOneWidget);
 
-    await tester.tap(find.text('Unclaimed · 1'));
+    await tester.tap(find.text('Counties'));
     await tester.pumpAndSettle();
-    expect(find.text("CLOSEST ONE YOU DON'T HAVE"), findsOneWidget);
+    expect(find.text('All 1'), findsOneWidget);
+    expect(find.text('Mine 0'), findsOneWidget);
+    expect(find.text('Open 1'), findsOneWidget);
     expect(find.text(county.name), findsOneWidget);
 
-    await tester.tap(find.text('Saved · 0'));
+    await tester.tap(find.text('Mine 0'));
     await tester.pumpAndSettle();
-    expect(find.text('Nothing saved yet'), findsOneWidget);
+    expect(find.text('No counties here yet'), findsOneWidget);
+  });
+
+  testWidgets('Field Guide header switches modes and opens Saved', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(() async => const ExploreBoard(featuredUnlock: null, mine: [])),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Places'), findsOneWidget);
+
+    await tester.tap(find.text('Counties'));
+    await tester.pumpAndSettle();
+    expect(find.text('Places'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Saved'));
+    await tester.pumpAndSettle();
+    expect(find.text('Saved'), findsOneWidget);
+    expect(find.text('Bookmark a place and it shows up here.'), findsOneWidget);
   });
 }

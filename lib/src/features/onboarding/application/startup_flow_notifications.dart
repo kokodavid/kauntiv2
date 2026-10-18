@@ -48,14 +48,4 @@ mixin _StartupNotificationSteps on _$StartupFlow {
     if (state.isRequestingNotifications) return;
     await _finishSetup();
   }
-
-  /// Back from the OS settings: carry on if permission was granted there.
-  Future<void> recheckPermission() async {
-    if (!state.isLocationPermanentlyDenied) return;
-    final result = await ref
-        .read(locationPermissionServiceProvider)
-        .checkStatus();
-    if (!ref.mounted || result != AppLocationPermissionResult.granted) return;
-    await _afterLocationGranted();
-  }
 }

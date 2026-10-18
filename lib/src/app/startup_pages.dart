@@ -13,6 +13,8 @@ import '../features/onboarding/presentation/onboarding_home_county_page.dart';
 import '../features/onboarding/presentation/onboarding_interests_page.dart';
 import '../features/onboarding/presentation/onboarding_notifications_page.dart';
 import '../features/onboarding/presentation/onboarding_permission_page.dart';
+import '../features/profile/application/interests_providers.dart';
+import '../features/profile/domain/place_interest.dart';
 import '../screens/splash_screen.dart';
 
 /// The start-up pages, each bound to [StartupFlow] (or sign-in). Which
@@ -80,6 +82,8 @@ class StartupPreferencesPage extends ConsumerWidget {
     final state = ref.watch(startupFlowProvider);
     final flow = ref.read(startupFlowProvider.notifier);
     return OnboardingInterestsPage(
+      options:
+          ref.watch(interestCatalogueProvider).value ?? PlaceInterest.values,
       selected: state.interests,
       isSaving: state.isSavingInterests,
       onToggle: flow.toggleInterest,

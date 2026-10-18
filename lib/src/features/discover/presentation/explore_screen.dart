@@ -1,26 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_photo_parts.dart';
-import '../../../core/widgets/offline_screen.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
+import '../../onboarding/application/startup_flow.dart';
+import '../../profile/application/interests_providers.dart';
+import '../../profile/domain/place_interest.dart';
+import '../application/explore_headline_rotation_provider.dart';
 import '../application/explore_providers.dart';
 import '../domain/explore_board.dart';
+import '../domain/explore_entries.dart';
+import '../domain/explore_filters.dart';
+import '../domain/explore_results.dart';
+import 'explore_board_memo.dart';
+import 'explore_counties_header.dart';
+import 'explore_counties_landing.dart';
+import 'explore_dock.dart';
+import 'explore_dock_collapse.dart';
+import 'explore_dock_types.dart';
+import 'explore_filter_sheet.dart';
 import 'explore_header.dart';
-import 'explore_mine_tab.dart';
 import 'explore_place_row.dart';
+import 'explore_places_landing.dart';
 import 'explore_resolving_state.dart';
-import 'explore_saved_tab.dart';
-import 'explore_styles.dart';
-import 'explore_unclaimed_tab.dart';
+import 'explore_results_view.dart';
+import 'explore_saved_screen.dart';
+import 'explore_search_body.dart';
+import 'explore_states.dart';
 
-/// The Explore tab (v1 Discover & Wishlist): a title, one search bar and
-/// MINE / UNCLAIMED / SAVED pills over the active tab's list.
-///
-/// Rendered inside the app's tab shell, which keeps it mounted once
-/// visited, so the selected pill, search text and scroll position survive
-/// switching tabs.
+/// The Explore tab (Field Guide v2): Places and Counties under one header
+/// and a frosted dock. Kept mounted by the tab shell, so the mode, filters,
+/// search text and scroll position survive switching tabs.
 class ExploreScreen extends ConsumerWidget {
   const ExploreScreen({
     super.key,
@@ -38,6 +49,7 @@ class ExploreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final board = ref.watch(exploreBoardProvider);
+    ref.watch(exploreHeadlineRotationProvider); // settle it before the board
     return ColoredBox(
       color: AppColors.pageBackground,
       child: SafeArea(
@@ -52,7 +64,7 @@ class ExploreScreen extends ConsumerWidget {
             onOpenPlace: onOpenPlace,
             onRoute: onRoute,
           ),
-          AsyncError() => _ExploreOffline(
+          AsyncError() => ExploreOfflineState(
             onRetry: () => ref.invalidate(exploreBoardProvider),
           ),
           _ => const ExploreResolvingState(),
@@ -62,7 +74,7 @@ class ExploreScreen extends ConsumerWidget {
   }
 }
 
-class _ExploreBoardView extends ConsumerWidget {
+class _ExploreBoardView extends ConsumerStatefulWidget {
   const _ExploreBoardView({
     required this.board,
     this.onOpenCounty,
@@ -76,137 +88,200 @@ class _ExploreBoardView extends ConsumerWidget {
   final AppOpenDirections? onRoute;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tab = ref.watch(exploreTabSelectionProvider);
-    final query = ref.watch(exploreSearchQueryProvider);
-    final filtered = board.filtered(query);
-    final noResults = query.trim().isNotEmpty && filtered.isEmpty;
+  ConsumerState<_ExploreBoardView> createState() => _ExploreBoardViewState();
+}
 
-    // The title, search and pills stay put; only the active list scrolls.
+class _ExploreBoardViewState extends ConsumerState<_ExploreBoardView>
+    with ExploreDockCollapse<_ExploreBoardView> {
+  ExploreViewMode _mode = ExploreViewMode.places;
+  ExploreFilters _filters = const ExploreFilters.none();
+  ExploreCountyScope _countyScope = ExploreCountyScope.all;
+  bool _askInterests = false;
+  final _memo = ExploreBoardMemo();
+
+  void _setFilters(ExploreFilters next) => setState(() => _filters = next);
+
+  void _chooseInterests() => setState(() {
+    _filters = const ExploreFilters.none();
+    _askInterests = true;
+    _mode = ExploreViewMode.places;
+  });
+
+  Future<void> _openFilters({
+    required List<ExploreEntry> entries,
+    required bool hasLocation,
+    required List<PlaceInterest> interests,
+    required List<ExploreDockType> types,
+  }) async {
+    final next = await showExploreFilterSheet(
+      context,
+      initial: _filters,
+      hasLocation: hasLocation,
+      unclaimedCountyCount: widget.board.unclaimedCount,
+      countFor: (filters) => entries.where(filters.matches).length,
+      interestTypes: exploreInterestTypes(
+        entries,
+        interests,
+        matcher: ref.read(interestMatcherProvider),
+      ),
+      types: types,
+      totalCount: entries.length,
+      onChooseInterests: interests.isEmpty ? _chooseInterests : null,
+    );
+    if (!mounted || next == null) return;
+    _setFilters(next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(exploreSearchQueryProvider, (_, _) => syncNav());
+    final board = widget.board;
+    final tab = ref.watch(exploreTabSelectionProvider);
+    final mode = _mode;
+    final query = ref.watch(exploreSearchQueryProvider);
+    final matcher = ref.watch(interestMatcherProvider);
+    final interests = ref.watch(myInterestsProvider).value;
+    final picks = interests?.interests ?? const <PlaceInterest>[];
+    final homeCounty = ref.watch(
+      startupFlowProvider.select((flow) => flow.homeCounty?.name),
+    );
+    final filtered = _memo.filtered(board, query);
+    final searching = query.trim().isNotEmpty;
+    final entries = _memo.entries(board);
+    final hasLocation = entries.any((entry) => entry.km != null);
+    final locationUnavailable =
+        entries.isNotEmpty &&
+        !hasLocation &&
+        board.unclaimed.every((county) => county.distanceMeters == null);
+    final showResults = mode == ExploreViewMode.places && !_filters.isEmpty;
+
+    if (tab == ExploreTab.saved) {
+      return ExploreSavedScreen(
+        board: filtered,
+        onOpenPlace: widget.onOpenPlace,
+        onBack: () => ref
+            .read(exploreTabSelectionProvider.notifier)
+            .select(ExploreTab.mine),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const ExploreTopBar(),
-              const SizedBox(height: 12),
-              ExploreSearchField(
-                initialValue: query,
-                onChanged: (value) =>
-                    ref.read(exploreSearchQueryProvider.notifier).update(value),
-              ),
-              const SizedBox(height: 10),
-              ExploreTabChips(
-                selected: tab,
-                counts: {
-                  ExploreTab.mine: filtered.mineCount,
-                  ExploreTab.unclaimed: filtered.unclaimedCount,
-                  ExploreTab.saved: filtered.savedCount,
-                },
-                onSelected: (next) =>
-                    ref.read(exploreTabSelectionProvider.notifier).select(next),
-              ),
-            ],
+          child: ExploreFieldGuideHeader(
+            mode: mode,
+            savedCount: filtered.savedCount,
+            onModeChanged: (next) => setState(() => _mode = next),
+            onSavedTap: () => ref
+                .read(exploreTabSelectionProvider.notifier)
+                .select(ExploreTab.saved),
           ),
         ),
         Expanded(
-          child: CustomScrollView(
-            // One remembered scroll position per tab.
-            key: PageStorageKey('explore-scroll-${tab.name}'),
-            slivers: [
-              if (noResults)
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverToBoxAdapter(
-                    child: _NoSearchResults(query: query),
-                  ),
-                )
-              else
-                switch (tab) {
-                  ExploreTab.mine => ExploreMineTab(
-                    board: filtered,
-                    onOpenCounty: onOpenCounty,
-                    onOpenPlace: onOpenPlace,
-                    onRoute: onRoute,
-                  ),
-                  ExploreTab.unclaimed => ExploreUnclaimedTab(
-                    counties: filtered.unclaimed,
-                    onOpenCounty: onOpenCounty,
-                    onOpenPlace: onOpenPlace,
-                  ),
-                  ExploreTab.saved => ExploreSavedTab(
-                    board: filtered,
-                    onOpenPlace: onOpenPlace,
-                  ),
+          child: Stack(
+            children: [
+              NotificationListener<UserScrollNotification>(
+                onNotification: (notification) {
+                  handleScroll(notification);
+                  return false;
                 },
-              // Keeps the last card clear of the floating tab bar.
-              const SliverToBoxAdapter(child: SizedBox(height: 112)),
+                child: CustomScrollView(
+                  key: PageStorageKey('explore-scroll-${tab.name}'),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  slivers: [
+                    if (searching)
+                      ExploreSearchBody(
+                        board: filtered,
+                        entries: entries,
+                        query: query,
+                        onOpenCounty: widget.onOpenCounty,
+                        onOpenPlace: widget.onOpenPlace,
+                        onBrowseType: (k) =>
+                            _setFilters(ExploreFilters(typeKey: k)),
+                      )
+                    else
+                      switch (mode) {
+                        ExploreViewMode.places when showResults =>
+                          ExploreResultsView(
+                            filters: _filters,
+                            results: buildExploreResults(
+                              entries,
+                              _filters,
+                              hasLocation: hasLocation,
+                            ),
+                            similar: switch (_filters.typeKey) {
+                              final key? => exploreSimilarTypes(
+                                entries,
+                                key,
+                                matcher: matcher,
+                              ),
+                              null => const [],
+                            },
+                            onFiltersChanged: _setFilters,
+                            onOpenPlace: widget.onOpenPlace,
+                          ),
+                        ExploreViewMode.places => ExplorePlacesLanding(
+                          board: filtered,
+                          onOpenPlace: widget.onOpenPlace,
+                          noInterests: interests != null && picks.isEmpty,
+                          locationUnavailable: locationUnavailable,
+                          homeCountyName: homeCounty,
+                          onSeeAll: _setFilters,
+                          onSeeCounties: () => setState(() {
+                            _mode = ExploreViewMode.counties;
+                            _countyScope = ExploreCountyScope.mine;
+                          }),
+                          onOpenCounty: widget.onOpenCounty,
+                          askInterests: _askInterests,
+                          onAskHandled: () =>
+                              setState(() => _askInterests = false),
+                        ),
+                        ExploreViewMode.counties => ExploreCountiesLanding(
+                          board: filtered,
+                          scope: _countyScope,
+                          onScopeChanged: (next) =>
+                              setState(() => _countyScope = next),
+                          onOpenCounty: widget.onOpenCounty,
+                        ),
+                      },
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: AppBottomNav.clearance(context) + 76,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ExploreDockSlot(
+                searching: searching,
+                child: ExploreFieldGuideDock(
+                  mode: mode,
+                  filterCount: _filters.activeCount,
+                  query: query,
+                  onSearchChanged: (value) => ref
+                      .read(exploreSearchQueryProvider.notifier)
+                      .update(value),
+                  onFilterTap: mode == ExploreViewMode.places
+                      ? () => _openFilters(
+                          entries: entries,
+                          hasLocation: hasLocation,
+                          interests: picks,
+                          types: exploreDockTypes(
+                            entries,
+                            picks,
+                            matcher: matcher,
+                          ),
+                        )
+                      : () {},
+                ),
+              ),
             ],
           ),
         ),
       ],
     );
   }
-}
-
-class _NoSearchResults extends StatelessWidget {
-  const _NoSearchResults({required this.query});
-
-  final String query;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Nothing matches "$query"',
-            style: AppTextStyles.chipLabel.copyWith(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Try a county name or a place, across any tab.',
-            style: ExploreStyles.emptyBody,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Explore with nothing loaded and nothing saved: the title stays, the body
-/// is the shared full-screen offline state. It reloads by itself when the
-/// connection returns.
-class _ExploreOffline extends StatelessWidget {
-  const _ExploreOffline({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Padding(
-        padding: EdgeInsets.fromLTRB(16, 18, 16, 0),
-        child: ExploreTopBar(),
-      ),
-      Expanded(
-        child: OfflineScreen(
-          key: const Key('explore-offline-screen'),
-          message:
-              'Counties and places load from the internet. Check your data '
-              'or Wi‑Fi, then try again.',
-          onRetry: onRetry,
-        ),
-      ),
-    ],
-  );
 }

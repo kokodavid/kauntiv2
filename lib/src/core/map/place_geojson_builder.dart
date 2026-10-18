@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../domain/map_place.dart';
+import '../domain/place_type.dart';
 
 /// Places as a GeoJSON point collection for the real map's pin layers.
 abstract final class PlaceGeoJsonBuilder {
@@ -10,7 +11,8 @@ abstract final class PlaceGeoJsonBuilder {
       ? 'place-photo-${place.id}'
       : typeMarkerId(place.type);
 
-  static String typeMarkerId(String type) => 'place-type-$type';
+  static String typeMarkerId(String type) =>
+      'place-type-${PlaceType.of(type).key}';
 
   static String build(List<MapPlace> places) {
     return jsonEncode({
@@ -22,7 +24,7 @@ abstract final class PlaceGeoJsonBuilder {
             'properties': {
               'id': place.id,
               'name': place.name,
-              'type': place.type,
+              'type': PlaceType.of(place.type).key,
               'marker': markerIdFor(place),
               'hasPhoto': place.thumbnailUrl != null,
             },

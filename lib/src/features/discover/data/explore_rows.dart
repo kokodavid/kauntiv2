@@ -1,9 +1,9 @@
+import '../../../core/domain/place_type.dart';
 import '../../../core/services/app_current_location.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/explore_board.dart';
 import '../domain/explore_labels.dart';
 import '../domain/explore_lists.dart';
-import '../domain/place_category.dart';
 
 /// Row-to-model helpers for [SupabaseExploreRepository], kept apart so
 /// the repository stays about queries.
@@ -14,24 +14,45 @@ abstract final class ExploreRows {
     required bool saved,
     required AppLocationFix? location,
     bool seen = false,
+    DateTime? seenAt,
   }) => ExplorePlace(
     id: id,
     title: row['name'] as String,
     description:
         (row['summary'] as String?) ?? (row['description'] as String?) ?? '',
-    category: PlaceCategory.fromType(row['type'] as String? ?? ''),
+    category: PlaceType.of(row['type'] as String? ?? ''),
     saved: saved,
     seen: seen,
+    seenAt: seenAt,
     isPromoted: activePromotion(row) != null,
     promotionLabel:
         (activePromotion(row)?['disclosure_label'] as String?) ?? 'AD',
     thumbnailUrl: thumbnail(row['place_images']),
+    distanceMeters: _distanceMeters(
+      from: location,
+      latitude: (row['lat'] as num?)?.toDouble(),
+      longitude: (row['lng'] as num?)?.toDouble(),
+    ),
     distanceLabel: ExploreLabels.placeDistance(
       from: location,
       latitude: (row['lat'] as num?)?.toDouble(),
       longitude: (row['lng'] as num?)?.toDouble(),
     ),
   );
+
+  static double? _distanceMeters({
+    required AppLocationFix? from,
+    required double? latitude,
+    required double? longitude,
+  }) {
+    if (from == null || latitude == null || longitude == null) return null;
+    return ExploreLabels.haversineMeters(
+      from.latitude,
+      from.longitude,
+      latitude,
+      longitude,
+    );
+  }
 
   static Map<String, dynamic>? activePromotion(Map<String, dynamic> row) {
     final promotions = row['place_promotions'];
@@ -129,6 +150,9 @@ abstract final class ExploreRows {
                 id: row['place_id'] as String,
                 saved: true,
                 seen: row['ticked_at'] != null,
+                seenAt: DateTime.tryParse(
+                  row['ticked_at'] as String? ?? '',
+                )?.toLocal(),
                 location: location,
               ),
           ],

@@ -118,6 +118,16 @@ class SupabaseExploreRepository implements ExploreRepository {
       ];
     }
 
+    List<ExplorePlace> everyPlace(int code) => [
+      for (final row in placesByCounty[code] ?? noPlaces)
+        ExploreRows.place(
+          row,
+          id: row['id'] as String,
+          saved: savedPlaceIds.contains(row['id']),
+          location: location,
+        ),
+    ];
+
     int placeCount(int code) => placesByCounty[code]?.length ?? 0;
 
     // The RPC orders by entered_at desc: the newest unlock is featured.
@@ -133,7 +143,9 @@ class SupabaseExploreRepository implements ExploreRepository {
               facts: facts[featuredCode] ?? noCountyFacts,
               headquarters: headquarters[featuredCode] as String?,
               previewPlaces: preview(featuredCode),
+              allPlaces: everyPlace(featuredCode),
               totalPlaceCount: placeCount(featuredCode),
+              lastVisitedAt: _date(explored.first['last_visited_at']),
             ),
       mine: [
         for (final row in explored)
@@ -147,6 +159,9 @@ class SupabaseExploreRepository implements ExploreRepository {
               placeCount: placeCount(_code(row)),
               isLocalExpert: row['rank'] == 'local_expert',
               previewPlaces: preview(_code(row)),
+              allPlaces: everyPlace(_code(row)),
+              highlightImageUrl: photos[_code(row)] as String?,
+              lastVisitedAt: _date(row['last_visited_at']),
             ),
       ],
       unclaimed: ExploreUnclaimedCounty.nearestFirst([
@@ -160,6 +175,7 @@ class SupabaseExploreRepository implements ExploreRepository {
               distanceLabel: ExploreLabels.distance(row['distance_m'] as num?),
               distanceMeters: row['distance_m'] as num?,
               previewPlaces: preview(_code(row)),
+              allPlaces: everyPlace(_code(row)),
               isSavedAlone: savedAloneCounties.contains(_code(row)),
               highlightImageUrl: photos[_code(row)] as String?,
               facts: facts[_code(row)] ?? noCountyFacts,
@@ -260,6 +276,9 @@ class SupabaseExploreRepository implements ExploreRepository {
 
   static List<Map<String, dynamic>> _rows(Object? result) =>
       (result! as List).cast<Map<String, dynamic>>();
+
+  static DateTime? _date(Object? value) =>
+      value is String ? DateTime.tryParse(value)?.toLocal() : null;
 
   static int _code(Map<String, dynamic> row, {String key = 'county_id'}) =>
       (row[key] as num).toInt();

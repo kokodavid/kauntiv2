@@ -16,6 +16,7 @@ import 'setup_progress_providers.dart';
 part 'startup_flow.g.dart';
 part 'startup_flow_interests.dart';
 part 'startup_flow_notifications.dart';
+part 'startup_flow_permissions.dart';
 
 /// The OS location permission service. Tests override it.
 @Riverpod(keepAlive: true)
@@ -30,13 +31,17 @@ AppLocationPermissionService locationPermissionService(Ref ref) =>
 /// methods. Ported from the old `app.dart` gate, with the same rules.
 @Riverpod(keepAlive: true)
 class StartupFlow extends _$StartupFlow
-    with _StartupInterestsSteps, _StartupNotificationSteps {
+    with
+        _StartupInterestsSteps,
+        _StartupPermissionSteps,
+        _StartupNotificationSteps {
   static const _homeCountyCheckFailed =
       'Could not check your saved home county. Pick it again to continue.';
 
   @override
   StartupState build() => const StartupState();
 
+  @override
   AppLocationPermissionService get _permissions =>
       ref.read(locationPermissionServiceProvider);
 
@@ -51,6 +56,22 @@ class StartupFlow extends _$StartupFlow
 
   /// Clear account-specific onboarding state before routing to sign-in.
   void resetAfterSignOut() => state = const StartupState(splashComplete: true);
+
+  /// Signs out with the sign-in page already on its way. Signing out first
+  /// makes every screen that watches the account briefly draw its own
+  /// "signed out" state ("Sign in to see your profile") before the router
+  /// catches up; moving the router first means that frame never exists. If
+  /// [signOut] fails the session is still valid, so start-up is restored and
+  /// the error is rethrown for the caller to report.
+  Future<void> signOutTo(Future<void> Function() signOut) async {
+    resetAfterSignOut();
+    try {
+      await signOut();
+    } on Object {
+      await restoreSession();
+      rethrow;
+    }
+  }
 
   String? get _owner => ref.read(currentUserIdProvider)();
 
@@ -243,54 +264,5 @@ class StartupFlow extends _$StartupFlow
     }
     if (!ref.mounted) return;
     await _finishSetup();
-  }
-
-  /// The permission page's button: the OS prompt, or the OS settings once
-  /// the prompt can't be shown again.
-  Future<void> enableLocation() async {
-    if (state.isLocationPermanentlyDenied) {
-      await _permissions.openSettings();
-      return;
-    }
-    await _requestLocation();
-  }
-
-  Future<void> _requestLocation() async {
-    state = state.copyWith(
-      isRequestingLocation: true,
-      permissionError: () => null,
-    );
-    try {
-      final result = await _permissions.requestLocationAccess();
-      if (!ref.mounted) return;
-      if (result == AppLocationPermissionResult.granted) {
-        await _afterLocationGranted();
-        return;
-      }
-      state = state.copyWith(
-        isLocationPermanentlyDenied:
-            result == AppLocationPermissionResult.permanentlyDenied,
-        permissionError: () => switch (result) {
-          AppLocationPermissionResult.permanentlyDenied =>
-            'Location permission is disabled. Open settings and allow it to '
-                'unlock badges automatically.',
-          AppLocationPermissionResult.restricted =>
-            'Location permission is restricted on this device.',
-          AppLocationPermissionResult.denied =>
-            'Location permission is needed to unlock county badges '
-                'automatically.',
-          AppLocationPermissionResult.granted => null,
-        },
-      );
-    } on Object {
-      if (ref.mounted) {
-        state = state.copyWith(
-          permissionError: () =>
-              'Could not request location permission. Try again.',
-        );
-      }
-    } finally {
-      if (ref.mounted) state = state.copyWith(isRequestingLocation: false);
-    }
   }
 }

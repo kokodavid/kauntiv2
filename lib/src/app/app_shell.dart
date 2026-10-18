@@ -13,6 +13,7 @@ import '../core/widgets/app_bottom_nav.dart';
 import '../core/widgets/connectivity_lifecycle.dart';
 import '../core/widgets/offline_banner.dart';
 import '../design/app_colors.dart';
+import '../features/app_version/application/app_update_providers.dart';
 import '../features/detection/application/visit_sync.dart';
 import '../features/detection/presentation/detection_lifecycle.dart';
 import '../features/journeys/presentation/journey_active_banner.dart';
@@ -84,7 +85,10 @@ class AppShell extends ConsumerWidget {
         homeCountyCode: homeCounty?.code,
         onOpenCounty: DetailRoutes.openCounty,
         onOpenPlace: DetailRoutes.openPlace,
+        onOpenTrip: (context) => context.push(AppRoutes.journeyRecording),
         child: JourneySyncLifecycle(
+          onRecovered: () =>
+              ref.read(appUpdateControllerProvider.notifier).check(),
           child: Scaffold(
             backgroundColor: AppColors.pageBackground,
             // A Stack, not a Column: the glass nav needs the active tab's

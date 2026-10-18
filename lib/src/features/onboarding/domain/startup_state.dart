@@ -16,6 +16,10 @@ enum StartupStep {
   /// New-user setup step 3 of 3.
   permission,
 
+  /// The last part of setup step 3, after location is granted: an
+  /// optional ask to turn on county-arrival notifications.
+  notifications,
+
   /// Signed in and past setup (or never needed it).
   ready;
 
@@ -24,6 +28,7 @@ enum StartupStep {
     homeCounty => 1,
     preferences => 2,
     permission => 3,
+    notifications => 3,
     _ => null,
   };
 }
@@ -42,6 +47,7 @@ class StartupState {
     this.interestsSkipped = false,
     this.isRequestingLocation = false,
     this.isLocationPermanentlyDenied = false,
+    this.isRequestingNotifications = false,
     this.permissionError,
   });
 
@@ -65,6 +71,7 @@ class StartupState {
   final bool interestsSkipped;
   final bool isRequestingLocation;
   final bool isLocationPermanentlyDenied;
+  final bool isRequestingNotifications;
   final String? permissionError;
 
   StartupStep get step => splashComplete ? phase : StartupStep.splash;
@@ -80,6 +87,7 @@ class StartupState {
     bool? interestsSkipped,
     bool? isRequestingLocation,
     bool? isLocationPermanentlyDenied,
+    bool? isRequestingNotifications,
     String? Function()? permissionError,
   }) => StartupState(
     splashComplete: splashComplete ?? this.splashComplete,
@@ -95,6 +103,8 @@ class StartupState {
     isRequestingLocation: isRequestingLocation ?? this.isRequestingLocation,
     isLocationPermanentlyDenied:
         isLocationPermanentlyDenied ?? this.isLocationPermanentlyDenied,
+    isRequestingNotifications:
+        isRequestingNotifications ?? this.isRequestingNotifications,
     permissionError: permissionError == null
         ? this.permissionError
         : permissionError(),

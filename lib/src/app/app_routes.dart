@@ -2,13 +2,16 @@ import '../core/domain/app_feature_flags.dart';
 import '../core/widgets/app_bottom_nav.dart';
 import '../features/onboarding/domain/startup_state.dart';
 
-/// Route paths, and which one each start-up step belongs on.
+/// Route paths and startup/update gates.
 abstract final class AppRoutes {
   static const splash = '/splash';
+  static const updateRequired = '/update-required';
+  static const updateAvailable = '/update-available';
   static const signIn = '/sign-in';
   static const homeCounty = '/home-county';
   static const preferences = '/preferences';
   static const permission = '/permission';
+  static const notifications = '/notifications';
   static const map = '/map';
   static const badges = '/badges';
   static const explore = '/explore';
@@ -35,20 +38,46 @@ abstract final class AppRoutes {
     if (AppFeatureFlags.journeys) AppNavTab.journeys,
   ];
 
-  static const _gates = {splash, signIn, homeCounty, preferences, permission};
+  static const _gates = {
+    splash,
+    signIn,
+    homeCounty,
+    preferences,
+    permission,
+    notifications,
+  };
 
-  /// Start-up gating: until onboarding is done, every location goes to
-  /// the current step's page; once ready, a gate page goes to Map and
-  /// everything else is left alone. Null means stay.
-  static String? redirect(StartupStep step, String location) {
+  /// Startup gating keeps onboarding and release prompts ahead of app routes.
+  /// Null means stay at the requested location.
+  static String? redirect(
+    StartupStep step,
+    String location, {
+    bool updateRequired = false,
+    bool updateAvailable = false,
+  }) {
     final target = switch (step) {
       StartupStep.splash => splash,
       StartupStep.signIn => signIn,
       StartupStep.homeCounty => homeCounty,
       StartupStep.preferences => preferences,
       StartupStep.permission => permission,
+      StartupStep.notifications => notifications,
       StartupStep.ready => null,
     };
+    if (updateRequired) {
+      return location == AppRoutes.updateRequired
+          ? null
+          : AppRoutes.updateRequired;
+    }
+    if (updateAvailable && step == StartupStep.ready) {
+      return location == AppRoutes.updateAvailable
+          ? null
+          : AppRoutes.updateAvailable;
+    }
+    if (location == AppRoutes.updateRequired ||
+        location == AppRoutes.updateAvailable) {
+      return target ?? map;
+    }
     if (target != null) return location == target ? null : target;
     return _gates.contains(location) ? map : null;
   }

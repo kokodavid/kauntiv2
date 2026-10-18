@@ -52,6 +52,13 @@ class ProfileSettings {
     required this.notifyCountyNudges,
     required this.sideQuestRadiusKm,
     required this.locationMode,
+    this.notifyAnnouncements = true,
+    this.notifyPhotoReviews = true,
+    this.notifyTripAlerts = true,
+    this.notifyWeekendPlans = false,
+    this.weekendUseSaved = true,
+    this.weekendIncludeNearby = true,
+    this.weekendRadiusKm = 200,
   });
 
   final MapVisibility mapVisibility;
@@ -60,6 +67,30 @@ class ProfileSettings {
   final bool notifyCountyNudges;
   final int sideQuestRadiusKm;
   final LocationMode locationMode;
+
+  /// Product announcements from the team (on by default).
+  final bool notifyAnnouncements;
+
+  /// "Your photo was reviewed" notifications.
+  final bool notifyPhotoReviews;
+
+  /// The reminder when a trip you are recording has been paused for a while.
+  final bool notifyTripAlerts;
+
+  /// One place idea on Thursday afternoons (opt-in).
+  final bool notifyWeekendPlans;
+
+  /// Weekend ideas come from places and plans the user saved first.
+  final bool weekendUseSaved;
+
+  /// With nothing saved, suggest places near home that match interests.
+  final bool weekendIncludeNearby;
+
+  /// How far from the home county's centre nearby ideas may be.
+  final int weekendRadiusKm;
+
+  /// `weekend_radius_km`'s check constraint: `in (50, 100, 200, 300)`.
+  static const weekendRadiusChoicesKm = [50, 100, 200, 300];
 
   /// The radii the radius chooser offers (`side_quest_radius_km`'s check
   /// constraint: `in (25, 50, 100, 250, 500)`).
@@ -72,6 +103,13 @@ class ProfileSettings {
     bool? notifyCountyNudges,
     int? sideQuestRadiusKm,
     LocationMode? locationMode,
+    bool? notifyAnnouncements,
+    bool? notifyPhotoReviews,
+    bool? notifyTripAlerts,
+    bool? notifyWeekendPlans,
+    bool? weekendUseSaved,
+    bool? weekendIncludeNearby,
+    int? weekendRadiusKm,
   }) => ProfileSettings(
     mapVisibility: mapVisibility ?? this.mapVisibility,
     showOnLeaderboards: showOnLeaderboards ?? this.showOnLeaderboards,
@@ -79,5 +117,12 @@ class ProfileSettings {
     notifyCountyNudges: notifyCountyNudges ?? this.notifyCountyNudges,
     sideQuestRadiusKm: sideQuestRadiusKm ?? this.sideQuestRadiusKm,
     locationMode: locationMode ?? this.locationMode,
+    notifyAnnouncements: notifyAnnouncements ?? this.notifyAnnouncements,
+    notifyPhotoReviews: notifyPhotoReviews ?? this.notifyPhotoReviews,
+    notifyTripAlerts: notifyTripAlerts ?? this.notifyTripAlerts,
+    notifyWeekendPlans: notifyWeekendPlans ?? this.notifyWeekendPlans,
+    weekendUseSaved: weekendUseSaved ?? this.weekendUseSaved,
+    weekendIncludeNearby: weekendIncludeNearby ?? this.weekendIncludeNearby,
+    weekendRadiusKm: weekendRadiusKm ?? this.weekendRadiusKm,
   );
 }

@@ -11,6 +11,7 @@ class AppLogger {
   const AppLogger.detection() : this._('detection');
   const AppLogger.journeys() : this._('journeys');
   const AppLogger.badges() : this._('badges');
+  const AppLogger.push() : this._('push');
 
   final String _scope;
 

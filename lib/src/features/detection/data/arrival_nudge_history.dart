@@ -5,8 +5,8 @@ import '../domain/visit_models.dart';
 
 /// Which crossings have already shown the arrival sheet, so a county still
 /// being timed doesn't show it again on every foreground cycle (ported
-/// from v1, same key). Main isolate only; the geofence callback never
-/// touches it.
+/// from v1, same key). Written by the main isolate; the geofence
+/// callback only reads it, to skip a county whose sheet already showed.
 class ArrivalNudgeHistory {
   const ArrivalNudgeHistory();
 
@@ -25,14 +25,22 @@ class ArrivalNudgeHistory {
   /// Oldest entries drop first past this, so it never grows unbounded.
   static const maxEntries = 200;
 
-  Future<Set<String>> shownKeys() async {
+  /// The arrival notification posts from the geofence callback's isolate,
+  /// which has its own preferences cache: reload before reading.
+  Future<SharedPreferences> _fresh() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    return prefs;
+  }
+
+  Future<Set<String>> shownKeys() async {
+    final prefs = await _fresh();
     return (prefs.getStringList(_shownKey) ?? const []).toSet();
   }
 
   /// When each county's sheet last showed.
   Future<Map<int, DateTime>> lastShownByCounty() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _fresh();
     final out = <int, DateTime>{};
     final entries = prefs.getStringList(_lastShownKey) ?? const <String>[];
     for (final String entry in entries) {

@@ -102,6 +102,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setShowOnLeaderboards: controller.setShowOnLeaderboards,
       setNotifyBadgeUnlocks: controller.setNotifyBadgeUnlocks,
       setNotifyCountyNudges: controller.setNotifyCountyNudges,
+      setNotifyAnnouncements: controller.setNotifyAnnouncements,
+      setNotifyPhotoReviews: controller.setNotifyPhotoReviews,
+      setNotifyTripAlerts: controller.setNotifyTripAlerts,
+      setNotifyWeekendPlans: controller.setNotifyWeekendPlans,
+      setWeekendUseSaved: controller.setWeekendUseSaved,
+      setWeekendIncludeNearby: controller.setWeekendIncludeNearby,
+      setWeekendRadiusKm: controller.setWeekendRadiusKm,
       setSideQuestRadiusKm: controller.setSideQuestRadiusKm,
       setLocationMode: controller.setLocationMode,
     );
@@ -161,6 +168,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               SettingsNotificationsSection(
                 settings: settings,
                 notifier: notifier,
+                onOpenPhoneSettings: () =>
+                    unawaited(widget.onOpenLocationSettings()),
               ),
               const SizedBox(height: 18),
               SettingsExploringSection(

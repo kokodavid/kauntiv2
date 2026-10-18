@@ -92,7 +92,7 @@ final class ProfileSettingsControllerProvider
 }
 
 String _$profileSettingsControllerHash() =>
-    r'87ea6c07e5d3aab95a8bc318926991791dee38be';
+    r'51cf6f35dae92f48b17361c6b790e50ea26dd407';
 
 /// Settings screen state: the six preference columns on `profiles`,
 /// updated optimistically (each setter flips the toggle immediately, then

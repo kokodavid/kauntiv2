@@ -2,7 +2,7 @@ part of 'startup_flow.dart';
 
 mixin _StartupPermissionSteps on _$StartupFlow {
   AppLocationPermissionService get _permissions;
-  Future<void> _finishSetup();
+  Future<void> _afterLocationGranted();
 
   /// The permission page's button: the OS prompt, or OS settings if needed.
   Future<void> enableLocation() async {
@@ -22,7 +22,7 @@ mixin _StartupPermissionSteps on _$StartupFlow {
       final result = await _permissions.requestLocationAccess();
       if (!ref.mounted) return;
       if (result == AppLocationPermissionResult.granted) {
-        await _finishSetup();
+        await _afterLocationGranted();
         return;
       }
       state = state.copyWith(
@@ -57,6 +57,6 @@ mixin _StartupPermissionSteps on _$StartupFlow {
     if (!state.isLocationPermanentlyDenied) return;
     final result = await _permissions.checkStatus();
     if (!ref.mounted || result != AppLocationPermissionResult.granted) return;
-    await _finishSetup();
+    await _afterLocationGranted();
   }
 }

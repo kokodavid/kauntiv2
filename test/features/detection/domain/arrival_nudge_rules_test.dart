@@ -64,4 +64,14 @@ void main() {
       again,
     );
   });
+
+  test('parseKey reads back what keyFor wrote and rejects junk', () {
+    final at = DateTime.utc(2026, 10, 12, 8, 30);
+    final parsed = ArrivalNudgeRules.parseKey(ArrivalNudgeRules.keyFor(12, at));
+    expect(parsed?.countyCode, 12);
+    expect(parsed?.enteredAt, at);
+    expect(ArrivalNudgeRules.parseKey('nonsense'), isNull);
+    expect(ArrivalNudgeRules.parseKey('x@2026-10-12T08:30:00Z'), isNull);
+    expect(ArrivalNudgeRules.parseKey('12@not-a-date'), isNull);
+  });
 }

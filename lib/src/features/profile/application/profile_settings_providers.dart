@@ -77,6 +77,41 @@ class ProfileSettingsController extends _$ProfileSettingsController {
     {'side_quest_radius_km': value},
   );
 
+  Future<void> setNotifyAnnouncements(bool value) => _apply(
+    (s) => s.copyWith(notifyAnnouncements: value),
+    {'notify_announcements': value},
+  );
+
+  Future<void> setNotifyPhotoReviews(bool value) => _apply(
+    (s) => s.copyWith(notifyPhotoReviews: value),
+    {'notify_photo_reviews': value},
+  );
+
+  Future<void> setNotifyTripAlerts(bool value) => _apply(
+    (s) => s.copyWith(notifyTripAlerts: value),
+    {'notify_trip_alerts': value},
+  );
+
+  Future<void> setNotifyWeekendPlans(bool value) => _apply(
+    (s) => s.copyWith(notifyWeekendPlans: value),
+    {'notify_weekend_plans': value},
+  );
+
+  Future<void> setWeekendUseSaved(bool value) => _apply(
+    (s) => s.copyWith(weekendUseSaved: value),
+    {'weekend_use_saved': value},
+  );
+
+  Future<void> setWeekendIncludeNearby(bool value) => _apply(
+    (s) => s.copyWith(weekendIncludeNearby: value),
+    {'weekend_include_nearby': value},
+  );
+
+  Future<void> setWeekendRadiusKm(int value) => _apply(
+    (s) => s.copyWith(weekendRadiusKm: value),
+    {'weekend_radius_km': value},
+  );
+
   /// Saved as a preference only -- see [LocationMode]'s doc comment: this
   /// does not yet change what [DetectionController] actually does.
   Future<void> setLocationMode(LocationMode value) => _apply(

@@ -5,6 +5,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../counties/county_paths.dart';
 import '../../../services/app_location_permission_service.dart';
 import '../../auth/application/auth_providers.dart';
+import '../../detection/application/arrival_notifier_provider.dart';
+import '../../notifications/application/push_providers.dart';
 import '../../profile/application/interests_providers.dart';
 import '../../profile/application/profile_settings_providers.dart';
 import '../../profile/application/profile_setup_providers.dart';
@@ -14,6 +16,7 @@ import 'setup_progress_providers.dart';
 
 part 'startup_flow.g.dart';
 part 'startup_flow_interests.dart';
+part 'startup_flow_notifications.dart';
 part 'startup_flow_permissions.dart';
 
 /// The OS location permission service. Tests override it.
@@ -29,7 +32,10 @@ AppLocationPermissionService locationPermissionService(Ref ref) =>
 /// methods. Ported from the old `app.dart` gate, with the same rules.
 @Riverpod(keepAlive: true)
 class StartupFlow extends _$StartupFlow
-    with _StartupInterestsSteps, _StartupPermissionSteps {
+    with
+        _StartupInterestsSteps,
+        _StartupPermissionSteps,
+        _StartupNotificationSteps {
   static const _homeCountyCheckFailed =
       'Could not check your saved home county. Pick it again to continue.';
 
@@ -59,6 +65,12 @@ class StartupFlow extends _$StartupFlow
   /// [signOut] fails the session is still valid, so start-up is restored and
   /// the error is rethrown for the caller to report.
   Future<void> signOutTo(Future<void> Function() signOut) async {
+    // This phone stops receiving this account's notifications. Needs the
+    // session, so it runs first; never blocks sign-out for long.
+    await ref
+        .read(pushRegistrarProvider)
+        .unregister()
+        .timeout(const Duration(seconds: 3), onTimeout: () {});
     resetAfterSignOut();
     try {
       await signOut();
@@ -224,7 +236,7 @@ class StartupFlow extends _$StartupFlow
     }
     if (!ref.mounted) return;
     if (result == AppLocationPermissionResult.granted) {
-      await _finishSetup();
+      await _afterLocationGranted();
       return;
     }
     state = state.copyWith(

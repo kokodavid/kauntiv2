@@ -5,12 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../core/domain/app_feature_flags.dart';
+import '../features/app_version/application/app_update_providers.dart';
+import '../features/auth/application/auth_providers.dart';
 import '../features/auth/application/sign_in_controller.dart';
 import '../features/auth/domain/auth_failure.dart';
+import '../features/journeys/application/journey_recorder.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/onboarding/presentation/onboarding_auth_page.dart';
 import '../features/onboarding/presentation/onboarding_home_county_page.dart';
 import '../features/onboarding/presentation/onboarding_interests_page.dart';
+import '../features/onboarding/presentation/onboarding_notifications_page.dart';
 import '../features/onboarding/presentation/onboarding_permission_page.dart';
 import '../features/profile/application/interests_providers.dart';
 import '../features/profile/domain/place_interest.dart';
@@ -24,13 +29,26 @@ import '../screens/splash_screen.dart';
 class StartupSplashPage extends ConsumerWidget {
   const StartupSplashPage({super.key});
 
+  Future<void> _prepare(WidgetRef ref) async {
+    await ref.read(startupFlowProvider.notifier).restoreSession();
+    if (AppFeatureFlags.journeys && ref.read(currentUserIdProvider)() != null) {
+      try {
+        await ref.read(journeyRecorderProvider.notifier).recover();
+      } on Object {
+        // Keep the splash and let JourneySyncLifecycle retry after startup.
+        return;
+      }
+    }
+    await ref.read(appUpdateControllerProvider.notifier).check();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final flow = ref.read(startupFlowProvider.notifier);
     return SplashScreen(
       preload: (context) => Future.wait([
         const SvgAssetLoader('assets/images/onboarding.svg').loadBytes(context),
-        flow.restoreSession(),
+        _prepare(ref),
       ]),
       onComplete: flow.completeSplash,
     );
@@ -152,6 +170,23 @@ class _StartupPermissionPageState extends ConsumerState<StartupPermissionPage>
       onNotNow: () => unawaited(flow.skipLocation()),
       onBack: flow.back,
       onUndoSkip: () => unawaited(flow.undoInterestsSkip()),
+    );
+  }
+}
+
+/// The end of setup step 3: ask about notifications once location is on.
+class StartupNotificationsPage extends ConsumerWidget {
+  const StartupNotificationsPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final flow = ref.read(startupFlowProvider.notifier);
+    return OnboardingNotificationsPage(
+      isRequesting: ref.watch(
+        startupFlowProvider.select((s) => s.isRequestingNotifications),
+      ),
+      onEnable: () => unawaited(flow.enableNotifications()),
+      onNotNow: () => unawaited(flow.skipNotifications()),
     );
   }
 }

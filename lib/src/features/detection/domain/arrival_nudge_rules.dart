@@ -8,6 +8,17 @@ abstract final class ArrivalNudgeRules {
   static String keyFor(int countyCode, DateTime enteredAt) =>
       '$countyCode@${enteredAt.toUtc().toIso8601String()}';
 
+  /// The inverse of [keyFor]: a notification payload back into its
+  /// crossing; null for anything malformed.
+  static CountyArrivalNudge? parseKey(String key) {
+    final at = key.indexOf('@');
+    if (at < 1) return null;
+    final code = int.tryParse(key.substring(0, at));
+    final enteredAt = DateTime.tryParse(key.substring(at + 1));
+    if (code == null || enteredAt == null) return null;
+    return CountyArrivalNudge(countyCode: code, enteredAt: enteredAt);
+  }
+
   /// A county that already showed the sheet stays quiet this long, however
   /// many times the phone crosses its border (a commute, a boundary road,
   /// GPS jitter). The first time a county is entered it always shows.

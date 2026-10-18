@@ -9,16 +9,20 @@ import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
 import '../core/services/last_screen.dart';
 import '../core/services/location_diagnostics.dart';
+import '../features/app_version/application/app_update_providers.dart';
 import '../features/badges/presentation/badges_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
 import '../features/feedback/presentation/feedback_form_screen.dart';
 import '../features/feedback/presentation/feedback_reports_screen.dart';
+import '../features/journeys/application/journey_recorder.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
 import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
+import '../features/notifications/presentation/push_lifecycle.dart';
+import '../features/notifications/presentation/trip_alert_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
@@ -28,9 +32,11 @@ import '../features/trip_planner/presentation/trip_plan_section.dart';
 import '../features/trip_planner/presentation/trip_start_button.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
+import 'app_update_routes.dart';
 import 'detail_routes.dart';
 import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
+import 'push_routes.dart';
 import 'router_map_tab.dart';
 import 'startup_pages.dart';
 
@@ -43,20 +49,35 @@ part 'router.g.dart';
 GoRouter appRouter(Ref ref) {
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
-    redirect: (context, state) => AppRoutes.redirect(
-      ref.read(startupFlowProvider).step,
-      state.matchedLocation,
-    ),
+    redirect: (context, state) {
+      final journeyActive =
+          AppFeatureFlags.journeys && ref.read(journeyRecorderProvider) != null;
+      final update = ref.read(appUpdateControllerProvider);
+      return AppRoutes.redirect(
+        ref.read(startupFlowProvider).step,
+        state.matchedLocation,
+        updateRequired: update?.required == true && !journeyActive,
+        updateAvailable: update?.available == true && !journeyActive,
+      );
+    },
     routes: [
       _gate(AppRoutes.splash, const StartupSplashPage()),
       _gate(AppRoutes.signIn, const StartupSignInPage()),
       _gate(AppRoutes.homeCounty, const StartupHomeCountyPage()),
       _gate(AppRoutes.preferences, const StartupPreferencesPage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
+      _gate(AppRoutes.notifications, const StartupNotificationsPage()),
+      ...appUpdateRoutes(),
       StatefulShellRoute.indexedStack(
         // Swapped in place like the gates, not slid in.
-        pageBuilder: (context, state, shell) =>
-            NoTransitionPage(child: AppShell(navigationShell: shell)),
+        pageBuilder: (context, state, shell) => NoTransitionPage(
+          // Push runs for the onboarded app only: the shell is not built
+          // until start-up is done.
+          child: PushLifecycle(
+            onOpen: PushRoutes.open,
+            child: TripAlertLifecycle(child: AppShell(navigationShell: shell)),
+          ),
+        ),
         branches: [
           StatefulShellBranch(
             routes: [
@@ -250,15 +271,18 @@ GoRouter appRouter(Ref ref) {
   }
 
   router.routerDelegate.addListener(rememberScreen);
-  ref
-    ..listen(
-      startupFlowProvider.select((s) => s.step),
-      (_, _) => router.refresh(),
-    )
-    ..onDispose(() {
-      router.routerDelegate.removeListener(rememberScreen);
-      router.dispose();
-    });
+  ref.listen(
+    startupFlowProvider.select((s) => s.step),
+    (_, _) => router.refresh(),
+  );
+  ref.listen(appUpdateControllerProvider, (_, _) => router.refresh());
+  if (AppFeatureFlags.journeys) {
+    ref.listen(journeyRecorderProvider, (_, _) => router.refresh());
+  }
+  ref.onDispose(() {
+    router.routerDelegate.removeListener(rememberScreen);
+    router.dispose();
+  });
   return router;
 }
 

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kaunti47/src/features/journeys/domain/trip_share_stat_visibility.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/trip_share_stat_visibility.dart';
 
 void main() {
   test('sharing default hides only top speed', () {

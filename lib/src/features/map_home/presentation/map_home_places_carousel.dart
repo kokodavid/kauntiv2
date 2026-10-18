@@ -26,12 +26,18 @@ class MapHomePlacesCarousel extends ConsumerStatefulWidget {
     required this.loadPlaces,
     this.onOpenCounty,
     this.onOpenPlace,
+    this.autoAdvance = true,
   });
 
   final MapHomeBoardData board;
   final Future<List<MapPlace>> Function()? loadPlaces;
   final OpenCountyDetail? onOpenCounty;
   final OpenPlaceDetail? onOpenPlace;
+
+  /// Moves to the next card every few seconds. On for the collapsed peek,
+  /// off for the copy that opens with the sheet: someone reading an open
+  /// sheet should not have the cards slide away from under their thumb.
+  final bool autoAdvance;
 
   /// The blue label above the cards: 14 for the text, 10 below it.
   static const headingHeight = 24.0;
@@ -128,7 +134,9 @@ class _MapHomePlacesCarouselState extends ConsumerState<MapHomePlacesCarousel> {
 
   void _advance() {
     final pages = _pages;
-    if (!mounted || pages == null || !pages.hasClients) return;
+    if (!widget.autoAdvance || !mounted || pages == null || !pages.hasClients) {
+      return;
+    }
     // Off screen (sheet expanded, another tab), just after a swipe, or with
     // reduced motion: stay where the user left it.
     if (!TickerMode.valuesOf(context).enabled ||

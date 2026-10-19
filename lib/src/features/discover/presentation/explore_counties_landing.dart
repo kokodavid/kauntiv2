@@ -76,7 +76,7 @@ class ExploreCountiesLanding extends StatelessWidget {
                 crossAxisCount: 2,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
-                childAspectRatio: 171 / 214,
+                childAspectRatio: 4 / 3,
               ),
             ),
           ),

@@ -41,6 +41,16 @@ abstract final class AppGlyphPaths {
     ..arcToPoint(const Offset(4, 19), radius: const Radius.circular(2))
     ..lineTo(4, 14);
 
+  /// The County Passport booklet (tab and header button) - from the
+  /// handoff's own SVG: `M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0
+  /// 1-1-1V4a1 1 0 0 1 1-1z`, a circle of radius 3 at (12, 11) and
+  /// `M9 18h6`.
+  static Path passport() => Path()
+    ..addRRect(RRect.fromLTRBR(5, 3, 19, 21, const Radius.circular(1)))
+    ..addOval(Rect.fromCircle(center: const Offset(12, 11), radius: 3))
+    ..moveTo(9, 18)
+    ..lineTo(15, 18);
+
   /// Newspaper ("In the news", County Detail) - lucide `newspaper`, traced
   /// from its own SVG: `M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0
   /// 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2`, `M18

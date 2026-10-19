@@ -77,10 +77,20 @@ class AppShell extends ConsumerWidget {
     final bannerShown =
         ref.watch(connectivityProvider.select((s) => s.showsBanner)) &&
         !ref.watch(offlineBannerSuppressedProvider);
-    // Explore tucks the bar away while scrolling; no other tab does.
+    // Explore tucks the bar away while scrolling, and the Passport while its
+    // cover is up; no other tab does.
     final navHidden =
-        AppRoutes.tabs[navigationShell.currentIndex] == AppNavTab.explore &&
+        (AppRoutes.tabs[navigationShell.currentIndex] == AppNavTab.explore ||
+            AppRoutes.tabs[navigationShell.currentIndex] == AppNavTab.badges) &&
         ref.watch(bottomNavHiddenProvider);
+    // Explore's bar follows the finger, so it is quick; the Passport cover
+    // takes it away and back gently, with the book opening.
+    final navSlide = Duration(
+      milliseconds:
+          AppRoutes.tabs[navigationShell.currentIndex] == AppNavTab.badges
+          ? 600
+          : 220,
+    );
     return ConnectivityLifecycle(
       child: DetectionLifecycle(
         homeCountyCode: homeCounty?.code,
@@ -139,11 +149,11 @@ class AppShell extends ConsumerWidget {
                   child: IgnorePointer(
                     ignoring: navHidden,
                     child: AnimatedSlide(
-                      duration: const Duration(milliseconds: 220),
+                      duration: navSlide,
                       curve: Curves.easeOutCubic,
                       offset: navHidden ? const Offset(0, 1.4) : Offset.zero,
                       child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 220),
+                        duration: navSlide,
                         curve: Curves.easeOutCubic,
                         opacity: navHidden ? 0 : 1,
                         child: AppBottomNav(

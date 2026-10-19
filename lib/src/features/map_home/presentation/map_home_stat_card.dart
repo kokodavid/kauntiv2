@@ -180,7 +180,7 @@ class MapHomeStatCard extends ConsumerWidget {
                                   Flexible(
                                     child: _maskIfLoading(
                                       Text(
-                                        'of $totalCounties counties claimed',
+                                        'of $totalCounties counties explored',
                                         style: AppTextStyles.chipLabel,
                                       ),
                                     ),

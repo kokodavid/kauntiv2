@@ -257,6 +257,8 @@ private extension CLLocation {
       "latitude": coordinate.latitude,
       "longitude": coordinate.longitude,
       "time": Int(timestamp.timeIntervalSince1970 * 1000),
+      // Negative means CoreLocation has no valid radius.
+      "accuracy": horizontalAccuracy >= 0 ? horizontalAccuracy : NSNull(),
       "provider": "ios-core-location",
     ]
   }

@@ -45,6 +45,8 @@ Stream<BadgeCollection> badgeCollection(Ref ref) async* {
       visitStates: saved.visitStates,
       ranks: saved.ranks,
       savedAt: saved.savedAt,
+      firstStampAt: saved.firstStampAt,
+      checkIns: saved.checkIns,
     );
   }
   try {
@@ -54,10 +56,14 @@ Stream<BadgeCollection> badgeCollection(Ref ref) async* {
       visitStates: data.visitStates,
       ranks: data.ranks,
       now: DateTime.now(),
+      firstStampAt: data.firstStampAt,
+      checkIns: data.checkIns,
     );
     yield BadgeCollection.from(
       visitStates: data.visitStates,
       ranks: data.ranks,
+      firstStampAt: data.firstStampAt,
+      checkIns: data.checkIns,
     );
   } on Object {
     // No connection: the saved copy already on screen stays. With none

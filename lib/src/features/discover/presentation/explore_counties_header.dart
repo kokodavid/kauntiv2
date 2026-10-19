@@ -47,7 +47,7 @@ class ExploreCountiesHeader extends StatelessWidget {
                   text: '$claimed',
                   style: const TextStyle(color: AppColors.accent),
                 ),
-                TextSpan(text: ' of $total counties claimed'),
+                TextSpan(text: ' of $total counties explored'),
               ],
             ),
             style: ExploreStyles.resultsSentence,

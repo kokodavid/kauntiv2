@@ -50,7 +50,7 @@ class ExploreCountiesLanding extends StatelessWidget {
             sliver: SliverToBoxAdapter(
               child: ExploreStateNotice(
                 title: scope == ExploreCountyScope.open
-                    ? 'All $total counties claimed'
+                    ? 'All $total counties explored'
                     : 'No counties here yet',
                 message: scope == ExploreCountyScope.open
                     ? 'You have unlocked every county in your collection.'

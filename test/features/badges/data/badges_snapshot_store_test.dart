@@ -13,11 +13,13 @@ void main() {
       visitStates: {1: 'explored', 2: 'passed_through'},
       ranks: {1: 'regular'},
       now: now,
+      firstStampAt: DateTime.utc(2026, 3, 9, 8),
     );
     final back = await store.read('a');
     expect(back!.savedAt, now);
     expect(back.visitStates, {1: 'explored', 2: 'passed_through'});
     expect(back.ranks, {1: 'regular'});
+    expect(back.firstStampAt, DateTime.utc(2026, 3, 9, 8));
     expect(await store.read('b'), isNull);
   });
 }

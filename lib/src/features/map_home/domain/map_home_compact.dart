@@ -28,7 +28,7 @@ class MapHomeCompact {
   /// The new-user card: its button starts a Trip when one can be started.
   final bool isHomeStart;
 
-  /// "12 of 47 claimed · Explorer · 35 to go". The tier is left out until
+  /// "12 of 47 explored · Explorer · 35 to go". The tier is left out until
   /// the first medal is earned.
   static String progressLine(MapHomeBoardData data) {
     final claimed = data.exploredCount;
@@ -36,7 +36,7 @@ class MapHomeCompact {
     final tier = data.tier;
     final left = total - claimed;
     return [
-      '$claimed of $total claimed',
+      '$claimed of $total explored',
       ?tier?.label,
       if (left > 0) '$left to go',
     ].join(' · ');

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_text_styles.dart';
 import '../../widgets/app_county_shape.dart';
+import 'app_glyph_icon.dart';
 import '../domain/app_feature_flags.dart';
 
 enum AppNavTab { map, badges, ranks, explore, journeys }
@@ -22,17 +23,34 @@ class AppBottomNav extends StatelessWidget {
 
   static const _tabs = [
     // Null icon: the Map tab draws Kenya's outline.
-    (tab: AppNavTab.map, icon: null, label: 'Map'),
+    (tab: AppNavTab.map, icon: null, glyph: null, label: 'Map'),
+    // The booklet from the Passport design, not a Material icon.
     (
       tab: AppNavTab.badges,
-      icon: Icons.workspace_premium_outlined,
-      label: 'Badges',
+      icon: null,
+      glyph: AppGlyphPaths.passport,
+      label: 'Passport',
     ),
     if (AppFeatureFlags.ranks)
-      (tab: AppNavTab.ranks, icon: Icons.bar_chart_rounded, label: 'Ranks'),
-    (tab: AppNavTab.explore, icon: Icons.travel_explore, label: 'Explore'),
+      (
+        tab: AppNavTab.ranks,
+        icon: Icons.bar_chart_rounded,
+        glyph: null,
+        label: 'Ranks',
+      ),
+    (
+      tab: AppNavTab.explore,
+      icon: Icons.travel_explore,
+      glyph: null,
+      label: 'Explore',
+    ),
     if (AppFeatureFlags.journeys)
-      (tab: AppNavTab.journeys, icon: Icons.route_rounded, label: 'Trips'),
+      (
+        tab: AppNavTab.journeys,
+        icon: Icons.route_rounded,
+        glyph: null,
+        label: 'Trips',
+      ),
   ];
 
   /// Gap under the floating bar. The app draws edge to edge (no
@@ -113,6 +131,7 @@ class AppBottomNav extends StatelessWidget {
                     Expanded(
                       child: _NavTabButton(
                         icon: entry.icon,
+                        glyph: entry.glyph,
                         label: entry.label,
                         isActive: entry.tab == selected,
                         onTap: () => onSelect(entry.tab),
@@ -142,12 +161,16 @@ class AppBottomNav extends StatelessWidget {
 class _NavTabButton extends StatelessWidget {
   const _NavTabButton({
     required this.icon,
+    required this.glyph,
     required this.label,
     required this.isActive,
     required this.onTap,
   });
 
   final IconData? icon;
+
+  /// A drawn glyph instead of [icon] (the Passport booklet).
+  final Path Function()? glyph;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
@@ -174,6 +197,14 @@ class _NavTabButton extends StatelessWidget {
                 duration: AppBottomNav._slide,
                 builder: (context, tint, _) {
                   final shade = tint ?? color;
+                  if (glyph != null) {
+                    return AppGlyphIcon(
+                      path: glyph!,
+                      size: 17,
+                      color: shade,
+                      strokeWidth: 2,
+                    );
+                  }
                   return icon == null
                       ? SizedBox.square(
                           dimension: 16,

@@ -41,7 +41,7 @@ void main() {
   test('the progress line counts claimed and left, without a tier yet', () {
     expect(
       MapHomeCompact.progressLine(_board(claimed: 5)),
-      '5 of 47 claimed · 42 to go',
+      '5 of 47 explored · 42 to go',
     );
   });
 

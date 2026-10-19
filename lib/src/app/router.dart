@@ -11,7 +11,7 @@ import '../core/services/last_screen.dart';
 import '../core/services/location_diagnostics.dart';
 import '../features/app_version/application/app_update_providers.dart';
 import '../features/app_version/presentation/update_settings_row.dart';
-import '../features/badges/presentation/badges_screen.dart';
+import '../features/badges/presentation/passport_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
@@ -25,6 +25,7 @@ import '../features/location_diagnostics/presentation/location_diagnostics_scree
 import '../features/notifications/presentation/push_lifecycle.dart';
 import '../features/notifications/presentation/trip_alert_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/place_check_ins/presentation/place_check_in_card.dart';
 import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
@@ -92,10 +93,8 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.badges,
-                builder: (context, state) => BadgesScreen(
-                  onOpenCounty: DetailRoutes.openCounty,
-                  onOpenPlace: DetailRoutes.openPlace,
-                ),
+                builder: (context, state) =>
+                    PassportScreen(onOpenCounty: DetailRoutes.openCounty),
               ),
             ],
           ),
@@ -259,6 +258,10 @@ GoRouter appRouter(Ref ref) {
                 JourneyPlaceRoutes.startPlanned(context, place, stops),
           ),
           photos: PlacePhotosRoutes.placeSection,
+          checkIn: (context, place) => PlaceCheckInCard(
+            placeId: place.id,
+            placeName: place.title,
+          ),
         ),
       ),
     ],

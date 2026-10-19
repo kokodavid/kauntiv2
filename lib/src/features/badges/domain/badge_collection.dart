@@ -1,6 +1,7 @@
 import '../../../core/domain/county_tier.dart';
 import '../../../counties/county_paths.dart';
 import '../../map_home/domain/county_badge_state.dart';
+import 'county_check_ins.dart';
 
 /// How deep someone's knowledge of a county goes (docs 02: the depth
 /// ladder). Drawn as the ring round each badge, a quarter per level.
@@ -36,11 +37,15 @@ class CountyBadge {
     required this.county,
     required this.state,
     required this.depth,
+    this.checkIns = CountyCheckIns.none,
   });
 
   final CountyPath county;
   final CountyBadgeState state;
   final CountyDepth depth;
+
+  /// What the traveller verified here by checking in at places.
+  final CountyCheckIns checkIns;
 
   bool get isEarned => state == CountyBadgeState.earned;
 }
@@ -48,7 +53,12 @@ class CountyBadge {
 /// Every county's badge: earned ones first, then the rest, each in county
 /// code order.
 class BadgeCollection {
-  BadgeCollection(List<CountyBadge> badges, {this.savedAt})
+  BadgeCollection(
+    List<CountyBadge> badges, {
+    this.savedAt,
+    this.firstStampAt,
+    this.checkInsLive = false,
+  })
     : badges = [
         ...badges.where((b) => b.isEarned),
         ...badges.where((b) => !b.isEarned),
@@ -60,16 +70,28 @@ class BadgeCollection {
     required Map<int, String> visitStates,
     required Map<int, String> ranks,
     DateTime? savedAt,
+    DateTime? firstStampAt,
+    CheckInsOverview checkIns = CheckInsOverview.none,
   }) {
     final counties = [...CountyPaths.all]
       ..sort((a, b) => a.code.compareTo(b.code));
     return BadgeCollection([
       for (final county in counties)
-        _badge(county, visitStates[county.code], ranks[county.code]),
-    ], savedAt: savedAt);
+        _badge(
+          county,
+          visitStates[county.code],
+          ranks[county.code],
+          checkIns.of(county.code),
+        ),
+    ], savedAt: savedAt, firstStampAt: firstStampAt, checkInsLive: checkIns.live);
   }
 
-  static CountyBadge _badge(CountyPath county, String? visit, String? rank) {
+  static CountyBadge _badge(
+    CountyPath county,
+    String? visit,
+    String? rank,
+    CountyCheckIns checkIns,
+  ) {
     final (state, depth) = switch (visit) {
       'explored' => (CountyBadgeState.earned, CountyDepth.fromRank(rank)),
       'passed_through' => (
@@ -79,10 +101,21 @@ class BadgeCollection {
       'pending' => (CountyBadgeState.pending, CountyDepth.none),
       _ => (CountyBadgeState.locked, CountyDepth.none),
     };
-    return CountyBadge(county: county, state: state, depth: depth);
+    return CountyBadge(
+      county: county,
+      state: state,
+      depth: depth,
+      checkIns: checkIns,
+    );
   }
 
   final List<CountyBadge> badges;
+
+  /// When the first stamp was earned; null when unknown.
+  final DateTime? firstStampAt;
+
+  /// Whether the server has check-ins switched on.
+  final bool checkInsLive;
 
   /// Set when this is the copy kept on the phone (the server couldn't be
   /// reached); null for a live load.

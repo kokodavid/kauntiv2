@@ -49,7 +49,7 @@ Future<void> _open(
 }
 
 void main() {
-  testWidgets('shows the county card and four places, saved first', (
+  testWidgets('shows the county card and two places, saved first', (
     tester,
   ) async {
     final opened = <int>[];
@@ -67,9 +67,10 @@ void main() {
     expect(find.text("YOU'RE HERE"), findsOneWidget);
     expect(find.text('Places to visit'), findsOneWidget);
     expect(find.text('All 5 places in Nairobi →'), findsOneWidget);
-    expect(find.textContaining('Place '), findsNWidgets(4));
+    expect(find.textContaining('Place '), findsNWidgets(2));
     expect(find.text('Place 5'), findsOneWidget);
-    expect(find.text('Place 4'), findsNothing);
+    expect(find.text('Place 1'), findsOneWidget);
+    expect(find.text('Place 2'), findsNothing);
 
     // The county card opens County Detail and closes the sheet.
     await tester.tap(find.text("YOU'RE HERE"));

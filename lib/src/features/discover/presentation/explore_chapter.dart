@@ -74,7 +74,7 @@ class ExploreChapter extends StatelessWidget {
           )
         else if (places.isNotEmpty)
           SizedBox(
-            height: 300,
+            height: 180,
             // Built lazily: only the cards on (or just off) screen exist, so
             // a chapter scrolling into view does not decode every photo.
             child: ListView.builder(

@@ -8,6 +8,7 @@ import '../application/explore_nearby_providers.dart';
 import '../domain/explore_board.dart';
 import '../domain/explore_entries.dart';
 import '../domain/explore_filters.dart';
+import 'explore_ad_slot.dart';
 import 'explore_chapter.dart';
 import 'explore_chapter_header.dart';
 import 'explore_go_back.dart';
@@ -182,6 +183,11 @@ class _ExplorePlacesLandingState extends ConsumerState<ExplorePlacesLanding> {
       ],
     ];
     final headlineRow = data.headlineRow;
+    // One ad, under the first chapter (Go back, else the first For you row,
+    // else the first More row). Never when that chapter is the only one.
+    final goBackCount = data.goBack.isNotEmpty ? 1 : 0;
+    final chapters = goBackCount + data.forYou.length + data.more.length;
+    bool adAfter(int index) => index == 0 && chapters > 1;
     final moreLabel = interests.isEmpty ? 'All places' : 'More places';
 
     return SliverPadding(
@@ -235,6 +241,7 @@ class _ExplorePlacesLandingState extends ConsumerState<ExplorePlacesLanding> {
                 typeKeysLabel: row.group.interest.label,
               ),
             ),
+            if (adAfter(goBackCount + i)) ..._landingAd,
           ],
           if (data.more.isNotEmpty) ExploreGroupLabel(moreLabel),
           for (final (i, group) in data.more.indexed) ...[
@@ -246,6 +253,7 @@ class _ExplorePlacesLandingState extends ConsumerState<ExplorePlacesLanding> {
               action: 'See all ${group.total}',
               seeAll: ExploreFilters(typeKey: group.type.key),
             ),
+            if (adAfter(goBackCount + data.forYou.length + i)) ..._landingAd,
           ],
           if (data.nextLead != null || data.nextBadge.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -270,3 +278,6 @@ class _ExplorePlacesLandingState extends ConsumerState<ExplorePlacesLanding> {
   String _capitalise(String text) =>
       text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
 }
+
+/// An ad on the landing feed: a short banner between two chapters.
+const _landingAd = <Widget>[SizedBox(height: 16), ExploreAdSlot(banner: true)];

@@ -9,6 +9,7 @@ import '../../../widgets/app_progress_indicator.dart';
 import '../application/discover_detail_actions.dart';
 import '../domain/place_detail.dart';
 import 'detail_async_body.dart';
+import 'explore_ad_slot.dart';
 import 'place_detail_about_tile.dart';
 import 'place_detail_bar.dart';
 import 'place_detail_header.dart';
@@ -135,15 +136,13 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       PlaceDetailAboutTile(description: data.description),
+      // One ad under the description, clear of the check-in card and the
+      // Start trip bar. Renders nothing unless ads are on for this user.
+      const SizedBox(height: 12),
+      const ExploreAdSlot(),
       if (widget.photos != null) ...[
-        const SizedBox(height: 20),
+        const SizedBox(height: 8),
         widget.photos!(context, data),
-      ],
-      if (_planned) ...[
-        const SizedBox(height: 20),
-        PlaceDetailPlanNudge(
-          onTap: () => setState(() => _tab = PlaceDetailTab.plan),
-        ),
       ],
     ],
   );

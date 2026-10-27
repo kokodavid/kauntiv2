@@ -6,8 +6,10 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/place_type_style.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../../ads/domain/ad_placement.dart';
 import '../domain/explore_filters.dart';
 import '../domain/explore_results.dart';
+import 'explore_ad_slot.dart';
 import 'explore_field_row.dart';
 import 'explore_place_row.dart';
 import 'explore_results_parts.dart';
@@ -57,6 +59,13 @@ class ExploreResultsView extends StatelessWidget {
         results.count < 3 &&
         filters.typeKey != null &&
         filters.sheetCount == 0;
+    // Where each band starts in the whole run of rows, for ad spacing.
+    final bandStarts = <int>[];
+    var totalRows = 0;
+    for (final band in results.bands) {
+      bandStarts.add(totalRows);
+      totalRows += band.entries.length;
+    }
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList.list(
@@ -154,9 +163,18 @@ class ExploreResultsView extends StatelessWidget {
                   padding: EdgeInsets.only(top: i == 0 ? 0 : 8, bottom: 10),
                   child: _BandHeader(band: results.bands[i]),
                 ),
-              for (final entry in results.bands[i].entries) ...[
-                ExploreFieldRow(entry: entry, onOpen: onOpenPlace),
+              for (var j = 0; j < results.bands[i].entries.length; j++) ...[
+                ExploreFieldRow(
+                  entry: results.bands[i].entries[j],
+                  onOpen: onOpenPlace,
+                ),
                 const SizedBox(height: 10),
+                if (!thin &&
+                    AdPlacement.afterRow(
+                      index: bandStarts[i] + j,
+                      total: totalRows,
+                    ))
+                  const ExploreAdSlot(banner: true),
               ],
             ],
             if (thin)

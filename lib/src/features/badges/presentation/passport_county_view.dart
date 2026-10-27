@@ -6,6 +6,7 @@ import '../domain/county_badge_detail.dart';
 import '../domain/passport_county.dart';
 import '../domain/passport_progress.dart';
 import '../domain/passport_rules.dart';
+import 'passport_ad_slot.dart';
 import 'passport_callbacks.dart';
 import 'passport_county_skeleton.dart';
 import 'passport_hero_card.dart';
@@ -83,6 +84,7 @@ class PassportCountyView extends ConsumerWidget {
           ],
         ],
         const SizedBox(height: 14),
+        const PassportAdSlot(),
         PassportLinksCard(
           county: county.name,
           onOpen: open == null ? null : () => open(context, county.code),

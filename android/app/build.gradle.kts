@@ -38,6 +38,8 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         manifestPlaceholders["appAuthRedirectScheme"] = "kaunti47-prod"
+        // Flavors override this; dev uses Google's sample app ID.
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-2470974563764561~5167145236"
         resValue("string", "app_name", "Kaunti47")
     }
 
@@ -47,12 +49,14 @@ android {
         create("dev") {
             dimension = "environment"
             manifestPlaceholders["appAuthRedirectScheme"] = "kaunti47-dev"
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
             resValue("string", "app_name", "Kaunti47 Dev")
         }
 
         create("prod") {
             dimension = "environment"
             manifestPlaceholders["appAuthRedirectScheme"] = "kaunti47-prod"
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-2470974563764561~5167145236"
             resValue("string", "app_name", "Kaunti47")
         }
     }

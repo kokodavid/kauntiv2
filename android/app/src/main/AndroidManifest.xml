@@ -63,6 +63,12 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- AdMob app ID per flavor (build.gradle.kts). The app crashes on
+             start if this is missing or malformed. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <!-- Detection (native_geofence): receives geofence transitions,
              re-registers geofences after a reboot, and runs the background
              callback as a foreground service when the OS requires it. -->

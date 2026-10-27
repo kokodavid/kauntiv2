@@ -69,6 +69,19 @@ abstract final class MapPlaceLayers {
         textHaloWidth: 1.2,
       ),
     );
+    await _liftAboveTerrain(style);
+  }
+
+  /// Lifts the markers clear of terrain so a ridge in front of a pin at a
+  /// tilted camera doesn't hide it. Cosmetic: ignored where unsupported.
+  static Future<void> _liftAboveTerrain(StyleManager style) async {
+    try {
+      await style.setStyleLayerProperty(
+        placeMarkerLayerId,
+        'symbol-z-elevate',
+        true,
+      );
+    } on Object catch (_) {}
   }
 
   /// Taps on a pin report its place `id`.
@@ -81,6 +94,23 @@ abstract final class MapPlaceLayers {
         ),
         interactionID: 'kaunti47-place-tap-$layerId',
       );
+    }
+  }
+
+  /// Hides the pin of place [id] (its popup is standing in for it); null
+  /// shows every pin again.
+  static Future<void> hidePlace(MapboxMap map, String? id) async {
+    final filter = [
+      '!=',
+      ['get', 'id'],
+      id ?? '',
+    ];
+    for (final layerId in [placeDotLayerId, placeMarkerLayerId]) {
+      try {
+        await map.style.setStyleLayerProperty(layerId, 'filter', filter);
+      } on Object {
+        // The layers are gone (style switching); nothing to hide.
+      }
     }
   }
 

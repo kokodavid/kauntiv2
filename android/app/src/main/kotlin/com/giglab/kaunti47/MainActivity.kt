@@ -172,6 +172,7 @@ class MainActivity : FlutterActivity() {
     "latitude" to latitude,
     "longitude" to longitude,
     "time" to time,
+    "accuracy" to (if (hasAccuracy()) accuracy.toDouble() else null),
     "provider" to "$provider/$source",
   )
 

@@ -155,6 +155,7 @@ mixin _TripShareSheetContent
                             averageSpeedMps: summary.averageSpeedMps,
                             highestElevationMeters:
                                 summary.highestElevationMeters,
+                            statVisibility: _stats,
                             countyNames: summary.countyNames,
                             photo: photo,
                             routePoints: photo != null
@@ -167,6 +168,12 @@ mixin _TripShareSheetContent
                       ),
                     ),
                   ),
+                ),
+                const SizedBox(height: 16),
+                _StatSwitches(
+                  summary: summary,
+                  visibility: _stats,
+                  onChanged: (next) => setState(() => _stats = next),
                 ),
                 const SizedBox(height: 18),
                 Row(

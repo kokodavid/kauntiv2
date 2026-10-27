@@ -114,7 +114,7 @@ final class BadgeCollectionProvider
   }
 }
 
-String _$badgeCollectionHash() => r'9dc187f83ec2044bc3f5b6cadf522ecd316be94b';
+String _$badgeCollectionHash() => r'3fa6bc197d8e0a043f0b474513b912588edf0fda';
 
 /// One county's badge in detail, for the badge sheet. Reloads with the
 /// collection (account change, visit sync).

@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/domain/map_place.dart';
-import '../../../core/widgets/app_photo_parts.dart' show AppOpenDirections;
-import '../../../core/widgets/app_place_sheet.dart';
 import '../../../design/app_colors.dart';
 import '../domain/map_home_models.dart';
 import 'county_peek_sheet.dart';
-import 'real_map_sheet_guard.dart';
 
-/// The sheets Home's real map opens. A county peek is an overlay with no
+/// The county peek Home's real map opens. It is an overlay with no
 /// backdrop, so the map stays tappable behind it: tapping another county
 /// swaps the open peek for that county's instead of stacking a second one,
-/// and a swipe down closes it. A place sheet is a normal modal sheet, one
-/// at a time.
+/// and a swipe down closes it. (A tapped pin opens a popup instead; see
+/// `RealMapPlaceFlow`.)
 class RealMapSheets {
   RealMapSheets({required this.onPeekClosed});
 
@@ -20,7 +16,6 @@ class RealMapSheets {
   /// not when it is replaced by another county's.
   final VoidCallback onPeekClosed;
 
-  final _places = RealMapSheetGuard();
   final _host = GlobalKey<_PeekHostState>();
   _Peek? _latest;
   OverlayEntry? _entry;
@@ -54,27 +49,6 @@ class RealMapSheets {
 
   /// Closes the county peek with its slide-out; does nothing when none is open.
   void closePeek() => _host.currentState?.dismiss();
-
-  /// Opens a place sheet, closing any county peek first. Ignored while one
-  /// is already opening or showing.
-  Future<void> showPlace(
-    BuildContext context,
-    MapPlace place, {
-    AppOpenPlace? onOpenPlace,
-    AppOpenDirections? onRoute,
-    AppOpenPlaceRoute? onPlaceRoute,
-  }) {
-    closePeek();
-    return _places.run(
-      () => AppPlaceSheet.show(
-        context,
-        place,
-        onOpenPlace: onOpenPlace,
-        onRoute: onRoute,
-        onPlaceRoute: onPlaceRoute,
-      ),
-    );
-  }
 
   void _remove() {
     _entry?.remove();

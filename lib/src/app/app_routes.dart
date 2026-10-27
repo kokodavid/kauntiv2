@@ -6,12 +6,10 @@ import '../features/onboarding/domain/startup_state.dart';
 abstract final class AppRoutes {
   static const splash = '/splash';
   static const updateRequired = '/update-required';
-  static const updateAvailable = '/update-available';
   static const signIn = '/sign-in';
   static const homeCounty = '/home-county';
   static const preferences = '/preferences';
   static const permission = '/permission';
-  static const notifications = '/notifications';
   static const map = '/map';
   static const badges = '/badges';
   static const explore = '/explore';
@@ -23,6 +21,7 @@ abstract final class AppRoutes {
   static const feedbackReports = '/feedback/reports';
   static const myPhotos = '/my-photos';
   static const locationDiagnostics = '/location-diagnostics';
+  static const pushStatus = '/push-status';
   static const journeyRecording = '/journey-recording';
   static const savedPlans = '/saved-plans';
 
@@ -38,14 +37,7 @@ abstract final class AppRoutes {
     if (AppFeatureFlags.journeys) AppNavTab.journeys,
   ];
 
-  static const _gates = {
-    splash,
-    signIn,
-    homeCounty,
-    preferences,
-    permission,
-    notifications,
-  };
+  static const _gates = {splash, signIn, homeCounty, preferences, permission};
 
   /// Startup gating keeps onboarding and release prompts ahead of app routes.
   /// Null means stay at the requested location.
@@ -53,7 +45,6 @@ abstract final class AppRoutes {
     StartupStep step,
     String location, {
     bool updateRequired = false,
-    bool updateAvailable = false,
   }) {
     final target = switch (step) {
       StartupStep.splash => splash,
@@ -61,7 +52,6 @@ abstract final class AppRoutes {
       StartupStep.homeCounty => homeCounty,
       StartupStep.preferences => preferences,
       StartupStep.permission => permission,
-      StartupStep.notifications => notifications,
       StartupStep.ready => null,
     };
     if (updateRequired) {
@@ -69,13 +59,7 @@ abstract final class AppRoutes {
           ? null
           : AppRoutes.updateRequired;
     }
-    if (updateAvailable && step == StartupStep.ready) {
-      return location == AppRoutes.updateAvailable
-          ? null
-          : AppRoutes.updateAvailable;
-    }
-    if (location == AppRoutes.updateRequired ||
-        location == AppRoutes.updateAvailable) {
+    if (location == AppRoutes.updateRequired) {
       return target ?? map;
     }
     if (target != null) return location == target ? null : target;

@@ -8,6 +8,8 @@ import '../../../core/widgets/app_network_image.dart';
 import '../../../design/app_colors.dart';
 import '../application/public_profile_providers.dart';
 import '../domain/public_profile.dart';
+import 'avatar_crop_screen.dart';
+import 'avatar_viewer.dart';
 import 'profile_text_field.dart';
 
 /// Change photo, display name and handle -- all three are already
@@ -65,14 +67,14 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
       imageQuality: 85,
     );
     if (picked == null || !mounted) return;
+    final raw = await picked.readAsBytes();
+    if (!mounted) return;
+    // Frame it first; cancelling leaves the current photo as it was.
+    final bytes = await AvatarCropScreen.open(context, raw);
+    if (bytes == null || !mounted) return;
     setState(() => _savingPhoto = true);
     try {
-      final bytes = await picked.readAsBytes();
-      final extension = picked.path.split('.').last.toLowerCase();
-      final url = await repository.uploadAvatar(
-        bytes,
-        extension: extension == 'jpeg' ? 'jpg' : extension,
-      );
+      final url = await repository.uploadAvatar(bytes, extension: 'png');
       if (mounted) setState(() => _avatarUrl = url);
       ref.invalidate(myPublicProfileProvider);
     } on Object {
@@ -160,23 +162,30 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
             const SizedBox(height: 18),
             Row(
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: AppColors.accent,
-                  backgroundImage: _avatarUrl != null && _avatarUrl!.isNotEmpty
-                      ? appNetworkImage(_avatarUrl!)
-                      : null,
-                  child: _savingPhoto
-                      ? const SizedBox.square(
-                          dimension: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : (_avatarUrl == null || _avatarUrl!.isEmpty)
-                      ? const Icon(Icons.image_outlined, color: Colors.white)
-                      : null,
+                GestureDetector(
+                  onTap: _avatarUrl == null || _avatarUrl!.isEmpty
+                      ? null
+                      : () =>
+                            unawaited(AvatarViewer.show(context, _avatarUrl!)),
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundColor: AppColors.accent,
+                    backgroundImage:
+                        _avatarUrl != null && _avatarUrl!.isNotEmpty
+                        ? appNetworkImage(_avatarUrl!)
+                        : null,
+                    child: _savingPhoto
+                        ? const SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : (_avatarUrl == null || _avatarUrl!.isEmpty)
+                        ? const Icon(Icons.image_outlined, color: Colors.white)
+                        : null,
+                  ),
                 ),
                 const SizedBox(width: 14),
                 OutlinedButton.icon(

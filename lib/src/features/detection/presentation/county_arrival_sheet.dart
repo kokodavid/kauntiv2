@@ -72,8 +72,8 @@ class _ArrivalContent extends StatelessWidget {
     this.onOpenPlace,
   });
 
-  /// v1's design showed four places.
-  static const _maxPlaces = 4;
+  /// Two keep the sheet short; "All N places" opens the full list.
+  static const _maxPlaces = 2;
 
   final CountyDetailData data;
   final VoidCallback onDismiss;

@@ -164,4 +164,15 @@ class AppColors {
   static const photoDisabledFill = Color(0xFFF1F3F6);
   static const photoSendingFill = Color(0xFFD6E8FF);
   static const scrim = Color(0x730A0E14);
+
+  // Update prompts (forced screen, soft sheet, Settings row).
+  static const bodyText = Color(0xFF52525B);
+  static const faintForeground = Color(0xFFA1A1AA);
+  static const accentDark = Color(0xFF0A5FD4);
+  static const infoTint = Color(0xFFE6F3FF);
+  static const infoBorder = Color(0xFFCFE6FF);
+  static const warningTint = Color(0xFFFFF7E6);
+  static const warningIcon = Color(0xFFD97706);
+  static const updateScrim = Color(0x6609090B);
+  static const sheetGrabber = Color(0xFFE2E8F0);
 }

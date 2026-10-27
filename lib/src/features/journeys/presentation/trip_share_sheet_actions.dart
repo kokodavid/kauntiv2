@@ -263,6 +263,7 @@ mixin _TripShareSheetActions on _TripShareSheetStateBase {
         topSpeedMps: summary.topSpeedMps,
         averageSpeedMps: summary.averageSpeedMps,
         highestElevationMeters: summary.highestElevationMeters,
+        statVisibility: _stats,
         countyNames: summary.countyNames,
         photo: photo,
         routePoints: routePoints,

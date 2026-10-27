@@ -57,4 +57,20 @@ void main() {
     expect(await state.homeCounty(), isNull);
     expect(await state.permissionAsked(), isFalse);
   });
+
+  test('a dismissed prompt comes back after the snooze', () async {
+    final t = DateTime.utc(2026, 10, 21, 12);
+    expect(await state.promptDismissed(now: t), isFalse);
+    await state.dismissPrompt(now: t);
+    expect(
+      await state.promptDismissed(now: t.add(const Duration(days: 2))),
+      isTrue,
+    );
+    expect(
+      await state.promptDismissed(
+        now: t.add(ArrivalNotificationState.promptSnooze),
+      ),
+      isFalse,
+    );
+  });
 }

@@ -14,7 +14,7 @@ import 'explore_styles.dart';
 
 /// The photo-first card used by Field Guide chapters.
 ///
-/// Chapters render these at 240 x 300 in a horizontal carousel. The optional
+/// Chapters render these at 240 x 180 (4:3) in a horizontal carousel. The optional
 /// wider, shorter variant is used for the lead card at the start of a chapter.
 class ExploreFieldPlaceCard extends ConsumerWidget {
   const ExploreFieldPlaceCard({
@@ -24,7 +24,7 @@ class ExploreFieldPlaceCard extends ConsumerWidget {
     required this.claimed,
     this.onOpen,
     this.width = 240,
-    this.height = 300,
+    this.height = 180,
   });
 
   final ExplorePlace place;

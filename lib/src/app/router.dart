@@ -10,7 +10,8 @@ import '../core/services/app_config_provider.dart';
 import '../core/services/last_screen.dart';
 import '../core/services/location_diagnostics.dart';
 import '../features/app_version/application/app_update_providers.dart';
-import '../features/badges/presentation/badges_screen.dart';
+import '../features/app_version/presentation/update_settings_row.dart';
+import '../features/badges/presentation/passport_screen.dart';
 import '../features/discover/presentation/county_detail_screen.dart';
 import '../features/discover/presentation/explore_screen.dart';
 import '../features/discover/presentation/place_detail_screen.dart';
@@ -24,6 +25,7 @@ import '../features/location_diagnostics/presentation/location_diagnostics_scree
 import '../features/notifications/presentation/push_lifecycle.dart';
 import '../features/notifications/presentation/trip_alert_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/place_check_ins/presentation/place_check_in_card.dart';
 import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
@@ -34,6 +36,7 @@ import 'app_routes.dart';
 import 'app_shell.dart';
 import 'app_update_routes.dart';
 import 'detail_routes.dart';
+import 'dev_tool_routes.dart';
 import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
 import 'push_routes.dart';
@@ -47,6 +50,7 @@ part 'router.g.dart';
 /// Place Detail push over the shell on the root navigator.
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
+  final isDev = ref.read(appConfigProvider).isDev;
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
     redirect: (context, state) {
@@ -57,7 +61,6 @@ GoRouter appRouter(Ref ref) {
         ref.read(startupFlowProvider).step,
         state.matchedLocation,
         updateRequired: update?.required == true && !journeyActive,
-        updateAvailable: update?.available == true && !journeyActive,
       );
     },
     routes: [
@@ -66,7 +69,6 @@ GoRouter appRouter(Ref ref) {
       _gate(AppRoutes.homeCounty, const StartupHomeCountyPage()),
       _gate(AppRoutes.preferences, const StartupPreferencesPage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
-      _gate(AppRoutes.notifications, const StartupNotificationsPage()),
       ...appUpdateRoutes(),
       StatefulShellRoute.indexedStack(
         // Swapped in place like the gates, not slid in.
@@ -91,10 +93,8 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.badges,
-                builder: (context, state) => BadgesScreen(
-                  onOpenCounty: DetailRoutes.openCounty,
-                  onOpenPlace: DetailRoutes.openPlace,
-                ),
+                builder: (context, state) =>
+                    PassportScreen(onOpenCounty: DetailRoutes.openCounty),
               ),
             ],
           ),
@@ -193,24 +193,25 @@ GoRouter appRouter(Ref ref) {
         // already-signed-out state while it slides away.
         pageBuilder: (context, state) => NoTransitionPage(
           child: SettingsScreen(
+            topSlot: const UpdateSettingsRow(),
             onOpenLocationSettings: DetailRoutes.openAppSettings,
             onOpenInterests: () => context.push(AppRoutes.interests),
             onOpenLocationDiagnostics:
-                LocationDiagnostics.enabledFor(
-                  isDev: ref.read(appConfigProvider).isDev,
-                )
+                LocationDiagnostics.enabledFor(isDev: isDev)
                 ? () => context.push(AppRoutes.locationDiagnostics)
+                : null,
+            onOpenPushStatus: isDev
+                ? () => context.push(AppRoutes.pushStatus)
                 : null,
           ),
         ),
       ),
-      if (LocationDiagnostics.enabledFor(
-        isDev: ref.read(appConfigProvider).isDev,
-      ))
+      if (LocationDiagnostics.enabledFor(isDev: isDev))
         GoRoute(
           path: AppRoutes.locationDiagnostics,
           builder: (context, state) => const LocationDiagnosticsScreen(),
         ),
+      if (isDev) ...devToolRoutes,
       GoRoute(
         path: AppRoutes.savedPlans,
         builder: (context, state) => SavedPlansScreen(
@@ -255,6 +256,8 @@ GoRouter appRouter(Ref ref) {
                 JourneyPlaceRoutes.startPlanned(context, place, stops),
           ),
           photos: PlacePhotosRoutes.placeSection,
+          checkIn: (context, place) =>
+              PlaceCheckInCard(placeId: place.id, placeName: place.title),
         ),
       ),
     ],

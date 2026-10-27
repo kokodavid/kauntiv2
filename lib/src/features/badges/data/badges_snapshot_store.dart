@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../domain/county_check_ins.dart';
+
 /// The last badge collection that loaded, kept on the phone (one per
 /// account) so the Collection tab still opens without a connection.
 class BadgesSnapshot {
@@ -9,11 +11,15 @@ class BadgesSnapshot {
     required this.savedAt,
     required this.visitStates,
     required this.ranks,
+    this.firstStampAt,
+    this.checkIns = CheckInsOverview.none,
   });
 
   final DateTime savedAt;
   final Map<int, String> visitStates;
   final Map<int, String> ranks;
+  final DateTime? firstStampAt;
+  final CheckInsOverview checkIns;
 }
 
 class BadgesSnapshotStore {
@@ -34,6 +40,8 @@ class BadgesSnapshotStore {
         savedAt: savedAt,
         visitStates: _ints(json['visits']),
         ranks: _ints(json['ranks']),
+        firstStampAt: DateTime.tryParse('${json['first_stamp_at']}'),
+        checkIns: CheckInsOverview.fromJson(json['check_ins']),
       );
     } on Object {
       return null;
@@ -45,6 +53,8 @@ class BadgesSnapshotStore {
     required Map<int, String> visitStates,
     required Map<int, String> ranks,
     required DateTime now,
+    DateTime? firstStampAt,
+    CheckInsOverview checkIns = CheckInsOverview.none,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -54,6 +64,9 @@ class BadgesSnapshotStore {
           'saved_at': now.toUtc().toIso8601String(),
           'visits': {for (final e in visitStates.entries) '${e.key}': e.value},
           'ranks': {for (final e in ranks.entries) '${e.key}': e.value},
+          if (firstStampAt != null)
+            'first_stamp_at': firstStampAt.toUtc().toIso8601String(),
+          'check_ins': checkIns.toJson(),
         }),
       );
     } on Object {

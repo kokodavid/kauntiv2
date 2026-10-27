@@ -32,6 +32,7 @@ class PlaceDetailScreen extends StatelessWidget {
     this.gettingThere,
     this.startButton,
     this.photos,
+    this.checkIn,
   });
 
   final String placeId;
@@ -50,6 +51,10 @@ class PlaceDetailScreen extends StatelessWidget {
   /// (features compose there). Shown on the About tab.
   final PlaceDetailSectionBuilder? photos;
 
+  /// The check-in card ("I'm here"), supplied by app/. Shown on the About
+  /// tab of a place with coordinates, above the photos.
+  final PlaceDetailSectionBuilder? checkIn;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,6 +70,7 @@ class PlaceDetailScreen extends StatelessWidget {
             gettingThere: gettingThere,
             startButton: startButton,
             photos: photos,
+            checkIn: checkIn,
           ),
         ),
       ),
@@ -80,6 +86,7 @@ class _PlaceDetailBody extends StatefulWidget {
     this.gettingThere,
     this.startButton,
     this.photos,
+    this.checkIn,
   });
 
   final PlaceDetailData data;
@@ -88,6 +95,7 @@ class _PlaceDetailBody extends StatefulWidget {
   final PlaceDetailSectionBuilder? gettingThere;
   final PlaceDetailSectionBuilder? startButton;
   final PlaceDetailSectionBuilder? photos;
+  final PlaceDetailSectionBuilder? checkIn;
 
   @override
   State<_PlaceDetailBody> createState() => _PlaceDetailBodyState();
@@ -165,6 +173,11 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
                         category: data.category,
                         credits: data.imageCredits,
                       ),
+                      if (widget.checkIn != null && data.hasCoordinates)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          child: widget.checkIn!(context, data),
+                        ),
                       if (_planned)
                         PlaceDetailTabs(
                           selected: _tab,

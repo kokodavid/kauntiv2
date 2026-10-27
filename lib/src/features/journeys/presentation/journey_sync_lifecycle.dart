@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../services/app_logger.dart';
+import '../application/county_order_backfill.dart';
+import '../application/journey_cloud_providers.dart';
 import '../application/journey_recorder.dart';
 import '../application/journey_sync.dart';
 
@@ -43,6 +45,24 @@ class _JourneySyncLifecycleState extends ConsumerState<JourneySyncLifecycle>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _onForeground();
+    unawaited(_backfillCountyOrder());
+  }
+
+  /// Once per launch, well after start-up: saves the county order for
+  /// older trips that don't have one (new uploads save it themselves).
+  Future<void> _backfillCountyOrder() async {
+    await Future<void>.delayed(const Duration(seconds: 30));
+    final repo = ref.read(supabaseJourneyRepositoryProvider);
+    if (!mounted || repo == null) return;
+    try {
+      await backfillCountyOrder(repo, shouldStop: () => !mounted);
+    } on Object catch (error, stackTrace) {
+      _logger.warning(
+        'County order backfill failed.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   @override

@@ -102,7 +102,11 @@ class MapHomeBoardSheet extends StatelessWidget {
       children: [
         // The collapsed peek is only a sliver of this; open, it is whole.
         if (_useCarousel(picked, board))
-          _carousel(board, const ValueKey('expanded-places')),
+          _carousel(
+            board,
+            key: const ValueKey('expanded-places'),
+            autoAdvance: false,
+          ),
         ?topCard,
         for (final section in MapHomeLayoutRules.sections(picked))
           ?_section(section, picked, board),
@@ -156,13 +160,17 @@ class MapHomeBoardSheet extends StatelessWidget {
     return compact == null ? null : _compactCard(context, compact);
   }
 
-  /// The label and a sliver of the cards above the tab bar, and the cards
-  /// carrying on beneath it so the bar floats over them.
+  /// The label and a sliver of the cards; the rest sits under the tab bar.
   double _carouselPeekHeight(BuildContext context) =>
       MapHomePlacesCarousel.peekHeight + AppBottomNav.clearance(context);
 
-  Widget _carousel(MapHomeBoardData board, [Key? key]) => MapHomePlacesCarousel(
+  Widget _carousel(
+    MapHomeBoardData board, {
+    Key? key,
+    bool autoAdvance = true,
+  }) => MapHomePlacesCarousel(
     key: key,
+    autoAdvance: autoAdvance,
     board: board,
     loadPlaces: loadPlaces,
     onOpenCounty: onOpenCounty,

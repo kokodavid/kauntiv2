@@ -18,13 +18,13 @@ import 'real_map_county_source.dart';
 import 'real_map_focus.dart';
 import 'real_map_layers.dart';
 import 'real_map_load_watch.dart';
+import 'real_map_place_flow.dart';
 import 'real_map_sheets.dart';
 
-/// Home's default map: the county map on a real Mapbox base map, edge to
-/// edge behind Home's header, sheet and nav. Same badges and colours as the
-/// drawn map; tapping a county flies to it and opens the peek. Reports
-/// [onReady] once the style and county layers are up, or [onFailed] if they
-/// can't load (no signal, bad token, timeout), so Home falls back.
+/// Home's default map: the county map on a real Mapbox base map, behind
+/// Home's header, sheet and nav. A county tap flies to it and opens the
+/// peek; a pin tap opens a popup. [onReady] / [onFailed] tell Home whether
+/// the style and layers loaded, so it can fall back.
 class RealMapView extends StatefulWidget {
   const RealMapView({
     super.key,
@@ -82,6 +82,16 @@ class _RealMapViewState extends State<RealMapView> {
   late final MapPlacesLayer _placesLayer;
   late final _sheets = RealMapSheets(onPeekClosed: _onPeekClosed);
   int _peekTap = 0;
+  late final _placeFlow = RealMapPlaceFlow(
+    mapOf: () => _map,
+    contextOf: () => context,
+    screenOf: () => _mapSize,
+    topInsetOf: () => widget.topInset,
+    onWillOpen: _sheets.closePeek,
+    onOpenPlace: () => widget.onOpenPlace,
+    onRoute: () => widget.onRoute,
+    onPlaceRoute: () => widget.onPlaceRoute,
+  );
 
   @override
   void initState() {
@@ -98,6 +108,7 @@ class _RealMapViewState extends State<RealMapView> {
   @override
   void dispose() {
     _sheets.dispose();
+    _placeFlow.dispose();
     _load.dispose();
     super.dispose();
   }
@@ -105,10 +116,18 @@ class _RealMapViewState extends State<RealMapView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!TickerMode.valuesOf(context).enabled) _sheets.closePeek();
+    if (!TickerMode.valuesOf(context).enabled) {
+      _sheets.closePeek();
+      _placeFlow.dispose();
+    }
   }
 
-  double get _pitch => _terrainEnabled ? _tiltedPitch : 0;
+  /// Satellite stays flat: a tilted view shows far more of the map to the
+  /// horizon, and satellite's heavy tiles then trip Mapbox's rate limit.
+  double get _pitch =>
+      _terrainEnabled && _baseStyle != RealMapBaseStyle.satellite
+      ? _tiltedPitch
+      : 0;
 
   Future<void> _focusOnStart() async {
     _hasLocation = await const AppLocationPermissionService()
@@ -138,18 +157,18 @@ class _RealMapViewState extends State<RealMapView> {
   void _onMapCreated(MapboxMap map) {
     _map = map;
     unawaited(AppMapboxTelemetry.applyPrivacyDefault());
-    if (_hasLocation) unawaited(RealMapFocus.showUserDot(map));
-    unawaited(
-      RealMapFocus.placeOrnaments(
-        map,
-        bottomInset: MediaQuery.sizeOf(context).height * 0.16,
-      ),
+    RealMapFocus.prepare(
+      map,
+      hasLocation: _hasLocation,
+      bottomInset: MediaQuery.sizeOf(context).height * 0.16,
     );
-    unawaited(RealMapFocus.keepInKenya(map));
     RealMapLayers.addTapHandlers(
       map,
       onCounty: _onCountyTapped,
-      onPlace: _onPlaceTapped,
+      onPlace: (id) {
+        final place = _placesLayer.placeFor(id);
+        if (place != null) unawaited(_placeFlow.open(place));
+      },
     );
   }
 
@@ -161,29 +180,7 @@ class _RealMapViewState extends State<RealMapView> {
     await RealMapLayers.addTo(map.style, geoJson);
     await _applyHighlight();
     _load.ready();
-    await _addPlaces(map);
-  }
-
-  Future<void> _addPlaces(MapboxMap map) async {
-    final loaded = await _placesLayer.addTo(map.style);
-    if (loaded || !mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Couldn't load places.")));
-  }
-
-  void _onPlaceTapped(Object? id) {
-    final place = _placesLayer.placeFor(id);
-    if (place == null) return;
-    unawaited(
-      _sheets.showPlace(
-        context,
-        place,
-        onOpenPlace: widget.onOpenPlace,
-        onRoute: widget.onRoute,
-        onPlaceRoute: widget.onPlaceRoute,
-      ),
-    );
+    if (mounted) await RealMapPlaceFlow.addPins(context, _placesLayer, map);
   }
 
   Future<void> _applyHighlight() async {
@@ -204,7 +201,18 @@ class _RealMapViewState extends State<RealMapView> {
     final tap = ++_peekTap;
     setState(() => _selected = badge);
     unawaited(_applyHighlight());
-    await _flyTo(badge);
+    final map = _map;
+    final bounds = _counties.boundsFor(badge.county.code);
+    if (map == null || bounds == null) return;
+    setState(() => _viewport = const IdleViewportState());
+    // Returns once most of the flight has run.
+    await RealMapCamera.flyToCountyThenSettle(
+      map,
+      bounds,
+      screen: _mapSize,
+      topPadding: widget.topInset,
+      pitch: _pitch,
+    );
     if (!mounted || tap != _peekTap) return;
     _sheets.showCounty(
       context,
@@ -225,21 +233,6 @@ class _RealMapViewState extends State<RealMapView> {
     if (map != null) RealMapCamera.releaseSheetPadding(map);
   }
 
-  /// Flies into the county, returning once most of the flight has run.
-  Future<void> _flyTo(MapHomeCountyBadge badge) async {
-    final map = _map;
-    final bounds = _counties.boundsFor(badge.county.code);
-    if (map == null || bounds == null) return;
-    setState(() => _viewport = const IdleViewportState());
-    await RealMapCamera.flyToCountyThenSettle(
-      map,
-      bounds,
-      screen: _mapSize,
-      topPadding: widget.topInset,
-      pitch: _pitch,
-    );
-  }
-
   void _setTerrainEnabled(bool enabled) {
     if (enabled == _terrainEnabled) return;
     setState(() => _terrainEnabled = enabled);
@@ -252,45 +245,52 @@ class _RealMapViewState extends State<RealMapView> {
   void _setBaseStyle(RealMapBaseStyle style) {
     if (style == _baseStyle) return;
     setState(() => _baseStyle = style);
-    unawaited(_map?.style.setStyleURI(style.uri));
+    final map = _map;
+    if (map == null) return;
+    // Flatten (or re-tilt) first so the new style loads fewer tiles.
+    RealMapCamera.tiltTo(map, _pitch);
+    unawaited(map.style.setStyleURI(style.uri));
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        _mapSize = constraints.biggest;
+        final size = constraints.biggest;
+        if (!size.width.isFinite ||
+            !size.height.isFinite ||
+            size.width <= 0 ||
+            size.height <= 0) {
+          return const SizedBox.shrink();
+        }
+        _mapSize = size;
         final selected = _selected;
         return Stack(
           children: [
-            MapWidget(
-              key: const ValueKey('kaunti47-pro-map'),
-              styleUri: _baseStyle.uri,
-              viewport: _viewport,
-              onMapCreated: _onMapCreated,
-              onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
-              onMapLoadErrorListener: (event) {
-                if (event.type == MapLoadErrorType.STYLE) _load.fail();
-              },
-            ),
-            Positioned(
-              top: widget.topInset + 8,
-              right: 16,
-              child: RealMapSideControls(
-                baseStyle: _baseStyle,
-                onBaseStyleChanged: _setBaseStyle,
-                terrainEnabled: _terrainEnabled,
-                onTerrainChanged: _setTerrainEnabled,
-                onLocate: _focusOnUser,
+            Positioned.fill(
+              child: MapWidget(
+                key: const ValueKey('kaunti47-pro-map'),
+                styleUri: _baseStyle.uri,
+                viewport: _viewport,
+                onMapCreated: _onMapCreated,
+                onStyleLoadedListener: (_) => unawaited(_onStyleLoaded()),
+                onMapLoadErrorListener: (event) {
+                  if (event.type == MapLoadErrorType.STYLE) _load.fail();
+                },
               ),
             ),
+            RealMapSideControls(
+              top: widget.topInset + 8,
+              baseStyle: _baseStyle,
+              onBaseStyleChanged: _setBaseStyle,
+              terrainEnabled: _terrainEnabled,
+              onTerrainChanged: _setTerrainEnabled,
+              onLocate: _focusOnUser,
+            ),
             if (selected != null)
-              Positioned(
+              MapHomeCountyLabelSlot(
                 top: widget.topInset + 52,
-                left: 24,
-                child: IgnorePointer(
-                  child: MapHomeCountyLabel(badge: selected),
-                ),
+                badge: selected,
               ),
           ],
         );

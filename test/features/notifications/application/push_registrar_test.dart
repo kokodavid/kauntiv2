@@ -3,10 +3,13 @@ import 'package:kaunti47_v2/src/features/notifications/application/push_registra
 import 'package:kaunti47_v2/src/features/notifications/data/push_device_repository.dart';
 import 'package:kaunti47_v2/src/features/notifications/data/push_messaging_service.dart';
 import 'package:kaunti47_v2/src/features/notifications/domain/push_destination.dart';
+import 'package:kaunti47_v2/src/features/notifications/domain/push_sync_report.dart';
 
 class _FakeService implements PushMessagingService {
   bool available = true;
   String? currentToken = 'token-1';
+  int tokenFailures = 0;
+  int tokenCalls = 0;
   PushPermission currentPermission = PushPermission.granted;
 
   @override
@@ -16,7 +19,14 @@ class _FakeService implements PushMessagingService {
   Future<PushPermission> permission() async => currentPermission;
 
   @override
-  Future<String?> token() async => currentToken;
+  Future<String?> token() async {
+    tokenCalls++;
+    if (tokenCalls <= tokenFailures) throw StateError('apns-token-not-set');
+    return currentToken;
+  }
+
+  @override
+  Future<String?> apnsToken() async => 'apns-token-1';
 
   @override
   Future<void> deleteToken() async {}
@@ -71,6 +81,7 @@ void main() {
       repository: repository,
       flavor: 'dev',
       appVersion: () async => '1.0.0 (1)',
+      retryDelay: Duration.zero,
     );
   });
 
@@ -109,5 +120,47 @@ void main() {
     await registrar.logOpen(null);
     await registrar.logOpen('event-1');
     expect(repository.opened, ['event-1']);
+  });
+
+  test('a granted, registered phone is settled', () async {
+    await registrar.sync();
+    expect(registrar.report?.step, PushSyncStep.registered);
+    expect(registrar.isSettled, isTrue);
+  });
+
+  test('a phone that has not allowed notifications is not settled', () async {
+    service.currentPermission = PushPermission.unknown;
+    await registrar.sync();
+    expect(registrar.report?.registered, isTrue);
+    expect(registrar.isSettled, isFalse);
+  });
+
+  test('the token is asked for again until the phone has one', () async {
+    service.tokenFailures = 2;
+    await registrar.sync();
+    expect(service.tokenCalls, 3);
+    expect(repository.registered.single.token, 'token-1');
+  });
+
+  test('a token that never arrives is reported, not thrown', () async {
+    service.tokenFailures = 99;
+    await registrar.sync();
+    final report = registrar.report;
+    expect(report?.step, PushSyncStep.token);
+    expect(report?.detail, contains('apns-token-not-set'));
+    expect(repository.registered, isEmpty);
+  });
+
+  test('a failing server is reported at the register step', () async {
+    repository.failing = true;
+    await registrar.sync();
+    expect(registrar.report?.step, PushSyncStep.register);
+    expect(registrar.report?.token, 'token-1');
+  });
+
+  test('without Firebase the report says so', () async {
+    service.available = false;
+    await registrar.sync();
+    expect(registrar.report?.step, PushSyncStep.firebase);
   });
 }

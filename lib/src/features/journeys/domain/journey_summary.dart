@@ -11,6 +11,7 @@ class JourneySummary {
     required this.isUploaded,
     this.distanceMeters,
     this.pausedDuration = Duration.zero,
+    this.movingDuration,
     this.destination,
     this.topSpeedMps,
     this.highestElevationMeters,
@@ -33,6 +34,11 @@ class JourneySummary {
 
   /// Time spent paused (0 for Journeys uploaded before it was kept).
   final Duration pausedDuration;
+
+  /// Time actually spent moving, worked out by the server from the route
+  /// (stops and idle time left out). Null until calculated; the average
+  /// speed then falls back to [duration].
+  final Duration? movingDuration;
 
   final JourneyDestination? destination;
 
@@ -68,11 +74,12 @@ class JourneySummary {
   /// still waiting to upload - its photos aren't synced yet either.
   final String? coverMediaId;
 
-  /// The average speed for the recorded time, in m/s; null once there is
-  /// no recorded time or distance to divide.
+  /// The average speed while moving, in m/s: distance over [movingDuration],
+  /// or over the recorded time when that isn't known yet. Null with no
+  /// distance or no time to divide.
   double? get averageSpeedMps {
     final distance = distanceMeters;
-    final seconds = duration.inMilliseconds / 1000;
+    final seconds = (movingDuration ?? duration).inMilliseconds / 1000;
     if (distance == null || seconds <= 0) return null;
     return distance / seconds;
   }

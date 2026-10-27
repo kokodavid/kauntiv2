@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
-import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_history.dart';
 import '../domain/journey_route.dart';
 
 /// The exploring-so-far summary at the top of the Journeys tab: total
-/// distance, Trip count and counties crossed (every county a Trip's route
-/// passed through, independent of the badge check), as three columns in one
+/// distance, Trip count and longest Trip, as three columns in one
 /// gradient panel (the Home map stat card's language). Shown once there
 /// is at least one Journey; hidden while loading or empty, since the
 /// history list below already covers those states.
@@ -23,14 +21,14 @@ class JourneyHeroStats extends ConsumerWidget {
 
     var totalMeters = 0.0;
     var uploadedCount = 0;
-    final counties = <String>{};
+    var longestMeters = 0.0;
     for (final journey in journeys) {
       final distance = journey.distanceMeters;
       if (distance != null) {
         uploadedCount++;
         totalMeters += distance;
+        if (distance > longestMeters) longestMeters = distance;
       }
-      counties.addAll(journey.countyNames);
     }
 
     return Container(
@@ -67,9 +65,10 @@ class JourneyHeroStats extends ConsumerWidget {
           const _Divider(),
           Expanded(
             child: _Stat(
-              value: '${counties.length}',
-              valueSuffix: '/${CountyPaths.all.length}',
-              label: 'COUNTIES CROSSED',
+              value: longestMeters == 0
+                  ? '—'
+                  : JourneyFormat.distance(longestMeters),
+              label: 'LONGEST TRIP',
             ),
           ),
         ],
@@ -96,16 +95,10 @@ class _Divider extends StatelessWidget {
 /// over a small caps label, splitting a value like "834 km" so only the
 /// number itself takes the numeral style and the unit reads as a caption.
 class _Stat extends StatelessWidget {
-  const _Stat({
-    required this.value,
-    required this.label,
-    this.valueSuffix,
-    this.accent = false,
-  });
+  const _Stat({required this.value, required this.label, this.accent = false});
 
   final String value;
   final String label;
-  final String? valueSuffix;
   final bool accent;
 
   @override
@@ -127,13 +120,6 @@ class _Stat extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(numeral, style: numeralStyle),
-            if (valueSuffix != null)
-              Text(
-                valueSuffix!,
-                style: AppTypeScale.small.copyWith(
-                  color: AppColors.mutedForeground,
-                ),
-              ),
             if (unit != null) ...[
               const SizedBox(width: 3),
               Text(

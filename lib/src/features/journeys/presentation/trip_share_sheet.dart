@@ -9,6 +9,7 @@ import '../../../core/design/app_type_scale.dart';
 import '../../../core/services/app_instagram_stories.dart';
 import '../../../core/services/app_media_picker.dart';
 import '../../../core/services/app_share.dart';
+import '../../../core/widgets/app_choice_pill.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../core/widgets/app_glyph_icon.dart';
 import '../../../core/widgets/app_network_image.dart';
@@ -23,6 +24,7 @@ import '../application/trip_share_card_cache_provider.dart';
 import '../domain/journey_media_capture.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
+import '../domain/trip_share_stat_visibility.dart';
 import 'trip_share_card.dart';
 import 'trip_share_card_renderer.dart';
 
@@ -36,6 +38,7 @@ part 'trip_share_sheet_photo_strip.dart';
 part 'trip_share_sheet_photo_strip_skeleton.dart';
 part 'trip_share_sheet_photo_thumb.dart';
 part 'trip_share_sheet_from_phone_tile.dart';
+part 'trip_share_sheet_stat_switches.dart';
 part 'trip_share_sheet_styles.dart';
 part 'trip_share_sheet_action_row.dart';
 
@@ -61,6 +64,11 @@ abstract class _TripShareSheetStateBase extends ConsumerState<_TripShareSheet> {
   /// Picked via "From phone"; overrides [_selectedMediaId] when set -
   /// only one of the two is ever the active choice.
   Uint8List? _localPhoto;
+
+  /// Which stats the shared image shows; top speed starts off (FB-005).
+  /// Share/Save renders never go through [TripShareCardCache], so a change
+  /// here needs no cache invalidation - the next render just uses it.
+  var _stats = TripShareStatVisibility.sharingDefault;
 
   var _sharing = false;
   var _saving = false;

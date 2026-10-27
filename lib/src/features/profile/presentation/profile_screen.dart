@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/connectivity_provider.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
+import '../../app_version/application/app_update_providers.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../badges/application/badges_providers.dart';
 import '../../detection/application/detection_controller.dart';
@@ -200,8 +201,8 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
         : _proUnavailable
         ? (offline ? 'Needs a connection' : "Couldn't check. Tap to retry.")
         : isPro
-        ? 'Pro active'
-        : 'Free';
+        ? 'Kaunti47 Pro · Active'
+        : 'Free plan';
     final savedAt = ref.watch(profileSavedAtProvider).value;
     final displayName = publicProfile?.displayName.isNotEmpty == true
         ? publicProfile!.displayName
@@ -211,8 +212,8 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       backgroundColor: AppColors.pageBackground,
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: EdgeInsets.zero,
+        // The header stays put; only the cards below it scroll.
+        child: Column(
           children: [
             ProfileHeader(
               name: displayName,
@@ -223,17 +224,19 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
               canEdit: !offline && publicProfile != null,
               savedAt: savedAt,
               onOpenSettings: widget.onOpenSettings,
+              updateAvailable: ref.watch(
+                appUpdateControllerProvider.select((p) => p?.available == true),
+              ),
               onEditProfile: _openEditProfile,
             ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                14,
-                16,
-                AppBottomNav.clearance(context) + 8,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  14,
+                  16,
+                  AppBottomNav.clearance(context) + 8,
+                ),
                 children: [
                   ProfileProgressCard(
                     collection: badges,
@@ -247,8 +250,10 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                   ),
                   const SizedBox(height: 14),
                   ProfileTile(
-                    icon: Icons.workspace_premium_outlined,
-                    title: 'Kaunti47 Pro',
+                    icon: isPro
+                        ? Icons.workspace_premium_outlined
+                        : Icons.person_outline,
+                    title: 'Subscription',
                     subtitle: proLabel,
                     style: ProfileTileStyle.dark,
                     onTap: _proUnavailable

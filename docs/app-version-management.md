@@ -2,8 +2,12 @@
 
 ## Release policy
 
-The app compares stable `MAJOR.MINOR.PATCH` values; Flutter's `+build`
-number is stored separately and must increase for every platform/channel.
+The app compares stable `MAJOR.MINOR.PATCH` values. Flutter's `+build`
+number may be stored separately when a platform store build needs to be
+distinguished, but it is optional and is not used for update policy decisions.
+The store URL is also optional during development and beta rollout. Add it when
+the platform listing is available so the update prompt can open the correct
+store destination.
 Major releases are always required. Minor releases are required by default,
 but an owner/admin can deliberately mark a minor release optional. Patch
 releases are always optional. The first published release establishes the
@@ -27,24 +31,33 @@ by building with `--dart-define=APP_RELEASE_CHANNEL=beta`.
   returns only the latest public version, required floor, store URL, notes and
   comparison booleans. It exposes no user, admin, or draft data.
 
-Published releases are immutable. Correct a bad listing by publishing a
-newer release; this implementation intentionally has no rollback/withdrawal
-control that could weaken an already-enforced minimum.
+Release metadata remains immutable after publication, but an owner/admin can
+deactivate a published release or reactivate it when no newer release is active
+on the same platform/channel. Deactivating a release removes it from the
+mobile policy lookup; it does not delete its history.
 
 ## Database change
 
-Migration: `supabase/migrations/20261023100000_app_version_management.sql`.
-Apply the complete file to **both** Supabase projects independently, dev first
-and production only after dev verification. Do not run this against the
+Migrations: `supabase/migrations/20261023100000_app_version_management.sql`,
+the follow-up `supabase/migrations/20261023110000_app_version_build_optional.sql`,
+`supabase/migrations/20261023120000_app_version_store_url_optional.sql`, and
+`supabase/migrations/20261023130000_app_version_status_controls.sql`, and
+`supabase/migrations/20261023140000_app_version_draft_editing.sql`, and
+`supabase/migrations/20261023150000_app_version_release_deletion.sql`.
+Apply the complete files to **both** Supabase projects independently, dev first
+and production only after dev verification. Do not run these against the
 production project while the dashboard is still configured for dev.
 
 The migration creates `public.app_version_releases` and these functions:
 
 - `public.get_app_update_policy(text, text, text)` - public app check.
 - `public.list_app_version_releases_dashboard()` - owner/admin release list.
-- `public.create_app_version_release_dashboard(text, text, text, integer, text, text, boolean)` - validate and create a draft.
+- `public.create_app_version_release_dashboard(text, text, text, integer, text, text, boolean)` - validate and create a draft. The integer build and store URL arguments may be null.
 - `public.publish_app_version_release_dashboard(uuid)` - activate an existing draft.
 - `public.delete_app_version_release_draft_dashboard(uuid)` - remove a draft before publication.
+- `public.set_app_version_release_status_dashboard(uuid, boolean)` - activate or deactivate a published release.
+- `public.update_app_version_release_draft_dashboard(uuid, text, text, text, integer, text, text, boolean)` - edit an existing draft.
+- `public.delete_app_version_release_dashboard(uuid)` - permanently delete a draft or withdrawn release; live releases are protected.
 
 There are no Edge Functions, secrets, external cron jobs, or Storage changes
 for this feature.
@@ -85,7 +98,10 @@ where n.nspname = 'public'
     'list_app_version_releases_dashboard',
     'create_app_version_release_dashboard',
     'publish_app_version_release_dashboard',
-    'delete_app_version_release_draft_dashboard'
+    'delete_app_version_release_draft_dashboard',
+    'set_app_version_release_status_dashboard',
+    'update_app_version_release_draft_dashboard',
+    'delete_app_version_release_dashboard'
   )
 order by p.proname;
 
@@ -105,7 +121,7 @@ result contains public release metadata only.
 ## Dashboard workflow
 
 Open Operations → App versions. Select platform and channel, enter a strict
-three-part version, increasing build number, HTTPS store URL and release notes.
+three-part version, optional build number, optional store URL and release notes.
 The dashboard explains the required/optional rule. Save creates a draft; review
 its metadata, make sure the store listing is available, then publish. Only
 publishing changes the policy seen by app clients. Keep each environment's

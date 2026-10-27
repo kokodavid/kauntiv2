@@ -18,10 +18,6 @@ void main() {
       AppRoutes.redirect(StartupStep.permission, '/county/47'),
       AppRoutes.permission,
     );
-    expect(
-      AppRoutes.redirect(StartupStep.notifications, '/map'),
-      AppRoutes.notifications,
-    );
     expect(AppRoutes.redirect(StartupStep.signIn, '/sign-in'), isNull);
   });
 
@@ -29,7 +25,6 @@ void main() {
     expect(StartupStep.homeCounty.setupNumber, 1);
     expect(StartupStep.preferences.setupNumber, 2);
     expect(StartupStep.permission.setupNumber, 3);
-    expect(StartupStep.notifications.setupNumber, 3);
     expect(StartupStep.signIn.setupNumber, isNull);
     expect(StartupStep.ready.setupNumber, isNull);
   });
@@ -41,7 +36,6 @@ void main() {
       '/home-county',
       '/preferences',
       '/permission',
-      '/notifications',
     ]) {
       expect(AppRoutes.redirect(StartupStep.ready, gate), AppRoutes.map);
     }
@@ -58,37 +52,6 @@ void main() {
         updateRequired: true,
       ),
       AppRoutes.updateRequired,
-    );
-  });
-
-  test('optional updates prompt only after onboarding is ready', () {
-    expect(
-      AppRoutes.redirect(
-        StartupStep.preferences,
-        AppRoutes.preferences,
-        updateAvailable: true,
-      ),
-      isNull,
-    );
-    expect(
-      AppRoutes.redirect(
-        StartupStep.ready,
-        AppRoutes.map,
-        updateAvailable: true,
-      ),
-      AppRoutes.updateAvailable,
-    );
-    expect(
-      AppRoutes.redirect(
-        StartupStep.ready,
-        AppRoutes.updateAvailable,
-        updateAvailable: true,
-      ),
-      isNull,
-    );
-    expect(
-      AppRoutes.redirect(StartupStep.ready, AppRoutes.updateAvailable),
-      AppRoutes.map,
     );
   });
 }

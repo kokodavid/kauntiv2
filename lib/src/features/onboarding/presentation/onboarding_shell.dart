@@ -31,8 +31,8 @@ class OnboardingShell extends StatelessWidget {
     this.overlay,
   });
 
-  /// 1 to 3.
-  final int step;
+  /// 1 to 3, or null (no numbering) outside new-user setup.
+  final int? step;
   final String title;
 
   /// A short pill above the title, e.g. "Earn all 47 counties".

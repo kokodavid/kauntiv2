@@ -8,30 +8,42 @@ part of 'notifications_prompt.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Whether Home shows the "Turn on notifications" card: for someone whose
-/// phone does not allow notifications yet (an older install that never saw
-/// the setup step, or a "Not now" there), who still has county nudges on
-/// and automatic detection, has not dismissed it, and has opened Home at
-/// least [notificationsPromptMinSessions] times. It goes away once the
-/// phone allows notifications.
+/// Whether Home shows the "Turn on notifications" card. This is the one
+/// place the app asks for notification permission: Home, on the first visit
+/// on any phone (permission belongs to the phone, so a new phone is asked
+/// again), once location has been dealt with in start-up, so two system
+/// prompts never come back to back. Home also shows the system prompt itself
+/// ([askOnHome]) when notifications are off. The card is the fallback: it
+/// shows while the phone does not allow notifications, comes back three days
+/// after a dismissal, and goes away once the phone allows them. Notifications cover county arrivals,
+/// replies to photos and trips, and announcements, so it no longer depends
+/// on the county-nudge switch or on automatic detection.
 
 @ProviderFor(NotificationsPrompt)
 const notificationsPromptProvider = NotificationsPromptProvider._();
 
-/// Whether Home shows the "Turn on notifications" card: for someone whose
-/// phone does not allow notifications yet (an older install that never saw
-/// the setup step, or a "Not now" there), who still has county nudges on
-/// and automatic detection, has not dismissed it, and has opened Home at
-/// least [notificationsPromptMinSessions] times. It goes away once the
-/// phone allows notifications.
+/// Whether Home shows the "Turn on notifications" card. This is the one
+/// place the app asks for notification permission: Home, on the first visit
+/// on any phone (permission belongs to the phone, so a new phone is asked
+/// again), once location has been dealt with in start-up, so two system
+/// prompts never come back to back. Home also shows the system prompt itself
+/// ([askOnHome]) when notifications are off. The card is the fallback: it
+/// shows while the phone does not allow notifications, comes back three days
+/// after a dismissal, and goes away once the phone allows them. Notifications cover county arrivals,
+/// replies to photos and trips, and announcements, so it no longer depends
+/// on the county-nudge switch or on automatic detection.
 final class NotificationsPromptProvider
     extends $AsyncNotifierProvider<NotificationsPrompt, bool> {
-  /// Whether Home shows the "Turn on notifications" card: for someone whose
-  /// phone does not allow notifications yet (an older install that never saw
-  /// the setup step, or a "Not now" there), who still has county nudges on
-  /// and automatic detection, has not dismissed it, and has opened Home at
-  /// least [notificationsPromptMinSessions] times. It goes away once the
-  /// phone allows notifications.
+  /// Whether Home shows the "Turn on notifications" card. This is the one
+  /// place the app asks for notification permission: Home, on the first visit
+  /// on any phone (permission belongs to the phone, so a new phone is asked
+  /// again), once location has been dealt with in start-up, so two system
+  /// prompts never come back to back. Home also shows the system prompt itself
+  /// ([askOnHome]) when notifications are off. The card is the fallback: it
+  /// shows while the phone does not allow notifications, comes back three days
+  /// after a dismissal, and goes away once the phone allows them. Notifications cover county arrivals,
+  /// replies to photos and trips, and announcements, so it no longer depends
+  /// on the county-nudge switch or on automatic detection.
   const NotificationsPromptProvider._()
     : super(
         from: null,
@@ -52,14 +64,18 @@ final class NotificationsPromptProvider
 }
 
 String _$notificationsPromptHash() =>
-    r'f3f4dfe5021ce0f9edda432fa5e950a98ccec70f';
+    r'22f9d28d1c9443451e848d154539303cb4a03c7c';
 
-/// Whether Home shows the "Turn on notifications" card: for someone whose
-/// phone does not allow notifications yet (an older install that never saw
-/// the setup step, or a "Not now" there), who still has county nudges on
-/// and automatic detection, has not dismissed it, and has opened Home at
-/// least [notificationsPromptMinSessions] times. It goes away once the
-/// phone allows notifications.
+/// Whether Home shows the "Turn on notifications" card. This is the one
+/// place the app asks for notification permission: Home, on the first visit
+/// on any phone (permission belongs to the phone, so a new phone is asked
+/// again), once location has been dealt with in start-up, so two system
+/// prompts never come back to back. Home also shows the system prompt itself
+/// ([askOnHome]) when notifications are off. The card is the fallback: it
+/// shows while the phone does not allow notifications, comes back three days
+/// after a dismissal, and goes away once the phone allows them. Notifications cover county arrivals,
+/// replies to photos and trips, and announcements, so it no longer depends
+/// on the county-nudge switch or on automatic detection.
 
 abstract class _$NotificationsPrompt extends $AsyncNotifier<bool> {
   FutureOr<bool> build();

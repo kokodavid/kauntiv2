@@ -1,17 +1,26 @@
 part of 'map_home_stat_card.dart';
 
+/// What the three colours on the map mean, with the share of Kenya
+/// explored on the right (left out in the compact form, which shows it
+/// under the bar).
 class _LegendRow extends StatelessWidget {
-  const _LegendRow();
+  const _LegendRow({this.percent});
+
+  final String? percent;
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
-        _LegendItem(color: AppColors.legendHome, label: 'Home'),
-        SizedBox(width: 16),
-        _LegendItem(color: AppColors.legendVisited, label: 'Visited'),
-        SizedBox(width: 16),
-        _LegendItem(color: AppColors.legendPassed, label: 'Passed'),
+        const _LegendItem(color: AppColors.legendHome, label: 'Home'),
+        const SizedBox(width: 16),
+        const _LegendItem(color: AppColors.legendVisited, label: 'Visited'),
+        const SizedBox(width: 16),
+        const _LegendItem(color: AppColors.legendPassed, label: 'Passed'),
+        if (percent case final share?) ...[
+          const Spacer(),
+          Text(share, style: AppTextStyles.bodySmall),
+        ],
       ],
     );
   }

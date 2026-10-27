@@ -57,11 +57,16 @@ class _RealMapSideControlsState extends State<RealMapSideControls> {
                 switchOutCurve: Curves.easeInCubic,
                 transitionBuilder: (child, animation) => FadeTransition(
                   opacity: animation,
-                  child: SizeTransition(
-                    sizeFactor: animation,
-                    axis: Axis.horizontal,
-                    axisAlignment: 1,
-                    child: child,
+                  child: ClipRect(
+                    child: AnimatedBuilder(
+                      animation: animation,
+                      child: child,
+                      builder: (context, child) => Align(
+                        alignment: const AlignmentDirectional(1, -1),
+                        widthFactor: animation.value,
+                        child: child,
+                      ),
+                    ),
                   ),
                 ),
                 child: _pickerOpen

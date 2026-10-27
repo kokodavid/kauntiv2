@@ -10,6 +10,7 @@ import 'passport_text.dart';
 /// dots show which one is up.
 class PassportCardSidePanel extends StatelessWidget {
   const PassportCardSidePanel({
+    super.key,
     required this.showPhoto,
     required this.avatarUrl,
     required this.name,

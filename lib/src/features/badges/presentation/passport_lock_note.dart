@@ -16,11 +16,9 @@ class PassportLockNote extends StatelessWidget {
     String n(int v, String one, String many) => '$v ${v == 1 ? one : many}';
     final asks = <String>[
       if (lock.needsPlaces)
-        '${n(lock.placesNeeded, 'place', 'places')} '
-            '(it has ${lock.placesHave})',
+        '${n(lock.placesNeeded, 'place', 'places')} (it has ${lock.placesHave})',
       if (lock.needsCategories)
-        '${n(lock.categoriesNeeded, 'category', 'categories')} among them '
-            '(it covers ${lock.categoriesHave})',
+        '${n(lock.categoriesNeeded, 'category', 'categories')} among them (it covers ${lock.categoriesHave})',
     ];
     return '${lock.level.label} needs ${asks.join(' and ')}. '
         "We're adding places to $county. Your earned stamps stay as they are.";

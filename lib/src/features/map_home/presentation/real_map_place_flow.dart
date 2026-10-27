@@ -91,6 +91,8 @@ class RealMapPlaceFlow {
     final placeRoute = onPlaceRoute();
     final openPlace = onOpenPlace();
     _popup.show(
+      // Read from the host right above, after the last token check.
+      // ignore: use_build_context_synchronously
       context,
       layout: layout,
       from: Offset(from.x, from.y),

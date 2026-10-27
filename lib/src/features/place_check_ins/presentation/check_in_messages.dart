@@ -6,7 +6,7 @@ String checkInMessage(CheckInOutcome outcome, String placeName) {
   if (failure == null) {
     return outcome.already
         ? "You've already checked in here today."
-        : "Checked in. $placeName is now in your passport.";
+        : 'Checked in. $placeName is now in your passport.';
   }
   return switch (failure) {
     CheckInFailure.noLocation =>

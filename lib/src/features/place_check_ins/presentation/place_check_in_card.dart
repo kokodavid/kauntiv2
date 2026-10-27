@@ -162,7 +162,7 @@ class _Pill extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (busy)
-                SizedBox.square(
+                const SizedBox.square(
                   dimension: 14,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
@@ -170,7 +170,7 @@ class _Pill extends StatelessWidget {
                   ),
                 )
               else if (label == "I'm here")
-                Icon(Icons.place_outlined, size: 16, color: AppColors.accent),
+                const Icon(Icons.place_outlined, size: 16, color: AppColors.accent),
               if (busy || label == "I'm here") const SizedBox(width: 6),
               Text(
                 label,

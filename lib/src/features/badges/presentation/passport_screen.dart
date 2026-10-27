@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -66,7 +68,7 @@ class _PassportScreenState extends ConsumerState<PassportScreen>
 
   void _openCover(bool reduceMotion) {
     _open.duration = Duration(milliseconds: reduceMotion ? 200 : 1050);
-    _open.forward(from: 0);
+    unawaited(_open.forward(from: 0));
   }
 
   /// The floating tab bar steps aside while the cover is up, so the cover

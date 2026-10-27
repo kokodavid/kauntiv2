@@ -5,8 +5,8 @@ import '../../../design/app_colors.dart';
 import '../../profile/application/public_profile_providers.dart';
 import '../domain/passport_book.dart';
 import '../domain/passport_level.dart';
-import 'passport_dates.dart';
 import 'passport_card_side_panel.dart';
+import 'passport_dates.dart';
 import 'passport_palette.dart';
 import 'passport_text.dart';
 

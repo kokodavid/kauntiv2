@@ -64,8 +64,9 @@ class PassportBookOpen extends StatelessWidget {
   }
 
   Widget _cover(double t) {
-    if (reduceMotion)
+    if (reduceMotion) {
       return Opacity(opacity: (1 - t).clamp(0.0, 1.0), child: cover);
+    }
     // Positive turns the free edge towards the viewer (Flutter's
     // perspective shrinks what moves to positive z), like a cover lifting.
     final angle = _openAngle * t;

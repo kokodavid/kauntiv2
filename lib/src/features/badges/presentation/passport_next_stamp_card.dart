@@ -104,7 +104,7 @@ class PassportNextStampCard extends StatelessWidget {
     const SizedBox(height: 12),
     PassportVisitMeter(fraction: progress.fraction ?? 0),
     const SizedBox(height: 12),
-    _Body(
+    const _Body(
       "Time counts on its own whenever you're here. There's no need to "
       'stay longer than your plans.',
     ),
@@ -244,7 +244,7 @@ class _Complete extends StatelessWidget {
       title: 'You know ${county.name} well',
       children: [
         const SizedBox(height: 8),
-        _Body('All five stamps. Gold is the last one on this page.'),
+        const _Body('All five stamps. Gold is the last one on this page.'),
       ],
     );
   }

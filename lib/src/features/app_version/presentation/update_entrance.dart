@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'update_widgets.dart';
@@ -76,7 +78,7 @@ class _UpdateEntranceState extends State<UpdateEntrance>
       final center = slot.localToGlobal(slot.size.center(Offset.zero));
       setState(() => _target = center);
     }
-    _c.forward();
+    unawaited(_c.forward());
   }
 
   @override

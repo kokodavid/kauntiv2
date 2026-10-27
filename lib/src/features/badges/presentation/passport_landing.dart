@@ -6,8 +6,8 @@ import '../domain/passport_book.dart';
 import 'passport_filter_bar.dart';
 import 'passport_palette.dart';
 import 'passport_region_section.dart';
-import 'passport_traveller_card.dart';
 import 'passport_text.dart';
+import 'passport_traveller_card.dart';
 
 /// The Passport's landing: the user's progress, a suggestion, search and
 /// filters, then every county by region.

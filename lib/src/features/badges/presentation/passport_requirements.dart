@@ -23,8 +23,7 @@ class PassportRequirements extends StatelessWidget {
     switch (next) {
       case PassportLevel.passedThrough:
         return [
-          'Cross into $county with Kaunti47 allowed to use your location, '
-              'even when the app is closed. The stamp is pressed for you.',
+          'Cross into $county with Kaunti47 allowed to use your location, even when the app is closed. The stamp is pressed for you.',
         ];
       case PassportLevel.explored:
         final hours = rules.exploredStay.inHours;
@@ -37,8 +36,7 @@ class PassportRequirements extends StatelessWidget {
             ? 'on 1 day'
             : 'across ${t.visitDays} days';
         return [
-          'Check in at ${n(t.places, 'place', 'places')} in '
-              '${n(t.categories, 'category', 'categories')}, $days.',
+          'Check in at ${n(t.places, 'place', 'places')} in ${n(t.categories, 'category', 'categories')}, $days.',
           "Tap I'm here on a place's page while you're there.",
         ];
     }

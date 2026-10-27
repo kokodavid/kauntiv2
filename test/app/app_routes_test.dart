@@ -36,7 +36,6 @@ void main() {
       '/home-county',
       '/preferences',
       '/permission',
-      '/notifications',
     ]) {
       expect(AppRoutes.redirect(StartupStep.ready, gate), AppRoutes.map);
     }

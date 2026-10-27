@@ -170,7 +170,11 @@ class _Pill extends StatelessWidget {
                   ),
                 )
               else if (label == "I'm here")
-                const Icon(Icons.place_outlined, size: 16, color: AppColors.accent),
+                const Icon(
+                  Icons.place_outlined,
+                  size: 16,
+                  color: AppColors.accent,
+                ),
               if (busy || label == "I'm here") const SizedBox(width: 6),
               Text(
                 label,

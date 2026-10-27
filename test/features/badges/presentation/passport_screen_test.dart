@@ -38,7 +38,10 @@ void main() {
     expect(find.text('Passport'), findsOneWidget);
     expect(find.text('Central'), findsOneWidget);
     expect(find.text('Search 47 counties'), findsOneWidget);
-    expect(find.text('2'), findsWidgets); // counties explored
+    expect(
+      find.textContaining('2 / 47', findRichText: true),
+      findsOneWidget,
+    ); // counties explored
   });
 
   testWidgets('shows a neutral skeleton while the passport loads', (

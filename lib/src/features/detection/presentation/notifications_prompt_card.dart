@@ -32,6 +32,14 @@ class _NotificationsPromptCardState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Let Home settle (and any start-up prompt finish) before asking.
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          unawaited(ref.read(notificationsPromptProvider.notifier).askOnHome());
+        }
+      }),
+    );
   }
 
   @override

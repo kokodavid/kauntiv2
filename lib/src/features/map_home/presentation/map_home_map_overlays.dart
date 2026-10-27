@@ -69,3 +69,23 @@ class MapHomeCountyLabel extends StatelessWidget {
     );
   }
 }
+
+/// [MapHomeCountyLabel] placed at the top left of the map's Stack, under
+/// the header, and ignoring touches so the map stays tappable.
+class MapHomeCountyLabelSlot extends StatelessWidget {
+  const MapHomeCountyLabelSlot({
+    super.key,
+    required this.top,
+    required this.badge,
+  });
+
+  final double top;
+  final MapHomeCountyBadge badge;
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+    top: top,
+    left: 24,
+    child: IgnorePointer(child: MapHomeCountyLabel(badge: badge)),
+  );
+}

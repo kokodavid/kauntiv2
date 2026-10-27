@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../application/badges_providers.dart';
 import '../domain/passport_book.dart';
 import '../domain/passport_rules.dart';
 import 'passport_callbacks.dart';
+import 'passport_county_skeleton.dart';
 import 'passport_county_view.dart';
-import 'passport_pager.dart';
 import 'passport_palette.dart';
 import 'passport_text.dart';
 
 /// The county pages, 001 Mombasa to 047 Nairobi by official code. Swipe
-/// sideways or use the pager to turn pages; back returns to the landing.
+/// sideways or use the arrows to turn pages; back returns to the landing.
 class PassportCountyScreen extends ConsumerStatefulWidget {
   const PassportCountyScreen({
     super.key,
@@ -23,8 +24,8 @@ class PassportCountyScreen extends ConsumerStatefulWidget {
   final int initialCode;
   final PassportOpenCounty? onOpenCounty;
 
-  /// Pushes the pages over everything, tab bar included, so the pager has
-  /// the bottom of the screen to itself.
+  /// Pushes the pages over everything, tab bar included, so the page has
+  /// the whole screen to itself.
   static Future<void> open(
     BuildContext context, {
     required int code,
@@ -55,11 +56,8 @@ class _PassportCountyScreenState extends ConsumerState<PassportCountyScreen> {
     super.dispose();
   }
 
-  void _go(int index) => _pages.animateToPage(
-    index,
-    duration: _turn,
-    curve: Curves.easeOutCubic,
-  );
+  void _go(int index) =>
+      _pages.animateToPage(index, duration: _turn, curve: Curves.easeOutCubic);
 
   @override
   Widget build(BuildContext context) {
@@ -72,41 +70,39 @@ class _PassportCountyScreenState extends ConsumerState<PassportCountyScreen> {
       body: SafeArea(
         bottom: false,
         child: book == null
-            ? const Center(child: CircularProgressIndicator())
-            : Stack(
+            ? Column(
                 children: [
-                  Column(
-                    children: [
-                      _TopBar(code: _index + 1, total: book.total),
-                      Expanded(
-                        child: PageView.builder(
-                          controller: _pages,
-                          itemCount: book.total,
-                          onPageChanged: (i) => setState(() => _index = i),
-                          itemBuilder: (context, i) => PassportCountyView(
-                            county: book.counties[i],
-                            rules: PassportRules.standard.withVerification(
-                              live: book.checkInsLive,
-                            ),
-                            onOpenCounty: widget.onOpenCounty,
-                          ),
-                        ),
-                      ),
-                    ],
+                  _TopBar(
+                    code: widget.initialCode,
+                    total: CountyPaths.all.length,
+                    onPrevious: null,
+                    onNext: null,
                   ),
-                  Positioned(
-                    left: 18,
-                    right: 18,
-                    bottom: 26 + MediaQuery.viewPaddingOf(context).bottom,
-                    child: PassportPager(
-                      previous: _index > 0 ? book.counties[_index - 1] : null,
-                      next: _index < book.total - 1
-                          ? book.counties[_index + 1]
-                          : null,
-                      code: _index + 1,
-                      total: book.total,
-                      onPrevious: () => _go(_index - 1),
-                      onNext: () => _go(_index + 1),
+                  const Expanded(child: PassportCountyPageSkeleton()),
+                ],
+              )
+            : Column(
+                children: [
+                  _TopBar(
+                    code: _index + 1,
+                    total: book.total,
+                    onPrevious: _index > 0 ? () => _go(_index - 1) : null,
+                    onNext: _index < book.total - 1
+                        ? () => _go(_index + 1)
+                        : null,
+                  ),
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pages,
+                      itemCount: book.total,
+                      onPageChanged: (i) => setState(() => _index = i),
+                      itemBuilder: (context, i) => PassportCountyView(
+                        county: book.counties[i],
+                        rules: PassportRules.standard.withVerification(
+                          live: book.checkInsLive,
+                        ),
+                        onOpenCounty: widget.onOpenCounty,
+                      ),
                     ),
                   ),
                 ],
@@ -117,10 +113,19 @@ class _PassportCountyScreenState extends ConsumerState<PassportCountyScreen> {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.code, required this.total});
+  const _TopBar({
+    required this.code,
+    required this.total,
+    required this.onPrevious,
+    required this.onNext,
+  });
 
   final int code;
   final int total;
+
+  /// Null at the first and last page, which greys that arrow.
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +162,7 @@ class _TopBar extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              'PAGE $page / ${total.toString().padLeft(3, '0')}',
+              '$page / ${total.toString().padLeft(3, '0')}',
               textAlign: TextAlign.center,
               style: passportText(
                 12,
@@ -167,9 +172,57 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           ),
-          // Keeps the title centred against the back pill.
-          const SizedBox(width: 96),
+          _ArrowButton(
+            icon: Icons.chevron_left_rounded,
+            label: 'Previous county',
+            onTap: onPrevious,
+          ),
+          const SizedBox(width: 8),
+          _ArrowButton(
+            icon: Icons.chevron_right_rounded,
+            label: 'Next county',
+            onTap: onNext,
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _ArrowButton extends StatelessWidget {
+  const _ArrowButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: label,
+      child: Material(
+        color: Colors.white,
+        shape: const CircleBorder(
+          side: BorderSide(color: AppColors.cardBorder),
+        ),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox.square(
+            dimension: 40,
+            child: Icon(
+              icon,
+              size: 22,
+              color: onTap == null ? PassportInk.disabled : PassportInk.primary,
+            ),
+          ),
+        ),
       ),
     );
   }

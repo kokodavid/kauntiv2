@@ -89,14 +89,14 @@ class MapHomeStatCard extends ConsumerWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: _outerBorder),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(40),
-          topRight: Radius.circular(40),
-          bottomLeft: Radius.circular(10),
-          bottomRight: Radius.circular(10),
+        // One soft blue-to-white wash behind the numeral, bar and legend.
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFE0EEFF), Colors.white],
         ),
+        border: Border.all(color: _outerBorder),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: const [
           BoxShadow(
             color: Color(0x1A606060),
@@ -109,27 +109,8 @@ class MapHomeStatCard extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            margin: const EdgeInsets.fromLTRB(1, 0, 1, 0),
-            // Just enough clearance to sit below the status bar/Dynamic
-            // Island, not a full 16px on top of it — the numeral row was
-            // sitting much further down than the design intends.
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFE6F3FF), Color(0x14DBEEFF)],
-                stops: [0.02, 0.98],
-              ),
-              // Figma's inner panel only rounds its top corners (matching
-              // the outer card); the bottom stays square since it sits
-              // inside the card with the legend row below it.
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(40),
-                topRight: Radius.circular(40),
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: AnimatedSize(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
@@ -180,7 +161,7 @@ class MapHomeStatCard extends ConsumerWidget {
                                   Flexible(
                                     child: _maskIfLoading(
                                       Text(
-                                        'of $totalCounties counties explored',
+                                        'of $totalCounties counties',
                                         style: AppTextStyles.chipLabel,
                                       ),
                                     ),
@@ -194,14 +175,15 @@ class MapHomeStatCard extends ConsumerWidget {
                         ),
                         const SizedBox(height: 6),
                         tickBar,
-                        ...percentRow,
                       ],
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-            child: _maskIfLoading(const _LegendRow()),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: _maskIfLoading(
+              _LegendRow(percent: compact ? null : '$percent%'),
+            ),
           ),
         ],
       ),

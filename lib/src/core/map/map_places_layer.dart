@@ -30,8 +30,8 @@ class MapPlacesLayer {
       return false;
     }
     _byId = {for (final place in places) place.id: place};
-    await MapPlaceLayers.addTo(style, PlaceGeoJsonBuilder.build(places));
     await _markers.addTo(style, places);
+    await MapPlaceLayers.addTo(style, PlaceGeoJsonBuilder.build(places));
     return true;
   }
 }

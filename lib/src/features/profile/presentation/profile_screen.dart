@@ -201,8 +201,8 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
         : _proUnavailable
         ? (offline ? 'Needs a connection' : "Couldn't check. Tap to retry.")
         : isPro
-        ? 'Pro active'
-        : 'Free';
+        ? 'Kaunti47 Pro · Active'
+        : 'Free plan';
     final savedAt = ref.watch(profileSavedAtProvider).value;
     final displayName = publicProfile?.displayName.isNotEmpty == true
         ? publicProfile!.displayName
@@ -250,8 +250,10 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                   ),
                   const SizedBox(height: 14),
                   ProfileTile(
-                    icon: Icons.workspace_premium_outlined,
-                    title: 'Kaunti47 Pro',
+                    icon: isPro
+                        ? Icons.workspace_premium_outlined
+                        : Icons.person_outline,
+                    title: 'Subscription',
                     subtitle: proLabel,
                     style: ProfileTileStyle.dark,
                     onTap: _proUnavailable

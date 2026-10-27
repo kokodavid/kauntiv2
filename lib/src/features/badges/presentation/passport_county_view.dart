@@ -7,6 +7,7 @@ import '../domain/passport_county.dart';
 import '../domain/passport_progress.dart';
 import '../domain/passport_rules.dart';
 import 'passport_callbacks.dart';
+import 'passport_county_skeleton.dart';
 import 'passport_hero_card.dart';
 import 'passport_links_card.dart';
 import 'passport_next_stamp_card.dart';
@@ -31,9 +32,10 @@ class PassportCountyView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Loading or offline: the page still shows its level; the figures that
     // need the server stay at zero until they arrive.
-    final detail =
-        ref.watch(countyBadgeDetailProvider(county.code)).value ??
-        const CountyBadgeDetail();
+    final async = ref.watch(countyBadgeDetailProvider(county.code));
+    final detail = async.value ?? const CountyBadgeDetail();
+    // First load only: a refresh keeps showing the figures it has.
+    final loading = async.isLoading && !async.hasValue;
     final evidence = PassportEvidence(
       places: [
         for (final p in detail.checkedInPlaces)
@@ -56,20 +58,30 @@ class PassportCountyView extends ConsumerWidget {
     final open = onOpenCounty;
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 4, 18, 120),
+      padding: const EdgeInsets.fromLTRB(18, 4, 18, 40),
       children: [
         PassportHeroCard(county: county, detail: detail, progress: progress),
         const SizedBox(height: 14),
-        PassportNextStampCard(county: county, progress: progress),
-        if (rules.placeVerificationLive) ...[
-          const SizedBox(height: 14),
-          PassportPlacesCard(
-            places: evidence.places,
-            total: detail.placesTotal,
+        if (loading)
+          const PassportCountyCardsSkeleton()
+        else ...[
+          PassportNextStampCard(
+            county: county,
+            progress: progress,
+            rules: rules,
           ),
+          if (rules.placeVerificationLive) ...[
+            const SizedBox(height: 14),
+            PassportPlacesCard(
+              places: evidence.places,
+              total: detail.placesTotal,
+            ),
+          ],
+          if (detail.hasTimeHere) ...[
+            const SizedBox(height: 14),
+            PassportStatsRow(county: county.name, detail: detail),
+          ],
         ],
-        const SizedBox(height: 14),
-        PassportStatsRow(county: county.name, detail: detail),
         const SizedBox(height: 14),
         PassportLinksCard(
           county: county.name,

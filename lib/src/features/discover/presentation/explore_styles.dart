@@ -113,7 +113,7 @@ abstract final class ExploreStyles {
 
   static TextStyle fieldCardTitle({required bool onImage}) => TextStyle(
     fontFamily: _family,
-    fontSize: 16,
+    fontSize: 14,
     height: 1.2,
     fontWeight: FontWeight.w600,
     color: onImage ? Colors.white : AppColors.exploreText,

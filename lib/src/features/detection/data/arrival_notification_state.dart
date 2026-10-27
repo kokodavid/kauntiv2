@@ -16,7 +16,13 @@ class ArrivalNotificationState {
   static const _homeKey = 'arrival_notify.home_county';
   static const _foregroundKey = 'arrival_notify.foreground_at_ms';
   static const _askedKey = 'arrival_notify.permission_asked';
-  static const _promptDismissedKey = 'arrival_notify.home_prompt_dismissed';
+  // The old key held a permanent flag; the card now snoozes instead, so
+  // everyone who had dismissed it for good sees it again.
+  static const _legacyDismissedKey = 'arrival_notify.home_prompt_dismissed';
+  static const _promptSnoozedKey = 'arrival_notify.home_prompt_snoozed_at_ms';
+
+  /// How long a dismissed card stays away while notifications are still off.
+  static const promptSnooze = Duration(days: 3);
   static const _notifiedKey = 'arrival_notify.notified_keys';
   static const _lastNotifiedKey = 'arrival_notify.last_notified_by_county';
 
@@ -86,12 +92,19 @@ class ArrivalNotificationState {
   Future<void> markPermissionAsked() async =>
       (await _fresh()).setBool(_askedKey, true);
 
-  /// Home's "turn on notifications" card was dismissed for good.
-  Future<bool> promptDismissed() async =>
-      (await _fresh()).getBool(_promptDismissedKey) ?? false;
+  /// Home's "turn on notifications" card was dismissed recently. It comes
+  /// back after [promptSnooze] for as long as notifications stay off.
+  Future<bool> promptDismissed({DateTime? now}) async {
+    final ms = (await _fresh()).getInt(_promptSnoozedKey);
+    if (ms == null) return false;
+    final at = DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
+    return (now ?? DateTime.now()).toUtc().difference(at) < promptSnooze;
+  }
 
-  Future<void> dismissPrompt() async =>
-      (await _fresh()).setBool(_promptDismissedKey, true);
+  Future<void> dismissPrompt({DateTime? now}) async => (await _fresh()).setInt(
+    _promptSnoozedKey,
+    (now ?? DateTime.now()).toUtc().millisecondsSinceEpoch,
+  );
 
   /// Records a posted notification: the crossing key (so it never repeats)
   /// and when the county last notified (the revisit cooldown). The sheet's
@@ -121,7 +134,8 @@ class ArrivalNotificationState {
       _homeKey,
       _foregroundKey,
       _askedKey,
-      _promptDismissedKey,
+      _legacyDismissedKey,
+      _promptSnoozedKey,
       _notifiedKey,
       _lastNotifiedKey,
     ]) {

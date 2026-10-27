@@ -6,7 +6,7 @@ import '../domain/passport_book.dart';
 import 'passport_filter_bar.dart';
 import 'passport_palette.dart';
 import 'passport_region_section.dart';
-import 'passport_summary_card.dart';
+import 'passport_traveller_card.dart';
 import 'passport_text.dart';
 
 /// The Passport's landing: the user's progress, a suggestion, search and
@@ -56,7 +56,7 @@ class PassportLanding extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 14),
-        PassportSummaryCard(book: book, holderName: holderName),
+        PassportTravellerCard(book: book, holderName: holderName),
         const SizedBox(height: 14),
         PassportFilterBar(
           book: book,

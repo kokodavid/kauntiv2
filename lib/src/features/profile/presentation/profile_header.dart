@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/saved_chip.dart';
 import '../../../design/app_colors.dart';
+import 'avatar_viewer.dart';
 import 'profile_pill_button.dart';
 import 'profile_tiles.dart';
 
@@ -174,19 +177,24 @@ class _Avatar extends StatelessWidget {
               ),
             ],
           ),
-          child: CircleAvatar(
-            backgroundColor: AppColors.accent,
-            backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
-                ? appNetworkImage(avatarUrl!)
-                : null,
-            child: avatarUrl != null && avatarUrl!.isNotEmpty
+          child: GestureDetector(
+            onTap: avatarUrl == null || avatarUrl!.isEmpty
                 ? null
-                : Text(
-                    name.isNotEmpty
-                        ? String.fromCharCode(name.runes.first).toUpperCase()
-                        : 'T',
-                    style: const TextStyle(color: Colors.white, fontSize: 24),
-                  ),
+                : () => unawaited(AvatarViewer.show(context, avatarUrl!)),
+            child: CircleAvatar(
+              backgroundColor: AppColors.accent,
+              backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
+                  ? appNetworkImage(avatarUrl!)
+                  : null,
+              child: avatarUrl != null && avatarUrl!.isNotEmpty
+                  ? null
+                  : Text(
+                      name.isNotEmpty
+                          ? String.fromCharCode(name.runes.first).toUpperCase()
+                          : 'T',
+                      style: const TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+            ),
           ),
         ),
         if (onEdit != null)

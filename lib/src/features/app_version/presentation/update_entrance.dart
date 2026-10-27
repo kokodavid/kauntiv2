@@ -11,7 +11,7 @@ const _fadeStart = 450 / _totalMs;
 /// Coming from the splash ([morph]), the icon starts where the splash drew it
 /// (centred, 100 px) and glides to its place on this screen while the halo
 /// grows around it, then the rest of the screen fades in. Otherwise, and when
-/// the phone asks for reduced motion, the whole screen simply fades in.
+/// the phone asks for reduced motion, the whole screen simpscly fades in.
 ///
 /// While the icon is in flight `flying` is true so the in-flow copy (found
 /// through [slotKey]) stays hidden and the swap is invisible.
@@ -86,9 +86,7 @@ class _UpdateEntranceState extends State<UpdateEntrance>
       animation: _c,
       builder: (context, _) {
         final v = _c.value;
-        final fade = _morphing
-            ? const Interval(_fadeStart, 1).transform(v)
-            : v;
+        final fade = _morphing ? const Interval(_fadeStart, 1).transform(v) : v;
         final t = _curve.transform(
           const Interval(0, _morphMs / _totalMs).transform(v),
         );

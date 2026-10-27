@@ -69,8 +69,7 @@ class ForcedUpdateFooter extends StatelessWidget {
               tone: UpdateMessageTone.warning,
               icon: Icons.open_in_new_rounded,
               title: "Couldn't open the store",
-              body:
-                  'Try again, or open $store and search for Kaunti47.',
+              body: 'Try again, or open $store and search for Kaunti47.',
             ),
             const SizedBox(height: 10),
           ] else if (noLink) ...[

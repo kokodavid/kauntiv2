@@ -7,7 +7,11 @@ import 'passport_text.dart';
 
 /// "Your time in {county}": three tiles of what the user has done there.
 class PassportStatsRow extends StatelessWidget {
-  const PassportStatsRow({super.key, required this.county, required this.detail});
+  const PassportStatsRow({
+    super.key,
+    required this.county,
+    required this.detail,
+  });
 
   final String county;
   final CountyBadgeDetail detail;
@@ -39,7 +43,7 @@ class PassportStatsRow extends StatelessWidget {
           padding: const EdgeInsets.only(left: 2, bottom: 8),
           child: Text(
             'Your time in $county',
-            style: passportText(15, weight: FontWeight.w700),
+            style: passportText(14, weight: FontWeight.w700),
           ),
         ),
         Row(
@@ -48,21 +52,21 @@ class PassportStatsRow extends StatelessWidget {
               if (i > 0) const SizedBox(width: 8),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     children: [
                       Text(
                         tiles[i].value,
-                        style: passportText(15, weight: FontWeight.w700),
+                        style: passportText(13.5, weight: FontWeight.w700),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         tiles[i].label,
-                        style: passportText(11.5, color: PassportInk.tertiary),
+                        style: passportText(11, color: PassportInk.tertiary),
                       ),
                     ],
                   ),

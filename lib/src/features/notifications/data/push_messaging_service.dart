@@ -130,8 +130,8 @@ class FirebasePushMessagingService implements PushMessagingService {
       // for remote notifications without showing a prompt. Not asked yet:
       // left alone, so Firebase never shows its own prompt at the wrong
       // moment.
-      final status = (await messaging.getNotificationSettings())
-          .authorizationStatus;
+      final status =
+          (await messaging.getNotificationSettings()).authorizationStatus;
       if (status == AuthorizationStatus.authorized ||
           status == AuthorizationStatus.provisional) {
         await messaging.requestPermission();

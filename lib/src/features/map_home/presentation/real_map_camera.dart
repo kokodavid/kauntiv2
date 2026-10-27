@@ -91,4 +91,42 @@ abstract final class RealMapCamera {
       ),
     );
   }
+
+  /// Eases the camera to [lat], [lng] at [zoom] with [padding], so a pin
+  /// ends up where a popup's tail points. Returns once it has settled.
+  static Future<void> easeToPlace(
+    MapboxMap map, {
+    required double lat,
+    required double lng,
+    required double zoom,
+    required ({double top, double bottom}) padding,
+  }) {
+    return map.easeTo(
+      CameraOptions(
+        center: Point(coordinates: Position(lng, lat)),
+        zoom: zoom,
+        padding: MbxEdgeInsets(
+          top: padding.top,
+          left: 0,
+          bottom: padding.bottom,
+          right: 0,
+        ),
+      ),
+      MapAnimationOptions(duration: 600),
+    );
+  }
+
+  /// Zeroes the camera padding without moving what is on screen: the map's
+  /// centre becomes the point under the middle of the screen first.
+  static Future<void> dropPaddingInPlace(MapboxMap map, Size screen) async {
+    final centre = await map.coordinateForPixel(
+      ScreenCoordinate(x: screen.width / 2, y: screen.height / 2),
+    );
+    await map.setCamera(
+      CameraOptions(
+        center: centre,
+        padding: MbxEdgeInsets(top: 0, left: 0, bottom: 0, right: 0),
+      ),
+    );
+  }
 }

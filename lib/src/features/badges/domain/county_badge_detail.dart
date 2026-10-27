@@ -86,6 +86,7 @@ class CountyBadgeDetail {
     this.journeys = 0,
     this.journeyMeters = 0,
     this.placesTotal = 0,
+    this.categoriesTotal,
     this.checkedInPlaces = const [],
     this.checkInDays = 0,
     this.suggestedPlaces = const [],
@@ -115,8 +116,19 @@ class CountyBadgeDetail {
   final int journeys;
   final double journeyMeters;
 
+  /// Anything to show under "Your time in": a visit, a pass or a trip.
+  bool get hasTimeHere =>
+      exploredVisits + passCount > 0 ||
+      lastVisitedAt != null ||
+      lastPassAt != null ||
+      journeys > 0;
+
   /// Places on file for the county (`places_total`).
   final int placesTotal;
+
+  /// Place types among them; null when it couldn't be read (so a stamp is
+  /// never locked on missing data).
+  final int? categoriesTotal;
 
   /// Places the traveller checked in at here, and the distinct days.
   final List<CheckedInPlace> checkedInPlaces;

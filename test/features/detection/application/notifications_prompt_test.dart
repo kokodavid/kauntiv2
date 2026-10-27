@@ -85,7 +85,7 @@ void main() {
     expect(settingsOpened, 1);
   });
 
-  test('dismissing hides it for good', () async {
+  test('dismissing hides it for a while', () async {
     final c = container();
     expect(await c.read(notificationsPromptProvider.future), isTrue);
     await c.read(notificationsPromptProvider.notifier).dismiss();

@@ -135,10 +135,6 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       PlaceDetailAboutTile(description: data.description),
-      if (widget.checkIn != null && data.hasCoordinates) ...[
-        const SizedBox(height: 20),
-        widget.checkIn!(context, data),
-      ],
       if (widget.photos != null) ...[
         const SizedBox(height: 20),
         widget.photos!(context, data),
@@ -177,6 +173,11 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
                         category: data.category,
                         credits: data.imageCredits,
                       ),
+                      if (widget.checkIn != null && data.hasCoordinates)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          child: widget.checkIn!(context, data),
+                        ),
                       if (_planned)
                         PlaceDetailTabs(
                           selected: _tab,

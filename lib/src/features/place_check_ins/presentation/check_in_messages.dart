@@ -30,11 +30,12 @@ String _tooFar(CheckInOutcome outcome, String placeName) {
   if (distance == null || radius == null) {
     return "You don't seem to be at $placeName yet.";
   }
-  return "You're about ${_length(distance)} from $placeName. "
-      'Get within ${_length(radius)} and try again.';
+  return "You're about ${checkInLength(distance)} from $placeName. "
+      'Get within ${checkInLength(radius)} and try again.';
 }
 
-String _length(int meters) {
+/// Distance for display: nearest 10 m, then km.
+String checkInLength(int meters) {
   if (meters < 1000) return '${(meters / 10).round() * 10} m';
   final km = meters / 1000;
   return '${km.toStringAsFixed(km < 10 ? 1 : 0)} km';
@@ -43,3 +44,6 @@ String _length(int meters) {
 /// Shown when the request itself failed (offline, server error).
 const checkInErrorMessage =
     "Couldn't check in. Check your connection and try again.";
+
+/// The short line under "Couldn't check in".
+const checkInErrorShort = 'Check your connection and try again';

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../../design/app_colors.dart';
@@ -53,6 +55,20 @@ abstract final class RealMapFocus {
     zoom: zoom,
     pitch: pitch,
   );
+
+  /// Everything a fresh map needs once it exists: ornaments, bounds, the
+  /// user dot, and no tile prefetching (satellite's heavy tiles otherwise
+  /// trip Mapbox's rate limit).
+  static void prepare(
+    MapboxMap map, {
+    required bool hasLocation,
+    required double bottomInset,
+  }) {
+    unawaited(map.setPrefetchZoomDelta(0));
+    if (hasLocation) unawaited(showUserDot(map));
+    unawaited(placeOrnaments(map, bottomInset: bottomInset));
+    unawaited(keepInKenya(map));
+  }
 
   /// Embedded under Home's sheet, the Mapbox logo and attribution (both
   /// required by Mapbox's terms) would be hidden: lift them above the

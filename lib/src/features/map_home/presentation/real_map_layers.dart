@@ -11,14 +11,25 @@ import 'map_home_county_map_painter.dart';
 /// Base styles the real map offers (style button). Terrain is the default;
 /// satellite and 3D are candidates for Pro later.
 enum RealMapBaseStyle {
-  light('Light', MapboxStyles.LIGHT),
-  outdoors('Terrain', MapboxStyles.OUTDOORS),
-  satellite('Satellite', MapboxStyles.SATELLITE_STREETS);
+  light('Light', MapboxStyles.LIGHT, 'assets/images/map_style_light.jpg'),
+  outdoors(
+    'Terrain',
+    MapboxStyles.OUTDOORS,
+    'assets/images/map_style_terrain.jpg',
+  ),
+  satellite(
+    'Satellite',
+    MapboxStyles.SATELLITE_STREETS,
+    'assets/images/map_style_satellite.jpg',
+  );
 
-  const RealMapBaseStyle(this.label, this.uri);
+  const RealMapBaseStyle(this.label, this.uri, this.thumbnail);
 
   final String label;
   final String uri;
+
+  /// A small picture of the style, for the style picker.
+  final String thumbnail;
 }
 
 /// Adds the county source and its layers to the current Mapbox style.
@@ -82,7 +93,22 @@ abstract final class RealMapLayers {
 
   static const demSourceId = 'mapbox-dem';
   static const skyLayerId = 'kaunti47-sky';
-  static const terrainExaggeration = 1.5;
+
+  /// Terrain height by zoom: dramatic across the country, gentler close up
+  /// where a strong lift warps streets and pins. Flat (0) when 3D is off.
+  static Object _exaggeration(bool enabled) => enabled
+      ? [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          5,
+          1.6,
+          10,
+          1.3,
+          14,
+          1.0,
+        ]
+      : 0;
 
   /// Mapbox terrain elevation under the whole style, plus an atmosphere
   /// sky for when the camera is tilted. Fill and line layers drape over it.
@@ -103,7 +129,7 @@ abstract final class RealMapLayers {
     await style.setStyleTerrain(
       jsonEncode({
         'source': demSourceId,
-        'exaggeration': enabled ? terrainExaggeration : 0,
+        'exaggeration': _exaggeration(enabled),
       }),
     );
     if (!await style.styleLayerExists(skyLayerId)) {
@@ -112,6 +138,9 @@ abstract final class RealMapLayers {
           id: skyLayerId,
           skyType: SkyType.ATMOSPHERE,
           skyAtmosphereSunIntensity: 15,
+          // A soft pale haze at the horizon when the camera is tilted.
+          skyAtmosphereColor: const Color(0xFFE8EEF1).toARGB32(),
+          skyAtmosphereHaloColor: const Color(0xFFBFD8EE).toARGB32(),
         ),
       );
     }
@@ -120,10 +149,7 @@ abstract final class RealMapLayers {
   /// Flattens or raises the terrain without removing it (the Flutter SDK
   /// has no clean way to remove terrain once set).
   static Future<void> setTerrainEnabled(StyleManager style, bool enabled) =>
-      style.setStyleTerrainProperty(
-        'exaggeration',
-        enabled ? terrainExaggeration : 0,
-      );
+      style.setStyleTerrainProperty('exaggeration', _exaggeration(enabled));
 
   /// Taps on counties report their `code`, taps on pins their place `id`.
   static void addTapHandlers(

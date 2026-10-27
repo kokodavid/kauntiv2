@@ -129,7 +129,11 @@ class _Thumb extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
               ),
-              child: const Icon(Icons.check_rounded, color: Colors.white, size: 12),
+              child: const Icon(
+                Icons.check_rounded,
+                color: Colors.white,
+                size: 12,
+              ),
             ),
           ),
         ],

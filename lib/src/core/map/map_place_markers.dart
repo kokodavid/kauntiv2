@@ -25,9 +25,9 @@ class MapPlaceMarkers {
   final _rendered = <String, MbxImage>{};
   final _photos = <String, Future<MbxImage?>>{};
 
-  /// Adds every marker to [style]. Type badges go in first, also under
-  /// each photo marker's id, so something shows at once; photos replace
-  /// them as they arrive.
+  /// Adds every marker to [style]. Type badges and photo fallbacks are
+  /// registered before the symbol layer is created, so Mapbox never sees a
+  /// marker id without an image. Photos replace the fallbacks as they load.
   Future<void> addTo(StyleManager style, List<MapPlace> places) async {
     final types = {
       ...MapPlaceTypes.known.keys,
@@ -37,10 +37,20 @@ class MapPlaceMarkers {
       final id = PlaceGeoJsonBuilder.typeMarkerId(type);
       await _add(style, id, await _badge(type));
     }
-    await Future.wait([
-      for (final place in places)
-        if (place.thumbnailUrl case final url?) _addPhoto(style, place, url),
-    ]);
+    for (final place in places) {
+      if (place.thumbnailUrl != null) {
+        await _add(
+          style,
+          PlaceGeoJsonBuilder.markerIdFor(place),
+          await _badge(place.type),
+        );
+      }
+    }
+    for (final place in places) {
+      if (place.thumbnailUrl case final url?) {
+        unawaited(_addPhoto(style, place, url).catchError((_) {}));
+      }
+    }
   }
 
   Future<void> _addPhoto(StyleManager style, MapPlace place, String url) async {

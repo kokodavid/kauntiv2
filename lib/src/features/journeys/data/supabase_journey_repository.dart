@@ -73,7 +73,7 @@ class SupabaseJourneyRepository {
   }
 
   static const _summaryColumns =
-      'id, title, started_at, ended_at, distance_m, paused_ms, '
+      'id, title, started_at, ended_at, distance_m, paused_ms, moving_seconds, '
       'destination_place_id, destination_name, destination_latitude, '
       'destination_longitude, stops, top_speed_mps, highest_elevation_m, '
       'transport_mode, cover_media_id';
@@ -140,7 +140,10 @@ class SupabaseJourneyRepository {
         )
         .timeout(_uploadTimeout);
     // Best effort: a failure leaves the counties unordered until backfilled.
-    await setCountyOrder(id, counties.keys.toList()).onError((error, stackTrace) {});
+    await setCountyOrder(
+      id,
+      counties.keys.toList(),
+    ).onError((error, stackTrace) {});
     return (result['distance_m'] as num).toDouble();
   }
 
@@ -186,6 +189,10 @@ class SupabaseJourneyRepository {
     pausedDuration: Duration(
       milliseconds: (row['paused_ms'] as num?)?.toInt() ?? 0,
     ),
+    movingDuration: switch (row['moving_seconds']) {
+      final num seconds => Duration(milliseconds: (seconds * 1000).round()),
+      _ => null,
+    },
     isUploaded: true,
     destination: row['destination_place_id'] == null
         ? null

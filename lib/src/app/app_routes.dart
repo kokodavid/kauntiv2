@@ -37,13 +37,7 @@ abstract final class AppRoutes {
     if (AppFeatureFlags.journeys) AppNavTab.journeys,
   ];
 
-  static const _gates = {
-    splash,
-    signIn,
-    homeCounty,
-    preferences,
-    permission,
-  };
+  static const _gates = {splash, signIn, homeCounty, preferences, permission};
 
   /// Startup gating keeps onboarding and release prompts ahead of app routes.
   /// Null means stay at the requested location.

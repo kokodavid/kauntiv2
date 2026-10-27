@@ -16,6 +16,27 @@ class PassportMilestone {
   final int visitDays;
 }
 
+/// Why a metal stamp can't be earned in a county yet: the county has fewer
+/// reviewed places, or fewer categories among them, than the stamp asks for.
+class PassportLock {
+  const PassportLock({
+    required this.level,
+    required this.placesNeeded,
+    required this.placesHave,
+    required this.categoriesNeeded,
+    required this.categoriesHave,
+  });
+
+  final PassportLevel level;
+  final int placesNeeded;
+  final int placesHave;
+  final int categoriesNeeded;
+  final int categoriesHave;
+
+  bool get needsPlaces => placesHave < placesNeeded;
+  bool get needsCategories => categoriesHave < categoriesNeeded;
+}
+
 /// The Passport's rules in one place. The app reads them from here and never
 /// from a widget, so a dashboard can serve them later: swap [standard] for a
 /// loaded copy and bump [version]. Nothing else needs to change.
@@ -51,24 +72,30 @@ class PassportRules {
     milestones: milestones,
   );
 
-  /// What [level] asks for in a county with [placesTotal] reviewed places: a
-  /// county with fewer places than the standard asks for lowers its target
-  /// to what it has, so it can still be completed.
-  ({int places, int categories, int visitDays})? targetsFor(
-    PassportLevel level,
-    int placesTotal,
-  ) {
+  /// What stops [level] being earned in a county yet: it needs more
+  /// reviewed places, or places across more categories, than the county has.
+  /// Null when the county can offer it, and null when the category count is
+  /// unknown (not loaded), so a stamp is never locked on missing data.
+  PassportLock? lockFor(
+    PassportLevel level, {
+    required int placesTotal,
+    required int? categoriesTotal,
+  }) {
     final m = milestones[level];
-    if (m == null) return null;
-    final places = placesTotal > 0 && placesTotal < m.places
-        ? placesTotal
-        : m.places;
-    final categories = m.categories > places ? places : m.categories;
-    return (places: places, categories: categories, visitDays: m.visitDays);
+    if (m == null || categoriesTotal == null) return null;
+    if (placesTotal >= m.places && categoriesTotal >= m.categories) return null;
+    return PassportLock(
+      level: level,
+      placesNeeded: m.places,
+      placesHave: placesTotal,
+      categoriesNeeded: m.categories,
+      categoriesHave: categoriesTotal,
+    );
   }
 
   /// The highest metal stamp [checkIns] reaches, or null for none. Only
-  /// meaningful while [placeVerificationLive].
+  /// meaningful while [placeVerificationLive]. The targets are the same in
+  /// every county, so a stamp earned stays earned when places are added.
   PassportLevel? metalFor(CountyCheckIns checkIns) {
     if (!placeVerificationLive) return null;
     PassportLevel? best;
@@ -77,11 +104,11 @@ class PassportRules {
       PassportLevel.silver,
       PassportLevel.gold,
     ]) {
-      final t = targetsFor(level, checkIns.placesTotal);
-      if (t == null) continue;
-      if (checkIns.places >= t.places &&
-          checkIns.categories >= t.categories &&
-          checkIns.visitDays >= t.visitDays) {
+      final m = milestones[level];
+      if (m == null) continue;
+      if (checkIns.places >= m.places &&
+          checkIns.categories >= m.categories &&
+          checkIns.visitDays >= m.visitDays) {
         best = level;
       } else {
         break;

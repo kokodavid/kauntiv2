@@ -89,7 +89,9 @@ class PassportFilterBar extends StatelessWidget {
                     color: selected ? PassportInk.primary : Colors.white,
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
-                      color: selected ? PassportInk.primary : AppColors.cardBorder,
+                      color: selected
+                          ? PassportInk.primary
+                          : AppColors.cardBorder,
                     ),
                   ),
                   child: Text(

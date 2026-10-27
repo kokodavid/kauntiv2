@@ -95,11 +95,7 @@ class _Divider extends StatelessWidget {
 /// over a small caps label, splitting a value like "834 km" so only the
 /// number itself takes the numeral style and the unit reads as a caption.
 class _Stat extends StatelessWidget {
-  const _Stat({
-    required this.value,
-    required this.label,
-    this.accent = false,
-  });
+  const _Stat({required this.value, required this.label, this.accent = false});
 
   final String value;
   final String label;

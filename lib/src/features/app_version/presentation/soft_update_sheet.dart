@@ -151,11 +151,7 @@ class _SoftUpdateSheetState extends ConsumerState<_SoftUpdateSheet> {
                   ? ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 420),
                       child: SingleChildScrollView(
-                        child: UpdateNotesList(
-                          items: notes,
-                          dot: 5,
-                          gap: 8,
-                        ),
+                        child: UpdateNotesList(items: notes, dot: 5, gap: 8),
                       ),
                     )
                   : UpdateNotesList(

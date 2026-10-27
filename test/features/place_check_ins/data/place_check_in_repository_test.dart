@@ -12,7 +12,11 @@ void main() {
 
   SupabasePlaceCheckInRepository repo(
     Future<AppLocationReading?> Function() read,
-  ) => SupabasePlaceCheckInRepository(client, readLocation: read, now: () => now);
+  ) => SupabasePlaceCheckInRepository(
+    client,
+    readLocation: read,
+    now: () => now,
+  );
 
   test('no position means noLocation', () async {
     final outcome = await repo(() async => null).checkIn('p');
@@ -33,12 +37,8 @@ void main() {
 
   test('a fix with no accuracy is refused', () async {
     final outcome = await repo(
-      () async => (
-        latitude: -1.0,
-        longitude: 36.0,
-        accuracyMeters: null,
-        takenAt: now,
-      ),
+      () async =>
+          (latitude: -1.0, longitude: 36.0, accuracyMeters: null, takenAt: now),
     ).checkIn('p');
     expect(outcome.failure, CheckInFailure.lowAccuracy);
   });

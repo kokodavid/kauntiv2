@@ -9,9 +9,8 @@ import 'soft_update_sheet.dart';
 import 'update_copy.dart';
 
 /// Whether Profile and Settings should point at a newer release.
-bool updateIsAvailable(WidgetRef ref) => ref.watch(
-  appUpdateControllerProvider.select((p) => p?.available == true),
-);
+bool updateIsAvailable(WidgetRef ref) =>
+    ref.watch(appUpdateControllerProvider.select((p) => p?.available == true));
 
 /// First item in Settings while a newer release exists. Tapping the row
 /// reopens the soft sheet with the notes expanded; the pill opens the store.
@@ -33,9 +32,8 @@ class UpdateSettingsRow extends ConsumerWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () => unawaited(
-            showSoftUpdateSheet(context, ref, startExpanded: true),
-          ),
+          onTap: () =>
+              unawaited(showSoftUpdateSheet(context, ref, startExpanded: true)),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
             child: Row(

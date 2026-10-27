@@ -58,11 +58,10 @@ class BadgeCollection {
     this.savedAt,
     this.firstStampAt,
     this.checkInsLive = false,
-  })
-    : badges = [
-        ...badges.where((b) => b.isEarned),
-        ...badges.where((b) => !b.isEarned),
-      ];
+  }) : badges = [
+         ...badges.where((b) => b.isEarned),
+         ...badges.where((b) => !b.isEarned),
+       ];
 
   /// From `county_visits` states and `county_depth_ranks()` ranks, both by
   /// county code. Counties with no visit are locked.
@@ -75,15 +74,20 @@ class BadgeCollection {
   }) {
     final counties = [...CountyPaths.all]
       ..sort((a, b) => a.code.compareTo(b.code));
-    return BadgeCollection([
-      for (final county in counties)
-        _badge(
-          county,
-          visitStates[county.code],
-          ranks[county.code],
-          checkIns.of(county.code),
-        ),
-    ], savedAt: savedAt, firstStampAt: firstStampAt, checkInsLive: checkIns.live);
+    return BadgeCollection(
+      [
+        for (final county in counties)
+          _badge(
+            county,
+            visitStates[county.code],
+            ranks[county.code],
+            checkIns.of(county.code),
+          ),
+      ],
+      savedAt: savedAt,
+      firstStampAt: firstStampAt,
+      checkInsLive: checkIns.live,
+    );
   }
 
   static CountyBadge _badge(

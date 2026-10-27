@@ -64,30 +64,36 @@ class PushRegistrar {
     try {
       final repository = this.repository;
       if (repository == null) {
-        _set(PushSyncReport(
-          at: at,
-          step: step,
-          detail: 'No server connection in this build.',
-        ));
+        _set(
+          PushSyncReport(
+            at: at,
+            step: step,
+            detail: 'No server connection in this build.',
+          ),
+        );
         return;
       }
       if (!await service.start()) {
-        _set(PushSyncReport(
-          at: at,
-          step: step,
-          detail: 'Firebase did not start (settings missing or init failed).',
-        ));
+        _set(
+          PushSyncReport(
+            at: at,
+            step: step,
+            detail: 'Firebase did not start (settings missing or init failed).',
+          ),
+        );
         return;
       }
       step = PushSyncStep.token;
       token = knownToken ?? await _fetchToken();
       if (token == null) {
-        _set(PushSyncReport(
-          at: at,
-          step: step,
-          apnsToken: await _apnsToken(),
-          detail: _tokenError ?? 'Firebase returned no token.',
-        ));
+        _set(
+          PushSyncReport(
+            at: at,
+            step: step,
+            apnsToken: await _apnsToken(),
+            detail: _tokenError ?? 'Firebase returned no token.',
+          ),
+        );
         return;
       }
       _token = token;
@@ -99,25 +105,22 @@ class PushRegistrar {
         flavor: flavor,
         appVersion: await appVersion(),
       );
-      _set(PushSyncReport(
-        at: at,
-        step: PushSyncStep.registered,
-        permission: permission,
-        token: token,
-        apnsToken: await _apnsToken(),
-      ));
+      _set(
+        PushSyncReport(
+          at: at,
+          step: PushSyncStep.registered,
+          permission: permission,
+          token: token,
+          apnsToken: await _apnsToken(),
+        ),
+      );
     } on Object catch (error, stackTrace) {
       _logger.warning(
         'Push (sync) failed.',
         error: error,
         stackTrace: stackTrace,
       );
-      _set(PushSyncReport(
-        at: at,
-        step: step,
-        token: token,
-        detail: '$error',
-      ));
+      _set(PushSyncReport(at: at, step: step, token: token, detail: '$error'));
     }
   }
 

@@ -46,10 +46,9 @@ class PassportCover extends StatelessWidget {
     final returning = book.stampedCount > 0;
     final name = holderName?.trim();
     // The most advanced stamps first, for the three on the cover.
-    final shown = ([...book.counties.where((c) => c.isStamped)]
-          ..sort((a, b) => b.level.index.compareTo(a.level.index)))
-        .take(3)
-        .toList();
+    final shown = ([
+      ...book.counties.where((c) => c.isStamped),
+    ]..sort((a, b) => b.level.index.compareTo(a.level.index))).take(3).toList();
     const sizes = [54.0, 64.0, 54.0];
     return DecoratedBox(
       decoration: const BoxDecoration(gradient: PassportCoverPalette.gradient),
@@ -89,10 +88,7 @@ class PassportCover extends StatelessWidget {
                   children: [
                     for (var i = 0; i < shown.length; i++)
                       Transform.translate(
-                        offset: Offset(
-                          i == 0 ? 8.0 : (i == 2 ? -8.0 : 0.0),
-                          0,
-                        ),
+                        offset: Offset(i == 0 ? 8.0 : (i == 2 ? -8.0 : 0.0), 0),
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(

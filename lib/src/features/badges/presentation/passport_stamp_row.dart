@@ -40,26 +40,20 @@ class PassportStampRow extends StatelessWidget {
     Color segment(int i) => earned(i) && earned(i + 1)
         ? PassportLevel.explored.ring
         : PassportInk.track;
-    return Container(
-      padding: const EdgeInsets.only(top: 16),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: PassportInk.track)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var i = 0; i < _stamps.length; i++)
-            Expanded(
-              child: _Step(
-                stamp: _stamps[i],
-                state: states[i],
-                date: _dateFor(_stamps[i]),
-                before: i == 0 ? null : segment(i - 1),
-                after: i == _stamps.length - 1 ? null : segment(i),
-              ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < _stamps.length; i++)
+          Expanded(
+            child: _Step(
+              stamp: _stamps[i],
+              state: states[i],
+              date: _dateFor(_stamps[i]),
+              before: i == 0 ? null : segment(i - 1),
+              after: i == _stamps.length - 1 ? null : segment(i),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
@@ -84,6 +78,7 @@ class _Step extends StatelessWidget {
     const size = PassportStampRow._circle;
     final future = state == PassportStampState.future;
     final next = state == PassportStampState.next;
+    final locked = state == PassportStampState.locked;
     final label = stamp == PassportLevel.passedThrough
         ? 'Passed\nThrough'
         : stamp.label;
@@ -122,12 +117,13 @@ class _Step extends StatelessWidget {
           switch (state) {
             PassportStampState.earned => date ?? '',
             PassportStampState.next => 'Next',
+            PassportStampState.locked => 'Locked',
             PassportStampState.future => '',
           },
           maxLines: 1,
           style: passportText(
             11,
-            weight: next ? FontWeight.w600 : FontWeight.w400,
+            weight: next || locked ? FontWeight.w600 : FontWeight.w400,
             color: next ? stamp.text : PassportInk.tertiary,
           ),
         ),
@@ -142,10 +138,8 @@ class _Line extends StatelessWidget {
   final Color? color;
 
   @override
-  Widget build(BuildContext context) => Container(
-    height: 3,
-    color: color ?? Colors.transparent,
-  );
+  Widget build(BuildContext context) =>
+      Container(height: 3, color: color ?? Colors.transparent);
 }
 
 class _Dot extends StatelessWidget {
@@ -178,16 +172,27 @@ class _Dot extends StatelessWidget {
           child: Container(
             width: 4,
             height: 4,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: stamp.ring),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: stamp.ring,
+            ),
           ),
         );
+      case PassportStampState.locked:
       case PassportStampState.future:
+        // Not earned and not open yet: a padlock either way. The label under
+        // the next one says "Locked"; the steps further on say nothing.
         return Container(
           width: size,
           height: size,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             color: PassportInk.track,
+          ),
+          child: const Icon(
+            Icons.lock_rounded,
+            size: 13,
+            color: PassportInk.tertiary,
           ),
         );
     }

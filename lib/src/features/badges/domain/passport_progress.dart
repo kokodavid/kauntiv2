@@ -40,22 +40,19 @@ class PassportMilestoneRow {
     required this.label,
     required this.value,
     required this.target,
-    this.adjustedFrom,
   });
 
   final String label;
   final int value;
   final int target;
 
-  /// The standard target, when a county with few places on file lowered it.
-  final int? adjustedFrom;
-
   bool get isDone => value >= target;
   double get ratio => target == 0 ? 1 : (value / target).clamp(0.0, 1.0);
 }
 
-/// How a stamp on the row looks.
-enum PassportStampState { earned, next, future }
+/// How a stamp on the row looks. [locked] is the next stamp when the county
+/// can't offer it yet.
+enum PassportStampState { earned, next, locked, future }
 
 /// A county's way to its next stamp.
 class PassportProgress {
@@ -65,6 +62,7 @@ class PassportProgress {
     required this.rows,
     required this.fraction,
     required this.isLater,
+    required this.lock,
     required this.longestVisit,
     required this.exploredStay,
   });
@@ -82,6 +80,10 @@ class PassportProgress {
   /// places aren't verified: shown as a dashed future stamp.
   final bool isLater;
 
+  /// Set when [next] is a metal stamp this county can't offer yet because
+  /// it has too few reviewed places or categories.
+  final PassportLock? lock;
+
   final Duration longestVisit;
   final Duration exploredStay;
 
@@ -92,7 +94,9 @@ class PassportProgress {
     if (stamp.isReachedAt(level) && level != PassportLevel.none) {
       return PassportStampState.earned;
     }
-    if (stamp == next && !isLater) return PassportStampState.next;
+    if (stamp == next && !isLater) {
+      return lock == null ? PassportStampState.next : PassportStampState.locked;
+    }
     return PassportStampState.future;
   }
 
@@ -107,17 +111,27 @@ class PassportProgress {
     final longest = detail.lastPassStay ?? Duration.zero;
     final next = level.next;
     if (next == null) {
-      return PassportProgress._(level, null, const [], 1, false, longest, rules);
+      return PassportProgress._(
+        level,
+        null,
+        const [],
+        1,
+        false,
+        null,
+        longest,
+        rules,
+      );
     }
     if (!next.isMetal) {
       final fraction = switch (level) {
         PassportLevel.none => null,
-        _ => rules.exploredStay.inSeconds == 0
-            ? 1.0
-            : (longest.inSeconds / rules.exploredStay.inSeconds).clamp(
-                0.0,
-                1.0,
-              ),
+        _ =>
+          rules.exploredStay.inSeconds == 0
+              ? 1.0
+              : (longest.inSeconds / rules.exploredStay.inSeconds).clamp(
+                  0.0,
+                  1.0,
+                ),
       };
       return PassportProgress._(
         level,
@@ -125,40 +139,34 @@ class PassportProgress {
         const [],
         fraction,
         false,
+        null,
         longest,
         rules,
       );
     }
-    final targets = rules.targetsFor(next, detail.placesTotal);
     final milestone = rules.milestoneFor(next);
     final rows = <PassportMilestoneRow>[];
-    if (targets != null && milestone != null) {
+    if (milestone != null) {
       rows
         ..add(
           PassportMilestoneRow(
             label: 'Verified places',
             value: evidence.places.length,
-            target: targets.places,
-            adjustedFrom: targets.places < milestone.places
-                ? milestone.places
-                : null,
+            target: milestone.places,
           ),
         )
         ..add(
           PassportMilestoneRow(
             label: 'Categories',
             value: evidence.categories,
-            target: targets.categories,
-            adjustedFrom: targets.categories < milestone.categories
-                ? milestone.categories
-                : null,
+            target: milestone.categories,
           ),
         )
         ..add(
           PassportMilestoneRow(
-            label: targets.visitDays == 1 ? 'Return visit day' : 'Visit days',
+            label: milestone.visitDays == 1 ? 'Return visit day' : 'Visit days',
             value: evidence.visitDays,
-            target: targets.visitDays,
+            target: milestone.visitDays,
           ),
         );
     }
@@ -171,6 +179,11 @@ class PassportProgress {
       rows,
       fraction,
       !rules.placeVerificationLive,
+      rules.lockFor(
+        next,
+        placesTotal: detail.placesTotal,
+        categoriesTotal: detail.categoriesTotal,
+      ),
       longest,
       rules,
     );
@@ -182,6 +195,7 @@ class PassportProgress {
     this.rows,
     this.fraction,
     this.isLater,
+    this.lock,
     this.longestVisit,
     PassportRules rules,
   ) : exploredStay = rules.exploredStay;

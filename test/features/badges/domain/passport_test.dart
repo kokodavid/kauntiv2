@@ -124,15 +124,63 @@ void main() {
       );
     });
 
-    test('a county with few reviewed places has its targets lowered', () {
+    test('targets are the same in every county', () {
       final progress = PassportProgress.of(
         level: PassportLevel.explored,
-        detail: const CountyBadgeDetail(placesTotal: 2),
-        rules: rules,
+        detail: const CountyBadgeDetail(placesTotal: 2, categoriesTotal: 1),
+        rules: rules.withVerification(live: true),
       );
-      expect(progress.rows[0].target, 2);
-      expect(progress.rows[0].adjustedFrom, 3);
-      expect(progress.rows[1].target, 2);
+      expect(progress.rows.map((r) => r.target), [3, 2, 1]);
+    });
+
+    test('a county without enough places locks the next metal stamp', () {
+      final progress = PassportProgress.of(
+        level: PassportLevel.explored,
+        detail: const CountyBadgeDetail(placesTotal: 2, categoriesTotal: 2),
+        rules: rules.withVerification(live: true),
+      );
+      final lock = progress.lock!;
+      expect(lock.level, PassportLevel.bronze);
+      expect(lock.needsPlaces, isTrue);
+      expect(lock.needsCategories, isFalse);
+      expect(
+        progress.stampState(PassportLevel.bronze),
+        PassportStampState.locked,
+      );
+    });
+
+    test('too few categories also locks it', () {
+      final progress = PassportProgress.of(
+        level: PassportLevel.bronze,
+        detail: const CountyBadgeDetail(placesTotal: 9, categoriesTotal: 2),
+        rules: rules.withVerification(live: true),
+      );
+      final lock = progress.lock!;
+      expect(lock.level, PassportLevel.silver);
+      expect(lock.needsPlaces, isFalse);
+      expect(lock.needsCategories, isTrue);
+    });
+
+    test('enough places and categories leave the stamp open', () {
+      final progress = PassportProgress.of(
+        level: PassportLevel.explored,
+        detail: const CountyBadgeDetail(placesTotal: 3, categoriesTotal: 2),
+        rules: rules.withVerification(live: true),
+      );
+      expect(progress.lock, isNull);
+      expect(
+        progress.stampState(PassportLevel.bronze),
+        PassportStampState.next,
+      );
+    });
+
+    test('an unknown category count never locks a stamp', () {
+      final progress = PassportProgress.of(
+        level: PassportLevel.explored,
+        detail: const CountyBadgeDetail(placesTotal: 0),
+        rules: rules.withVerification(live: true),
+      );
+      expect(progress.lock, isNull);
     });
 
     test('Gold has nothing further', () {
@@ -163,18 +211,13 @@ void main() {
     final live = PassportRules.standard.withVerification(live: true);
 
     test('nothing is earned while verification is off', () {
-      const enough = CountyCheckIns(
-        places: 10,
-        categories: 4,
-        visitDays: 3,
-        placesTotal: 40,
-      );
+      const enough = CountyCheckIns(places: 10, categories: 4, visitDays: 3);
       expect(PassportRules.standard.metalFor(enough), isNull);
     });
 
     test('the highest metal the evidence reaches', () {
       CountyCheckIns c(int p, int cat, int d) =>
-          CountyCheckIns(places: p, categories: cat, visitDays: d, placesTotal: 40);
+          CountyCheckIns(places: p, categories: cat, visitDays: d);
       expect(live.metalFor(c(2, 2, 1)), isNull);
       expect(live.metalFor(c(3, 2, 1)), PassportLevel.bronze);
       expect(live.metalFor(c(6, 3, 1)), PassportLevel.bronze); // one day only
@@ -182,45 +225,33 @@ void main() {
       expect(live.metalFor(c(10, 4, 3)), PassportLevel.gold);
     });
 
-    test('a county with few places lowers its own targets', () {
-      const small = CountyCheckIns(
-        places: 2,
-        categories: 1,
-        visitDays: 1,
-        placesTotal: 2,
-      );
-      expect(live.metalFor(small), PassportLevel.bronze);
+    test('a stamp earned stays earned whatever the county grows to', () {
+      // The evidence alone decides: the county's size isn't an input.
+      const earned = CountyCheckIns(places: 3, categories: 2, visitDays: 1);
+      expect(live.metalFor(earned), PassportLevel.bronze);
     });
 
-    test('check-ins lift an explored county, never one only passed through',
-        () {
-      const evidence = CheckInsOverview(
-        live: true,
-        byCounty: {
-          1: CountyCheckIns(
-            places: 3,
-            categories: 2,
-            visitDays: 1,
-            placesTotal: 40,
+    test(
+      'check-ins lift an explored county, never one only passed through',
+      () {
+        const evidence = CheckInsOverview(
+          live: true,
+          byCounty: {
+            1: CountyCheckIns(places: 3, categories: 2, visitDays: 1),
+            30: CountyCheckIns(places: 3, categories: 2, visitDays: 1),
+          },
+        );
+        final lifted = PassportBook.fromCollection(
+          BadgeCollection.from(
+            visitStates: {1: 'explored', 30: 'passed_through'},
+            ranks: const {},
+            checkIns: evidence,
           ),
-          30: CountyCheckIns(
-            places: 3,
-            categories: 2,
-            visitDays: 1,
-            placesTotal: 40,
-          ),
-        },
-      );
-      final lifted = PassportBook.fromCollection(
-        BadgeCollection.from(
-          visitStates: {1: 'explored', 30: 'passed_through'},
-          ranks: const {},
-          checkIns: evidence,
-        ),
-      );
-      expect(lifted.byCode(1)!.level, PassportLevel.bronze);
-      expect(lifted.byCode(30)!.level, PassportLevel.passedThrough);
-    });
+        );
+        expect(lifted.byCode(1)!.level, PassportLevel.bronze);
+        expect(lifted.byCode(30)!.level, PassportLevel.passedThrough);
+      },
+    );
 
     test('old depth is never lowered by thin check-ins', () {
       final kept = PassportBook.fromCollection(
@@ -236,19 +267,11 @@ void main() {
     test('the overview survives the offline snapshot round trip', () {
       const overview = CheckInsOverview(
         live: true,
-        byCounty: {
-          22: CountyCheckIns(
-            places: 4,
-            categories: 2,
-            visitDays: 2,
-            placesTotal: 9,
-          ),
-        },
+        byCounty: {22: CountyCheckIns(places: 4, categories: 2, visitDays: 2)},
       );
       final back = CheckInsOverview.fromJson(overview.toJson());
       expect(back.live, isTrue);
       expect(back.of(22).places, 4);
-      expect(back.of(22).placesTotal, 9);
       expect(back.of(5).places, 0);
     });
   });

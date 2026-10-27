@@ -5,12 +5,17 @@ import '../domain/passport_county.dart';
 import '../domain/passport_level.dart';
 import 'passport_medallion.dart';
 import 'passport_palette.dart';
+import 'passport_stamp_art.dart';
 import 'passport_text.dart';
 
 /// One county on the landing grid: medallion in its ring, name, and a
 /// line of standing. Metal levels carry a B / S / G tag.
 class PassportStampCell extends StatelessWidget {
-  const PassportStampCell({super.key, required this.county, required this.onTap});
+  const PassportStampCell({
+    super.key,
+    required this.county,
+    required this.onTap,
+  });
 
   final PassportCounty county;
   final VoidCallback onTap;
@@ -18,7 +23,8 @@ class PassportStampCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final level = county.level;
-    final mark = level.mark;
+    final hasStamp = PassportStampArt.has(county);
+    final mark = hasStamp ? null : level.mark;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -28,12 +34,15 @@ class PassportStampCell extends StatelessWidget {
           Stack(
             clipBehavior: Clip.none,
             children: [
-              PassportMedallion(
-                county: county.county,
-                level: level,
-                size: 56,
-                gap: 2,
-              ),
+              if (hasStamp)
+                PassportStampArt(county: county, extent: 64)
+              else
+                PassportMedallion(
+                  county: county.county,
+                  level: level,
+                  size: 56,
+                  gap: 2,
+                ),
               if (mark != null)
                 Positioned(
                   right: -2,
@@ -63,6 +72,10 @@ class PassportStampCell extends StatelessWidget {
                 ),
             ],
           ),
+          if (hasStamp) ...[
+            const SizedBox(height: 5),
+            PassportLevelDots(level: level),
+          ],
           const SizedBox(height: 5),
           Text(
             county.name,

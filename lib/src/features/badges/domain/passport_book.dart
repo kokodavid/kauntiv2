@@ -44,8 +44,7 @@ class PassportBook {
     this.savedAt,
     this.firstStampAt,
     this.checkInsLive = false,
-  })
-    : counties = _byCode(counties);
+  }) : counties = _byCode(counties);
 
   static List<PassportCounty> _byCode(List<PassportCounty> counties) {
     final sorted = [...counties]..sort((a, b) => a.code.compareTo(b.code));
@@ -92,14 +91,14 @@ class PassportBook {
 
   /// Counties claimed: Explored or better. This is the same number the
   /// home map shows, so the app only ever has one "x of 47" for progress.
-  int get claimedCount =>
-      counties.where((c) => c.level.index >= PassportLevel.explored.index).length;
+  int get claimedCount => counties
+      .where((c) => c.level.index >= PassportLevel.explored.index)
+      .length;
 
   int countAt(PassportLevel level) =>
       counties.where((c) => c.level == level).length;
 
-  int countFor(PassportFilter filter) =>
-      counties.where(filter.matches).length;
+  int countFor(PassportFilter filter) => counties.where(filter.matches).length;
 
   PassportCounty? byCode(int code) {
     for (final county in counties) {
@@ -110,9 +109,8 @@ class PassportBook {
 
   /// The levels of every county, highest first (the 47-segment bar).
   List<PassportLevel> get barLevels =>
-      ([for (final c in counties) c.level]..sort(
-        (a, b) => b.index.compareTo(a.index),
-      ));
+      ([for (final c in counties) c.level]
+        ..sort((a, b) => b.index.compareTo(a.index)));
 
   /// Counties by region (alphabetical, and alphabetical within each),
   /// narrowed by [filter] and [query]
@@ -124,25 +122,28 @@ class PassportBook {
     final needle = query.trim().toLowerCase();
     final result = <PassportRegion, List<PassportCounty>>{};
     for (final region in PassportRegion.values) {
-      final inRegion = counties
-          .where(
-            (c) =>
-                c.region == region &&
-                filter.matches(c) &&
-                (needle.isEmpty || c.name.toLowerCase().contains(needle)),
-          )
-          .toList()
-        ..sort((a, b) => a.name.compareTo(b.name));
+      final inRegion =
+          counties
+              .where(
+                (c) =>
+                    c.region == region &&
+                    filter.matches(c) &&
+                    (needle.isEmpty || c.name.toLowerCase().contains(needle)),
+              )
+              .toList()
+            ..sort((a, b) => a.name.compareTo(b.name));
       if (inRegion.isNotEmpty) result[region] = inRegion;
     }
     return result;
   }
 
   /// Stamped counties in a region, for "x of y stamped".
-  int stampedIn(PassportRegion region) =>
-      counties
-          .where((c) => c.region == region && c.level.index >= PassportLevel.explored.index)
-          .length;
+  int stampedIn(PassportRegion region) => counties
+      .where(
+        (c) =>
+            c.region == region && c.level.index >= PassportLevel.explored.index,
+      )
+      .length;
 
   int totalIn(PassportRegion region) =>
       counties.where((c) => c.region == region).length;

@@ -184,6 +184,7 @@ class SupabaseBadgesRepository {
       journeys: count('journeys'),
       journeyMeters: (row['journey_distance_m'] as num?)?.toDouble() ?? 0,
       placesTotal: count('places_total'),
+      categoriesTotal: checkInsRow.categoriesTotal,
       checkedInPlaces: checkInsRow.places,
       checkInDays: checkInsRow.days,
       suggestedPlaces: [
@@ -209,9 +210,8 @@ class SupabaseBadgesRepository {
     );
   }
 
-  Future<({List<CheckedInPlace> places, int days})> _countyCheckIns(
-    int countyCode,
-  ) async {
+  Future<({List<CheckedInPlace> places, int days, int? categoriesTotal})>
+  _countyCheckIns(int countyCode) async {
     try {
       final row = await _client
           .rpc<Map<String, dynamic>>(
@@ -221,6 +221,7 @@ class SupabaseBadgesRepository {
           .timeout(_timeout);
       return (
         days: (row['visit_days'] as num?)?.toInt() ?? 0,
+        categoriesTotal: (row['categories_total'] as num?)?.toInt(),
         places: [
           for (final place
               in (row['places'] as List<dynamic>? ?? const [])
@@ -247,7 +248,7 @@ class SupabaseBadgesRepository {
         error: error,
         stackTrace: stackTrace,
       );
-      return (places: const <CheckedInPlace>[], days: 0);
+      return (places: const <CheckedInPlace>[], days: 0, categoriesTotal: null);
     }
   }
 }

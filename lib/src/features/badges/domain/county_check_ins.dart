@@ -5,24 +5,20 @@ class CountyCheckIns {
     this.places = 0,
     this.categories = 0,
     this.visitDays = 0,
-    this.placesTotal = 0,
   });
 
   static const none = CountyCheckIns();
 
-  /// Distinct places checked in at, how many place types they cover, how
-  /// many distinct days, and how many reviewed places the county has (a
-  /// county with few places lowers its own targets).
+  /// Distinct places checked in at, how many place types they cover, and
+  /// how many distinct days.
   final int places;
   final int categories;
   final int visitDays;
-  final int placesTotal;
 
   Map<String, Object> toJson() => {
     'places': places,
     'categories': categories,
     'visit_days': visitDays,
-    'places_total': placesTotal,
   };
 
   static CountyCheckIns fromJson(Map<dynamic, dynamic> json) {
@@ -31,7 +27,6 @@ class CountyCheckIns {
       places: n('places'),
       categories: n('categories'),
       visitDays: n('visit_days'),
-      placesTotal: n('places_total'),
     );
   }
 }
@@ -46,7 +41,8 @@ class CheckInsOverview {
   final bool live;
   final Map<int, CountyCheckIns> byCounty;
 
-  CountyCheckIns of(int countyCode) => byCounty[countyCode] ?? CountyCheckIns.none;
+  CountyCheckIns of(int countyCode) =>
+      byCounty[countyCode] ?? CountyCheckIns.none;
 
   Map<String, Object> toJson() => {
     'live': live,

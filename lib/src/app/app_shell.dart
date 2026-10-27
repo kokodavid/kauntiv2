@@ -99,75 +99,75 @@ class AppShell extends ConsumerWidget {
         onOpenTrip: (context) => context.push(AppRoutes.journeyRecording),
         child: SoftUpdateHost(
           child: JourneySyncLifecycle(
-          onRecovered: () =>
-              ref.read(appUpdateControllerProvider.notifier).check(),
-          child: Scaffold(
-            backgroundColor: AppColors.pageBackground,
-            // A Stack, not a Column: the glass nav needs the active tab's
-            // content underneath it to float over and blur.
-            body: Stack(
-              children: [
-                // The offline pill takes the top 44 px while it shows, once,
-                // on the same curve it enters on.
-                Positioned.fill(
-                  child: AnimatedPadding(
-                    duration: const Duration(milliseconds: 280),
-                    curve: Curves.easeOutCubic,
-                    padding: EdgeInsets.only(
-                      top: bannerShown ? OfflineBanner.height : 0,
+            onRecovered: () =>
+                ref.read(appUpdateControllerProvider.notifier).check(),
+            child: Scaffold(
+              backgroundColor: AppColors.pageBackground,
+              // A Stack, not a Column: the glass nav needs the active tab's
+              // content underneath it to float over and blur.
+              body: Stack(
+                children: [
+                  // The offline pill takes the top 44 px while it shows, once,
+                  // on the same curve it enters on.
+                  Positioned.fill(
+                    child: AnimatedPadding(
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeOutCubic,
+                      padding: EdgeInsets.only(
+                        top: bannerShown ? OfflineBanner.height : 0,
+                      ),
+                      child: navigationShell,
                     ),
-                    child: navigationShell,
                   ),
-                ),
-                Positioned(
-                  top: MediaQuery.paddingOf(context).top,
-                  left: 0,
-                  right: 0,
-                  height: OfflineBanner.height,
-                  child: const OfflineBanner(),
-                ),
-                // Home and Trips show the Trip in progress themselves.
-                if (AppFeatureFlags.journeys &&
-                    AppRoutes.tabs[navigationShell.currentIndex] !=
-                        AppNavTab.journeys &&
-                    AppRoutes.tabs[navigationShell.currentIndex] !=
-                        AppNavTab.map)
+                  Positioned(
+                    top: MediaQuery.paddingOf(context).top,
+                    left: 0,
+                    right: 0,
+                    height: OfflineBanner.height,
+                    child: const OfflineBanner(),
+                  ),
+                  // Home and Trips show the Trip in progress themselves.
+                  if (AppFeatureFlags.journeys &&
+                      AppRoutes.tabs[navigationShell.currentIndex] !=
+                          AppNavTab.journeys &&
+                      AppRoutes.tabs[navigationShell.currentIndex] !=
+                          AppNavTab.map)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 96,
+                      child: Center(
+                        child: JourneyActiveBanner(
+                          onTap: () => context.push(AppRoutes.journeyRecording),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     left: 0,
                     right: 0,
-                    bottom: 96,
-                    child: Center(
-                      child: JourneyActiveBanner(
-                        onTap: () => context.push(AppRoutes.journeyRecording),
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: IgnorePointer(
-                    ignoring: navHidden,
-                    child: AnimatedSlide(
-                      duration: navSlide,
-                      curve: Curves.easeOutCubic,
-                      offset: navHidden ? const Offset(0, 1.4) : Offset.zero,
-                      child: AnimatedOpacity(
+                    bottom: 0,
+                    child: IgnorePointer(
+                      ignoring: navHidden,
+                      child: AnimatedSlide(
                         duration: navSlide,
                         curve: Curves.easeOutCubic,
-                        opacity: navHidden ? 0 : 1,
-                        child: AppBottomNav(
-                          selected:
-                              AppRoutes.tabs[navigationShell.currentIndex],
-                          onSelect: (tab) => _select(context, tab),
+                        offset: navHidden ? const Offset(0, 1.4) : Offset.zero,
+                        child: AnimatedOpacity(
+                          duration: navSlide,
+                          curve: Curves.easeOutCubic,
+                          opacity: navHidden ? 0 : 1,
+                          child: AppBottomNav(
+                            selected:
+                                AppRoutes.tabs[navigationShell.currentIndex],
+                            onSelect: (tab) => _select(context, tab),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           ),
         ),
       ),

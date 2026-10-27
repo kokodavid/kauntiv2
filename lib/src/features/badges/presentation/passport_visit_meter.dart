@@ -22,12 +22,14 @@ class PassportVisitMeter extends StatelessWidget {
       children: [
         for (var i = 0; i < _parts.length; i++) ...[
           if (i > 0) const SizedBox(width: 4),
-          Expanded(flex: ((_parts[i].to - _parts[i].from) * 100).round(),
+          Expanded(
+            flex: ((_parts[i].to - _parts[i].from) * 100).round(),
             child: _Part(
               label: _parts[i].label,
-              fill: ((fraction - _parts[i].from) /
-                      (_parts[i].to - _parts[i].from))
-                  .clamp(0.0, 1.0),
+              fill:
+                  ((fraction - _parts[i].from) /
+                          (_parts[i].to - _parts[i].from))
+                      .clamp(0.0, 1.0),
               isCurrent: fraction >= _parts[i].from && fraction < _parts[i].to,
               isDone: fraction >= _parts[i].to,
             ),

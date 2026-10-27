@@ -91,12 +91,17 @@ class _Side extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment:
-          leading ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+      crossAxisAlignment: leading
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.end,
       children: [
         Text(
           county.number,
-          style: passportText(10, weight: FontWeight.w600, color: PassportInk.tertiary),
+          style: passportText(
+            10,
+            weight: FontWeight.w600,
+            color: PassportInk.tertiary,
+          ),
         ),
         Text(
           county.name,
@@ -112,8 +117,9 @@ class _Side extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(
-          mainAxisAlignment:
-              leading ? MainAxisAlignment.start : MainAxisAlignment.end,
+          mainAxisAlignment: leading
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.end,
           children: [
             if (leading) const Icon(Icons.chevron_left_rounded, size: 20),
             Flexible(child: label),

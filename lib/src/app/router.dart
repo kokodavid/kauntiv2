@@ -197,9 +197,7 @@ GoRouter appRouter(Ref ref) {
             onOpenLocationSettings: DetailRoutes.openAppSettings,
             onOpenInterests: () => context.push(AppRoutes.interests),
             onOpenLocationDiagnostics:
-                LocationDiagnostics.enabledFor(
-                  isDev: isDev,
-                )
+                LocationDiagnostics.enabledFor(isDev: isDev)
                 ? () => context.push(AppRoutes.locationDiagnostics)
                 : null,
             onOpenPushStatus: isDev
@@ -258,10 +256,8 @@ GoRouter appRouter(Ref ref) {
                 JourneyPlaceRoutes.startPlanned(context, place, stops),
           ),
           photos: PlacePhotosRoutes.placeSection,
-          checkIn: (context, place) => PlaceCheckInCard(
-            placeId: place.id,
-            placeName: place.title,
-          ),
+          checkIn: (context, place) =>
+              PlaceCheckInCard(placeId: place.id, placeName: place.title),
         ),
       ),
     ],

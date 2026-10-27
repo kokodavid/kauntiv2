@@ -44,8 +44,7 @@ class PushSyncReport {
   /// Registered and the phone allows notifications: nothing left to retry.
   bool get settled => registered && permission == PushPermission.granted;
 
-  static String tail(String? value) =>
-      value == null || value.isEmpty
+  static String tail(String? value) => value == null || value.isEmpty
       ? 'none'
       : '…${value.substring(value.length > 6 ? value.length - 6 : 0)}';
 }

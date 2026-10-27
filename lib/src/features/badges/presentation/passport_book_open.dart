@@ -31,7 +31,9 @@ class PassportBookOpen extends StatelessWidget {
     return AnimatedBuilder(
       animation: animation,
       builder: (context, _) {
-        final t = reduceMotion ? animation.value : _curve.transform(animation.value);
+        final t = reduceMotion
+            ? animation.value
+            : _curve.transform(animation.value);
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -62,7 +64,8 @@ class PassportBookOpen extends StatelessWidget {
   }
 
   Widget _cover(double t) {
-    if (reduceMotion) return Opacity(opacity: (1 - t).clamp(0.0, 1.0), child: cover);
+    if (reduceMotion)
+      return Opacity(opacity: (1 - t).clamp(0.0, 1.0), child: cover);
     // Positive turns the free edge towards the viewer (Flutter's
     // perspective shrinks what moves to positive z), like a cover lifting.
     final angle = _openAngle * t;

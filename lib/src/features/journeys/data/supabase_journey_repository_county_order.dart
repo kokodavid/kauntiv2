@@ -49,8 +49,8 @@ extension SupabaseJourneyCountyOrderGaps on SupabaseJourneyRepository {
         .order('journey_id')
         .limit(limit * 4)
         .timeout(SupabaseJourneyRepository._timeout);
-    return {for (final row in rows) row['journey_id'] as String}
-        .take(limit)
-        .toList();
+    return {
+      for (final row in rows) row['journey_id'] as String,
+    }.take(limit).toList();
   }
 }

@@ -12,9 +12,10 @@ part of 'notifications_prompt.dart';
 /// place the app asks for notification permission: Home, on the first visit
 /// on any phone (permission belongs to the phone, so a new phone is asked
 /// again), once location has been dealt with in start-up, so two system
-/// prompts never come back to back. It shows while the phone does not allow
-/// notifications and the card has not been dismissed on this phone, and goes
-/// away once the phone allows them. Notifications cover county arrivals,
+/// prompts never come back to back. Home also shows the system prompt itself
+/// ([askOnHome]) when notifications are off. The card is the fallback: it
+/// shows while the phone does not allow notifications, comes back three days
+/// after a dismissal, and goes away once the phone allows them. Notifications cover county arrivals,
 /// replies to photos and trips, and announcements, so it no longer depends
 /// on the county-nudge switch or on automatic detection.
 
@@ -25,9 +26,10 @@ const notificationsPromptProvider = NotificationsPromptProvider._();
 /// place the app asks for notification permission: Home, on the first visit
 /// on any phone (permission belongs to the phone, so a new phone is asked
 /// again), once location has been dealt with in start-up, so two system
-/// prompts never come back to back. It shows while the phone does not allow
-/// notifications and the card has not been dismissed on this phone, and goes
-/// away once the phone allows them. Notifications cover county arrivals,
+/// prompts never come back to back. Home also shows the system prompt itself
+/// ([askOnHome]) when notifications are off. The card is the fallback: it
+/// shows while the phone does not allow notifications, comes back three days
+/// after a dismissal, and goes away once the phone allows them. Notifications cover county arrivals,
 /// replies to photos and trips, and announcements, so it no longer depends
 /// on the county-nudge switch or on automatic detection.
 final class NotificationsPromptProvider
@@ -36,9 +38,10 @@ final class NotificationsPromptProvider
   /// place the app asks for notification permission: Home, on the first visit
   /// on any phone (permission belongs to the phone, so a new phone is asked
   /// again), once location has been dealt with in start-up, so two system
-  /// prompts never come back to back. It shows while the phone does not allow
-  /// notifications and the card has not been dismissed on this phone, and goes
-  /// away once the phone allows them. Notifications cover county arrivals,
+  /// prompts never come back to back. Home also shows the system prompt itself
+  /// ([askOnHome]) when notifications are off. The card is the fallback: it
+  /// shows while the phone does not allow notifications, comes back three days
+  /// after a dismissal, and goes away once the phone allows them. Notifications cover county arrivals,
   /// replies to photos and trips, and announcements, so it no longer depends
   /// on the county-nudge switch or on automatic detection.
   const NotificationsPromptProvider._()
@@ -61,15 +64,16 @@ final class NotificationsPromptProvider
 }
 
 String _$notificationsPromptHash() =>
-    r'b0879e1f6e73da5b3714e78e03c6829622e4081c';
+    r'22f9d28d1c9443451e848d154539303cb4a03c7c';
 
 /// Whether Home shows the "Turn on notifications" card. This is the one
 /// place the app asks for notification permission: Home, on the first visit
 /// on any phone (permission belongs to the phone, so a new phone is asked
 /// again), once location has been dealt with in start-up, so two system
-/// prompts never come back to back. It shows while the phone does not allow
-/// notifications and the card has not been dismissed on this phone, and goes
-/// away once the phone allows them. Notifications cover county arrivals,
+/// prompts never come back to back. Home also shows the system prompt itself
+/// ([askOnHome]) when notifications are off. The card is the fallback: it
+/// shows while the phone does not allow notifications, comes back three days
+/// after a dismissal, and goes away once the phone allows them. Notifications cover county arrivals,
 /// replies to photos and trips, and announcements, so it no longer depends
 /// on the county-nudge switch or on automatic detection.
 

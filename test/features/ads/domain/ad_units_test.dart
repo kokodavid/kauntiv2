@@ -13,8 +13,14 @@ void main() {
     );
   });
 
-  test('prod has no unit until a real one is added, so no ad is requested', () {
-    expect(AdUnits.native(isIos: false, prod: true), isNull);
-    expect(AdUnits.native(isIos: true, prod: true), isNull);
+  test('prod builds use the configured production native units', () {
+    expect(
+      AdUnits.native(isIos: false, prod: true),
+      startsWith('ca-app-pub-2470974563764561/'),
+    );
+    expect(
+      AdUnits.native(isIos: true, prod: true),
+      startsWith('ca-app-pub-2470974563764561/'),
+    );
   });
 }

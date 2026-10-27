@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/core/domain/connectivity_state.dart';
 import 'package:kaunti47_v2/src/core/domain/place_type.dart';
+import 'package:kaunti47_v2/src/config/app_config.dart';
+import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
 import 'package:kaunti47_v2/src/core/services/connectivity_provider.dart';
 import 'package:kaunti47_v2/src/counties/county_paths.dart';
 import 'package:kaunti47_v2/src/features/discover/application/discover_detail_actions.dart';
@@ -49,7 +51,10 @@ void main() {
     var calls = 0;
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [connectivityProvider.overrideWith(_Online.new)],
+        overrides: [
+          appConfigProvider.overrideWithValue(const AppConfig.dev()),
+          connectivityProvider.overrideWith(_Online.new),
+        ],
         child: MaterialApp(
           home: PlaceDetailScreen(
             placeId: 'place-1',

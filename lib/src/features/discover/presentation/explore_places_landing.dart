@@ -280,7 +280,4 @@ class _ExplorePlacesLandingState extends ConsumerState<ExplorePlacesLanding> {
 }
 
 /// An ad on the landing feed: a short banner between two chapters.
-const _landingAd = <Widget>[
-  SizedBox(height: 16),
-  ExploreAdSlot(banner: true),
-];
+const _landingAd = <Widget>[SizedBox(height: 16), ExploreAdSlot(banner: true)];

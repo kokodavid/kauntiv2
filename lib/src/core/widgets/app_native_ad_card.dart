@@ -13,11 +13,7 @@ import '../../design/app_colors.dart';
 /// It reserves its height while the ad loads so a list below does not jump,
 /// and collapses to nothing if the ad fails to load.
 class AppNativeAdCard extends StatefulWidget {
-  const AppNativeAdCard({
-    super.key,
-    required this.adUnitId,
-    this.height = 360,
-  });
+  const AppNativeAdCard({super.key, required this.adUnitId, this.height = 360});
 
   final String adUnitId;
 

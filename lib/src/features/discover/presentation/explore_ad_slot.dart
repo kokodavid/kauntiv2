@@ -16,7 +16,9 @@ class ExploreAdSlot extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unit = ref.watch(banner ? bannerAdUnitProvider : nativeAdUnitProvider);
+    final unit = ref.watch(
+      banner ? bannerAdUnitProvider : nativeAdUnitProvider,
+    );
     if (unit == null || !ref.watch(showAdsProvider)) {
       return const SizedBox.shrink();
     }

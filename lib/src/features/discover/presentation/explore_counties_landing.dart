@@ -71,9 +71,7 @@ class ExploreCountiesLanding extends StatelessWidget {
             if (i < _adAfterCards.length && range.$2 < counties.length)
               const SliverPadding(
                 padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
-                sliver: SliverToBoxAdapter(
-                  child: ExploreAdSlot(banner: true),
-                ),
+                sliver: SliverToBoxAdapter(child: ExploreAdSlot(banner: true)),
               ),
           ],
       ],

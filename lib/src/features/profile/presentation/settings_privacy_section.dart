@@ -59,8 +59,9 @@ class SettingsPrivacySection extends ConsumerWidget {
             SettingsActionRow(
               title: 'Ad choices',
               subtitle: 'Review or change your ads consent',
-              onTap: () =>
-                  unawaited(ref.read(adsConsentProvider.notifier).showPrivacyOptions()),
+              onTap: () => unawaited(
+                ref.read(adsConsentProvider.notifier).showPrivacyOptions(),
+              ),
             ),
         ],
       ),

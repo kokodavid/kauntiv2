@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/app_colors.dart';
+import '../../ads/domain/ad_placement.dart';
 import '../application/explore_providers.dart';
 import '../domain/explore_board.dart';
+import 'explore_ad_slot.dart';
 import 'explore_county_card.dart';
 import 'explore_place_row.dart';
 import 'explore_styles.dart';
@@ -80,6 +82,8 @@ class ExploreSavedTab extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
+            if (AdPlacement.afterRow(index: i, total: groups.length, every: 2))
+              const ExploreAdSlot(banner: true),
           ],
           const SizedBox(height: 4),
           const Row(

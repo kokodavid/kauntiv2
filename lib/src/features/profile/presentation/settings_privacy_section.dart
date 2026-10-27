@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../ads/application/ads_providers.dart';
 import '../domain/profile_settings.dart';
 import 'settings_widgets.dart';
 
@@ -54,6 +55,13 @@ class SettingsPrivacySection extends ConsumerWidget {
             onChanged: (v) => unawaited(notifier.setShowOnLeaderboards(v)),
             divider: true,
           ),
+          if (ref.watch(adsPrivacyOptionsRequiredProvider).value == true)
+            SettingsActionRow(
+              title: 'Ad choices',
+              subtitle: 'Review or change your ads consent',
+              onTap: () =>
+                  unawaited(ref.read(adsConsentProvider.notifier).showPrivacyOptions()),
+            ),
         ],
       ),
     ],

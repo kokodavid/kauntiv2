@@ -15,6 +15,7 @@ import 'county_safety_section.dart';
 import 'detail_async_body.dart';
 import 'detail_photo_carousel.dart';
 import 'detail_widgets.dart';
+import 'explore_ad_slot.dart';
 import 'explore_place_row.dart';
 import 'place_photo_card.dart';
 
@@ -176,6 +177,7 @@ class _CountyDetailBodyState extends State<_CountyDetailBody> {
                 ),
               ),
               const SizedBox(height: 18),
+              const ExploreAdSlot(),
               const Text(
                 'Places to See',
                 style: AppTextStyles.detailSectionTitle,

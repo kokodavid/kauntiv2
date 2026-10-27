@@ -5,6 +5,7 @@ import '../../../core/widgets/county_badge_medallion.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../domain/explore_board.dart';
+import 'explore_ad_slot.dart';
 import 'explore_counties_header.dart';
 import 'explore_place_row.dart';
 import 'explore_states.dart';
@@ -62,27 +63,52 @@ class ExploreCountiesLanding extends StatelessWidget {
             ),
           )
         else
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => ExploreCountyFieldCard(
-                  entry: counties[index],
-                  onOpen: onOpenCounty,
-                ),
-                childCount: counties.length,
-              ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 4 / 3,
-              ),
+          for (final (i, range) in _chunks(counties.length).indexed) ...[
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: _grid(counties.sublist(range.$1, range.$2)),
             ),
-          ),
+            if (i < _adAfterCards.length && range.$2 < counties.length)
+              const SliverPadding(
+                padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
+                sliver: SliverToBoxAdapter(
+                  child: ExploreAdSlot(banner: true),
+                ),
+              ),
+          ],
       ],
     );
   }
+
+  /// Two ads at most: one after the first two rows of cards, one after
+  /// the fifth row. The rest of the grid stays clear.
+  static const _adAfterCards = [4, 10];
+
+  /// The card ranges between ads, as (start, end) pairs.
+  List<(int, int)> _chunks(int total) {
+    final ranges = <(int, int)>[];
+    var start = 0;
+    for (final cut in [..._adAfterCards, total]) {
+      final end = cut < total ? cut : total;
+      if (end > start) ranges.add((start, end));
+      start = end;
+    }
+    return ranges;
+  }
+
+  Widget _grid(List<ExploreCountyCardEntry> chunk) => SliverGrid(
+    delegate: SliverChildBuilderDelegate(
+      (context, index) =>
+          ExploreCountyFieldCard(entry: chunk[index], onOpen: onOpenCounty),
+      childCount: chunk.length,
+    ),
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      childAspectRatio: 4 / 3,
+    ),
+  );
 
   /// Claimed first, then open counties nearest first (the board already
   /// orders both).

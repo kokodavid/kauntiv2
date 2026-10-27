@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../../ads/domain/ad_placement.dart';
 import '../domain/explore_board.dart';
 import '../domain/explore_entries.dart';
+import 'explore_ad_slot.dart';
 import 'explore_counties_landing.dart';
 import 'explore_field_row.dart';
 import 'explore_place_row.dart';
@@ -50,9 +52,11 @@ class ExploreSearchResults extends StatelessWidget {
           if (places.isNotEmpty) ...[
             ExploreSectionHeader(label: 'PLACES', count: places.length),
             const SizedBox(height: 10),
-            for (final entry in places) ...[
-              ExploreFieldRow(entry: entry, onOpen: onOpenPlace),
+            for (var i = 0; i < places.length; i++) ...[
+              ExploreFieldRow(entry: places[i], onOpen: onOpenPlace),
               const SizedBox(height: 10),
+              if (AdPlacement.afterRow(index: i, total: places.length))
+                const ExploreAdSlot(banner: true),
             ],
           ],
           if (counties.isNotEmpty) ...[

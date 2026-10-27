@@ -21,6 +21,7 @@ import '../features/journeys/presentation/journey_active_banner.dart';
 import '../features/journeys/presentation/journey_sync_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/profile/application/public_profile_providers.dart';
+import 'ads_lifecycle.dart';
 import 'app_routes.dart';
 import 'detail_routes.dart';
 
@@ -91,7 +92,8 @@ class AppShell extends ConsumerWidget {
           ? 600
           : 220,
     );
-    return ConnectivityLifecycle(
+    return AdsLifecycle(
+      child: ConnectivityLifecycle(
       child: DetectionLifecycle(
         homeCountyCode: homeCounty?.code,
         onOpenCounty: DetailRoutes.openCounty,
@@ -171,6 +173,7 @@ class AppShell extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

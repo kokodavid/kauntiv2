@@ -91,6 +91,10 @@ dependencies:
   # dependency of flutter_local_notifications).
   timezone: ">=0.9.0 <1.0.0"
 
+  # Ads for anyone without Pro (switched from the dashboard; consent via
+  # Google's UMP form). See claude/ads-implementation-plan.md.
+  google_mobile_ads: ^9.2.0
+
   # Opt-in Journey route capture while the app process is alive. County
   # detection continues to use native_geofence, not this continuous stream.
   location: ^10.0.2

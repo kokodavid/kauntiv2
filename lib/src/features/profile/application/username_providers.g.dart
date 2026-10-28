@@ -103,7 +103,7 @@ final class UsernameChooserProvider
   }
 }
 
-String _$usernameChooserHash() => r'689f04c6d7a64758328201ee4e27d96ee696d8a2';
+String _$usernameChooserHash() => r'b217495aa725fa181c81337ea69828fcc24be374';
 
 /// The username chooser behind setup step 3 and Edit Profile: four
 /// suggestions to pick from, "Show me more", or the user's own text checked

@@ -95,6 +95,11 @@ dependencies:
   # Google's UMP form). See claude/ads-implementation-plan.md.
   google_mobile_ads: ^9.2.0
 
+  # Pro subscriptions through the App Store and Google Play, managed by
+  # RevenueCat. Purchases reach Supabase through the revenuecat-webhook edge
+  # function. See claude/billing-implementation-plan.md.
+  purchases_flutter: ^10.18.1
+
   # Opt-in Journey route capture while the app process is alive. County
   # detection continues to use native_geofence, not this continuous stream.
   location: ^10.0.2

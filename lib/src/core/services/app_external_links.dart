@@ -19,4 +19,11 @@ abstract final class AppExternalLinks {
       mode: LaunchMode.externalApplication,
     );
   }
+
+  static Future<void> openTerms() async {
+    await launchUrl(
+      Uri.parse('https://kaunti47.com/terms'),
+      mode: LaunchMode.externalApplication,
+    );
+  }
 }

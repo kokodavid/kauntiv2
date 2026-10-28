@@ -37,6 +37,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
     super.key,
     required this.onOpenLocationSettings,
     required this.onOpenInterests,
+    this.onOpenUpgrade,
     this.onOpenLocationDiagnostics,
     this.onOpenPushStatus,
     this.topSlot,
@@ -44,6 +45,9 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
   final Future<void> Function() onOpenLocationSettings;
   final VoidCallback onOpenInterests;
+
+  /// Opens the Pro purchase screen (wired by the app layer).
+  final VoidCallback? onOpenUpgrade;
   final VoidCallback? onOpenLocationDiagnostics;
   final VoidCallback? onOpenPushStatus;
 
@@ -210,7 +214,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   showModalBottomSheet<void>(
                     context: context,
                     isScrollControlled: true,
-                    builder: (_) => MembershipSheet(status: proStatus),
+                    builder: (_) => MembershipSheet(
+                      status: proStatus,
+                      onUpgrade: widget.onOpenUpgrade,
+                    ),
                   ),
                 ),
                 onOpenDataPrivacy: () => unawaited(

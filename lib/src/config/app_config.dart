@@ -16,6 +16,8 @@ class AppConfig {
     this.firebaseAndroidAppId = '',
     this.firebaseIosAppId = '',
     this.firebaseIosApiKey = '',
+    this.revenueCatIosKey = '',
+    this.revenueCatAndroidKey = '',
   });
 
   const AppConfig.dev()
@@ -39,7 +41,11 @@ class AppConfig {
         'FIREBASE_ANDROID_APP_ID',
       ),
       firebaseIosAppId = const String.fromEnvironment('FIREBASE_IOS_APP_ID'),
-      firebaseIosApiKey = const String.fromEnvironment('FIREBASE_IOS_API_KEY');
+      firebaseIosApiKey = const String.fromEnvironment('FIREBASE_IOS_API_KEY'),
+      revenueCatIosKey = const String.fromEnvironment('REVENUECAT_IOS_KEY'),
+      revenueCatAndroidKey = const String.fromEnvironment(
+        'REVENUECAT_ANDROID_KEY',
+      );
 
   const AppConfig.prod()
     : environment = AppEnvironment.prod,
@@ -62,7 +68,11 @@ class AppConfig {
         'FIREBASE_ANDROID_APP_ID',
       ),
       firebaseIosAppId = const String.fromEnvironment('FIREBASE_IOS_APP_ID'),
-      firebaseIosApiKey = const String.fromEnvironment('FIREBASE_IOS_API_KEY');
+      firebaseIosApiKey = const String.fromEnvironment('FIREBASE_IOS_API_KEY'),
+      revenueCatIosKey = const String.fromEnvironment('REVENUECAT_IOS_KEY'),
+      revenueCatAndroidKey = const String.fromEnvironment(
+        'REVENUECAT_ANDROID_KEY',
+      );
 
   final AppEnvironment environment;
   final String appName;
@@ -87,6 +97,11 @@ class AppConfig {
   /// Firebase issues a separate key per platform; empty falls back to
   /// [firebaseApiKey].
   final String firebaseIosApiKey;
+
+  /// RevenueCat's public SDK keys, one per store (not secrets). Empty means
+  /// purchases are off on that platform in this build.
+  final String revenueCatIosKey;
+  final String revenueCatAndroidKey;
 
   bool get hasMapboxConfig => mapboxAccessToken.isNotEmpty;
 

@@ -37,6 +37,7 @@ import 'app_shell.dart';
 import 'app_update_routes.dart';
 import 'detail_routes.dart';
 import 'dev_tool_routes.dart';
+import 'billing_routes.dart';
 import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
 import 'push_routes.dart';
@@ -196,6 +197,7 @@ GoRouter appRouter(Ref ref) {
             topSlot: const UpdateSettingsRow(),
             onOpenLocationSettings: DetailRoutes.openAppSettings,
             onOpenInterests: () => context.push(AppRoutes.interests),
+            onOpenUpgrade: () => context.push(AppRoutes.upgrade),
             onOpenLocationDiagnostics:
                 LocationDiagnostics.enabledFor(isDev: isDev)
                 ? () => context.push(AppRoutes.locationDiagnostics)
@@ -212,6 +214,7 @@ GoRouter appRouter(Ref ref) {
           builder: (context, state) => const LocationDiagnosticsScreen(),
         ),
       if (isDev) ...devToolRoutes,
+      ...billingRoutes,
       GoRoute(
         path: AppRoutes.savedPlans,
         builder: (context, state) => SavedPlansScreen(

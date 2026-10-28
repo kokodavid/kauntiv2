@@ -24,6 +24,7 @@ abstract final class AppRoutes {
   static const pushStatus = '/push-status';
   static const journeyRecording = '/journey-recording';
   static const savedPlans = '/saved-plans';
+  static const upgrade = '/upgrade';
 
   static String county(int code) => '/county/$code';
   static String place(String id) => '/place/$id';

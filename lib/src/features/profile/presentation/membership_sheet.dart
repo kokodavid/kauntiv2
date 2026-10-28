@@ -1,21 +1,27 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_external_links.dart';
 import '../../../design/app_colors.dart';
+import '../../billing/application/billing_providers.dart';
 import '../../journeys/domain/pro_status.dart';
 
 /// Pro details, reached from Profile's Pro tile and Settings' Membership
-/// row. Billing doesn't exist yet (security plan: periods are granted by
-/// admins until tracker #12), so "Manage" just opens the OS's own
-/// subscription-management screen -- there is nothing in-app to manage.
-class MembershipSheet extends StatelessWidget {
-  const MembershipSheet({super.key, required this.status});
+/// row. Free accounts get an Upgrade button while the dashboard's billing
+/// switch is on; "Manage" opens the OS's own subscription-management
+/// screen, since the store owns changes and cancellation.
+class MembershipSheet extends ConsumerWidget {
+  const MembershipSheet({super.key, required this.status, this.onUpgrade});
 
   final ProStatus? status;
 
+  /// Opens the purchase screen; null hides the Upgrade button.
+  final VoidCallback? onUpgrade;
+
   static const _features = [
+    'No ads',
     'Offline county maps',
     'Full journey replay & share cards',
     'Unlimited Trip history',
@@ -30,8 +36,10 @@ class MembershipSheet extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final active = status?.active == true;
+    final canUpgrade =
+        !active && onUpgrade != null && ref.watch(billingAvailableProvider);
     final until = status?.activeUntil;
     return SafeArea(
       top: false,
@@ -96,6 +104,19 @@ class MembershipSheet extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 10),
+            if (canUpgrade)
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onUpgrade?.call();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.accentForeground,
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: const Text('Upgrade to Pro'),
+              ),
             if (active)
               OutlinedButton(
                 onPressed: () => unawaited(_manageSubscription()),

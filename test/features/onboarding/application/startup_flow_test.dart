@@ -9,6 +9,7 @@ import 'package:kaunti47_v2/src/features/onboarding/domain/startup_state.dart';
 import 'package:kaunti47_v2/src/features/profile/application/interests_providers.dart';
 import 'package:kaunti47_v2/src/features/profile/application/profile_settings_providers.dart';
 import 'package:kaunti47_v2/src/features/profile/application/profile_setup_providers.dart';
+import 'package:kaunti47_v2/src/features/profile/application/username_providers.dart';
 import 'package:kaunti47_v2/src/features/profile/data/interests_repository.dart';
 import 'package:kaunti47_v2/src/features/profile/data/profile_settings_repository.dart';
 import 'package:kaunti47_v2/src/features/profile/data/profile_setup_repository.dart';
@@ -129,6 +130,8 @@ void main() {
         interestsRepositoryProvider.overrideWithValue(interests),
         setupProgressStoreProvider.overrideWithValue(progress),
         profileSettingsRepositoryProvider.overrideWithValue(settings),
+        // No Supabase here, so the username step is skipped.
+        usernameRepositoryProvider.overrideWithValue(null),
         locationPermissionServiceProvider.overrideWithValue(permissions),
         currentUserIdProvider.overrideWithValue(() => userId),
       ],

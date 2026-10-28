@@ -9,6 +9,7 @@ import '../../notifications/application/push_providers.dart';
 import '../../profile/application/interests_providers.dart';
 import '../../profile/application/profile_settings_providers.dart';
 import '../../profile/application/profile_setup_providers.dart';
+import '../../profile/application/username_providers.dart';
 import '../../profile/domain/place_interest.dart';
 import '../domain/startup_state.dart';
 import 'setup_progress_providers.dart';
@@ -16,6 +17,7 @@ import 'setup_progress_providers.dart';
 part 'startup_flow.g.dart';
 part 'startup_flow_interests.dart';
 part 'startup_flow_permissions.dart';
+part 'startup_flow_username.dart';
 
 /// The OS location permission service. Tests override it.
 @Riverpod(keepAlive: true)
@@ -23,14 +25,17 @@ AppLocationPermissionService locationPermissionService(Ref ref) =>
     const AppLocationPermissionService();
 
 /// Start-up and onboarding: splash (session restore) → sign in → then, for
-/// a new user only, three setup steps (home county → place interests →
-/// location permission) → ready. A returning user, who already has a home
+/// a new user only, four setup steps (home county → place interests →
+/// username → location permission) → ready. A returning user, who already has a home
 /// county and no setup in progress on this phone, goes straight to ready.
 /// The router redirects on [step] (`app/router.dart`); screens call these
 /// methods. Ported from the old `app.dart` gate, with the same rules.
 @Riverpod(keepAlive: true)
 class StartupFlow extends _$StartupFlow
-    with _StartupInterestsSteps, _StartupPermissionSteps {
+    with
+        _StartupInterestsSteps,
+        _StartupUsernameSteps,
+        _StartupPermissionSteps {
   static const _homeCountyCheckFailed =
       'Could not check your saved home county. Pick it again to continue.';
 
@@ -207,7 +212,11 @@ class StartupFlow extends _$StartupFlow
   /// Back one setup step; picks and the saved county are kept.
   void back() {
     final previous = switch (state.phase) {
-      StartupStep.permission => StartupStep.preferences,
+      StartupStep.permission =>
+        state.usernameStepApplies
+            ? StartupStep.username
+            : StartupStep.preferences,
+      StartupStep.username => StartupStep.preferences,
       StartupStep.preferences => StartupStep.homeCounty,
       final other => other,
     };
@@ -219,10 +228,27 @@ class StartupFlow extends _$StartupFlow
     );
   }
 
-  /// Past step 2: the permission step, or straight to ready when location
-  /// is already granted.
+  /// Past step 2: the username step if this account has not picked one,
+  /// else on to the permission step.
   @override
   Future<void> _continuePastInterests() async {
+    final ask = await _shouldAskUsername();
+    if (!ref.mounted) return;
+    if (ask) {
+      state = state.copyWith(
+        phase: StartupStep.username,
+        usernameStepApplies: true,
+        permissionError: () => null,
+      );
+      return;
+    }
+    await _continuePastUsername();
+  }
+
+  /// Past step 3: the permission step, or straight to ready when location
+  /// is already granted.
+  @override
+  Future<void> _continuePastUsername() async {
     AppLocationPermissionResult result;
     try {
       result = await _permissions.checkStatus();

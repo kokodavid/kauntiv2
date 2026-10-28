@@ -22,9 +22,9 @@ Widget _page({
 );
 
 void main() {
-  testWidgets('shows step 2 of 3 and every interest chip', (tester) async {
+  testWidgets('shows step 2 of 4 and every interest chip', (tester) async {
     await tester.pumpWidget(_page());
-    expect(find.text('2 of 3'), findsOneWidget);
+    expect(find.text('2 of 4'), findsOneWidget);
     expect(find.text('What do you like to see?'), findsOneWidget);
     for (final interest in PlaceInterest.values) {
       expect(find.text(interest.label), findsOneWidget);

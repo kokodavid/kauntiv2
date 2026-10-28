@@ -42,7 +42,10 @@ class ProfileTextField extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+      Text(
+        label,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+      ),
       const SizedBox(height: 6),
       TextField(
         controller: controller,
@@ -51,7 +54,14 @@ class ProfileTextField extends StatelessWidget {
         textCapitalization: textCapitalization,
         enabled: enabled,
         cursorColor: AppColors.accent,
+        style: const TextStyle(fontSize: 14),
         decoration: InputDecoration(
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 11,
+          ),
+          counterStyle: const TextStyle(fontSize: 11),
           prefixText: prefixText,
           suffixText: suffixText,
           errorText: errorText,
@@ -62,7 +72,7 @@ class ProfileTextField extends StatelessWidget {
         Text(
           helperCaption!,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 11.5,
             color: AppColors.mutedForeground,
           ),
         ),

@@ -68,6 +68,7 @@ GoRouter appRouter(Ref ref) {
       _gate(AppRoutes.signIn, const StartupSignInPage()),
       _gate(AppRoutes.homeCounty, const StartupHomeCountyPage()),
       _gate(AppRoutes.preferences, const StartupPreferencesPage()),
+      _gate(AppRoutes.username, const StartupUsernamePage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
       ...appUpdateRoutes(),
       StatefulShellRoute.indexedStack(

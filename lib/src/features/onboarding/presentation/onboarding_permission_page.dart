@@ -7,7 +7,7 @@ import 'onboarding_permission_ask.dart';
 import 'onboarding_permission_parts.dart';
 import 'onboarding_shell.dart';
 
-/// Setup step 3 of 3: background location, inside the shared
+/// Setup step 4 of 4: background location, inside the shared
 /// [OnboardingShell]. Three states share the same footer slots:
 ///
 /// - **Default:** why we ask, tied to what the user picked on step 2.
@@ -34,7 +34,7 @@ class OnboardingPermissionPage extends StatelessWidget {
 
   final bool isRequesting;
 
-  /// A returning user on a new phone: not setup step 3, so no "3 of 3" and
+  /// A returning user on a new phone: not setup step 4, so no "4 of 4" and
   /// nothing to go back to.
   final bool isDeviceAsk;
   final bool isPermanentlyDenied;
@@ -76,7 +76,7 @@ class OnboardingPermissionPage extends StatelessWidget {
           )
         : ('Let counties unlock on their own', _askLine());
     return OnboardingShell(
-      step: isDeviceAsk ? null : 3,
+      step: isDeviceAsk ? null : 4,
       title: title,
       subtitle: subtitle,
       onBack: isDeviceAsk ? null : onBack,

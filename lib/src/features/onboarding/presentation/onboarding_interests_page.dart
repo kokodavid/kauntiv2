@@ -7,7 +7,7 @@ import '../../../design/app_text_styles.dart';
 import '../../profile/domain/place_interest.dart';
 import 'onboarding_shell.dart';
 
-/// Setup step 2 of 3: what kinds of places the user likes. Optional:
+/// Setup step 2 of 4: what kinds of places the user likes. Optional:
 /// Continue wakes on the first pick, and "Skip for now" is always in the
 /// same slot. No minimum and no maximum.
 class OnboardingInterestsPage extends StatelessWidget {

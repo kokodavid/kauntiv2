@@ -6,15 +6,15 @@ import '../domain/public_profile.dart';
 
 abstract interface class PublicProfileRepository {
   Future<PublicProfile?> fetch();
-  Future<PublicProfile> update({String? displayName, String? handle});
+  Future<PublicProfile> update({String? displayName});
   Future<String> uploadAvatar(Uint8List bytes, {required String extension});
 }
 
-/// `quest_public_profiles` is already owner-writable by RLS (see
-/// `add_social_quests.sql`'s "Users can update their own quest public
-/// profile" policy), so Edit Profile is a plain client update -- no RPC
-/// needed. The server-side check constraint on `handle` is the real
-/// validation; [isValidHandle] just mirrors it for instant UI feedback.
+/// The display name and avatar on `quest_public_profiles` are owner-writable
+/// by RLS, so Edit Profile saves them with a plain client update. The
+/// username (`handle`) is not: it changes only through the
+/// `set_username` RPC (see `UsernameRepository`), which enforces the rules
+/// and the 30 day limit.
 class SupabasePublicProfileRepository implements PublicProfileRepository {
   const SupabasePublicProfileRepository(this.client);
 
@@ -48,32 +48,24 @@ class SupabasePublicProfileRepository implements PublicProfileRepository {
   }
 
   @override
-  Future<PublicProfile> update({String? displayName, String? handle}) async {
+  Future<PublicProfile> update({String? displayName}) async {
     final owner = _owner();
     final payload = <String, dynamic>{
       'updated_at': DateTime.now().toUtc().toIso8601String(),
       'display_name': ?displayName,
-      'handle': ?handle,
     };
-    try {
-      final row = await client
-          .from('quest_public_profiles')
-          .update(payload)
-          .eq('user_id', owner)
-          .select('display_name, handle, avatar_url')
-          .single()
-          .timeout(_timeout);
-      return PublicProfile(
-        displayName: row['display_name'] as String,
-        handle: row['handle'] as String,
-        avatarUrl: row['avatar_url'] as String?,
-      );
-    } on PostgrestException catch (error) {
-      if (error.code == '23505') {
-        throw HandleAlreadyTakenException(handle ?? '');
-      }
-      rethrow;
-    }
+    final row = await client
+        .from('quest_public_profiles')
+        .update(payload)
+        .eq('user_id', owner)
+        .select('display_name, handle, avatar_url')
+        .single()
+        .timeout(_timeout);
+    return PublicProfile(
+      displayName: row['display_name'] as String,
+      handle: row['handle'] as String,
+      avatarUrl: row['avatar_url'] as String?,
+    );
   }
 
   @override

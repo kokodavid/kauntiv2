@@ -9,6 +9,7 @@ abstract final class AppRoutes {
   static const signIn = '/sign-in';
   static const homeCounty = '/home-county';
   static const preferences = '/preferences';
+  static const username = '/username';
   static const permission = '/permission';
   static const map = '/map';
   static const badges = '/badges';
@@ -37,7 +38,14 @@ abstract final class AppRoutes {
     if (AppFeatureFlags.journeys) AppNavTab.journeys,
   ];
 
-  static const _gates = {splash, signIn, homeCounty, preferences, permission};
+  static const _gates = {
+    splash,
+    signIn,
+    homeCounty,
+    preferences,
+    username,
+    permission,
+  };
 
   /// Startup gating keeps onboarding and release prompts ahead of app routes.
   /// Null means stay at the requested location.
@@ -51,6 +59,7 @@ abstract final class AppRoutes {
       StartupStep.signIn => signIn,
       StartupStep.homeCounty => homeCounty,
       StartupStep.preferences => preferences,
+      StartupStep.username => username,
       StartupStep.permission => permission,
       StartupStep.ready => null,
     };

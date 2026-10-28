@@ -21,10 +21,11 @@ void main() {
     expect(AppRoutes.redirect(StartupStep.signIn, '/sign-in'), isNull);
   });
 
-  test('only the three setup steps are numbered', () {
+  test('only the four setup steps are numbered', () {
     expect(StartupStep.homeCounty.setupNumber, 1);
     expect(StartupStep.preferences.setupNumber, 2);
-    expect(StartupStep.permission.setupNumber, 3);
+    expect(StartupStep.username.setupNumber, 3);
+    expect(StartupStep.permission.setupNumber, 4);
     expect(StartupStep.signIn.setupNumber, isNull);
     expect(StartupStep.ready.setupNumber, isNull);
   });
@@ -35,6 +36,7 @@ void main() {
       '/sign-in',
       '/home-county',
       '/preferences',
+      '/username',
       '/permission',
     ]) {
       expect(AppRoutes.redirect(StartupStep.ready, gate), AppRoutes.map);

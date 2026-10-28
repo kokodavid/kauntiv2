@@ -60,7 +60,9 @@ class _UsernameChangeSheetState extends ConsumerState<UsernameChangeSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  widget.isFirstChoice ? 'Choose a username' : 'Change username',
+                  widget.isFirstChoice
+                      ? 'Choose a username'
+                      : 'Change username',
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,

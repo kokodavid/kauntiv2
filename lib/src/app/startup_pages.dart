@@ -205,10 +205,7 @@ class StartupUsernamePage extends ConsumerWidget {
     final hasCurrent = ref.watch(myPublicProfileProvider).value != null;
     final flow = ref.read(startupFlowProvider.notifier);
     return OnboardingUsernamePage(
-      picker: const UsernameChooserSection(
-        requirePick: true,
-        inputFirst: true,
-      ),
+      picker: const UsernameChooserSection(requirePick: true, inputFirst: true),
       canContinue: state.userPicked ? state.canSave : hasCurrent,
       isSaving: state.isSaving,
       onContinue: () => unawaited(_continue(ref)),

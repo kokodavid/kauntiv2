@@ -173,8 +173,18 @@ class UsernameChooser extends _$UsernameChooser {
     final at = error.canChangeAgainAt;
     if (at == null) return 'You can change your username once every 30 days.';
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return 'You can change your username again on '
         '${at.day} ${months[at.month - 1]}.';

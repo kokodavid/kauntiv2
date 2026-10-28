@@ -32,7 +32,10 @@ AppLocationPermissionService locationPermissionService(Ref ref) =>
 /// methods. Ported from the old `app.dart` gate, with the same rules.
 @Riverpod(keepAlive: true)
 class StartupFlow extends _$StartupFlow
-    with _StartupInterestsSteps, _StartupUsernameSteps, _StartupPermissionSteps {
+    with
+        _StartupInterestsSteps,
+        _StartupUsernameSteps,
+        _StartupPermissionSteps {
   static const _homeCountyCheckFailed =
       'Could not check your saved home county. Pick it again to continue.';
 

@@ -18,6 +18,7 @@ class UsernamePreviewCard extends StatelessWidget {
   final String handle;
   final String caption;
   final Widget avatar;
+
   /// Fetch four new suggestions; null while that is already under way.
   final VoidCallback? onRefresh;
 
@@ -72,7 +73,11 @@ class UsernamePreviewCard extends StatelessWidget {
                 onTap: onRefresh,
                 child: const Padding(
                   padding: EdgeInsets.all(10),
-                  child: Icon(Icons.refresh_rounded, size: 16, color: Colors.white),
+                  child: Icon(
+                    Icons.refresh_rounded,
+                    size: 16,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),

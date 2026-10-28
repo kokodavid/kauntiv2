@@ -172,12 +172,15 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
             const SizedBox(height: 2),
             const Text(
               'Only you and Kaunti47 staff see your display name.',
-              style: TextStyle(fontSize: 11.5, color: AppColors.mutedForeground),
+              style: TextStyle(
+                fontSize: 11.5,
+                color: AppColors.mutedForeground,
+              ),
             ),
             const SizedBox(height: 14),
             const Divider(height: 1, color: AppColors.listDivider),
             const SizedBox(height: 14),
-             UsernameChooserSection(
+            UsernameChooserSection(
               requirePick: true,
               showHeader: true,
               inputFirst: true,

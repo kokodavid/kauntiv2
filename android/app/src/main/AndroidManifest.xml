@@ -13,6 +13,11 @@
          runtime permission, asked in context after the first arrival sheet. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+    <!-- Advertising ID for AdMob. The Play Console advertising ID declaration
+         says the app uses it, and Play rejects a release whose manifest lacks
+         this permission (Android 13+ zeroes the ID without it). -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
+
     <!-- Replay's camera-roll photo match (photo_manager): the whole-
          library read needed to scan by timestamp, not image_picker's own
          picker. VISUAL_USER_SELECTED covers Android 14+ "select photos"

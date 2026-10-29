@@ -14,6 +14,8 @@ void reportPlanFailure(BuildContext context, PlanFailure failure) {
     PlanFailureKind.limitStops => PlanProTrigger.stops,
     PlanFailureKind.limitPlaces => PlanProTrigger.places,
     PlanFailureKind.limitPlans => PlanProTrigger.upcomingPlans,
+    PlanFailureKind.limitMembers ||
+    PlanFailureKind.limitRoles => PlanProTrigger.invitee,
     _ => null,
   };
   if (trigger != null) {

@@ -12,6 +12,14 @@ enum PlanFailureKind {
   limitDays,
   limitStops,
   limitPlaces,
+  limitMembers,
+  limitRoles,
+  inviteInvalid,
+  inviteExpired,
+  inviteFull,
+  userNotFound,
+  alreadyMember,
+  rateLimited,
   lastDay,
   routeStale,
   badInput,
@@ -23,7 +31,9 @@ enum PlanFailureKind {
       this == limitPlans ||
       this == limitDays ||
       this == limitStops ||
-      this == limitPlaces;
+      this == limitPlaces ||
+      this == limitMembers ||
+      this == limitRoles;
 
   static PlanFailureKind fromCode(String? message) => switch (message) {
     'trip_plans_unavailable' => unavailable,
@@ -36,6 +46,14 @@ enum PlanFailureKind {
     'trip_plan_limit_days' => limitDays,
     'trip_plan_limit_stops' => limitStops,
     'trip_plan_limit_places' => limitPlaces,
+    'trip_plan_limit_members' => limitMembers,
+    'trip_plan_limit_roles' => limitRoles,
+    'trip_plan_invite_invalid' => inviteInvalid,
+    'trip_plan_invite_expired' => inviteExpired,
+    'trip_plan_invite_full' => inviteFull,
+    'trip_plan_user_not_found' => userNotFound,
+    'trip_plan_already_member' => alreadyMember,
+    'trip_plan_rate_limited' => rateLimited,
     'trip_plan_last_day' => lastDay,
     'trip_plan_route_stale' => routeStale,
     'trip_plan_bad_input' => badInput,
@@ -60,6 +78,14 @@ class PlanFailure implements Exception {
     PlanFailureKind.limitDays => 'Free plans have up to 3 days.',
     PlanFailureKind.limitStops => 'Free days hold 8 stops.',
     PlanFailureKind.limitPlaces => 'Free plans hold 30 places to visit.',
+    PlanFailureKind.limitMembers => 'This plan is full.',
+    PlanFailureKind.limitRoles => 'View-only members are part of Pro.',
+    PlanFailureKind.inviteInvalid => 'That invite link doesn\'t work.',
+    PlanFailureKind.inviteExpired => 'That invite link has expired.',
+    PlanFailureKind.inviteFull => 'That invite link has been used.',
+    PlanFailureKind.userNotFound => 'No one has that username.',
+    PlanFailureKind.alreadyMember => 'They are already on this plan.',
+    PlanFailureKind.rateLimited => 'Too many searches. Wait a minute.',
     PlanFailureKind.lastDay => 'A plan needs at least one day.',
     PlanFailureKind.routeStale => 'The plan changed. Try again.',
     PlanFailureKind.badInput => 'That didn\'t look right. Try again.',

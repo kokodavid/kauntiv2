@@ -1,15 +1,13 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../domain/new_plan_request.dart';
-import '../domain/plan_failure.dart';
 import '../domain/plan_day_recording.dart';
+import '../domain/plan_failure.dart';
 import '../domain/plan_limits.dart';
 import '../domain/plan_ref.dart';
 import '../domain/trip_plan.dart';
 import '../domain/trip_plan_summary.dart';
+import 'plan_rpc.dart';
 import 'trip_plans_repository.dart';
 
 /// [TripPlansRepository] over the planner's database functions
@@ -19,19 +17,8 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
 
   final SupabaseClient client;
 
-  static const _timeout = Duration(seconds: 10);
-
-  Future<Object?> _call(String fn, [Map<String, Object?>? params]) async {
-    try {
-      return await client.rpc<dynamic>(fn, params: params).timeout(_timeout);
-    } on PostgrestException catch (error) {
-      throw PlanFailure(PlanFailureKind.fromCode(error.message));
-    } on TimeoutException {
-      throw const PlanFailure(PlanFailureKind.offline);
-    } on SocketException {
-      throw const PlanFailure(PlanFailureKind.offline);
-    }
-  }
+  Future<Object?> _call(String fn, [Map<String, Object?>? params]) =>
+      callPlanRpc(client, fn, params);
 
   static String? _date(DateTime? date) => date == null
       ? null

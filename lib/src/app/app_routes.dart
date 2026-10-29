@@ -30,6 +30,7 @@ abstract final class AppRoutes {
   static String place(String id) => '/place/$id';
   static String journey(String id) => '/journey/$id';
   static String plan(String id) => '/plan/$id';
+  static String join(String code) => '/p/$code';
 
   /// The tabs that are live, in shell-branch order.
   static const tabs = [

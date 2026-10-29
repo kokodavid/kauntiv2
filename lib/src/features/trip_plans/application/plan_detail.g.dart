@@ -62,7 +62,7 @@ final class PlanDetailProvider
   }
 }
 
-String _$planDetailHash() => r'c71446e7343e7e96fbb9bcfb1b9cbe8bf56a0d31';
+String _$planDetailHash() => r'e592c448e80b229979034510b8c6c4d7ffae3bd1';
 
 /// A plan by id. Shows the copy on this phone at once, then the server's
 /// plan; offline, the copy stays with [PlanDetailView.offline] set. A plan

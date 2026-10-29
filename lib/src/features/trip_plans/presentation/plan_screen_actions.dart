@@ -7,7 +7,7 @@ import '../application/plan_editor.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_failure.dart';
 import '../domain/trip_plan.dart';
-import 'plan_day_section.dart';
+import 'plan_day_parts.dart';
 import 'plan_edit_sheets.dart';
 import 'plan_menu.dart';
 import 'plan_stop_menu.dart';

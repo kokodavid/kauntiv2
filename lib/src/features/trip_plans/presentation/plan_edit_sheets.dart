@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/app_floating_toast.dart';
@@ -15,7 +17,7 @@ void reportPlanFailure(BuildContext context, PlanFailure failure) {
     _ => null,
   };
   if (trigger != null) {
-    showPlanProSheet(context, trigger: trigger);
+    unawaited(showPlanProSheet(context, trigger: trigger));
     return;
   }
   showAppToast(

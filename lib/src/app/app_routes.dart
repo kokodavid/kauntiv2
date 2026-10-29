@@ -40,6 +40,12 @@ abstract final class AppRoutes {
     if (AppFeatureFlags.journeys) AppNavTab.journeys,
   ];
 
+  /// The invite code in a `/p/<code>` location, or null.
+  static String? inviteCode(String location) {
+    final match = RegExp(r'^/p/([^/?#]+)').firstMatch(location);
+    return match?.group(1);
+  }
+
   static const _gates = {
     splash,
     signIn,
@@ -50,11 +56,14 @@ abstract final class AppRoutes {
   };
 
   /// Startup gating keeps onboarding and release prompts ahead of app routes.
-  /// Null means stay at the requested location.
+  /// Null means stay at the requested location. An invite link opened before
+  /// start-up is done is remembered by the caller and passed back here as
+  /// [pendingInvite], so it opens once the user lands on the app.
   static String? redirect(
     StartupStep step,
     String location, {
     bool updateRequired = false,
+    String? pendingInvite,
   }) {
     final target = switch (step) {
       StartupStep.splash => splash,
@@ -74,6 +83,9 @@ abstract final class AppRoutes {
       return target ?? map;
     }
     if (target != null) return location == target ? null : target;
-    return _gates.contains(location) ? map : null;
+    if (_gates.contains(location)) {
+      return pendingInvite == null ? map : join(pendingInvite);
+    }
+    return null;
   }
 }

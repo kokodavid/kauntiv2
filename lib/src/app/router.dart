@@ -24,6 +24,7 @@ import '../features/location_diagnostics/presentation/location_diagnostics_scree
 import '../features/notifications/presentation/push_lifecycle.dart';
 import '../features/notifications/presentation/trip_alert_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
+import '../features/onboarding/domain/startup_state.dart';
 import '../features/place_check_ins/presentation/place_check_in_card.dart';
 import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
@@ -38,6 +39,7 @@ import 'app_update_routes.dart';
 import 'detail_routes.dart';
 import 'dev_tool_routes.dart';
 import 'journey_place_routes.dart';
+import 'pending_invite.dart';
 import 'place_photos_routes.dart';
 import 'plan_routes.dart';
 import 'push_routes.dart';
@@ -59,11 +61,21 @@ GoRouter appRouter(Ref ref) {
       final journeyActive =
           AppFeatureFlags.journeys && ref.read(journeyRecorderProvider) != null;
       final update = ref.read(appUpdateControllerProvider);
-      return AppRoutes.redirect(
-        ref.read(startupFlowProvider).step,
+      final step = ref.read(startupFlowProvider).step;
+      final invites = ref.read(pendingInviteProvider.notifier);
+      final code = AppRoutes.inviteCode(state.matchedLocation);
+      // Onboarding comes first; the link waits for it.
+      if (code != null && step != StartupStep.ready) invites.remember(code);
+      final target = AppRoutes.redirect(
+        step,
         state.matchedLocation,
         updateRequired: update?.required == true && !journeyActive,
+        pendingInvite: ref.read(pendingInviteProvider),
       );
+      if (target != null && target == AppRoutes.join(invites.state ?? '')) {
+        invites.clear();
+      }
+      return target;
     },
     routes: [
       _gate(AppRoutes.splash, const StartupSplashPage()),

@@ -230,6 +230,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
             child: PlanPlacesRow(
               ideas: plan.places,
               maxPlaces: plan.limits.maxPlaces,
+              onAdd: actions == null
+                  ? null
+                  : () => unawaited(actions.addPlaces()),
               onOpenPlace: widget.onOpenPlace,
             ),
           ),

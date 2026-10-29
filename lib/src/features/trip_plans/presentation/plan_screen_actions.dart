@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +9,7 @@ import '../application/plan_editor.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_failure.dart';
 import '../domain/trip_plan.dart';
+import 'add_places_page.dart';
 import 'plan_day_parts.dart';
 import 'plan_edit_sheets.dart';
 import 'plan_menu.dart';
@@ -39,6 +42,7 @@ class PlanScreenActions {
     canMoveStopsToDay: plan.days.length > 1,
     onStop: (index, action) => _stop(day, index, action),
     onRenameDay: () => _renameDay(day),
+    onAddPlaces: () => unawaited(addPlaces(day: day)),
     onRemoveDay: plan.days.length > 1 ? () => _removeDay(day) : null,
     onAddFromPlaces: plan.places.isEmpty ? null : () => _addIdea(day),
   );
@@ -154,6 +158,34 @@ class PlanScreenActions {
       ),
     ),
   );
+
+  /// Add places: onto [day], or onto Places to visit when [day] is null.
+  Future<void> addPlaces({PlanDay? day}) async {
+    final taken = {
+      for (final d in plan.days)
+        for (final s in d.stops) s.place.id,
+      for (final idea in plan.places) idea.place.id,
+    };
+    await showAddPlacesPage(
+      context,
+      title: day == null
+          ? 'Add to Places to visit'
+          : 'Add to ${day.displayTitle}',
+      alreadyIn: taken,
+      onAdd: (place) async {
+        final PlanFailure? failure;
+        if (day == null) {
+          failure = await _editor.addToList(plan.id, place.id);
+        } else {
+          failure = (await _editor.addStop(plan.id, day.id, place.id)).$1;
+        }
+        if (failure != null && context.mounted) {
+          reportPlanFailure(context, failure);
+        }
+        return failure == null;
+      },
+    );
+  }
 
   Future<void> addDay() => _report(_editor.addDay(plan.id));
 

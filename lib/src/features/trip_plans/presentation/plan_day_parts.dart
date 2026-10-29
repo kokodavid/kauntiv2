@@ -14,12 +14,16 @@ class PlanDayActions {
     required this.onStop,
     required this.onRenameDay,
     required this.canMoveStopsToDay,
+    required this.onAddPlaces,
     this.onRemoveDay,
     this.onAddFromPlaces,
   });
 
   final void Function(int index, PlanStopAction action) onStop;
   final VoidCallback onRenameDay;
+
+  /// Opens Add places for this day.
+  final VoidCallback onAddPlaces;
 
   /// Null when this is the plan's only day.
   final VoidCallback? onRemoveDay;

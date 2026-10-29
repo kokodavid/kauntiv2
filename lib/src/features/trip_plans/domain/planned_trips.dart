@@ -30,6 +30,14 @@ class PlannedTrips {
 
   bool get hasUpcoming => upcoming.isNotEmpty || shared.isNotEmpty;
 
+  /// The plan Home shows: the soonest of the user's own and joined plans
+  /// that are still ahead (a trip under way counts), else the one changed
+  /// most recently. Null when there is none.
+  TripPlanSummary? get next {
+    final all = [...upcoming, ...shared]..sort(_soonestFirst);
+    return all.isEmpty ? null : all.first;
+  }
+
   /// Upcoming plans that count toward the Free limit (converted plans from
   /// the old planner never count, decision D5).
   int get countedUpcoming => upcoming.where((p) => !p.converted).length;

@@ -34,6 +34,7 @@ class PlaceDetailScreen extends StatelessWidget {
     this.startButton,
     this.photos,
     this.checkIn,
+    this.addToTrip,
   });
 
   final String placeId;
@@ -56,6 +57,9 @@ class PlaceDetailScreen extends StatelessWidget {
   /// tab of a place with coordinates, above the photos.
   final PlaceDetailSectionBuilder? checkIn;
 
+  /// "Add to trip", supplied by app/. Shown under the photos for every place.
+  final PlaceDetailSectionBuilder? addToTrip;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,6 +76,7 @@ class PlaceDetailScreen extends StatelessWidget {
             startButton: startButton,
             photos: photos,
             checkIn: checkIn,
+            addToTrip: addToTrip,
           ),
         ),
       ),
@@ -88,6 +93,7 @@ class _PlaceDetailBody extends StatefulWidget {
     this.startButton,
     this.photos,
     this.checkIn,
+    this.addToTrip,
   });
 
   final PlaceDetailData data;
@@ -97,6 +103,7 @@ class _PlaceDetailBody extends StatefulWidget {
   final PlaceDetailSectionBuilder? startButton;
   final PlaceDetailSectionBuilder? photos;
   final PlaceDetailSectionBuilder? checkIn;
+  final PlaceDetailSectionBuilder? addToTrip;
 
   @override
   State<_PlaceDetailBody> createState() => _PlaceDetailBodyState();
@@ -172,6 +179,11 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
                         category: data.category,
                         credits: data.imageCredits,
                       ),
+                      if (widget.addToTrip != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          child: widget.addToTrip!(context, data),
+                        ),
                       if (widget.checkIn != null && data.hasCoordinates)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),

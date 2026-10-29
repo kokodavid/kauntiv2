@@ -14,11 +14,15 @@ class PlanPlacesRow extends StatefulWidget {
     required this.ideas,
     required this.maxPlaces,
     this.onOpenPlace,
+    this.onAdd,
   });
 
   final List<PlanIdea> ideas;
   final int maxPlaces;
   final OpenPlanPlace? onOpenPlace;
+
+  /// Opens Add places for the list (people who can edit).
+  final VoidCallback? onAdd;
 
   @override
   State<PlanPlacesRow> createState() => _PlanPlacesRowState();
@@ -115,6 +119,19 @@ class _PlanPlacesRowState extends State<PlanPlacesRow> {
                   ),
                 ),
               ),
+          if (widget.onAdd != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
+                  onPressed: widget.onAdd,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add places'),
+                ),
+              ),
+            ),
         ],
       ),
     );

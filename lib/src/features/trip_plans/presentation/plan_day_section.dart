@@ -193,14 +193,28 @@ class PlanDaySection extends StatelessWidget {
                 label:
                     'Stay · ${day.overnightPlace?.name ?? day.overnightLabel ?? 'Chosen point'}',
               ),
-            if (actions?.onAddFromPlaces != null)
+            if (actions != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-                child: TextButton.icon(
-                  style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
-                  onPressed: actions!.onAddFromPlaces,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add from Places to visit'),
+                child: Wrap(
+                  children: [
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(44, 44),
+                      ),
+                      onPressed: actions!.onAddPlaces,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add a place'),
+                    ),
+                    if (actions!.onAddFromPlaces != null)
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(44, 44),
+                        ),
+                        onPressed: actions!.onAddFromPlaces,
+                        child: const Text('From Places to visit'),
+                      ),
+                  ],
                 ),
               ),
             PlanRouteLine(route: route, onRetry: onRetryRoute),

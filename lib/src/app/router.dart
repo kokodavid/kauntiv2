@@ -31,6 +31,7 @@ import '../features/profile/presentation/settings_screen.dart';
 import '../features/trip_planner/presentation/saved_plans_screen.dart';
 import '../features/trip_planner/presentation/trip_plan_section.dart';
 import '../features/trip_planner/presentation/trip_start_button.dart';
+import '../features/trip_plans/presentation/add_to_trip_button.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
 import 'app_update_routes.dart';
@@ -253,6 +254,11 @@ GoRouter appRouter(Ref ref) {
                 JourneyPlaceRoutes.startPlanned(context, place, stops),
           ),
           photos: PlacePhotosRoutes.placeSection,
+          addToTrip: (context, place) => AddToTripButton(
+            placeId: place.id,
+            placeName: place.title,
+            onOpenPlan: (context, id) => context.push(AppRoutes.plan(id)),
+          ),
           checkIn: (context, place) =>
               PlaceCheckInCard(placeId: place.id, placeName: place.title),
         ),

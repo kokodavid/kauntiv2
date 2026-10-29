@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../application/trip_plans_providers.dart';
 import '../domain/plan_limits.dart';
+import '../domain/trip_plan.dart';
+import 'add_places_page.dart';
 import 'create_plan_sheet.dart';
 import 'plan_pro_sheet.dart';
 import 'planned_view.dart';
@@ -39,7 +41,7 @@ Future<void> startPlanTrip(
     context,
     limits: limits,
     onSeePro: onSeePro,
-    onChoosePlace: onChoosePlace,
+    onChoosePlace: onChoosePlace ?? _choosePlace,
     onPickOnMap: onPickOnMap,
     firstPlaceId: firstPlaceId,
   );
@@ -54,4 +56,17 @@ Future<void> startPlanTrip(
       message: 'It\'s in Planned, under Upcoming.',
     );
   }
+}
+
+/// "Choose a place" for where Day 1 starts.
+Future<PlanStart?> _choosePlace(BuildContext context) async {
+  final place = await showAddPlacesPage(context, title: 'Start from a place');
+  if (place == null) return null;
+  return PlanStart(
+    kind: PlanStartKind.place,
+    label: place.name,
+    lat: place.lat,
+    lng: place.lng,
+    place: place,
+  );
 }

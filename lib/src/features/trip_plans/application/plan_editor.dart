@@ -115,6 +115,27 @@ class PlanEditor {
         ),
       );
 
+  /// A place onto the end of [dayId]. Returns the new stop's id for Undo.
+  Future<(PlanFailure?, String?)> addStop(
+    String planId,
+    String dayId,
+    String placeId,
+  ) async {
+    String? stopId;
+    final failure = await _run(planId, () async {
+      stopId = await _ref
+          .read(tripPlansRepositoryProvider)!
+          .addStop(dayId, placeId);
+    });
+    return (failure, stopId);
+  }
+
+  /// A place onto Places to visit.
+  Future<PlanFailure?> addToList(String planId, String placeId) => _run(
+    planId,
+    () => _ref.read(tripPlansRepositoryProvider)!.addPlace(planId, placeId),
+  );
+
   /// A place from Places to visit onto the end of [dayId].
   Future<PlanFailure?> addIdeaToDay(String planId, String dayId, String placeId) =>
       _run(

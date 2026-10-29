@@ -3,6 +3,7 @@ import 'package:kaunti47_v2/src/features/trip_plans/domain/new_plan_request.dart
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_failure.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_limits.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_member.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_ref.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/trip_plan.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/trip_plan_summary.dart';
 
@@ -64,6 +65,16 @@ class FakeTripPlansRepository implements TripPlansRepository {
     return id;
   }
 
+  /// Plans [plansWithPlace] reports, by place id.
+  final holding = <String, List<PlanRef>>{};
+  final added = <String>[];
+
+  @override
+  Future<List<PlanRef>> plansWithPlace(String placeId) async {
+    _maybeFail();
+    return holding[placeId] ?? const [];
+  }
+
   @override
   Future<int> convertSavedTrips() async {
     conversions++;
@@ -107,7 +118,8 @@ class FakeTripPlansRepository implements TripPlansRepository {
     String? note,
   }) async {
     _maybeFail();
-    return 'stop';
+    added.add('$dayId|$placeId');
+    return 'stop-${added.length}';
   }
 
   @override
@@ -128,8 +140,10 @@ class FakeTripPlansRepository implements TripPlansRepository {
   @override
   Future<void> setStopNote(String stopId, String? note) async => _maybeFail();
   @override
-  Future<void> addPlace(String planId, String placeId, {String? note}) async =>
-      _maybeFail();
+  Future<void> addPlace(String planId, String placeId, {String? note}) async {
+    _maybeFail();
+    added.add('list|$placeId');
+  }
   @override
   Future<void> removePlace(String planId, String placeId) async => _maybeFail();
   @override

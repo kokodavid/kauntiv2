@@ -1,5 +1,6 @@
 import '../domain/new_plan_request.dart';
 import '../domain/plan_limits.dart';
+import '../domain/plan_ref.dart';
 import '../domain/trip_plan.dart';
 import '../domain/trip_plan_summary.dart';
 
@@ -46,6 +47,9 @@ abstract interface class TripPlansRepository {
     required int durationS,
     required List<int> countyCodes,
   });
+
+  /// My plans that already hold [placeId] (on a day or Places to visit).
+  Future<List<PlanRef>> plansWithPlace(String placeId);
 
   /// Moves the old planner's saved trips into plans; returns how many.
   Future<int> convertSavedTrips();

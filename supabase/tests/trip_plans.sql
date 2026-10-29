@@ -401,4 +401,22 @@ begin
   end if;
 end $$;
 
+-- 10. "In N trips": plans holding a place, only mine.
+do $$
+declare v_place uuid; v_expected int; v_got int;
+begin
+  select id into v_place from tp_places where n = 1;
+  select count(*) into v_expected from public.trip_plans p
+  where p.archived_at is null and trip_plan_private.is_member(p.id)
+    and (exists (select 1 from public.trip_plan_stops s where s.plan_id = p.id and s.place_id = v_place)
+      or exists (select 1 from public.trip_plan_places pp where pp.plan_id = p.id and pp.place_id = v_place));
+  v_got := jsonb_array_length(public.trip_plans_with_place(v_place));
+  if v_got <> v_expected then
+    raise exception 'trip_plans_with_place gave % plans, expected %', v_got, v_expected;
+  end if;
+  if jsonb_array_length(public.trip_plans_with_place('dddddddd-0000-4000-8000-0000000000ff')) <> 0 then
+    raise exception 'An unknown place was found in a plan';
+  end if;
+end $$;
+
 rollback;

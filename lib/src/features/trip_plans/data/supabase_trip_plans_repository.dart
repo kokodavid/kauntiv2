@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/new_plan_request.dart';
 import '../domain/plan_failure.dart';
 import '../domain/plan_limits.dart';
+import '../domain/plan_ref.dart';
 import '../domain/trip_plan.dart';
 import '../domain/trip_plan_summary.dart';
 import 'trip_plans_repository.dart';
@@ -52,6 +53,15 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
     final plan = TripPlan.fromJson(result);
     if (plan == null) throw const PlanFailure(PlanFailureKind.notFound);
     return plan;
+  }
+
+  @override
+  Future<List<PlanRef>> plansWithPlace(String placeId) async {
+    final result = await _call('trip_plans_with_place', {'p_place': placeId});
+    return [
+      if (result is List)
+        for (final raw in result) ?PlanRef.fromJson(raw),
+    ];
   }
 
   @override

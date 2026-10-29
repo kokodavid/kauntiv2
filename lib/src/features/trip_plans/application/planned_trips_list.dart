@@ -46,7 +46,9 @@ class PlannedTripsList extends _$PlannedTripsList {
     if (userId == null) {
       return const PlannedTripsView(plans: PlannedTrips());
     }
-    final cached = await ref.read(tripPlansSnapshotStoreProvider).readList(userId);
+    final store = ref.watch(tripPlansSnapshotStoreProvider);
+    ref.watch(tripPlansRepositoryProvider);
+    final cached = await store.readList(userId);
     if (cached != null) {
       unawaited(_refreshQuietly(userId));
       return PlannedTripsView(plans: PlannedTrips.split(cached));

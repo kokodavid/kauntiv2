@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../domain/new_plan_request.dart';
 import '../domain/plan_failure.dart';
 import '../domain/plan_limits.dart';
 import '../domain/trip_plan.dart';

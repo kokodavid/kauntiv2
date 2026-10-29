@@ -1,4 +1,5 @@
 import 'package:kaunti47_v2/src/features/trip_plans/data/trip_plans_repository.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/new_plan_request.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_failure.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_limits.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_member.dart';

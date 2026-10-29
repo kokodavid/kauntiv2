@@ -1,33 +1,6 @@
+import '../domain/new_plan_request.dart';
 import '../domain/plan_limits.dart';
-import '../domain/trip_plan.dart';
 import '../domain/trip_plan_summary.dart';
-
-/// What a new plan starts from (the create sheet, design 2a to 2d).
-class NewPlanRequest {
-  const NewPlanRequest({
-    required this.title,
-    this.days = 1,
-    this.startKind = PlanStartKind.currentLocation,
-    this.startPlaceId,
-    this.startLabel,
-    this.startLat,
-    this.startLng,
-    this.startDate,
-    this.firstPlaceId,
-  });
-
-  final String title;
-  final int days;
-  final PlanStartKind startKind;
-  final String? startPlaceId;
-  final String? startLabel;
-  final double? startLat;
-  final double? startLng;
-  final DateTime? startDate;
-
-  /// A place to put on Day 1 ("New plan with this place").
-  final String? firstPlaceId;
-}
 
 /// The trip planner's server calls. Every change goes through a database
 /// function that checks membership, role and the owner's limits; refusals

@@ -20,6 +20,7 @@ class JourneysScreen extends ConsumerWidget {
     this.onOpenJourney,
     this.onOpenSettings,
     this.onOpenRecording,
+    this.header,
   });
 
   final OpenJourney? onOpenJourney;
@@ -27,6 +28,9 @@ class JourneysScreen extends ConsumerWidget {
 
   /// The full-screen map for the Journey in progress.
   final OpenJourneyRecording? onOpenRecording;
+
+  /// Drawn under the title: the Trips tab's Planned / Recorded switch.
+  final Widget? header;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,6 +53,11 @@ class JourneysScreen extends ConsumerWidget {
                 padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: Text('Trips', style: AppTextStyles.headingForeground),
               ),
+              if (header != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: header,
+                ),
               Expanded(
                 child: OfflineScreen(
                   key: const Key('trips-offline-screen'),
@@ -79,6 +88,7 @@ class JourneysScreen extends ConsumerWidget {
             children: [
               const Text('Trips', style: AppTextStyles.headingForeground),
               const SizedBox(height: 16),
+              if (header != null) ...[header!, const SizedBox(height: 16)],
               const JourneyHeroStats(),
               const SizedBox(height: 16),
               if (active)

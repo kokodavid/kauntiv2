@@ -20,7 +20,6 @@ import '../features/feedback/presentation/feedback_reports_screen.dart';
 import '../features/journeys/application/journey_recorder.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
-import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
 import '../features/notifications/presentation/push_lifecycle.dart';
 import '../features/notifications/presentation/trip_alert_lifecycle.dart';
@@ -41,6 +40,7 @@ import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
 import 'push_routes.dart';
 import 'router_map_tab.dart';
+import 'trips_tab.dart';
 import 'startup_pages.dart';
 
 part 'router.g.dart';
@@ -116,13 +116,7 @@ GoRouter appRouter(Ref ref) {
               routes: [
                 GoRoute(
                   path: AppRoutes.journeys,
-                  builder: (context, state) => JourneysScreen(
-                    onOpenJourney: (context, id) =>
-                        context.push(AppRoutes.journey(id)),
-                    onOpenSettings: DetailRoutes.openAppSettings,
-                    onOpenRecording: (context) =>
-                        context.push(AppRoutes.journeyRecording),
-                  ),
+                  builder: (context, state) => const TripsTab(),
                 ),
               ],
             ),

@@ -33,11 +33,12 @@ class PlannedTripsView {
 /// moved across once per session before the first server read.
 @riverpod
 class PlannedTripsList extends _$PlannedTripsList {
-  static bool _convertedThisSession = false;
+  /// Accounts whose saved trips were moved across in this session.
+  static final _convertedThisSession = <String>{};
 
   /// Lets a test run the saved-trip conversion again.
   @visibleForTesting
-  static void resetSessionForTest() => _convertedThisSession = false;
+  static void resetSessionForTest() => _convertedThisSession.clear();
 
   @override
   Future<PlannedTripsView> build() async {
@@ -85,10 +86,10 @@ class PlannedTripsList extends _$PlannedTripsList {
     if (repository == null) {
       return const PlannedTripsView(plans: PlannedTrips());
     }
-    if (!_convertedThisSession) {
+    if (!_convertedThisSession.contains(userId)) {
       try {
         await repository.convertSavedTrips();
-        _convertedThisSession = true;
+        _convertedThisSession.add(userId);
       } on Object catch (error) {
         developer.log('Saved trip conversion failed: $error', name: 'trip_plans');
       }

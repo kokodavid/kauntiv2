@@ -3,9 +3,8 @@ part of 'journey_replay_timeline.dart';
 /// What the timeline shows in place of a moment list when a Trip has
 /// none: start and end are always known from GPS, so they're always
 /// shown (Claude-Design "2a" reference), with a card in the gap between
-/// them offering to fill it in - either the camera-roll auto-match
-/// (Claude-Design "2b") once photos are found, or the plain "Add photos"
-/// / "Add note" pair as the fallback.
+/// them offering to fill it in. Android uses the system photo picker; iOS
+/// can additionally offer camera-roll auto-matching.
 class _EmptyTimelineBody extends StatelessWidget {
   const _EmptyTimelineBody({
     required this.loading,

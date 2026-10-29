@@ -85,10 +85,15 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
 
 /// How the camera-roll auto-match (Claude-Design "2b" reference) stands
 /// for this Trip. [idle] only until the first post-frame check runs;
-/// [noAccess] covers both "never asked" and "denied" - the empty-timeline
-/// card treats them the same (offer to ask), and [CameraRollMatcher]
-/// itself is what actually distinguishes them when asked to request.
-enum _CameraRollStatus { idle, noAccess, noMatches, matchesFound }
+/// [unavailable] is used on Android, where the system picker is the only
+/// supported media access path; [noAccess] covers iOS permission states.
+enum _CameraRollStatus {
+  idle,
+  unavailable,
+  noAccess,
+  noMatches,
+  matchesFound,
+}
 
 class _CameraRollScan {
   const _CameraRollScan(this.status, [this.matches = const []]);

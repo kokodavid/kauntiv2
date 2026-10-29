@@ -26,14 +26,20 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
     }
   }
 
-  /// Kicks off the silent camera-roll check at most once per Trip:
-  /// checked without prompting, so it never surprises the user with a
-  /// permission dialog just for opening Replay. Only runs once this
-  /// screen already knows the Trip has no photo moments of its own -
-  /// whether or not it has other moments (stops, crossings, and so on).
   void _ensureCameraRollScanStarted() {
     if (_cameraRollScanStarted) return;
     _cameraRollScanStarted = true;
+    if (!CameraRollMatcher.isSupported) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(
+          () => _cameraRollScan = const _CameraRollScan(
+            _CameraRollStatus.unavailable,
+          ),
+        );
+      });
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _scanCameraRoll());
   }
 
@@ -66,8 +72,6 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
     _refreshSheet();
   }
 
-  /// Drops suggestions already on the Trip, uploaded or still queued, so
-  /// the same photo, or another frame of its burst, is never added twice.
   Future<List<CameraRollMatch>> _withoutAddedShots(
     List<CameraRollMatch> matches,
   ) async {
@@ -83,8 +87,6 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
     return CameraRollMatcher.withoutAdded(matches, times);
   }
 
-  /// Removes what was just added (and the rest of each burst) from the
-  /// suggestions without waiting for the Trip's media to reload.
   void _dropAdded(List<CameraRollMatch> added) {
     if (!mounted) return;
     _setMatches(
@@ -94,9 +96,8 @@ mixin _JourneyReplayTimelineActions on _JourneyReplayTimelineStateBase {
     );
   }
 
-  /// The "Find photos from this trip" link's tap target - the only place
-  /// this feature actually asks the OS for photo-library access.
   Future<void> _requestCameraRollAccess() async {
+    if (!CameraRollMatcher.isSupported) return;
     final state = await CameraRollMatcher.requestPermission();
     if (!mounted) return;
     if (!state.hasAccess) {

@@ -30,6 +30,10 @@ abstract final class PlanDayPath {
       ? day.countyCodes
       : _unique([for (final stop in day.stops) stop.place.countyCode]);
 
+  /// Where the day starts: the plan's start, or where the day before ended.
+  static PlanRoutePoint? origin(TripPlan plan, PlanDay day) =>
+      _origin(plan, day);
+
   static PlanRoutePoint? _origin(TripPlan plan, PlanDay day) {
     if (day.number > 1) {
       final before = plan.days.where((d) => d.number == day.number - 1);

@@ -162,6 +162,10 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
   );
 
   @override
+  Future<void> setDayOrder(String dayId, List<String> stopIds) =>
+      _call('set_trip_plan_day_order', {'p_day': dayId, 'p_stop_ids': stopIds});
+
+  @override
   Future<void> setStopNote(String stopId, String? note) =>
       _call('set_trip_plan_stop_note', {'p_stop': stopId, 'p_note': note});
 

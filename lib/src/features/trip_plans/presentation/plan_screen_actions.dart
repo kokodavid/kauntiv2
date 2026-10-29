@@ -10,6 +10,7 @@ import '../domain/plan_day.dart';
 import '../domain/plan_failure.dart';
 import '../domain/trip_plan.dart';
 import 'add_places_page.dart';
+import 'plan_best_order_actions.dart';
 import 'plan_day_parts.dart';
 import 'plan_edit_sheets.dart';
 import 'plan_menu.dart';
@@ -45,6 +46,10 @@ class PlanScreenActions {
     onAddPlaces: () => unawaited(addPlaces(day: day)),
     onRemoveDay: plan.days.length > 1 ? () => _removeDay(day) : null,
     onAddFromPlaces: plan.places.isEmpty ? null : () => _addIdea(day),
+    onBestOrder: day.stops.length >= 3
+        ? () => unawaited(PlanBestOrderActions(context, ref, plan).run(day))
+        : null,
+    bestOrderIsPro: !plan.limits.bestOrder,
   );
 
   Future<void> _stop(PlanDay day, int index, PlanStopAction action) async {

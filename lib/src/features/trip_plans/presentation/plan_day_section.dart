@@ -12,6 +12,7 @@ import '../domain/plan_route.dart';
 import '../domain/trip_plan.dart';
 import 'plan_day_colors.dart';
 import 'plan_day_parts.dart';
+import 'plan_pro_sheet.dart';
 import 'plan_stop_menu.dart';
 import 'plan_stop_row.dart';
 
@@ -224,6 +225,24 @@ class PlanDaySection extends StatelessWidget {
                         ),
                         onPressed: actions!.onAddFromPlaces,
                         child: const Text('From Places to visit'),
+                      ),
+                    if (actions!.onBestOrder != null)
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(44, 44),
+                        ),
+                        onPressed: actions!.onBestOrder,
+                        icon: const Icon(Icons.auto_fix_high, size: 18),
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Best order'),
+                            if (actions!.bestOrderIsPro) ...[
+                              const SizedBox(width: 6),
+                              const PlanProTag(),
+                            ],
+                          ],
+                        ),
                       ),
                   ],
                 ),

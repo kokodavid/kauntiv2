@@ -18,6 +18,8 @@ class PlanDayActions {
     required this.onAddPlaces,
     this.onRemoveDay,
     this.onAddFromPlaces,
+    this.onBestOrder,
+    this.bestOrderIsPro = false,
   });
 
   final void Function(int index, PlanStopAction action) onStop;
@@ -32,6 +34,12 @@ class PlanDayActions {
   /// Null when Places to visit is empty.
   final VoidCallback? onAddFromPlaces;
   final bool canMoveStopsToDay;
+
+  /// Null when the day has fewer than 3 stops.
+  final VoidCallback? onBestOrder;
+
+  /// Free: the button carries the Pro tag and opens the Pro sheet.
+  final bool bestOrderIsPro;
 }
 
 class PlanEndpointRow extends StatelessWidget {

@@ -26,6 +26,7 @@ class FakeTripPlansRepository implements TripPlansRepository {
   final savedRoutes = <String>[];
   final moves = <String>[];
   final removed = <String>[];
+  final orders = <String>[];
   int addedDays = 0;
   int conversions = 0;
   int listCalls = 0;
@@ -154,6 +155,12 @@ class FakeTripPlansRepository implements TripPlansRepository {
     _maybeFail();
     removed.add('$stopId|$toPlacesList');
   }
+  @override
+  Future<void> setDayOrder(String dayId, List<String> stopIds) async {
+    _maybeFail();
+    orders.add('$dayId|${stopIds.join(',')}');
+  }
+
   @override
   Future<void> setStopNote(String stopId, String? note) async => _maybeFail();
   @override

@@ -113,8 +113,7 @@ class FakeTripPlansRepository implements TripPlansRepository {
   Future<void> addPlace(String planId, String placeId, {String? note}) async =>
       _maybeFail();
   @override
-  Future<void> removePlace(String planId, String placeId) async =>
-      _maybeFail();
+  Future<void> removePlace(String planId, String placeId) async => _maybeFail();
   @override
   Future<void> saveDayRoute(
     String dayId, {

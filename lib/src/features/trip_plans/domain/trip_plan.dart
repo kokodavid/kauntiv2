@@ -31,9 +31,7 @@ class PlanStart {
     this.place,
   });
 
-  static const currentLocation = PlanStart(
-    kind: PlanStartKind.currentLocation,
-  );
+  static const currentLocation = PlanStart(kind: PlanStartKind.currentLocation);
 
   final PlanStartKind kind;
   final String? label;
@@ -155,17 +153,17 @@ class TripPlan {
       days: [
         if (days is List)
           for (final raw in days)
-            if (PlanDay.fromJson(raw) case final day?) day,
+            ?PlanDay.fromJson(raw),
       ]..sort((a, b) => a.number.compareTo(b.number)),
       places: [
         if (places is List)
           for (final raw in places)
-            if (PlanIdea.fromJson(raw) case final idea?) idea,
+            ?PlanIdea.fromJson(raw),
       ],
       members: [
         if (members is List)
           for (final raw in members)
-            if (PlanMember.fromJson(raw) case final member?) member,
+            ?PlanMember.fromJson(raw),
       ],
     );
   }

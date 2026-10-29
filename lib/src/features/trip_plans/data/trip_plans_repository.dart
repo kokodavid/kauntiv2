@@ -1,5 +1,6 @@
 import '../domain/new_plan_request.dart';
 import '../domain/plan_limits.dart';
+import '../domain/trip_plan.dart';
 import '../domain/trip_plan_summary.dart';
 
 /// The trip planner's server calls. Every change goes through a database

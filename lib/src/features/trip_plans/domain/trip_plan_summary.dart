@@ -141,12 +141,12 @@ class TripPlanSummary {
       members: [
         if (members is List)
           for (final raw in members)
-            if (PlanMember.fromJson(raw) case final member?) member,
+            ?PlanMember.fromJson(raw),
       ],
       days: [
         if (days is List)
           for (final raw in days)
-            if (PlanDaySummary.fromJson(raw) case final day?) day,
+            ?PlanDaySummary.fromJson(raw),
       ]..sort((a, b) => a.number.compareTo(b.number)),
     );
   }

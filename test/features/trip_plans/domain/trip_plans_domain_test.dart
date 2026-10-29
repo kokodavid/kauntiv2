@@ -191,11 +191,7 @@ void main() {
         'start_date': '2026-11-14',
         'limits': {'pro': false, 'max_days': 3},
         'days': [
-          {
-            'id': 'd2',
-            'position': 2,
-            'stops': <Object>[],
-          },
+          {'id': 'd2', 'position': 2, 'stops': <Object>[]},
           {
             'id': 'd1',
             'position': 1,

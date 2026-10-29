@@ -53,7 +53,9 @@ class CreatePlanChip extends StatelessWidget {
               fontFamily: AppTypeScale.family,
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: selected ? AppColors.accentForeground : AppColors.foreground,
+              color: selected
+                  ? AppColors.accentForeground
+                  : AppColors.foreground,
             ),
           ),
         ),

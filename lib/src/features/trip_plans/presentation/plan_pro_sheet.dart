@@ -124,7 +124,8 @@ class _PlanProSheet extends StatelessWidget {
             const SizedBox(height: 8),
             _CompareRow(
               label: 'Pro',
-              value: 'Unlimited · ${pro.maxDays} days · groups of '
+              value:
+                  'Unlimited · ${pro.maxDays} days · groups of '
                   '${pro.maxMembers}',
               highlight: true,
             ),
@@ -220,10 +221,7 @@ class _CompareRow extends StatelessWidget {
     ),
     child: Row(
       children: [
-        SizedBox(
-          width: 72,
-          child: Text(label, style: AppTypeScale.itemTitle),
-        ),
+        SizedBox(width: 72, child: Text(label, style: AppTypeScale.itemTitle)),
         Expanded(
           child: Text(
             value,

@@ -21,9 +21,7 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
 
   Future<Object?> _call(String fn, [Map<String, Object?>? params]) async {
     try {
-      return await client
-          .rpc<dynamic>(fn, params: params)
-          .timeout(_timeout);
+      return await client.rpc<dynamic>(fn, params: params).timeout(_timeout);
     } on PostgrestException catch (error) {
       throw PlanFailure(PlanFailureKind.fromCode(error.message));
     } on TimeoutException {
@@ -45,7 +43,7 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
     return [
       if (result is List)
         for (final raw in result)
-          if (TripPlanSummary.fromJson(raw) case final plan?) plan,
+          ?TripPlanSummary.fromJson(raw),
     ];
   }
 
@@ -91,10 +89,8 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
       });
 
   @override
-  Future<void> archive(String planId, {required bool archived}) => _call(
-    'archive_trip_plan',
-    {'p_plan': planId, 'p_archived': archived},
-  );
+  Future<void> archive(String planId, {required bool archived}) =>
+      _call('archive_trip_plan', {'p_plan': planId, 'p_archived': archived});
 
   @override
   Future<void> delete(String planId) =>
@@ -154,24 +150,18 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
   );
 
   @override
-  Future<void> setStopNote(String stopId, String? note) => _call(
-    'set_trip_plan_stop_note',
-    {'p_stop': stopId, 'p_note': note},
+  Future<void> setStopNote(String stopId, String? note) =>
+      _call('set_trip_plan_stop_note', {'p_stop': stopId, 'p_note': note});
+
+  @override
+  Future<void> addPlace(String planId, String placeId, {String? note}) => _call(
+    'add_trip_plan_place',
+    {'p_plan': planId, 'p_place': placeId, 'p_note': note},
   );
 
   @override
-  Future<void> addPlace(String planId, String placeId, {String? note}) =>
-      _call('add_trip_plan_place', {
-        'p_plan': planId,
-        'p_place': placeId,
-        'p_note': note,
-      });
-
-  @override
-  Future<void> removePlace(String planId, String placeId) => _call(
-    'remove_trip_plan_place',
-    {'p_plan': planId, 'p_place': placeId},
-  );
+  Future<void> removePlace(String planId, String placeId) =>
+      _call('remove_trip_plan_place', {'p_plan': planId, 'p_place': placeId});
 
   @override
   Future<void> saveDayRoute(

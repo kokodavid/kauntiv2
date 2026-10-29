@@ -15,7 +15,9 @@ abstract final class PlanLabels {
   static String range(DateTime? start, DateTime? end) {
     if (start == null) return 'No date yet';
     final last = end ?? start;
-    if (_sameDay(start, last)) return '${start.day} ${_months[start.month - 1]}';
+    if (_sameDay(start, last)) {
+      return '${start.day} ${_months[start.month - 1]}';
+    }
     if (start.month == last.month && start.year == last.year) {
       return '${start.day} – ${last.day} ${_months[last.month - 1]}';
     }

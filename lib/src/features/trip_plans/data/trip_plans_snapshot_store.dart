@@ -21,7 +21,7 @@ class TripPlansSnapshotStore {
     if (plans is! List) return null;
     return [
       for (final item in plans)
-        if (TripPlanSummary.fromJson(item) case final plan?) plan,
+        ?TripPlanSummary.fromJson(item),
     ];
   }
 
@@ -45,11 +45,10 @@ class TripPlansSnapshotStore {
     return DateTime.tryParse('${raw?['saved_at']}');
   }
 
-  Future<void> writePlan(String userId, TripPlan plan, DateTime now) =>
-      _write(_planKey(userId, plan.id), {
-        'saved_at': now.toIso8601String(),
-        'plan': plan.toJson(),
-      });
+  Future<void> writePlan(String userId, TripPlan plan, DateTime now) => _write(
+    _planKey(userId, plan.id),
+    {'saved_at': now.toIso8601String(), 'plan': plan.toJson()},
+  );
 
   Future<void> removePlan(String userId, String planId) async {
     final prefs = await SharedPreferences.getInstance();

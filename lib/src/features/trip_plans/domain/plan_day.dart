@@ -114,7 +114,7 @@ class PlanDay {
       stops: [
         if (stops is List)
           for (final raw in stops)
-            if (PlanStop.fromJson(raw) case final stop?) stop,
+            ?PlanStop.fromJson(raw),
       ],
       overnightLabel: text(json['overnight_label']),
       overnightLat: number(json['overnight_lat']),

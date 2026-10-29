@@ -28,7 +28,11 @@ TripPlanSummary _plan(
   members: [
     const PlanMember(userId: 'me', role: PlanRole.owner, handle: 'amina7'),
     if (role != PlanRole.owner)
-      const PlanMember(userId: 'them', role: PlanRole.owner, handle: 'mwangi_j'),
+      const PlanMember(
+        userId: 'them',
+        role: PlanRole.owner,
+        handle: 'mwangi_j',
+      ),
   ],
   days: [
     PlanDaySummary(
@@ -79,7 +83,10 @@ void main() {
     await pump(tester);
     expect(find.text('Plan your next trip, day by day'), findsOneWidget);
     expect(find.text('EXAMPLE'), findsOneWidget);
-    expect(find.text('Free: 3 upcoming plans, up to 3 days each.'), findsOneWidget);
+    expect(
+      find.text('Free: 3 upcoming plans, up to 3 days each.'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Plan a trip'));
     expect(planTripTaps, 1);
   });

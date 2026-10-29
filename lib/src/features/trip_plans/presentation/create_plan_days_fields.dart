@@ -60,7 +60,11 @@ class CreatePlanDateAndDays extends StatelessWidget {
 }
 
 class _DateField extends StatelessWidget {
-  const _DateField({required this.date, required this.onTap, required this.onClear});
+  const _DateField({
+    required this.date,
+    required this.onTap,
+    required this.onClear,
+  });
 
   final DateTime? date;
   final VoidCallback onTap;
@@ -153,7 +157,9 @@ class CreatePlanDaysNote extends StatelessWidget {
               foregroundColor: AppColors.accent,
               padding: const EdgeInsets.symmetric(horizontal: 6),
               minimumSize: const Size(44, 32),
-              textStyle: AppTypeScale.meta.copyWith(fontWeight: FontWeight.w600),
+              textStyle: AppTypeScale.meta.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             onPressed: onSeePro,
             child: const Text('See Pro'),

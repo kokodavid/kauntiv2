@@ -93,7 +93,10 @@ class PlannedTripsList extends _$PlannedTripsList {
         await repository.convertSavedTrips();
         _convertedThisSession.add(userId);
       } on Object catch (error) {
-        developer.log('Saved trip conversion failed: $error', name: 'trip_plans');
+        developer.log(
+          'Saved trip conversion failed: $error',
+          name: 'trip_plans',
+        );
       }
     }
     final List<TripPlanSummary> plans;

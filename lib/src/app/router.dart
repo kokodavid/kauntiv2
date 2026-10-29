@@ -40,8 +40,8 @@ import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
 import 'push_routes.dart';
 import 'router_map_tab.dart';
-import 'trips_tab.dart';
 import 'startup_pages.dart';
+import 'trips_tab.dart';
 
 part 'router.g.dart';
 

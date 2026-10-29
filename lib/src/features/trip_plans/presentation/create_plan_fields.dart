@@ -101,8 +101,11 @@ class CreatePlanStartField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final usesLocation = start.kind == PlanStartKind.currentLocation;
-    final location = usesLocation ? ref.watch(planCurrentLocationProvider) : null;
-    final noFix = location != null && !location.isLoading && location.value == null;
+    final location = usesLocation
+        ? ref.watch(planCurrentLocationProvider)
+        : null;
+    final noFix =
+        location != null && !location.isLoading && location.value == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -154,7 +157,8 @@ class CreatePlanStartField extends ConsumerWidget {
                   children: [
                     TextButton(
                       style: _linkStyle,
-                      onPressed: () => ref.invalidate(planCurrentLocationProvider),
+                      onPressed: () =>
+                          ref.invalidate(planCurrentLocationProvider),
                       child: const Text('Try again'),
                     ),
                     if (canChoosePlace)

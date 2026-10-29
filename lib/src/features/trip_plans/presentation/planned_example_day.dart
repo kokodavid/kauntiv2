@@ -142,7 +142,10 @@ class _ExampleStop extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.exploreCategoryFill,
                     borderRadius: BorderRadius.circular(999),

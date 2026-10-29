@@ -22,10 +22,10 @@ import 'plan_day_section.dart';
 import 'plan_header.dart';
 import 'plan_map_panel.dart';
 import 'plan_menu.dart';
+import 'plan_menu_handler.dart';
 import 'plan_places_row.dart';
 import 'plan_screen_actions.dart';
 import 'plan_screen_states.dart';
-import 'plan_share_actions.dart';
 import 'plan_stop_row.dart';
 import 'plan_totals_bar.dart';
 import 'plan_view_only_note.dart';
@@ -141,7 +141,13 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         ? PlanScreenActions(context, ref, plan, onGone: widget.onBack)
         : null;
 
-    final sharing = PlanShareActions(context, ref, plan, onGone: widget.onBack);
+    final menu = PlanMenuHandler(
+      context,
+      ref,
+      plan,
+      edit: actions,
+      onGone: widget.onBack,
+    );
 
     final requests = <int, PlanLegRequest>{};
     final legs = <int, AsyncValue<PlanRoute?>>{};
@@ -198,11 +204,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                   ? null
                   : PlanMenu(
                       plan: plan,
-                      onSelected: (a) => unawaited(
-                        a.isSharing
-                            ? sharing.handle(a)
-                            : actions!.planMenu(a),
-                      ),
+                      onSelected: (a) => unawaited(menu.handle(a)),
                     ),
             ),
           ),

@@ -34,8 +34,10 @@ class PlanShareActions {
       case PlanMenuAction.rename ||
           PlanMenuAction.dates ||
           PlanMenuAction.archive ||
-          PlanMenuAction.delete:
-        break; // editing actions live in PlanScreenActions
+          PlanMenuAction.delete ||
+          PlanMenuAction.keepOffline ||
+          PlanMenuAction.removeOffline:
+        break; // handled elsewhere
     }
   }
 

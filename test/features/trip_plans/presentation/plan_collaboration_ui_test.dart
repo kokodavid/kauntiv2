@@ -263,4 +263,23 @@ void main() {
     expect(find.text('Updated by nyati7 · just now'), findsOneWidget);
     expect(find.text('Added by nyati7 · just now'), findsOneWidget);
   });
+
+  testWidgets('Mute updates on a shared plan, and Unmute afterwards', (
+    tester,
+  ) async {
+    await open(tester, _plan());
+    await openMenu(tester);
+    await tester.tap(find.text('Mute updates'));
+    await tester.pumpAndSettle();
+    expect(collaboration.calls, ['mute|plan-1|true']);
+    expect(find.text('Updates muted'), findsOneWidget);
+    await openMenu(tester);
+    expect(find.text('Unmute updates'), findsOneWidget);
+  });
+
+  testWidgets('a solo plan has no Mute item', (tester) async {
+    await open(tester, _plan(buddy: false));
+    await openMenu(tester);
+    expect(find.text('Mute updates'), findsNothing);
+  });
 }

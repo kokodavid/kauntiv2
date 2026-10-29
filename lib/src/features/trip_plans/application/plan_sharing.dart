@@ -26,6 +26,17 @@ Future<List<UsernameHit>> usernameSearch(Ref ref, String prefix) async {
   return repository.searchUsernames(prefix.trim());
 }
 
+/// Whether I muted this plan: no pushes about changes or joins.
+@riverpod
+Future<bool> planMuted(Ref ref, String planId) async {
+  try {
+    final repository = ref.watch(planCollaborationRepositoryProvider);
+    return await repository?.isMuted(planId) ?? false;
+  } on Object {
+    return false;
+  }
+}
+
 /// Plans people invited me to by username, waiting for my answer.
 @riverpod
 Future<List<PlanInvitation>> myPlanInvitations(Ref ref) async {
@@ -120,6 +131,20 @@ class PlanSharing {
     (r) => r.leave(planId),
     leaving: true,
   );
+
+  Future<PlanFailure?> setMuted(String planId, {required bool muted}) async {
+    final repository = _ref.read(planCollaborationRepositoryProvider);
+    if (repository == null) return const PlanFailure(PlanFailureKind.unavailable);
+    try {
+      await repository.setMuted(planId, muted: muted);
+    } on PlanFailure catch (failure) {
+      return failure;
+    } on Object {
+      return const PlanFailure(PlanFailureKind.offline);
+    }
+    if (_ref.mounted) _ref.invalidate(planMutedProvider(planId));
+    return null;
+  }
 
   /// Accept or decline an invitation by username.
   Future<PlanFailure?> respond(String planId, {required bool accept}) async {

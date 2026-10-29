@@ -217,6 +217,8 @@ class PlanScreenActions {
       case PlanMenuAction.invite ||
           PlanMenuAction.people ||
           PlanMenuAction.leave ||
+          PlanMenuAction.mute ||
+          PlanMenuAction.unmute ||
           PlanMenuAction.keepOffline ||
           PlanMenuAction.removeOffline:
         break; // handled by PlanShareActions and PlanOfflineActions

@@ -31,6 +31,24 @@ class PlanShareActions {
         await showPlanPeopleSheet(context, plan);
       case PlanMenuAction.leave:
         await _leave();
+      case PlanMenuAction.mute || PlanMenuAction.unmute:
+        final muting = action == PlanMenuAction.mute;
+        final failure = await ref
+            .read(planSharingProvider)
+            .setMuted(plan.id, muted: muting);
+        if (!context.mounted) return;
+        if (failure != null) {
+          reportPlanFailure(context, failure);
+          return;
+        }
+        showAppToast(
+          context,
+          variant: AppToastVariant.neutral,
+          title: muting ? 'Updates muted' : 'Updates back on',
+          message: muting
+              ? "You won't get notifications about this plan."
+              : null,
+        );
       case PlanMenuAction.rename ||
           PlanMenuAction.dates ||
           PlanMenuAction.archive ||

@@ -112,4 +112,10 @@ class SupabasePlanCollaborationRepository
   @override
   Future<void> setMuted(String planId, {required bool muted}) =>
       _call('set_trip_plan_muted', {'p_plan': planId, 'p_muted': muted});
+
+  @override
+  Future<bool> isMuted(String planId) async {
+    final result = await _call('my_trip_plan_muted', {'p_plan': planId});
+    return result == true;
+  }
 }

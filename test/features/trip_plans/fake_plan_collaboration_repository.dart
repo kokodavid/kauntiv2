@@ -16,6 +16,7 @@ class FakePlanCollaborationRepository implements PlanCollaborationRepository {
   final calls = <String>[];
   List<UsernameHit> hits = const [];
   List<PlanInvitation> invitations = const [];
+  bool mutedPlans = false;
 
   @override
   Future<InvitePreview> previewInvite(String token) async => preview;
@@ -76,6 +77,11 @@ class FakePlanCollaborationRepository implements PlanCollaborationRepository {
       calls.add('handover|$planId|$userId');
 
   @override
-  Future<void> setMuted(String planId, {required bool muted}) async =>
-      calls.add('mute|$planId|$muted');
+  Future<void> setMuted(String planId, {required bool muted}) async {
+    calls.add('mute|$planId|$muted');
+    mutedPlans = muted;
+  }
+
+  @override
+  Future<bool> isMuted(String planId) async => mutedPlans;
 }

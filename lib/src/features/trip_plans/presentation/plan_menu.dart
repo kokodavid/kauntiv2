@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/plan_offline_copy.dart';
+import '../application/plan_sharing.dart';
 import '../domain/plan_member.dart';
 import '../domain/plan_offline.dart';
 import '../domain/trip_plan.dart';
@@ -12,13 +13,20 @@ enum PlanMenuAction {
   invite,
   people,
   leave,
+  mute,
+  unmute,
   keepOffline,
   removeOffline,
   archive,
   delete;
 
   /// Sharing actions are handled apart from the editing ones.
-  bool get isSharing => this == invite || this == people || this == leave;
+  bool get isSharing =>
+      this == invite ||
+      this == people ||
+      this == leave ||
+      this == mute ||
+      this == unmute;
 
   bool get isOffline => this == keepOffline || this == removeOffline;
 }
@@ -37,6 +45,7 @@ class PlanMenu extends ConsumerWidget {
     final offline =
         ref.watch(planOfflineCopyProvider(plan.id)).value ??
         PlanOfflineState.none;
+    final muted = ref.watch(planMutedProvider(plan.id)).value ?? false;
     final isOwner = plan.role == PlanRole.owner;
     return PopupMenuButton<PlanMenuAction>(
       tooltip: 'Plan options',
@@ -62,6 +71,11 @@ class PlanMenu extends ConsumerWidget {
           value: PlanMenuAction.people,
           child: Text('People'),
         ),
+        if (plan.isShared)
+          PopupMenuItem(
+            value: muted ? PlanMenuAction.unmute : PlanMenuAction.mute,
+            child: Text(muted ? 'Unmute updates' : 'Mute updates'),
+          ),
         if (!isOwner || plan.isShared)
           const PopupMenuItem(
             value: PlanMenuAction.leave,

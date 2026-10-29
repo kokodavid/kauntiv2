@@ -27,4 +27,7 @@ abstract interface class PlanCollaborationRepository {
   Future<void> leave(String planId);
   Future<void> handOver(String planId, String userId);
   Future<void> setMuted(String planId, {required bool muted});
+
+  /// Whether I muted this plan's notifications.
+  Future<bool> isMuted(String planId);
 }

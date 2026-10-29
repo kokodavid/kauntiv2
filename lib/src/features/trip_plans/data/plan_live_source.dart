@@ -60,6 +60,7 @@ class SupabasePlanLiveSource implements PlanLiveSource {
       onCancel: () {
         final open = channel;
         if (open != null) unawaited(client.removeChannel(open));
+        unawaited(controller.close());
       },
     );
     return controller.stream;

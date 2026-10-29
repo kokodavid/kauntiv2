@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/domain/app_feature_flags.dart';
-import '../features/onboarding/application/startup_flow.dart';
 import '../features/auth/application/auth_providers.dart';
+import '../features/onboarding/application/startup_flow.dart';
 import '../features/trip_plans/presentation/join_plan_screen.dart';
 import '../features/trip_plans/presentation/plan_screen.dart';
 import 'app_routes.dart';

@@ -1,4 +1,7 @@
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/app_colors.dart';
 import '../application/plan_collapsed_days.dart';
@@ -14,9 +17,6 @@ import '../domain/plan_day_recording.dart';
 import '../domain/plan_route.dart';
 import '../domain/plan_totals.dart';
 import '../domain/trip_plan.dart';
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'plan_day_chips.dart';
 import 'plan_day_section.dart';
 import 'plan_header.dart';

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/presentation/planned_view.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_floating_toast.dart';

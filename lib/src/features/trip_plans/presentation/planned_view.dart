@@ -13,6 +13,7 @@ import '../domain/trip_plan_summary.dart';
 import 'plan_card.dart';
 import 'plan_trip_button.dart';
 import 'planned_empty_state.dart';
+import 'planned_invitations.dart';
 import 'planned_section.dart';
 import 'planned_skeleton.dart';
 
@@ -163,6 +164,7 @@ class _Sections extends ConsumerWidget {
       children: [
         if (offline) const _OfflineNote(),
         if (!offline) PlanTripButton(onPressed: onPlanTrip),
+        if (!offline) PlannedInvitations(onOpenPlan: onOpenPlan),
         if (plans.upcoming.isNotEmpty) ...[
           PlannedSectionHeader(title: 'Upcoming', subtitle: countLine),
           for (final plan in plans.upcoming) card(plan),

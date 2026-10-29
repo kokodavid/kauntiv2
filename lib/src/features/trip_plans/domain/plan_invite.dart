@@ -66,6 +66,9 @@ class PlanInviteLink {
   final PlanRole role;
   final DateTime expiresAt;
 
+  /// What gets shared: the landing site opens the app, or the store.
+  String get url => 'https://kaunti47.com/p/$token';
+
   static PlanInviteLink? fromJson(Object? json) {
     if (json is! Map ||
         json['id'] is! String ||

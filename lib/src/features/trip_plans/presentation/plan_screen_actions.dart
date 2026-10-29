@@ -209,6 +209,8 @@ class PlanScreenActions {
           helpText: 'Day 1 is on',
         );
         if (date != null) await _report(_editor.setStartDate(plan.id, date));
+      case PlanMenuAction.invite || PlanMenuAction.people || PlanMenuAction.leave:
+        break; // handled by PlanShareActions
       case PlanMenuAction.archive:
         final ok = await showPlanConfirm(
           context,

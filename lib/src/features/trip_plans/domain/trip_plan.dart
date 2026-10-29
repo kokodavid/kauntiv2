@@ -111,6 +111,11 @@ class TripPlan {
   final List<PlanMember> members;
 
   bool get canEdit => role.canEdit;
+
+  /// The owner always; editors only where the owner has Pro (decision D2).
+  bool get canInvite =>
+      role == PlanRole.owner || (role == PlanRole.editor && limits.roles);
+
   bool get isShared => members.where((m) => m.joined).length > 1;
 
   /// The date of the last day, or null for an undated plan.

@@ -29,6 +29,7 @@ class FakeTripPlansRepository implements TripPlansRepository {
   int addedDays = 0;
   int conversions = 0;
   int listCalls = 0;
+  int getCalls = 0;
 
   void _maybeFail() {
     final kind = failWith;
@@ -98,6 +99,7 @@ class FakeTripPlansRepository implements TripPlansRepository {
 
   @override
   Future<TripPlan> get(String planId) async {
+    getCalls++;
     _maybeFail();
     final found = detail[planId];
     if (found == null) throw const PlanFailure(PlanFailureKind.notFound);

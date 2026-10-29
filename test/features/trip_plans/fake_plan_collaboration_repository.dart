@@ -15,6 +15,7 @@ class FakePlanCollaborationRepository implements PlanCollaborationRepository {
   final joined = <String>[];
   final calls = <String>[];
   List<UsernameHit> hits = const [];
+  List<PlanInvitation> invitations = const [];
 
   @override
   Future<InvitePreview> previewInvite(String token) async => preview;
@@ -53,7 +54,7 @@ class FakePlanCollaborationRepository implements PlanCollaborationRepository {
       calls.add('invite|$planId|$handle');
 
   @override
-  Future<List<PlanInvitation>> myInvitations() async => const [];
+  Future<List<PlanInvitation>> myInvitations() async => invitations;
 
   @override
   Future<void> respondInvitation(String planId, {required bool accept}) async =>

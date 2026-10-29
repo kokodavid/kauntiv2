@@ -1,11 +1,9 @@
-import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/app_colors.dart';
 import '../application/plan_collapsed_days.dart';
 import '../application/plan_detail.dart';
+import '../application/plan_live.dart';
 import '../application/plan_recordings.dart';
 import '../application/plan_route_saver.dart';
 import '../application/plan_routing_providers.dart';
@@ -13,10 +11,12 @@ import '../application/trip_plans_providers.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_day_path.dart';
 import '../domain/plan_day_recording.dart';
-import '../domain/plan_member.dart';
 import '../domain/plan_route.dart';
 import '../domain/plan_totals.dart';
 import '../domain/trip_plan.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'plan_day_chips.dart';
 import 'plan_day_section.dart';
 import 'plan_header.dart';
@@ -25,9 +25,11 @@ import 'plan_menu.dart';
 import 'plan_places_row.dart';
 import 'plan_screen_actions.dart';
 import 'plan_screen_states.dart';
+import 'plan_share_actions.dart';
 import 'plan_stop_row.dart';
-import 'start_day_confirm.dart';
 import 'plan_totals_bar.dart';
+import 'plan_view_only_note.dart';
+import 'start_day_confirm.dart';
 
 /// A trip plan (design 3a to 3c), read side: header, map, totals, day
 /// chips, the days with their stops and roads, and Places to visit. Shows
@@ -82,6 +84,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   @override
   Widget build(BuildContext context) {
     final detail = ref.watch(planDetailProvider(widget.planId));
+    ref.watch(planLiveProvider(widget.planId));
     final view = detail.value;
     final Widget body;
     if (view != null) {
@@ -138,6 +141,8 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         ? PlanScreenActions(context, ref, plan, onGone: widget.onBack)
         : null;
 
+    final sharing = PlanShareActions(context, ref, plan, onGone: widget.onBack);
+
     final requests = <int, PlanLegRequest>{};
     final legs = <int, AsyncValue<PlanRoute?>>{};
     for (final day in plan.days) {
@@ -189,14 +194,20 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               onBack: widget.onBack,
               offline: view.offline,
               savedAt: view.savedAt,
-              menu: actions == null
+              menu: view.offline
                   ? null
                   : PlanMenu(
-                      isOwner: plan.role == PlanRole.owner,
-                      onSelected: (a) => unawaited(actions.planMenu(a)),
+                      plan: plan,
+                      onSelected: (a) => unawaited(
+                        a.isSharing
+                            ? sharing.handle(a)
+                            : actions!.planMenu(a),
+                      ),
                     ),
             ),
           ),
+          if (!plan.canEdit)
+            const SliverToBoxAdapter(child: PlanViewOnlyNote()),
           SliverToBoxAdapter(
             child: PlanMapPanel(
               days: mapDays,

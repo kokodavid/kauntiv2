@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/config/app_config.dart';
 import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
 import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/application/plan_live.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/plan_routing_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/trip_plans_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/data/trip_plans_snapshot_store.dart';
@@ -82,6 +83,7 @@ void main() {
           currentUserIdProvider.overrideWithValue(() => 'me'),
           planRoutingClientProvider.overrideWithValue(routing),
           planClaimedCountyCodesProvider.overrideWith((ref) async => {}),
+          planLivePollIntervalProvider.overrideWithValue(null),
         ],
         child: MaterialApp(
           home: PlanScreen(

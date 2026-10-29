@@ -180,6 +180,84 @@ final class UsernameSearchFamily extends $Family
   String toString() => r'usernameSearchProvider';
 }
 
+/// Whether I muted this plan: no pushes about changes or joins.
+
+@ProviderFor(planMuted)
+const planMutedProvider = PlanMutedFamily._();
+
+/// Whether I muted this plan: no pushes about changes or joins.
+
+final class PlanMutedProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
+    with $FutureModifier<bool>, $FutureProvider<bool> {
+  /// Whether I muted this plan: no pushes about changes or joins.
+  const PlanMutedProvider._({
+    required PlanMutedFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'planMutedProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$planMutedHash();
+
+  @override
+  String toString() {
+    return r'planMutedProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<bool> create(Ref ref) {
+    final argument = this.argument as String;
+    return planMuted(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PlanMutedProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$planMutedHash() => r'06bb0baca9c652c6574cb9c3ef5750e690481518';
+
+/// Whether I muted this plan: no pushes about changes or joins.
+
+final class PlanMutedFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<bool>, String> {
+  const PlanMutedFamily._()
+    : super(
+        retry: null,
+        name: r'planMutedProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Whether I muted this plan: no pushes about changes or joins.
+
+  PlanMutedProvider call(String planId) =>
+      PlanMutedProvider._(argument: planId, from: this);
+
+  @override
+  String toString() => r'planMutedProvider';
+}
+
 /// Plans people invited me to by username, waiting for my answer.
 
 @ProviderFor(myPlanInvitations)

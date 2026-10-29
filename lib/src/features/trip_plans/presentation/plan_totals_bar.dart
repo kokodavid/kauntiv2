@@ -44,10 +44,7 @@ class PlanTotalsBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              _Stat(
-                label: 'Stops',
-                value: '${totals.stops}',
-              ),
+              _Stat(label: 'Stops', value: '${totals.stops}'),
               _Stat(
                 label: 'By road',
                 value: totals.hasRoute
@@ -56,7 +53,9 @@ class PlanTotalsBar extends StatelessWidget {
               ),
               _Stat(
                 label: 'Driving',
-                value: totals.hasRoute ? PlanLabels.drive(totals.durationS) : '–',
+                value: totals.hasRoute
+                    ? PlanLabels.drive(totals.durationS)
+                    : '–',
               ),
             ],
           ),

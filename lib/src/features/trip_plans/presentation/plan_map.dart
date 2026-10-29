@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,9 +72,7 @@ class _PlanMapState extends ConsumerState<PlanMap> {
   void didUpdateWidget(PlanMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (_styled) {
-      unawaited(
-        _refresh(reframe: oldWidget.activeDay != widget.activeDay),
-      );
+      unawaited(_refresh(reframe: oldWidget.activeDay != widget.activeDay));
     }
   }
 

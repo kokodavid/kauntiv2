@@ -136,12 +136,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     );
 
     final stored = ref.watch(planCollapsedDaysProvider(plan.id)).value;
-    final collapsed =
-        stored ?? PlanCollapsedDays.defaultFor(plan.days.length);
+    final collapsed = stored ?? PlanCollapsedDays.defaultFor(plan.days.length);
 
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(planDetailProvider(plan.id).notifier).refresh(),
+      onRefresh: () => ref.read(planDetailProvider(plan.id).notifier).refresh(),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [

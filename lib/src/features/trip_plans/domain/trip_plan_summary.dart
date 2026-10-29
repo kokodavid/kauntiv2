@@ -140,13 +140,11 @@ class TripPlanSummary {
       updatedAt: DateTime.tryParse('${json['updated_at']}'),
       members: [
         if (members is List)
-          for (final raw in members)
-            ?PlanMember.fromJson(raw),
+          for (final raw in members) ?PlanMember.fromJson(raw),
       ],
       days: [
         if (days is List)
-          for (final raw in days)
-            ?PlanDaySummary.fromJson(raw),
+          for (final raw in days) ?PlanDaySummary.fromJson(raw),
       ]..sort((a, b) => a.number.compareTo(b.number)),
     );
   }

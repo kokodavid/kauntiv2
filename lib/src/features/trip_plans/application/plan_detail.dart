@@ -94,7 +94,7 @@ class PlanDetail extends _$PlanDetail {
   Future<PlanDetailView> _offlineOrThrow(String userId, Object error) async {
     final store = ref.read(tripPlansSnapshotStoreProvider);
     final cached = await store.readPlan(userId, planId);
-    if (cached == null) throw error;
+    if (cached == null) Error.throwWithStackTrace(error, StackTrace.current);
     return PlanDetailView(
       plan: cached,
       offline: true,

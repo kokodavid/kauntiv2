@@ -19,10 +19,7 @@ class TripPlansSnapshotStore {
     final raw = await _read(_listKey(userId));
     final plans = raw?['plans'];
     if (plans is! List) return null;
-    return [
-      for (final item in plans)
-        ?TripPlanSummary.fromJson(item),
-    ];
+    return [for (final item in plans) ?TripPlanSummary.fromJson(item)];
   }
 
   Future<void> writeList(

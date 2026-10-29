@@ -19,8 +19,10 @@ PlanPlace place(String id, double lat, double lng, {int county = 32}) =>
       lng: lng,
     );
 
-PlanStop stop(String id, double lat, double lng, {int county = 32}) =>
-    PlanStop(id: id, place: place(id, lat, lng, county: county));
+PlanStop stop(String id, double lat, double lng, {int county = 32}) => PlanStop(
+  id: id,
+  place: place(id, lat, lng, county: county),
+);
 
 TripPlan plan(List<PlanDay> days) => TripPlan(
   id: 'p',
@@ -106,7 +108,11 @@ void main() {
       durationS: 600,
     );
     final totals = PlanTotals.of(
-      [day1, saved, PlanDay(id: 'd3', number: 3, stops: [stop('e', 1, 1)])],
+      [
+        day1,
+        saved,
+        PlanDay(id: 'd3', number: 3, stops: [stop('e', 1, 1)]),
+      ],
       routes: {1: (distanceM: 62000, durationS: 4200)},
     );
     expect(totals.stops, 4);

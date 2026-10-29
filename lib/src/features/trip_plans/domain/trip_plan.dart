@@ -152,18 +152,15 @@ class TripPlan {
       updatedByHandle: by is String ? by : null,
       days: [
         if (days is List)
-          for (final raw in days)
-            ?PlanDay.fromJson(raw),
+          for (final raw in days) ?PlanDay.fromJson(raw),
       ]..sort((a, b) => a.number.compareTo(b.number)),
       places: [
         if (places is List)
-          for (final raw in places)
-            ?PlanIdea.fromJson(raw),
+          for (final raw in places) ?PlanIdea.fromJson(raw),
       ],
       members: [
         if (members is List)
-          for (final raw in members)
-            ?PlanMember.fromJson(raw),
+          for (final raw in members) ?PlanMember.fromJson(raw),
       ],
     );
   }

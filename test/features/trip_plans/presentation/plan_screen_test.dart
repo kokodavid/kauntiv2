@@ -115,9 +115,7 @@ void main() {
     expect(find.text("Hell's Gate"), findsOneWidget);
   });
 
-  testWidgets('a failed road keeps the stops and offers Retry', (
-    tester,
-  ) async {
+  testWidgets('a failed road keeps the stops and offers Retry', (tester) async {
     routing.fail = true;
     await open(tester);
     expect(find.text("Hell's Gate"), findsOneWidget);

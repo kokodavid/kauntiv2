@@ -115,20 +115,17 @@ class PlanStopRow extends StatelessWidget {
                       if (by != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            'Added by $by',
-                            style: AppTypeScale.meta,
-                          ),
+                          child: Text('Added by $by', style: AppTypeScale.meta),
                         ),
                       if (locked)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 6),
                           child: Row(
                             children: [
-                              const PlanProTag(),
-                              const SizedBox(width: 6),
+                              PlanProTag(),
+                              SizedBox(width: 6),
                               Text(
-                                'Over this plan\'s limit',
+                                "Over this plan's limit",
                                 style: AppTypeScale.meta,
                               ),
                             ],

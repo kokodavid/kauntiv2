@@ -46,7 +46,9 @@ class PlanMapPanel extends StatelessWidget {
                 children: [
                   Icon(Icons.map_outlined, size: 20),
                   SizedBox(width: 10),
-                  Expanded(child: Text('Show map', style: AppTypeScale.itemTitle)),
+                  Expanded(
+                    child: Text('Show map', style: AppTypeScale.itemTitle),
+                  ),
                   Icon(Icons.expand_more),
                 ],
               ),

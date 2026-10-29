@@ -45,8 +45,10 @@ class PlanDaySection extends StatelessWidget {
     final color = PlanDayColors.of(day.number);
     final date = plan.dateOf(day);
     final worked = route.value;
-    final distance = worked?.distanceM ?? (day.hasFreshRoute ? day.distanceM : null);
-    final duration = worked?.durationS ?? (day.hasFreshRoute ? day.durationS : null);
+    final distance =
+        worked?.distanceM ?? (day.hasFreshRoute ? day.distanceM : null);
+    final duration =
+        worked?.durationS ?? (day.hasFreshRoute ? day.durationS : null);
     final summary = [
       day.stops.length == 1 ? '1 stop' : '${day.stops.length} stops',
       if (distance != null) PlanLabels.distance(distance),
@@ -126,7 +128,8 @@ class PlanDaySection extends StatelessWidget {
           ),
           if (!collapsed) ...[
             const Divider(height: 1, color: AppColors.exploreBorder),
-            if (day.number == 1) _EndpointRow(label: 'Start · ${plan.start.displayLabel}'),
+            if (day.number == 1)
+              _EndpointRow(label: 'Start · ${plan.start.displayLabel}'),
             if (day.stops.isEmpty)
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -148,7 +151,8 @@ class PlanDaySection extends StatelessWidget {
                 ),
             if (day.hasOvernight)
               _EndpointRow(
-                label: 'Stay · ${day.overnightPlace?.name ?? day.overnightLabel ?? 'Chosen point'}',
+                label:
+                    'Stay · ${day.overnightPlace?.name ?? day.overnightLabel ?? 'Chosen point'}',
               ),
             _RouteLine(route: route, onRetry: onRetryRoute),
             if (countiesLine != null)
@@ -173,7 +177,11 @@ class _EndpointRow extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
     child: Row(
       children: [
-        const Icon(Icons.flag_outlined, size: 18, color: AppColors.mutedForeground),
+        const Icon(
+          Icons.flag_outlined,
+          size: 18,
+          color: AppColors.mutedForeground,
+        ),
         const SizedBox(width: 8),
         Expanded(child: Text(label, style: AppTypeScale.small)),
       ],

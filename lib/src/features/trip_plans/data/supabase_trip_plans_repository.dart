@@ -42,8 +42,7 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
     final result = await _call('list_trip_plans');
     return [
       if (result is List)
-        for (final raw in result)
-          ?TripPlanSummary.fromJson(raw),
+        for (final raw in result) ?TripPlanSummary.fromJson(raw),
     ];
   }
 

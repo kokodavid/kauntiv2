@@ -94,6 +94,7 @@ class PlanScreenProblem extends StatelessWidget {
 /// couldn't load.
 class PlanMapNote extends StatelessWidget {
   const PlanMapNote({
+    super.key,
     required this.icon,
     required this.title,
     required this.message,

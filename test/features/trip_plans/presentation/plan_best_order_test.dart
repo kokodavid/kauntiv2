@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/config/app_config.dart';
 import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
@@ -65,7 +66,7 @@ void main() {
     bestOrder = FakePlanBestOrderClient()..answer = ['s3', 's1', 's2'];
   });
 
-  overrides() => [
+  List<Override> overrides() => [
     appConfigProvider.overrideWithValue(const AppConfig.dev()),
     tripPlansRepositoryProvider.overrideWithValue(repository),
     planBestOrderClientProvider.overrideWithValue(bestOrder),

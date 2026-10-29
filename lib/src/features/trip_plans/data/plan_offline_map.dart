@@ -49,13 +49,6 @@ class MapboxPlanOfflineMap implements PlanOfflineMap {
     );
 
     // The map tiles inside the box.
-    final descriptor = await offline.createTilesetDescriptor(
-      TilesetDescriptorOptions(
-        styleURI: _style,
-        minZoom: _minZoom,
-        maxZoom: bounds.maxZoom,
-      ),
-    );
     await tiles.loadTileRegion(
       regionId,
       TileRegionLoadOptions(
@@ -71,7 +64,13 @@ class MapboxPlanOfflineMap implements PlanOfflineMap {
             ],
           ],
         },
-        descriptors: [descriptor],
+        descriptorsOptions: [
+          TilesetDescriptorOptions(
+            styleURI: _style,
+            minZoom: _minZoom,
+            maxZoom: bounds.maxZoom,
+          ),
+        ],
         acceptExpired: true,
         networkRestriction: NetworkRestriction.NONE,
       ),

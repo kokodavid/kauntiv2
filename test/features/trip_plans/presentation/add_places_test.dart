@@ -104,14 +104,14 @@ void main() {
         ),
       ],
     )..holding['hells'] = const [PlanRef(id: 'other', title: 'Other')];
-    repository.detail['plan-1'] = TripPlan(
+    repository.detail['plan-1'] = const TripPlan(
       id: 'plan-1',
       title: 'Naivasha weekend',
       ownerId: 'me',
       role: PlanRole.owner,
       start: PlanStart.currentLocation,
       limits: PlanLimits.free,
-      days: const [PlanDay(id: 'd1', number: 1)],
+      days: [PlanDay(id: 'd1', number: 1)],
     );
     await tester.pumpWidget(
       ProviderScope(

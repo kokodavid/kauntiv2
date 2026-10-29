@@ -16,12 +16,16 @@ class PlanHeader extends StatelessWidget {
     required this.onBack,
     this.offline = false,
     this.savedAt,
+    this.menu,
   });
 
   final TripPlan plan;
   final VoidCallback onBack;
   final bool offline;
   final DateTime? savedAt;
+
+  /// The plan's "…" for people who can edit.
+  final Widget? menu;
 
   static String _time(DateTime at) =>
       '${at.hour.toString().padLeft(2, '0')}:'
@@ -87,6 +91,7 @@ class PlanHeader extends StatelessWidget {
               padding: const EdgeInsets.only(top: 14),
               child: PlanAvatarStack(members: joined),
             ),
+          ?menu,
         ],
       ),
     );

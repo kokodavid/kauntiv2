@@ -22,6 +22,9 @@ class FakeTripPlansRepository implements TripPlansRepository {
   /// Plans [get] returns, by id.
   final detail = <String, TripPlan>{};
   final savedRoutes = <String>[];
+  final moves = <String>[];
+  final removed = <String>[];
+  int addedDays = 0;
   int conversions = 0;
   int listCalls = 0;
 
@@ -88,6 +91,7 @@ class FakeTripPlansRepository implements TripPlansRepository {
   @override
   Future<String> addDay(String planId, {String? afterDayId}) async {
     _maybeFail();
+    addedDays++;
     return 'day';
   }
 
@@ -111,10 +115,16 @@ class FakeTripPlansRepository implements TripPlansRepository {
     String stopId,
     String dayId, {
     String? beforeStopId,
-  }) async => _maybeFail();
+  }) async {
+    _maybeFail();
+    moves.add('$stopId|$dayId|$beforeStopId');
+  }
+
   @override
-  Future<void> removeStop(String stopId, {bool toPlacesList = false}) async =>
-      _maybeFail();
+  Future<void> removeStop(String stopId, {bool toPlacesList = false}) async {
+    _maybeFail();
+    removed.add('$stopId|$toPlacesList');
+  }
   @override
   Future<void> setStopNote(String stopId, String? note) async => _maybeFail();
   @override

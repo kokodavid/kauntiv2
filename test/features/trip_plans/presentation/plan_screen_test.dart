@@ -145,4 +145,58 @@ void main() {
     await open(tester, id: 'missing');
     expect(find.text('This plan is no longer here'), findsOneWidget);
   });
+
+  testWidgets('moving a stop down asks the server and keeps the day', (
+    tester,
+  ) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Stop options').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Move up'), findsNothing);
+    await tester.tap(find.text('Move down'));
+    await tester.pumpAndSettle();
+    expect(repository.moves, ['s1|d1|null']);
+  });
+
+  testWidgets('removing a stop to Places to visit', (tester) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Stop options').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Back to Places to visit'));
+    await tester.pumpAndSettle();
+    expect(repository.removed, ['s1|true']);
+  });
+
+  testWidgets('Add a day', (tester) async {
+    await open(tester);
+    await tester.scrollUntilVisible(find.text('Add a day'), 300);
+    await tester.tap(find.text('Add a day'));
+    await tester.pumpAndSettle();
+    expect(repository.addedDays, 1);
+  });
+
+  testWidgets('a limit refusal opens the Pro sheet', (tester) async {
+    await open(tester);
+    repository.failWith = PlanFailureKind.limitDays;
+    await tester.scrollUntilVisible(find.text('Add a day'), 300);
+    await tester.tap(find.text('Add a day'));
+    await tester.pumpAndSettle();
+    expect(find.text('Longer trips with Pro'), findsOneWidget);
+  });
+
+  testWidgets('viewers and offline copies cannot edit', (tester) async {
+    repository.detail['plan-1'] = TripPlan(
+      id: 'plan-1',
+      title: 'Shared',
+      ownerId: 'them',
+      role: PlanRole.viewer,
+      start: _plan.start,
+      limits: PlanLimits.free,
+      days: _plan.days,
+    );
+    await open(tester);
+    expect(find.byTooltip('Stop options'), findsNothing);
+    expect(find.text('Add a day'), findsNothing);
+    expect(find.text('View only'), findsOneWidget);
+  });
 }

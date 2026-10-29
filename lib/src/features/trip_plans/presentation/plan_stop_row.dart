@@ -29,6 +29,7 @@ class PlanStopRow extends StatelessWidget {
     this.locked = false,
     this.showAddedBy = false,
     this.onOpenPlace,
+    this.menu,
   });
 
   final PlanStop stop;
@@ -40,6 +41,9 @@ class PlanStopRow extends StatelessWidget {
   final bool locked;
   final bool showAddedBy;
   final OpenPlanPlace? onOpenPlace;
+
+  /// The "…" for people who can edit.
+  final Widget? menu;
 
   @override
   Widget build(BuildContext context) {
@@ -136,9 +140,13 @@ class PlanStopRow extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 10, right: 12),
+                padding: const EdgeInsets.only(top: 10),
                 child: PlanPlaceThumb(url: stop.place.thumbnailUrl),
               ),
+              if (menu != null)
+                Padding(padding: const EdgeInsets.only(top: 2), child: menu)
+              else
+                const SizedBox(width: 12),
             ],
           ),
         ),

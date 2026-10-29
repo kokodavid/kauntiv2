@@ -10,6 +10,8 @@ import '../domain/plan_labels.dart';
 import '../domain/plan_route.dart';
 import '../domain/trip_plan.dart';
 import 'plan_day_colors.dart';
+import 'plan_day_parts.dart';
+import 'plan_stop_menu.dart';
 import 'plan_stop_row.dart';
 
 /// One day of the plan (design 3b, 3c): a header that folds the day, then
@@ -26,6 +28,7 @@ class PlanDaySection extends StatelessWidget {
     required this.claimed,
     this.homeCode,
     this.onOpenPlace,
+    this.actions,
   });
 
   final TripPlan plan;
@@ -39,6 +42,7 @@ class PlanDaySection extends StatelessWidget {
   final Set<int> claimed;
   final int? homeCode;
   final OpenPlanPlace? onOpenPlace;
+  final PlanDayActions? actions;
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +120,32 @@ class PlanDaySection extends StatelessWidget {
                           ],
                         ),
                       ),
+                      if (actions != null)
+                        PopupMenuButton<bool>(
+                          tooltip: 'Day options',
+                          constraints: const BoxConstraints(
+                            minWidth: 44,
+                            minHeight: 44,
+                          ),
+                          icon: const Icon(
+                            Icons.more_horiz,
+                            color: AppColors.mutedForeground,
+                          ),
+                          onSelected: (rename) => rename
+                              ? actions!.onRenameDay()
+                              : actions!.onRemoveDay?.call(),
+                          itemBuilder: (_) => [
+                            const PopupMenuItem(
+                              value: true,
+                              child: Text('Rename day'),
+                            ),
+                            if (actions!.onRemoveDay != null)
+                              const PopupMenuItem(
+                                value: false,
+                                child: Text('Remove day'),
+                              ),
+                          ],
+                        ),
                       Icon(
                         collapsed ? Icons.expand_more : Icons.expand_less,
                         color: AppColors.mutedForeground,
@@ -129,7 +159,7 @@ class PlanDaySection extends StatelessWidget {
           if (!collapsed) ...[
             const Divider(height: 1, color: AppColors.exploreBorder),
             if (day.number == 1)
-              _EndpointRow(label: 'Start · ${plan.start.displayLabel}'),
+              PlanEndpointRow(label: 'Start · ${plan.start.displayLabel}'),
             if (day.stops.isEmpty)
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -148,13 +178,32 @@ class PlanDaySection extends StatelessWidget {
                   locked: plan.limits.isStopLocked(i),
                   showAddedBy: plan.isShared,
                   onOpenPlace: onOpenPlace,
+                  menu: actions == null
+                      ? null
+                      : PlanStopMenu(
+                          canMoveUp: i > 0,
+                          canMoveDown: i < day.stops.length - 1,
+                          canMoveToDay: actions!.canMoveStopsToDay,
+                          hasNote: day.stops[i].note != null,
+                          onSelected: (action) => actions!.onStop(i, action),
+                        ),
                 ),
             if (day.hasOvernight)
-              _EndpointRow(
+              PlanEndpointRow(
                 label:
                     'Stay · ${day.overnightPlace?.name ?? day.overnightLabel ?? 'Chosen point'}',
               ),
-            _RouteLine(route: route, onRetry: onRetryRoute),
+            if (actions?.onAddFromPlaces != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
+                  onPressed: actions!.onAddFromPlaces,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add from Places to visit'),
+                ),
+              ),
+            PlanRouteLine(route: route, onRetry: onRetryRoute),
             if (countiesLine != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -162,85 +211,6 @@ class PlanDaySection extends StatelessWidget {
               ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _EndpointRow extends StatelessWidget {
-  const _EndpointRow({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
-    child: Row(
-      children: [
-        const Icon(
-          Icons.flag_outlined,
-          size: 18,
-          color: AppColors.mutedForeground,
-        ),
-        const SizedBox(width: 8),
-        Expanded(child: Text(label, style: AppTypeScale.small)),
-      ],
-    ),
-  );
-}
-
-/// Whether the road for the day is loading, worked out, or failed. The
-/// stops stay whatever happens here.
-class _RouteLine extends StatelessWidget {
-  const _RouteLine({required this.route, required this.onRetry});
-
-  final AsyncValue<PlanRoute?> route;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    if (route.isLoading && !route.hasValue) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: Container(
-          key: const ValueKey('route-skeleton'),
-          height: 14,
-          width: 180,
-          decoration: BoxDecoration(
-            color: AppColors.lockedFill,
-            borderRadius: BorderRadius.circular(7),
-          ),
-        ),
-      );
-    }
-    if (route.hasError) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 8, 6),
-        child: Row(
-          children: [
-            const Expanded(
-              child: Text(
-                "Couldn't work out the road. Your stops are safe.",
-                style: AppTypeScale.small,
-              ),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
-              onPressed: onRetry,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-    final worked = route.value;
-    if (worked == null) return const SizedBox(height: 4);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: Text(
-        '${PlanLabels.distance(worked.distanceM)} by road · '
-        '${PlanLabels.drive(worked.durationS)} · estimate',
-        style: AppTypeScale.meta,
       ),
     );
   }

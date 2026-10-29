@@ -10,6 +10,7 @@ import '../application/plan_route_saver.dart';
 import '../application/plan_routing_providers.dart';
 import '../application/trip_plans_providers.dart';
 import '../domain/plan_day.dart';
+import '../domain/plan_member.dart';
 import '../domain/plan_day_path.dart';
 import '../domain/plan_route.dart';
 import '../domain/plan_totals.dart';
@@ -17,7 +18,9 @@ import 'plan_day_chips.dart';
 import 'plan_day_section.dart';
 import 'plan_header.dart';
 import 'plan_map_panel.dart';
+import 'plan_menu.dart';
 import 'plan_places_row.dart';
+import 'plan_screen_actions.dart';
 import 'plan_screen_states.dart';
 import 'plan_stop_row.dart';
 import 'plan_totals_bar.dart';
@@ -100,6 +103,11 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     final claimed =
         ref.watch(planClaimedCountyCodesProvider).value ?? const <int>{};
     final saver = ref.read(planRouteSaverProvider);
+    // Changes need a connection (offline copies are read only) and a role
+    // that may edit.
+    final actions = plan.canEdit && !view.offline
+        ? PlanScreenActions(context, ref, plan, onGone: widget.onBack)
+        : null;
 
     final requests = <int, PlanLegRequest>{};
     final legs = <int, AsyncValue<PlanRoute?>>{};
@@ -149,6 +157,12 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               onBack: widget.onBack,
               offline: view.offline,
               savedAt: view.savedAt,
+              menu: actions == null
+                  ? null
+                  : PlanMenu(
+                      isOwner: plan.role == PlanRole.owner,
+                      onSelected: (a) => unawaited(actions.planMenu(a)),
+                    ),
             ),
           ),
           SliverToBoxAdapter(
@@ -195,6 +209,19 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                     claimed: claimed,
                     homeCode: widget.homeCountyCode,
                     onOpenPlace: widget.onOpenPlace,
+                    actions: actions?.forDay(day),
+                  ),
+                ),
+              if (actions != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                    onPressed: () => unawaited(actions.addDay()),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add a day'),
                   ),
                 ),
             ]),

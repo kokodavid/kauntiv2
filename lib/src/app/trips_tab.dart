@@ -76,7 +76,14 @@ class TripsTab extends ConsumerWidget {
         bottom: false,
         child: PlannedView(
           header: header,
-          onPlanTrip: () => unawaited(startPlanTrip(context, ref)),
+          onPlanTrip: () => unawaited(
+            startPlanTrip(
+              context,
+              ref,
+              onOpenPlan: (context, id) => context.push(AppRoutes.plan(id)),
+            ),
+          ),
+          onOpenPlan: (context, id) => context.push(AppRoutes.plan(id)),
           onFindPlaces: () => context.go(AppRoutes.explore),
           homeCountyCode: ref.watch(
             startupFlowProvider.select((s) => s.homeCounty?.code),

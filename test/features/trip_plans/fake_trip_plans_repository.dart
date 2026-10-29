@@ -18,6 +18,10 @@ class FakeTripPlansRepository implements TripPlansRepository {
   PlanLimits limits;
   PlanFailureKind? failWith;
   final created = <NewPlanRequest>[];
+
+  /// Plans [get] returns, by id.
+  final detail = <String, TripPlan>{};
+  final savedRoutes = <String>[];
   int conversions = 0;
   int listCalls = 0;
 
@@ -64,8 +68,12 @@ class FakeTripPlansRepository implements TripPlansRepository {
   }
 
   @override
-  Future<TripPlan> get(String planId) async =>
-      throw const PlanFailure(PlanFailureKind.notFound);
+  Future<TripPlan> get(String planId) async {
+    _maybeFail();
+    final found = detail[planId];
+    if (found == null) throw const PlanFailure(PlanFailureKind.notFound);
+    return found;
+  }
 
   @override
   Future<void> rename(String planId, String title) async => _maybeFail();
@@ -121,5 +129,8 @@ class FakeTripPlansRepository implements TripPlansRepository {
     required int distanceM,
     required int durationS,
     required List<int> countyCodes,
-  }) async => _maybeFail();
+  }) async {
+    _maybeFail();
+    savedRoutes.add('$dayId|$stopsKey|$distanceM');
+  }
 }

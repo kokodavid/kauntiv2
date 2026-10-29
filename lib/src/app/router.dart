@@ -38,6 +38,7 @@ import 'detail_routes.dart';
 import 'dev_tool_routes.dart';
 import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
+import 'plan_routes.dart';
 import 'push_routes.dart';
 import 'router_map_tab.dart';
 import 'startup_pages.dart';
@@ -207,6 +208,7 @@ GoRouter appRouter(Ref ref) {
           builder: (context, state) => const LocationDiagnosticsScreen(),
         ),
       if (isDev) ...devToolRoutes,
+      ...planRoutes,
       GoRoute(
         path: AppRoutes.savedPlans,
         builder: (context, state) => SavedPlansScreen(

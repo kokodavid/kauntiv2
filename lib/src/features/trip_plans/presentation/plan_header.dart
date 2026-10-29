@@ -37,6 +37,12 @@ class PlanHeader extends StatelessWidget {
         ? 'No date yet'
         : PlanLabels.range(plan.startDate, plan.endDate);
     final joined = plan.members.where((m) => m.joined).toList();
+    final ago = plan.isShared
+        ? PlanLabels.ago(plan.updatedAt, DateTime.now())
+        : null;
+    final updated = ago == null || plan.updatedByHandle == null
+        ? null
+        : 'Updated by ${plan.updatedByHandle} · $ago';
     final notes = [
       if (offline)
         savedAt == null
@@ -72,6 +78,11 @@ class PlanHeader extends StatelessWidget {
                     '$dates · ${PlanLabels.days(plan.days.length)}',
                     style: AppTypeScale.small,
                   ),
+                  if (updated != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(updated, style: AppTypeScale.meta),
+                    ),
                   if (notes.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),

@@ -58,10 +58,18 @@ class _PlannedViewState extends ConsumerState<PlannedView> {
     final Widget body;
     if (view != null) {
       body = view.plans.isEmpty
-          ? PlannedEmptyState(
-              limits: limits,
-              onPlanTrip: widget.onPlanTrip,
-              onFindPlaces: widget.onFindPlaces,
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Someone may have invited you before you have any plan.
+                if (!view.offline)
+                  PlannedInvitations(onOpenPlan: widget.onOpenPlan),
+                PlannedEmptyState(
+                  limits: limits,
+                  onPlanTrip: widget.onPlanTrip,
+                  onFindPlaces: widget.onFindPlaces,
+                ),
+              ],
             )
           : _Sections(
               plans: view.plans,

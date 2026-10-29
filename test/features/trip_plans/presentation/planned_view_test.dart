@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/application/plan_collaboration_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/planned_trips_list.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/trip_plans_providers.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_invite.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_limits.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_member.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/trip_plan_summary.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/presentation/planned_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../fake_plan_collaboration_repository.dart';
 import '../fake_trip_plans_repository.dart';
 
 TripPlanSummary _plan(
@@ -46,12 +49,14 @@ TripPlanSummary _plan(
 
 void main() {
   late FakeTripPlansRepository repository;
+  late FakePlanCollaborationRepository collaboration;
   var planTripTaps = 0;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     PlannedTripsList.resetSessionForTest();
     repository = FakeTripPlansRepository();
+    collaboration = FakePlanCollaborationRepository();
     planTripTaps = 0;
   });
 
@@ -60,6 +65,7 @@ void main() {
       ProviderScope(
         overrides: [
           tripPlansRepositoryProvider.overrideWithValue(repository),
+          planCollaborationRepositoryProvider.overrideWithValue(collaboration),
           currentUserIdProvider.overrideWithValue(() => 'me'),
           planClaimedCountyCodesProvider.overrideWith((ref) async => {22}),
         ],
@@ -126,6 +132,23 @@ void main() {
     await tester.tap(find.text('Show 1 ›'));
     await tester.pumpAndSettle();
     expect(find.text('Amboseli day trip'), findsOneWidget);
+  });
+
+  testWidgets('no plans but an invitation: it shows above the example', (
+    tester,
+  ) async {
+    collaboration.invitations = const [
+      PlanInvitation(
+        planId: 'plan-7',
+        title: 'Coast trip',
+        role: PlanRole.editor,
+        inviterHandle: 'mwangi_j',
+      ),
+    ];
+    await pump(tester);
+    expect(find.text('Invitations'), findsOneWidget);
+    expect(find.text('Coast trip'), findsOneWidget);
+    expect(find.text('Plan your next trip, day by day'), findsOneWidget);
   });
 
   testWidgets('Pro users see no allowance line', (tester) async {

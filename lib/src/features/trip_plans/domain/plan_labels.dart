@@ -65,4 +65,20 @@ abstract final class PlanLabels {
 
   static bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
+
+  /// How long ago something changed, for "Updated by nyati7 · 2 min ago".
+  /// Null when it is missing or more than a week old.
+  static String? ago(DateTime? at, DateTime now) {
+    if (at == null) return null;
+    final gap = now.difference(at);
+    if (gap.isNegative || gap.inMinutes < 1) return 'just now';
+    if (gap.inMinutes < 60) return '${gap.inMinutes} min ago';
+    if (gap.inHours < 24) return '${gap.inHours} h ago';
+    if (gap.inDays < 7) return '${gap.inDays} d ago';
+    return null;
+  }
+
+  /// Within the last few minutes: worth a highlight on the plan screen.
+  static bool isFresh(DateTime? at, DateTime now) =>
+      at != null && now.difference(at) < const Duration(minutes: 3);
 }

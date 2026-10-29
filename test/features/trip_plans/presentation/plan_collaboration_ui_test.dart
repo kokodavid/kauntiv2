@@ -11,8 +11,10 @@ import 'package:kaunti47_v2/src/features/trip_plans/application/plan_routing_pro
 import 'package:kaunti47_v2/src/features/trip_plans/application/planned_trips_list.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/trip_plans_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_invite.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_day.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_limits.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_member.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_place.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/trip_plan.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/presentation/plan_screen.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/presentation/planned_invitations.dart';
@@ -215,5 +217,50 @@ void main() {
     await tester.pumpAndSettle();
     expect(collaboration.calls, ['respond|plan-7|true']);
     expect(opened, 'plan-7');
+  });
+
+  testWidgets('a shared plan shows who changed it and what is new', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final base = _plan();
+    await open(
+      tester,
+      TripPlan(
+        id: base.id,
+        title: base.title,
+        ownerId: base.ownerId,
+        role: base.role,
+        start: base.start,
+        limits: base.limits,
+        members: base.members,
+        updatedAt: now.subtract(const Duration(seconds: 20)),
+        updatedByHandle: 'nyati7',
+        days: [
+          PlanDay(
+            id: 'd1',
+            number: 1,
+            stops: [
+              PlanStop(
+                id: 's1',
+                addedBy: 'buddy-1',
+                addedByHandle: 'nyati7',
+                updatedAt: now.subtract(const Duration(seconds: 20)),
+                place: const PlanPlace(
+                  id: 'p1',
+                  name: 'Hell\'s Gate',
+                  type: 'waterfall',
+                  countyCode: 32,
+                  lat: -0.9,
+                  lng: 36.3,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    expect(find.text('Updated by nyati7 · just now'), findsOneWidget);
+    expect(find.text('Added by nyati7 · just now'), findsOneWidget);
   });
 }

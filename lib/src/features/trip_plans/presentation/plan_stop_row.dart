@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/domain/place_type.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../../auth/application/auth_providers.dart';
 import '../domain/plan_day.dart';
+import '../domain/plan_labels.dart';
 import 'plan_place_thumb.dart';
 import 'plan_pro_sheet.dart';
 
@@ -19,7 +22,7 @@ String planPlaceMeta(String type, int countyCode) {
 
 /// One stop on a day: its number in the day's colour, the place, a note,
 /// who added it on a shared plan, and the road line down to the next stop.
-class PlanStopRow extends StatelessWidget {
+class PlanStopRow extends ConsumerWidget {
   const PlanStopRow({
     super.key,
     required this.stop,
@@ -46,9 +49,16 @@ class PlanStopRow extends StatelessWidget {
   final Widget? menu;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final meta = planPlaceMeta(stop.place.type, stop.place.countyCode);
     final by = showAddedBy ? stop.addedByHandle : null;
+    final now = DateTime.now();
+    final ago = by == null ? null : PlanLabels.ago(stop.updatedAt, now);
+    // Someone else's change from the last few minutes stands out softly.
+    final fresh =
+        by != null &&
+        stop.addedBy != ref.watch(currentUserIdProvider)() &&
+        PlanLabels.isFresh(stop.updatedAt, now);
     return Semantics(
       button: onOpenPlace != null,
       label: 'Stop $number, ${stop.place.name}',
@@ -56,7 +66,9 @@ class PlanStopRow extends StatelessWidget {
         onTap: onOpenPlace == null
             ? null
             : () => onOpenPlace!(context, stop.place.id),
-        child: IntrinsicHeight(
+        child: ColoredBox(
+          color: fresh ? AppColors.accentTint : Colors.transparent,
+          child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -119,7 +131,10 @@ class PlanStopRow extends StatelessWidget {
                       if (by != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
-                          child: Text('Added by $by', style: AppTypeScale.meta),
+                          child: Text(
+                            ago == null ? 'Added by $by' : 'Added by $by · $ago',
+                            style: AppTypeScale.meta,
+                          ),
                         ),
                       if (locked)
                         const Padding(
@@ -149,6 +164,7 @@ class PlanStopRow extends StatelessWidget {
                 const SizedBox(width: 12),
             ],
           ),
+        ),
         ),
       ),
     );

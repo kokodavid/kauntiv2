@@ -27,6 +27,7 @@ class SupabasePlanLiveSource implements PlanLiveSource {
   Stream<void> changes(String planId) {
     late final StreamController<void> controller;
     RealtimeChannel? channel;
+    // ignore: close_sinks, closed in onCancel below.
     controller = StreamController<void>(
       onListen: () {
         void nudge(Object? _) {

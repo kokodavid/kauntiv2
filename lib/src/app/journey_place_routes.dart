@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/domain/app_feature_flags.dart';
 import '../core/domain/map_place.dart';
+import '../features/discover/data/directions_launcher.dart';
 import '../features/discover/domain/place_detail.dart';
 import '../features/journeys/application/journey_recorder.dart';
 import '../features/journeys/domain/journey_destination.dart';
@@ -72,6 +73,28 @@ abstract final class JourneyPlaceRoutes {
     chooser: (_) async => JourneyRouteChoice.record,
   );
 
+  /// Start trip on a plan day: record the Trip with the day's last stop as
+  /// the destination and the stops before it on the way, and open
+  /// directions through the first [waypoints]. [onStarted] gets the new
+  /// Trip's id once recording has begun.
+  static Future<void> startPlanDay(
+    BuildContext context, {
+    required JourneyDestination destination,
+    required List<String> waypoints,
+    void Function(String journeyId)? onStarted,
+  }) => _open(
+    context,
+    destination,
+    () => const DirectionsLauncher().open(
+      latitude: destination.latitude,
+      longitude: destination.longitude,
+      query: destination.name,
+      waypoints: waypoints,
+    ),
+    chooser: (_) async => JourneyRouteChoice.record,
+    onStarted: onStarted,
+  );
+
   static Future<void> openPromotion(
     BuildContext context,
     MapHomePromotedPlace place,
@@ -91,6 +114,7 @@ abstract final class JourneyPlaceRoutes {
     JourneyDestination destination,
     _LaunchDirections launchDirections, {
     Future<JourneyRouteChoice?> Function(BuildContext context)? chooser,
+    void Function(String journeyId)? onStarted,
   }) async {
     if (!AppFeatureFlags.journeys) {
       await _openDirections(context, launchDirections);
@@ -143,6 +167,8 @@ abstract final class JourneyPlaceRoutes {
       }
       return;
     }
+    final startedId = container.read(journeyRecorderProvider)?.id;
+    if (startedId != null) onStarted?.call(startedId);
 
     final opened = await _tryDirections(launchDirections);
     if (opened) return;

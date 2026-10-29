@@ -8,6 +8,7 @@ import 'package:kaunti47_v2/src/features/trip_plans/application/plan_routing_pro
 import 'package:kaunti47_v2/src/features/trip_plans/application/trip_plans_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/data/trip_plans_snapshot_store.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_day.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_day_recording.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_failure.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_limits.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_member.dart';
@@ -67,7 +68,12 @@ void main() {
     routing = FakePlanRoutingClient();
   });
 
-  Future<void> open(WidgetTester tester, {String id = 'plan-1'}) async {
+  Future<void> open(
+    WidgetTester tester, {
+    String id = 'plan-1',
+    Future<void> Function(BuildContext, TripPlan, PlanDay)? onStartDay,
+    void Function(BuildContext, String)? onWatchReplay,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -78,7 +84,13 @@ void main() {
           planClaimedCountyCodesProvider.overrideWith((ref) async => {}),
         ],
         child: MaterialApp(
-          home: PlanScreen(planId: id, onBack: () {}, homeCountyCode: 47),
+          home: PlanScreen(
+            planId: id,
+            onBack: () {},
+            homeCountyCode: 47,
+            onStartDay: onStartDay,
+            onWatchReplay: onWatchReplay,
+          ),
         ),
       ),
     );
@@ -198,5 +210,42 @@ void main() {
     expect(find.byTooltip('Stop options'), findsNothing);
     expect(find.text('Add a day'), findsNothing);
     expect(find.text('View only'), findsOneWidget);
+  });
+
+  testWidgets('Start trip asks first, then hands the day over', (tester) async {
+    PlanDay? started;
+    await open(
+      tester,
+      onStartDay: (context, plan, day) async => started = day,
+    );
+    await tester.tap(find.text('Start trip').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Start Day 1?'), findsOneWidget);
+    expect(find.text("1. Hell's Gate"), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Start trip'));
+    await tester.pumpAndSettle();
+    expect(started?.id, 'd1');
+  });
+
+  testWidgets('a recorded day shows its Trip and Watch replay', (
+    tester,
+  ) async {
+    repository.recordings['plan-1'] = [
+      PlanDayRecording(
+        dayId: 'd1',
+        journeyId: 'trip-9',
+        startedAt: DateTime(2026, 11, 14, 8),
+      ),
+    ];
+    String? replay;
+    await open(
+      tester,
+      onStartDay: (context, plan, day) async {},
+      onWatchReplay: (context, id) => replay = id,
+    );
+    expect(find.text('Recorded on Sat 14 Nov'), findsOneWidget);
+    expect(find.text('Record again'), findsOneWidget);
+    await tester.tap(find.text('Watch replay'));
+    expect(replay, 'trip-9');
   });
 }

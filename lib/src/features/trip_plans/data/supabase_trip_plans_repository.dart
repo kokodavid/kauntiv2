@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../domain/new_plan_request.dart';
 import '../domain/plan_failure.dart';
+import '../domain/plan_day_recording.dart';
 import '../domain/plan_limits.dart';
 import '../domain/plan_ref.dart';
 import '../domain/trip_plan.dart';
@@ -63,6 +64,21 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
         for (final raw in result) ?PlanRef.fromJson(raw),
     ];
   }
+
+  @override
+  Future<List<PlanDayRecording>> myRecordings(String planId) async {
+    final result = await _call('my_trip_plan_recordings', {'p_plan': planId});
+    return [
+      if (result is List)
+        for (final raw in result) ?PlanDayRecording.fromJson(raw),
+    ];
+  }
+
+  @override
+  Future<void> linkDayRecording(String dayId, String journeyId) => _call(
+    'link_trip_plan_day_recording',
+    {'p_day': dayId, 'p_journey': journeyId},
+  );
 
   @override
   Future<PlanLimits> myLimits() async =>

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../domain/plan_counties.dart';
+import '../domain/plan_day_recording.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_day_path.dart';
 import '../domain/plan_labels.dart';
@@ -29,6 +30,9 @@ class PlanDaySection extends StatelessWidget {
     this.homeCode,
     this.onOpenPlace,
     this.actions,
+    this.recording,
+    this.onStart,
+    this.onWatchReplay,
   });
 
   final TripPlan plan;
@@ -43,6 +47,13 @@ class PlanDaySection extends StatelessWidget {
   final int? homeCode;
   final OpenPlanPlace? onOpenPlace;
   final PlanDayActions? actions;
+
+  /// My Trip recorded for this day, if any.
+  final PlanDayRecording? recording;
+
+  /// Start trip for this day; null when it can't be started here.
+  final VoidCallback? onStart;
+  final void Function(String journeyId)? onWatchReplay;
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +229,30 @@ class PlanDaySection extends StatelessWidget {
                 ),
               ),
             PlanRouteLine(route: route, onRetry: onRetryRoute),
+            if (recording != null)
+              PlanRecordedRow(
+                recording: recording!,
+                onWatchReplay: onWatchReplay == null
+                    ? null
+                    : () => onWatchReplay!(recording!.journeyId),
+              ),
+            if (onStart != null && day.stops.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                    onPressed: onStart,
+                    icon: const Icon(Icons.play_arrow),
+                    label: Text(
+                      recording == null ? 'Start trip' : 'Record again',
+                    ),
+                  ),
+                ),
+              ),
             if (countiesLine != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),

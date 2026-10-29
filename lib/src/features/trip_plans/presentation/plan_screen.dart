@@ -6,14 +6,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/app_colors.dart';
 import '../application/plan_collapsed_days.dart';
 import '../application/plan_detail.dart';
+import '../application/plan_recordings.dart';
 import '../application/plan_route_saver.dart';
 import '../application/plan_routing_providers.dart';
 import '../application/trip_plans_providers.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_day_path.dart';
+import '../domain/plan_day_recording.dart';
 import '../domain/plan_member.dart';
 import '../domain/plan_route.dart';
 import '../domain/plan_totals.dart';
+import '../domain/trip_plan.dart';
 import 'plan_day_chips.dart';
 import 'plan_day_section.dart';
 import 'plan_header.dart';
@@ -23,6 +26,7 @@ import 'plan_places_row.dart';
 import 'plan_screen_actions.dart';
 import 'plan_screen_states.dart';
 import 'plan_stop_row.dart';
+import 'start_day_confirm.dart';
 import 'plan_totals_bar.dart';
 
 /// A trip plan (design 3a to 3c), read side: header, map, totals, day
@@ -35,12 +39,22 @@ class PlanScreen extends ConsumerStatefulWidget {
     required this.onBack,
     this.homeCountyCode,
     this.onOpenPlace,
+    this.onStartDay,
+    this.onWatchReplay,
   });
 
   final String planId;
   final VoidCallback onBack;
   final int? homeCountyCode;
   final OpenPlanPlace? onOpenPlace;
+
+  /// Records a Trip for a day and opens directions (app/ wires the
+  /// recorder). Null hides Start trip.
+  final Future<void> Function(BuildContext context, TripPlan plan, PlanDay day)?
+  onStartDay;
+
+  /// Opens a recorded Trip's replay.
+  final void Function(BuildContext context, String journeyId)? onWatchReplay;
 
   @override
   ConsumerState<PlanScreen> createState() => _PlanScreenState();
@@ -98,6 +112,21 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     );
   }
 
+  Future<void> _startDay(
+    TripPlan plan,
+    PlanDay day,
+    PlanDayRecording? before,
+  ) async {
+    final ok = await showStartDayConfirm(
+      context,
+      day,
+      recordedBefore: before != null,
+    );
+    if (!ok || !mounted) return;
+    await widget.onStartDay!(context, plan, day);
+    if (mounted) ref.invalidate(planRecordingsProvider(plan.id));
+  }
+
   Widget _loaded(PlanDetailView view) {
     final plan = view.plan;
     final claimed =
@@ -143,6 +172,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       },
     );
 
+    final recordings =
+        ref.watch(planRecordingsProvider(plan.id)).value ??
+        const <String, PlanDayRecording>{};
     final stored = ref.watch(planCollapsedDaysProvider(plan.id)).value;
     final collapsed = stored ?? PlanCollapsedDays.defaultFor(plan.days.length);
 
@@ -210,6 +242,15 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                     homeCode: widget.homeCountyCode,
                     onOpenPlace: widget.onOpenPlace,
                     actions: actions?.forDay(day),
+                    recording: recordings[day.id],
+                    onStart: widget.onStartDay == null || view.offline
+                        ? null
+                        : () => unawaited(
+                            _startDay(plan, day, recordings[day.id]),
+                          ),
+                    onWatchReplay: widget.onWatchReplay == null
+                        ? null
+                        : (id) => widget.onWatchReplay!(context, id),
                   ),
                 ),
               if (actions != null)

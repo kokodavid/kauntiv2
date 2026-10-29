@@ -1,4 +1,5 @@
 import '../domain/new_plan_request.dart';
+import '../domain/plan_day_recording.dart';
 import '../domain/plan_limits.dart';
 import '../domain/plan_ref.dart';
 import '../domain/trip_plan.dart';
@@ -50,6 +51,13 @@ abstract interface class TripPlansRepository {
 
   /// My plans that already hold [placeId] (on a day or Places to visit).
   Future<List<PlanRef>> plansWithPlace(String placeId);
+
+  /// The Trips I recorded for [planId]'s days (the latest per day).
+  Future<List<PlanDayRecording>> myRecordings(String planId);
+
+  /// Links the Trip being recorded to a plan day. Its id is made on the
+  /// phone; the link counts once the Trip is uploaded.
+  Future<void> linkDayRecording(String dayId, String journeyId);
 
   /// Moves the old planner's saved trips into plans; returns how many.
   Future<int> convertSavedTrips();

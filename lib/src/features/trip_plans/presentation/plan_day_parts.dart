@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
+import '../domain/plan_day_recording.dart';
 import '../domain/plan_labels.dart';
 import '../domain/plan_route.dart';
 import 'plan_stop_menu.dart';
@@ -107,6 +108,49 @@ class PlanRouteLine extends StatelessWidget {
         '${PlanLabels.distance(worked.distanceM)} by road · '
         '${PlanLabels.drive(worked.durationS)} · estimate',
         style: AppTypeScale.meta,
+      ),
+    );
+  }
+}
+
+/// "Recorded on Sat 14 Nov · Watch replay" (design 7c).
+class PlanRecordedRow extends StatelessWidget {
+  const PlanRecordedRow({
+    super.key,
+    required this.recording,
+    this.onWatchReplay,
+  });
+
+  final PlanDayRecording recording;
+  final VoidCallback? onWatchReplay;
+
+  @override
+  Widget build(BuildContext context) {
+    final at = recording.startedAt?.toLocal();
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+      padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+      decoration: BoxDecoration(
+        color: AppColors.successTint,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, size: 18, color: AppColors.legendHome),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              at == null ? 'Recorded' : 'Recorded on ${PlanLabels.day(at)}',
+              style: AppTypeScale.small,
+            ),
+          ),
+          if (onWatchReplay != null)
+            TextButton(
+              style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
+              onPressed: onWatchReplay,
+              child: const Text('Watch replay'),
+            ),
+        ],
       ),
     );
   }

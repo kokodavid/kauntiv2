@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/domain/app_feature_flags.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/trip_plans/presentation/plan_screen.dart';
 import 'app_routes.dart';
+import 'plan_start_day.dart';
 
 /// The trip plan screen, pushed over the tab bar from the Planned list.
 final planRoutes = <RouteBase>[
@@ -27,5 +29,7 @@ class _PlanPage extends ConsumerWidget {
     ),
     onBack: () => Navigator.of(context).maybePop(),
     onOpenPlace: (context, id) => context.push(AppRoutes.place(id)),
+    onStartDay: AppFeatureFlags.journeys ? startPlanDay : null,
+    onWatchReplay: (context, id) => context.push(AppRoutes.journey(id)),
   );
 }

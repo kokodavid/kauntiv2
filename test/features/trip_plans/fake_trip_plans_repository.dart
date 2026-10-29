@@ -1,5 +1,6 @@
 import 'package:kaunti47_v2/src/features/trip_plans/data/trip_plans_repository.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/new_plan_request.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_day_recording.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_failure.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_limits.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_member.dart';
@@ -68,6 +69,20 @@ class FakeTripPlansRepository implements TripPlansRepository {
   /// Plans [plansWithPlace] reports, by place id.
   final holding = <String, List<PlanRef>>{};
   final added = <String>[];
+  final recordings = <String, List<PlanDayRecording>>{};
+  final links = <String>[];
+
+  @override
+  Future<List<PlanDayRecording>> myRecordings(String planId) async {
+    _maybeFail();
+    return recordings[planId] ?? const [];
+  }
+
+  @override
+  Future<void> linkDayRecording(String dayId, String journeyId) async {
+    _maybeFail();
+    links.add('$dayId|$journeyId');
+  }
 
   @override
   Future<List<PlanRef>> plansWithPlace(String placeId) async {

@@ -1,16 +1,22 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/app_config_provider.dart';
+import '../data/geoapify_plan_place_search.dart';
 import '../data/plan_place_search_client.dart';
 import '../domain/plan_place_suggestion.dart';
 import 'create_plan_controller.dart';
 
 part 'plan_place_search.g.dart';
 
-/// The start-point search. Null in a build without a Mapbox token.
+/// The start-point search: Geoapify when its key is set (it finds businesses
+/// and landmarks), else Mapbox's address search, else none.
 @Riverpod(keepAlive: true)
 PlanPlaceSearchClient? planPlaceSearchClient(Ref ref) {
-  final token = ref.watch(appConfigProvider).mapboxAccessToken;
+  final config = ref.watch(appConfigProvider);
+  if (config.geoapifyApiKey.isNotEmpty) {
+    return GeoapifyPlanPlaceSearch(apiKey: config.geoapifyApiKey);
+  }
+  final token = config.mapboxAccessToken;
   return token.isEmpty ? null : MapboxPlanPlaceSearch(accessToken: token);
 }
 

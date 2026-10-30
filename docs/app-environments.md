@@ -63,6 +63,18 @@ console.mapbox.com → Tokens):
 Without it (or on web), Home shows the drawn county map. Never use a secret
 (`sk.…`) token in the app. Use separate dev and prod tokens.
 
+The trip planner's start-point search ("Choose a place") uses Geoapify
+(OpenStreetMap data). Add its key to the same defines file:
+
+```bash
+--dart-define=GEOAPIFY_API_KEY=<geoapify-api-key>
+```
+
+Without it the search falls back to Mapbox's address search, which has no
+businesses or landmarks. Geoapify keys cannot be locked to an app, so use a
+separate key per environment and watch its daily usage. The search page shows
+the required "Geoapify · © OpenStreetMap contributors" credit.
+
 The Supabase publishable key is designed for client apps, but it should still
 not be hardcoded in source. Keeping it in build configuration avoids mixing
 projects accidentally and keeps local development flexible.

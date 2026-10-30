@@ -73,6 +73,16 @@ class _StartSearchPageState extends ConsumerState<StartSearchPage> {
             ),
           ),
           Expanded(child: _body(query, results)),
+          const SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Search by Geoapify · © OpenStreetMap contributors',
+                style: AppTypeScale.meta,
+              ),
+            ),
+          ),
         ],
       ),
     );

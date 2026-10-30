@@ -13,7 +13,6 @@ import 'explore_ad_slot.dart';
 import 'place_detail_about_tile.dart';
 import 'place_detail_bar.dart';
 import 'place_detail_header.dart';
-import 'place_detail_tabs.dart';
 
 typedef PlaceDetailSectionBuilder =
     Widget Function(BuildContext context, PlaceDetailData place);
@@ -21,17 +20,14 @@ typedef PlaceDetailSectionBuilder =
 typedef OpenPlaceRoute =
     Future<void> Function(BuildContext context, PlaceDetailData place);
 
-/// Place Detail: the photos, an expandable About tile and, for a place with
-/// coordinates, the trip plan, scrolling together above a fixed bottom bar
-/// with Start trip. A place without coordinates has a Get Route button.
+/// Place Detail: the photos and an expandable About tile, scrolling together
+/// above a fixed bottom bar with Get Route, Share and Save.
 class PlaceDetailScreen extends StatelessWidget {
   const PlaceDetailScreen({
     super.key,
     required this.placeId,
     required this.actions,
     this.onGetRoute,
-    this.gettingThere,
-    this.startButton,
     this.photos,
     this.checkIn,
     this.addToTrip,
@@ -41,20 +37,12 @@ class PlaceDetailScreen extends StatelessWidget {
   final DiscoverDetailActions actions;
   final OpenPlaceRoute? onGetRoute;
 
-  /// The trip plan, supplied by app/ (features compose there, not
-  /// here). Only built for places with coordinates.
-  final PlaceDetailSectionBuilder? gettingThere;
-
-  /// The bottom bar's main button while [gettingThere] is shown: the trip
-  /// builder's own "Start trip".
-  final PlaceDetailSectionBuilder? startButton;
-
   /// The Photos section (strip, add tile, status chip), supplied by app/
-  /// (features compose there). Shown on the About tab.
+  /// (features compose there).
   final PlaceDetailSectionBuilder? photos;
 
-  /// The check-in card ("I'm here"), supplied by app/. Shown on the About
-  /// tab of a place with coordinates, above the photos.
+  /// The check-in card ("I'm here"), supplied by app/. Shown for a place with
+  /// coordinates, above the photos.
   final PlaceDetailSectionBuilder? checkIn;
 
   /// "Add to trip", supplied by app/. Shown under the photos for every place.
@@ -72,8 +60,6 @@ class PlaceDetailScreen extends StatelessWidget {
             data: data,
             actions: actions,
             onGetRoute: onGetRoute,
-            gettingThere: gettingThere,
-            startButton: startButton,
             photos: photos,
             checkIn: checkIn,
             addToTrip: addToTrip,
@@ -89,8 +75,6 @@ class _PlaceDetailBody extends StatefulWidget {
     required this.data,
     required this.actions,
     this.onGetRoute,
-    this.gettingThere,
-    this.startButton,
     this.photos,
     this.checkIn,
     this.addToTrip,
@@ -99,8 +83,6 @@ class _PlaceDetailBody extends StatefulWidget {
   final PlaceDetailData data;
   final DiscoverDetailActions actions;
   final OpenPlaceRoute? onGetRoute;
-  final PlaceDetailSectionBuilder? gettingThere;
-  final PlaceDetailSectionBuilder? startButton;
   final PlaceDetailSectionBuilder? photos;
   final PlaceDetailSectionBuilder? checkIn;
   final PlaceDetailSectionBuilder? addToTrip;
@@ -111,12 +93,6 @@ class _PlaceDetailBody extends StatefulWidget {
 
 class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
   bool _openingRoute = false;
-  PlaceDetailTab _tab = PlaceDetailTab.about;
-
-  bool get _planned =>
-      widget.gettingThere != null &&
-      widget.startButton != null &&
-      widget.data.hasCoordinates;
 
   Future<void> _getRoute(BuildContext context) async {
     if (_openingRoute) return;
@@ -138,7 +114,7 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
     }
   }
 
-  /// The place's story: description, every photo, and a way into the planner.
+  /// The place's story: description and every photo.
   Widget _about(BuildContext context, PlaceDetailData data) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -189,21 +165,9 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                           child: widget.checkIn!(context, data),
                         ),
-                      if (_planned)
-                        PlaceDetailTabs(
-                          selected: _tab,
-                          onChanged: (tab) => setState(() => _tab = tab),
-                        ),
                       Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          16,
-                          _planned ? 14 : 12,
-                          16,
-                          0,
-                        ),
-                        child: _planned && _tab == PlaceDetailTab.plan
-                            ? widget.gettingThere!(context, data)
-                            : _about(context, data),
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                        child: _about(context, data),
                       ),
                     ],
                   ),
@@ -222,12 +186,10 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
           ),
         ),
         PlaceDetailBar(
-          primary: _planned
-              ? widget.startButton!(context, data)
-              : _GetRouteButton(
-                  busy: _openingRoute,
-                  onPressed: () => unawaited(_getRoute(context)),
-                ),
+          primary: _GetRouteButton(
+            busy: _openingRoute,
+            onPressed: () => unawaited(_getRoute(context)),
+          ),
           saved: data.saved,
           onSavedChanged: (saved) => widget.actions.setPlaceSaved(
             countyCode: data.county.code,

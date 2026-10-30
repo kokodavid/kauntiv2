@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../application/plan_places_providers.dart';
 import '../application/trip_plans_providers.dart';
@@ -36,10 +37,13 @@ class AddToTripButton extends ConsumerWidget {
         : 'In $count trips · Add to another';
     return SizedBox(
       width: double.infinity,
-      child: OutlinedButton.icon(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
+      child: TextButton.icon(
+        style: TextButton.styleFrom(
+          minimumSize: const Size.fromHeight(44),
+          backgroundColor: AppColors.accentTint,
           foregroundColor: AppColors.accent,
+          textStyle: AppTypeScale.action,
+          shape: const StadiumBorder(),
         ),
         onPressed: () => unawaited(
           showAddToTrip(
@@ -50,7 +54,10 @@ class AddToTripButton extends ConsumerWidget {
             onOpenPlan: onOpenPlan,
           ),
         ),
-        icon: Icon(count == 0 ? Icons.add : Icons.bookmark_added_outlined),
+        icon: Icon(
+          count == 0 ? Icons.add : Icons.bookmark_added_outlined,
+          size: 18,
+        ),
         label: Text(label),
       ),
     );

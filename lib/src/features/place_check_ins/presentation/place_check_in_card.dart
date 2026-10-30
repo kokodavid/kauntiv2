@@ -7,9 +7,8 @@ import '../application/place_check_in_providers.dart';
 import 'check_in_view.dart';
 
 /// "Been here?" as one quiet row under the place's hero: an icon, a title
-/// with one line of status, and an outlined "I'm here" pill. The pill is
-/// deliberately not a filled button so Start trip stays the one primary
-/// action. Hidden while the dashboard has check-ins off.
+/// with one line of status, and a soft blue "I'm here" pill, in a white
+/// card like the rest of the page. Hidden while the dashboard has check-ins off.
 class PlaceCheckInCard extends ConsumerWidget {
   const PlaceCheckInCard({
     super.key,
@@ -23,7 +22,6 @@ class PlaceCheckInCard extends ConsumerWidget {
   static const _ink = Color(0xFF18181B);
   static const _tintBg = Color(0xFFE6F3FF);
   static const _tintTitle = Color(0xFF0B3A75);
-  static const _pillBorder = Color(0xFFCFE6FF);
   static const _pillText = Color(0xFF0A5FD4);
 
   @override
@@ -42,8 +40,11 @@ class PlaceCheckInCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: view.tinted ? _tintBg : Colors.transparent,
+        color: view.tinted ? _tintBg : AppColors.exploreSurface,
         borderRadius: BorderRadius.circular(16),
+        border: view.tinted
+            ? null
+            : Border.all(color: AppColors.exploreBorder),
       ),
       child: Row(
         children: [
@@ -144,13 +145,8 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = busy ? AppColors.mutedForeground : PlaceCheckInCard._pillText;
     return Material(
-      color: Colors.white,
-      shape: StadiumBorder(
-        side: BorderSide(
-          width: 1.5,
-          color: busy ? AppColors.cardBorder : PlaceCheckInCard._pillBorder,
-        ),
-      ),
+      color: AppColors.accentTint,
+      shape: const StadiumBorder(),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: busy ? null : onTap,

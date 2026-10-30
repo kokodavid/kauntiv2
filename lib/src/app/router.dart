@@ -29,8 +29,6 @@ import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../features/trip_planner/presentation/saved_plans_screen.dart';
-import '../features/trip_planner/presentation/trip_plan_section.dart';
-import '../features/trip_planner/presentation/trip_start_button.dart';
 import '../features/trip_plans/presentation/add_to_trip_button.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
@@ -223,28 +221,6 @@ GoRouter appRouter(Ref ref) {
           placeId: state.pathParameters['id']!,
           actions: DetailRoutes.actions!,
           onGetRoute: JourneyPlaceRoutes.open,
-          gettingThere: (context, place) => TripPlanSection(
-            placeId: place.id,
-            placeName: place.title,
-            latitude: place.latitude!,
-            longitude: place.longitude!,
-            onStart: (context, stops) =>
-                JourneyPlaceRoutes.startPlanned(context, place, stops),
-            onOpenPlace: DetailRoutes.openPlace,
-            onDirections: (stops) async {
-              await DetailRoutes.actions!.openDirections(
-                place,
-                waypoints: [for (final s in stops) '${s.lat},${s.lng}'],
-              );
-            },
-          ),
-          startButton: (context, place) => TripStartButton(
-            placeId: place.id,
-            latitude: place.latitude!,
-            longitude: place.longitude!,
-            onStart: (context, stops) =>
-                JourneyPlaceRoutes.startPlanned(context, place, stops),
-          ),
           photos: PlacePhotosRoutes.placeSection,
           addToTrip: (context, place) => AddToTripButton(
             placeId: place.id,

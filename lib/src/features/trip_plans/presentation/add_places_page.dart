@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../../../widgets/app_progress_indicator.dart';
 import '../application/plan_places_providers.dart';
 import '../domain/plan_place.dart';
 import '../domain/plan_place_query.dart';
@@ -78,7 +79,21 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
     });
   }
 
-  void _refine({int? county, bool clearCounty = false, String? type, bool clearType = false}) {
+  void _showMore() => setState(
+    () => _query = PlanPlaceQuery(
+      text: _query.text,
+      countyCode: _query.countyCode,
+      type: _query.type,
+      limit: _query.limit + PlanPlaceQuery.pageSize,
+    ),
+  );
+
+  void _refine({
+    int? county,
+    bool clearCounty = false,
+    String? type,
+    bool clearType = false,
+  }) {
     setState(
       () => _query = PlanPlaceQuery(
         text: _text.text,
@@ -153,6 +168,11 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 PlaceFilterChip(
+                  label: 'All',
+                  selected: _query.countyCode == null && _query.type == null,
+                  onTap: () => _refine(clearCounty: true, clearType: true),
+                ),
+                PlaceFilterChip(
                   label: countyName,
                   icon: Icons.map_outlined,
                   selected: _query.countyCode != null,
@@ -176,9 +196,6 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
   }
 
   Widget _body(AsyncValue<List<PlanPlace>> results) {
-    if (!_query.isReady) {
-      return const _Note('Search by name, or pick a county or a type.');
-    }
     if (results.hasError && !results.hasValue) {
       return _Note(
         "Couldn't load places. Check your connection.",
@@ -187,19 +204,31 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
     }
     final places = results.value;
     if (places == null) {
-      return const Center(child: CircularProgressIndicator.adaptive());
+      return const Center(child: AppProgressIndicator());
     }
     if (places.isEmpty) return const _Note('No places match. Try fewer words.');
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-      itemCount: places.length,
-      itemBuilder: (context, i) => _Row(
-        place: places[i],
-        added: _added.contains(places[i].id),
-        adding: _adding.contains(places[i].id),
-        pickOnly: widget.onAdd == null,
-        onTap: () => unawaited(_add(places[i])),
-      ),
+      itemCount: places.length + (places.length >= _query.limit ? 1 : 0),
+      itemBuilder: (context, i) => i == places.length
+          ? Center(
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.accent,
+                  textStyle: AppTypeScale.action,
+                  minimumSize: const Size(44, 44),
+                ),
+                onPressed: _showMore,
+                child: const Text('Show more'),
+              ),
+            )
+          : _Row(
+              place: places[i],
+              added: _added.contains(places[i].id),
+              adding: _adding.contains(places[i].id),
+              pickOnly: widget.onAdd == null,
+              onTap: () => unawaited(_add(places[i])),
+            ),
     );
   }
 }
@@ -255,7 +284,7 @@ class _Row extends StatelessWidget {
                 child: adding
                     ? const Padding(
                         padding: EdgeInsets.all(12),
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: AppProgressIndicator(radius: 8),
                       )
                     : Icon(
                         added ? Icons.check_circle : Icons.add_circle_outline,

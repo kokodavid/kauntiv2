@@ -15,12 +15,12 @@ PlanPlacesRepository? planPlacesRepository(Ref ref) {
   return client == null ? null : SupabasePlanPlacesRepository(client);
 }
 
-/// Places matching [query]; nothing until the query is ready.
+/// Places matching [query]; every place when it asks for nothing.
 @riverpod
 Future<List<PlanPlace>> planPlaceSearch(Ref ref, PlanPlaceQuery query) async {
   final repository = ref.watch(planPlacesRepositoryProvider);
-  if (repository == null || !query.isReady) return const [];
-  return repository.search(query);
+  if (repository == null) return const [];
+  return repository.search(query, limit: query.limit);
 }
 
 /// The plans that already hold [placeId], for "In 2 trips". Empty when it

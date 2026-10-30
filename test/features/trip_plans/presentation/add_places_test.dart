@@ -60,10 +60,10 @@ void main() {
         ),
       ),
     );
-    expect(
-      find.text('Search by name, or pick a county or a type.'),
-      findsOneWidget,
-    );
+    // Everything is listed before any search or filter.
+    expect(find.text('All'), findsOneWidget);
+    expect(find.text("Hell's Gate"), findsOneWidget);
+    expect(find.text('Menengai Crater'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'hell');
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();

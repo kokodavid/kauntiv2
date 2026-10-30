@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/services/supabase_client_provider.dart';
 import '../data/plan_places_repository.dart';
 import '../domain/plan_place.dart';
+import '../domain/plan_place_facets.dart';
 import '../domain/plan_place_query.dart';
 import '../domain/plan_ref.dart';
 import 'trip_plans_providers.dart';
@@ -21,6 +22,14 @@ Future<List<PlanPlace>> planPlaceSearch(Ref ref, PlanPlaceQuery query) async {
   final repository = ref.watch(planPlacesRepositoryProvider);
   if (repository == null) return const [];
   return repository.search(query, limit: query.limit);
+}
+
+/// Which types and counties have places, for the filter chips.
+@riverpod
+Future<PlanPlaceFacets> planPlaceFacets(Ref ref) async {
+  final repository = ref.watch(planPlacesRepositoryProvider);
+  if (repository == null) return const PlanPlaceFacets();
+  return repository.facets();
 }
 
 /// The plans that already hold [placeId], for "In 2 trips". Empty when it

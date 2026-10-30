@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../counties/county_paths.dart';
+import '../../../core/widgets/app_search_field.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../application/plan_places_providers.dart';
+import '../domain/plan_place_facets.dart';
 import '../domain/plan_place.dart';
 import '../domain/plan_place_query.dart';
 import 'add_places_filters.dart';
@@ -106,6 +108,7 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
     final code = await showCountyFilterSheet(
       context,
       selected: _query.countyCode,
+      only: ref.read(planPlaceFacetsProvider).value?.counties,
     );
     if (code == null) return;
     _refine(county: code == 0 ? null : code, clearCounty: code == 0);
@@ -130,6 +133,8 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
   @override
   Widget build(BuildContext context) {
     final results = ref.watch(planPlaceSearchProvider(_query));
+    // Until it is known (or if it can't be read) every filter is offered.
+    final facets = ref.watch(planPlaceFacetsProvider).value;
     final countyName = _query.countyCode == null
         ? 'County'
         : CountyPaths.byCode[_query.countyCode]?.name ?? 'County';
@@ -144,20 +149,10 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: TextField(
+            child: AppSearchField(
               controller: _text,
               onChanged: _typed,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: 'Search places',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: AppColors.exploreSurface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              hint: 'Search places',
             ),
           ),
           SizedBox(
@@ -171,13 +166,16 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
                   selected: _query.countyCode == null && _query.type == null,
                   onTap: () => _refine(clearCounty: true, clearType: true),
                 ),
-                PlaceFilterChip(
-                  label: countyName,
-                  icon: Icons.map_outlined,
-                  selected: _query.countyCode != null,
-                  onTap: () => unawaited(_pickCounty()),
-                ),
-                for (final choice in placeTypeChoices())
+                if (facets == null ||
+                    facets.counties.isNotEmpty ||
+                    _query.countyCode != null)
+                  PlaceFilterChip(
+                    label: countyName,
+                    icon: Icons.map_outlined,
+                    selected: _query.countyCode != null,
+                    onTap: () => unawaited(_pickCounty()),
+                  ),
+                for (final choice in placeTypeChoices(only: facets?.types))
                   PlaceFilterChip(
                     label: choice.label,
                     selected: _query.type == choice.key,

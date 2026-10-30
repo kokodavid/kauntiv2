@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_search_field.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/explore_board.dart';
@@ -177,53 +178,8 @@ class _ExploreSearchFieldState extends State<ExploreSearchField> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final hint = AppTextStyles.searchInputText.copyWith(
-      color: AppColors.mutedForeground,
-    );
-    return Container(
-      constraints: const BoxConstraints(minHeight: 36),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.exploreSurface,
-        border: Border.all(color: AppColors.trackInactive),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, size: 16, color: AppColors.mutedForeground),
-          const SizedBox(width: 6),
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              onChanged: widget.onChanged,
-              textInputAction: TextInputAction.search,
-              style: AppTextStyles.searchInputText,
-              // Plain InputDecoration, not `.collapsed()`: collapsed only
-              // clears the generic `border` field, so the app's global
-              // inputDecorationTheme (explicit enabledBorder/focusedBorder,
-              // filled white) still painted its own rounded border around
-              // the field -- a "search inside a search" nested pill inside
-              // this Container's own pill border. Zeroing every border
-              // variant here removes it.
-              decoration: InputDecoration(
-                isCollapsed: true,
-                hintText: 'Search...',
-                hintStyle: hint,
-                filled: false,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
-                errorBorder: InputBorder.none,
-                focusedErrorBorder: InputBorder.none,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      AppSearchField(controller: _controller, onChanged: widget.onChanged);
 }
 
 /// MINE / UNCLAIMED / SAVED pills with counts. A missing count shows the

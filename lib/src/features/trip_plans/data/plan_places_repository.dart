@@ -1,11 +1,15 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../domain/plan_place.dart';
+import '../domain/plan_place_facets.dart';
 import '../domain/plan_place_query.dart';
 
 /// Finds places to put in a plan.
 abstract interface class PlanPlacesRepository {
   Future<List<PlanPlace>> search(PlanPlaceQuery query, {int limit = 30});
+
+  /// The types and counties that have places.
+  Future<PlanPlaceFacets> facets();
 }
 
 /// Reviewed places from `places` (any signed-in user may read them).
@@ -47,6 +51,28 @@ class SupabasePlanPlacesRepository implements PlanPlacesRepository {
             thumbnailUrl: _thumbnail(row['place_images']),
           ),
     ];
+  }
+
+  @override
+  Future<PlanPlaceFacets> facets() async {
+    final rows = await client
+        .from('places')
+        .select('type, county_id')
+        .eq('status', 'reviewed')
+        .isFilter('archived_at', null)
+        .limit(5000)
+        .timeout(const Duration(seconds: 8));
+    return PlanPlaceFacets(
+      types: {
+        for (final row in rows)
+          if (row['type'] is String && (row['type'] as String).isNotEmpty)
+            row['type'] as String,
+      },
+      counties: {
+        for (final row in rows)
+          if (row['county_id'] is num) (row['county_id'] as num).toInt(),
+      },
+    );
   }
 
   static String? _thumbnail(Object? images) {

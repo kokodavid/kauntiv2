@@ -91,6 +91,24 @@ void main() {
     expect(find.text("Hell's Gate"), findsNothing);
   });
 
+  testWidgets('Add places: only filters that have places are offered', (
+    tester,
+  ) async {
+    final places = FakePlanPlacesRepository([_hells, _menengai]);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [planPlacesRepositoryProvider.overrideWithValue(places)],
+        child: MaterialApp(
+          home: AddPlacesPage(title: 'Add', onAdd: (_) async => true),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Hikes'), findsOneWidget);
+    expect(find.text('Parks'), findsOneWidget);
+    expect(find.text('Waterfalls'), findsNothing);
+  });
+
   testWidgets('Add to trip: plan, then day, then Undo-able toast', (
     tester,
   ) async {

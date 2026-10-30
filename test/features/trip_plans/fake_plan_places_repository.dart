@@ -1,5 +1,6 @@
 import 'package:kaunti47_v2/src/features/trip_plans/data/plan_places_repository.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_place.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_place_facets.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_place_query.dart';
 
 /// Places from a fixed list, filtered the way the server would.
@@ -21,4 +22,10 @@ class FakePlanPlacesRepository implements PlanPlacesRepository {
           place,
     ];
   }
+
+  @override
+  Future<PlanPlaceFacets> facets() async => PlanPlaceFacets(
+    types: {for (final p in places) p.type},
+    counties: {for (final p in places) p.countyCode},
+  );
 }

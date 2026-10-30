@@ -68,8 +68,15 @@ class PlaceFilterChip extends StatelessWidget {
 
 /// The 47 counties by name. Returns the county code, 0 for "All counties",
 /// or null when closed without choosing.
-Future<int?> showCountyFilterSheet(BuildContext context, {int? selected}) {
-  final counties = [...CountyPaths.all]
+Future<int?> showCountyFilterSheet(
+  BuildContext context, {
+  int? selected,
+  Set<int>? only,
+}) {
+  final counties = [
+    for (final c in CountyPaths.all)
+      if (only == null || only.contains(c.code)) c,
+  ]
     ..sort((a, b) => a.name.compareTo(b.name));
   return showModalBottomSheet<int>(
     context: context,
@@ -108,8 +115,10 @@ Future<int?> showCountyFilterSheet(BuildContext context, {int? selected}) {
   );
 }
 
-/// The type chips' keys and labels, in display order.
-List<({String key, String label})> placeTypeChoices() => [
+/// The type chips' keys and labels, in display order. With [only], just the
+/// types that have places.
+List<({String key, String label})> placeTypeChoices({Set<String>? only}) => [
   for (final type in PlaceType.all)
-    (key: type.key, label: type.pluralLabel),
+    if (only == null || only.contains(type.key))
+      (key: type.key, label: type.pluralLabel),
 ];

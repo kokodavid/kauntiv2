@@ -1,7 +1,8 @@
 import 'trip_plan_summary.dart';
 
-/// The two halves of the Trips tab.
-enum TripsSegment { planned, recorded }
+/// The two halves of the Trips tab, in the order they are shown. Recorded
+/// comes first and is where the tab always opens.
+enum TripsSegment { recorded, planned }
 
 /// The Planned list, split the way the Trips tab shows it (design 1b, 1c).
 class PlannedTrips {
@@ -85,15 +86,4 @@ class PlannedTrips {
     if (b == null) return 1;
     return a.compareTo(b);
   }
-}
-
-/// Which half of the Trips tab opens (design decision 1): Recorded while a
-/// Trip is being recorded; otherwise Planned when there is an upcoming plan,
-/// else Recorded. The choice is not remembered between sessions.
-TripsSegment defaultTripsSegment({
-  required bool recording,
-  required bool hasUpcomingPlan,
-}) {
-  if (recording) return TripsSegment.recorded;
-  return hasUpcomingPlan ? TripsSegment.planned : TripsSegment.recorded;
 }

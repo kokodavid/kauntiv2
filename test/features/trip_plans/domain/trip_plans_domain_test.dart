@@ -103,21 +103,8 @@ void main() {
     });
   });
 
-  group('defaultTripsSegment', () {
-    test('recording wins, then upcoming plans, else Recorded', () {
-      expect(
-        defaultTripsSegment(recording: true, hasUpcomingPlan: true),
-        TripsSegment.recorded,
-      );
-      expect(
-        defaultTripsSegment(recording: false, hasUpcomingPlan: true),
-        TripsSegment.planned,
-      );
-      expect(
-        defaultTripsSegment(recording: false, hasUpcomingPlan: false),
-        TripsSegment.recorded,
-      );
-    });
+  test('the Trips tab shows Recorded first', () {
+    expect(TripsSegment.values, [TripsSegment.recorded, TripsSegment.planned]);
   });
 
   group('PlanCounties', () {

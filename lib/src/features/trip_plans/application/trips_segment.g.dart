@@ -19,7 +19,7 @@ const tripsSegmentChoiceProvider = TripsSegmentChoiceProvider._();
 /// worked out (see [resolveDefault]); after that only the user changes it,
 /// so a refresh never flips the tab under them. Not kept between sessions.
 final class TripsSegmentChoiceProvider
-    extends $NotifierProvider<TripsSegmentChoice, TripsSegment?> {
+    extends $NotifierProvider<TripsSegmentChoice, TripsSegment> {
   /// Which half of the Trips tab is showing. Null until the default has been
   /// worked out (see [resolveDefault]); after that only the user changes it,
   /// so a refresh never flips the tab under them. Not kept between sessions.
@@ -42,10 +42,10 @@ final class TripsSegmentChoiceProvider
   TripsSegmentChoice create() => TripsSegmentChoice();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(TripsSegment? value) {
+  Override overrideWithValue(TripsSegment value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<TripsSegment?>(value),
+      providerOverride: $SyncValueProvider<TripsSegment>(value),
     );
   }
 }
@@ -57,18 +57,18 @@ String _$tripsSegmentChoiceHash() =>
 /// worked out (see [resolveDefault]); after that only the user changes it,
 /// so a refresh never flips the tab under them. Not kept between sessions.
 
-abstract class _$TripsSegmentChoice extends $Notifier<TripsSegment?> {
-  TripsSegment? build();
+abstract class _$TripsSegmentChoice extends $Notifier<TripsSegment> {
+  TripsSegment build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<TripsSegment?, TripsSegment?>;
+    final ref = this.ref as $Ref<TripsSegment, TripsSegment>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<TripsSegment?, TripsSegment?>,
-              TripsSegment?,
+              AnyNotifier<TripsSegment, TripsSegment>,
+              TripsSegment,
               Object?,
               Object?
             >;

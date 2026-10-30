@@ -96,12 +96,11 @@ void main() {
     );
   });
 
-  test('the Trips segment opens by the rule and then stays put', () {
+  test('the Trips segment opens on Recorded and then stays put', () {
     final c = container();
+    expect(c.read(tripsSegmentChoiceProvider), TripsSegment.recorded);
     final choice = c.read(tripsSegmentChoiceProvider.notifier);
-    choice.resolveDefault(recording: false, hasUpcomingPlan: true);
-    expect(c.read(tripsSegmentChoiceProvider), TripsSegment.planned);
-    choice.resolveDefault(recording: false, hasUpcomingPlan: false);
+    choice.select(TripsSegment.planned);
     expect(c.read(tripsSegmentChoiceProvider), TripsSegment.planned);
     choice.select(TripsSegment.recorded);
     expect(c.read(tripsSegmentChoiceProvider), TripsSegment.recorded);

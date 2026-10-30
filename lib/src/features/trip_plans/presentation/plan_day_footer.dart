@@ -148,7 +148,7 @@ class PlanDayButtons extends StatelessWidget {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
       child: Row(
         children: [
           if (onStart != null)
@@ -157,12 +157,12 @@ class PlanDayButtons extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: AppColors.accentForeground,
-                  textStyle: AppTypeScale.itemTitle.copyWith(fontWeight: FontWeight.w600),
-                  minimumSize: const Size.fromHeight(48),
+                  textStyle: AppTypeScale.action.copyWith(fontWeight: FontWeight.w600),
+                  minimumSize: const Size.fromHeight(40),
                   shape: const StadiumBorder(),
                 ),
                 onPressed: onStart,
-                icon: const Icon(Icons.circle, size: 10),
+                icon: const Icon(Icons.circle, size: 8),
                 label: Text(startLabel ?? 'Start trip'),
               ),
             ),
@@ -173,13 +173,13 @@ class PlanDayButtons extends StatelessWidget {
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.foreground,
-                  textStyle: AppTypeScale.itemTitle.copyWith(fontWeight: FontWeight.w600),
+                  textStyle: AppTypeScale.action.copyWith(fontWeight: FontWeight.w600),
                   side: const BorderSide(color: AppColors.exploreBorder),
-                  minimumSize: const Size.fromHeight(48),
+                  minimumSize: const Size.fromHeight(40),
                   shape: const StadiumBorder(),
                 ),
                 onPressed: onDirections,
-                icon: const Icon(Icons.navigation_outlined, size: 18),
+                icon: const Icon(Icons.navigation_outlined, size: 16),
                 label: const Text('Directions'),
               ),
             ),

@@ -15,7 +15,7 @@ class PlannedExampleLoop extends StatefulWidget {
     super.key,
     this.days = exampleDays,
     this.hold = const Duration(milliseconds: 4000),
-    this.swap = const Duration(milliseconds: 800),
+    this.swap = const Duration(milliseconds: 1300),
   });
 
   final List<ExampleDay> days;
@@ -110,13 +110,15 @@ class _PlannedExampleLoopState extends State<PlannedExampleLoop>
       animation: _swap,
       builder: (context, child) {
         final t = _swapping
-            ? Curves.easeIn.transform(const Interval(0, 0.7).transform(_swap.value))
+            ? Curves.easeInOut.transform(
+                const Interval(0, 0.85).transform(_swap.value),
+              )
             : 0.0;
         return Opacity(
           opacity: 1 - t,
           child: Transform.translate(
-            offset: Offset(0, 36 * t),
-            child: Transform.scale(scale: 1 - 0.04 * t, child: child),
+            offset: Offset(0, 14 * t),
+            child: Transform.scale(scale: 1 - 0.02 * t, child: child),
           ),
         );
       },
@@ -134,13 +136,13 @@ class _PlannedExampleLoopState extends State<PlannedExampleLoop>
     child: AnimatedBuilder(
       animation: _swap,
       builder: (context, child) {
-        final t = Curves.easeOutCubic.transform(
-          const Interval(0.25, 1).transform(_swap.value),
+        final t = Curves.easeInOut.transform(
+          const Interval(0.15, 1).transform(_swap.value),
         );
         return Transform.translate(
-          offset: Offset(0, 18 * (1 - t)),
+          offset: Offset(0, 14 * (1 - t)),
           child: Transform.scale(
-            scale: 0.93 + 0.07 * t,
+            scale: 0.95 + 0.05 * t,
             alignment: Alignment.topCenter,
             child: child,
           ),

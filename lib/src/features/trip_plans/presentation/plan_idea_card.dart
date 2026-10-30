@@ -96,6 +96,16 @@ class PlanIdeaCard extends StatelessWidget {
                                 ),
                             ],
                           ),
+                          if (adder != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                'Added by ${adder!.handle}',
+                                style: AppTypeScale.meta,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -103,20 +113,12 @@ class PlanIdeaCard extends StatelessWidget {
                 ),
                 if (idea.note != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 12),
                     child: Text(
                       idea.note!,
                       style: AppTypeScale.body,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                if (adder != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      'Added by ${adder!.handle}',
-                      style: AppTypeScale.meta,
                     ),
                   ),
                 if (onAddToDay != null) ...[

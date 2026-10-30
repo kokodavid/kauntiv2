@@ -75,7 +75,7 @@ class AddPlacesRow extends StatelessWidget {
 }
 
 class AddPlacesNote extends StatelessWidget {
-  const _Note(this.text, {this.onRetry});
+  const AddPlacesNote(this.text, {super.key, this.onRetry});
 
   final String text;
   final VoidCallback? onRetry;

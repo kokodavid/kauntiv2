@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../design/app_colors.dart';
+import '../../../widgets/app_progress_indicator.dart';
 import '../application/plan_collaboration_providers.dart';
 import '../domain/plan_invite.dart';
 import '../domain/plan_member.dart';
@@ -87,7 +88,7 @@ class _JoinPlanScreenState extends ConsumerState<JoinPlanScreen> {
                   loading: () => const SizedBox(
                     width: 24,
                     height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: AppProgressIndicator(radius: 8),
                   ),
                   error: (_, _) => _Message(
                     title: "Couldn't check this link",

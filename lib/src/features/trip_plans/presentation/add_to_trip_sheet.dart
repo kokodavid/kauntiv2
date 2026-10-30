@@ -7,6 +7,7 @@ import 'package:kaunti47_v2/src/features/trip_plans/presentation/planned_view.da
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../design/app_colors.dart';
+import '../../../widgets/app_progress_indicator.dart';
 import '../application/plan_detail.dart';
 import '../application/plan_editor.dart';
 import '../application/plan_places_providers.dart';
@@ -183,7 +184,7 @@ class _AddToTripSheetState extends ConsumerState<_AddToTripSheet> {
         if (list == null)
           const Padding(
             padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator.adaptive()),
+            child: Center(child: AppProgressIndicator()),
           ),
         for (final plan in plans)
           ListTile(
@@ -251,7 +252,7 @@ class _AddToTripSheetState extends ConsumerState<_AddToTripSheet> {
           else if (plan == null)
             const Padding(
               padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator.adaptive()),
+              child: Center(child: AppProgressIndicator()),
             )
           else ...[
             for (final day in plan.days)

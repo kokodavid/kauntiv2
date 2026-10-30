@@ -11,8 +11,7 @@ import '../application/plan_places_providers.dart';
 import '../domain/plan_place.dart';
 import '../domain/plan_place_query.dart';
 import 'add_places_filters.dart';
-import 'plan_place_thumb.dart';
-import 'plan_stop_row.dart';
+import 'add_places_parts.dart';
 
 /// Adds [place] to the plan; true when it was added.
 typedef AddPlanPlace = Future<bool> Function(PlanPlace place);
@@ -197,7 +196,7 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
 
   Widget _body(AsyncValue<List<PlanPlace>> results) {
     if (results.hasError && !results.hasValue) {
-      return _Note(
+      return AddPlacesNote(
         "Couldn't load places. Check your connection.",
         onRetry: () => ref.invalidate(planPlaceSearchProvider(_query)),
       );
@@ -206,7 +205,7 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
     if (places == null) {
       return const Center(child: AppProgressIndicator());
     }
-    if (places.isEmpty) return const _Note('No places match. Try fewer words.');
+    if (places.isEmpty) return const AddPlacesNote('No places match. Try fewer words.');
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       itemCount: places.length + (places.length >= _query.limit ? 1 : 0),
@@ -222,7 +221,7 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
                 child: const Text('Show more'),
               ),
             )
-          : _Row(
+          : AddPlacesRow(
               place: places[i],
               added: _added.contains(places[i].id),
               adding: _adding.contains(places[i].id),
@@ -231,93 +230,4 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
             ),
     );
   }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({
-    required this.place,
-    required this.added,
-    required this.adding,
-    required this.pickOnly,
-    required this.onTap,
-  });
-
-  final PlanPlace place;
-  final bool added;
-  final bool adding;
-  final bool pickOnly;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    label: added ? '${place.name}, added' : 'Add ${place.name}',
-    child: InkWell(
-      onTap: added ? null : onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 64),
-        child: Row(
-          children: [
-            PlanPlaceThumb(url: place.thumbnailUrl, size: 48),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    place.name,
-                    style: AppTypeScale.itemTitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    planPlaceMeta(place.type, place.countyCode),
-                    style: AppTypeScale.meta,
-                  ),
-                ],
-              ),
-            ),
-            if (!pickOnly)
-              SizedBox(
-                width: 44,
-                height: 44,
-                child: adding
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: AppProgressIndicator(radius: 8),
-                      )
-                    : Icon(
-                        added ? Icons.check_circle : Icons.add_circle_outline,
-                        color: added
-                            ? AppColors.legendHome
-                            : AppColors.accent,
-                      ),
-              ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-class _Note extends StatelessWidget {
-  const _Note(this.text, {this.onRetry});
-
-  final String text;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(text, textAlign: TextAlign.center, style: AppTypeScale.small),
-          if (onRetry != null)
-            TextButton(onPressed: onRetry, child: const Text('Try again')),
-        ],
-      ),
-    ),
-  );
 }

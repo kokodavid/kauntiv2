@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/services/supabase_client_provider.dart';
@@ -26,13 +25,12 @@ Future<List<PlanPlace>> planPlaceSearch(Ref ref, PlanPlaceQuery query) async {
 }
 
 /// Which types and counties have places, for the filter chips.
-final planPlaceFacetsProvider = FutureProvider.autoDispose<PlanPlaceFacets>((
-  ref,
-) async {
+@riverpod
+Future<PlanPlaceFacets> planPlaceFacets(Ref ref) async {
   final repository = ref.watch(planPlacesRepositoryProvider);
   if (repository == null) return const PlanPlaceFacets();
   return repository.facets();
-});
+}
 
 /// The plans that already hold [placeId], for "In 2 trips". Empty when it
 /// can't be read, so the button simply says "Add to trip".

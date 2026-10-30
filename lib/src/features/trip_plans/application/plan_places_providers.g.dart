@@ -229,3 +229,47 @@ final class PlaceTripsFamily extends $Family
   @override
   String toString() => r'placeTripsProvider';
 }
+
+/// Which types and counties have places, for the filter chips.
+
+@ProviderFor(planPlaceFacets)
+const planPlaceFacetsProvider = PlanPlaceFacetsProvider._();
+
+/// Which types and counties have places, for the filter chips.
+
+final class PlanPlaceFacetsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<PlanPlaceFacets>,
+          PlanPlaceFacets,
+          FutureOr<PlanPlaceFacets>
+        >
+    with $FutureModifier<PlanPlaceFacets>, $FutureProvider<PlanPlaceFacets> {
+  /// Which types and counties have places, for the filter chips.
+  const PlanPlaceFacetsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'planPlaceFacetsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$planPlaceFacetsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<PlanPlaceFacets> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<PlanPlaceFacets> create(Ref ref) {
+    return planPlaceFacets(ref);
+  }
+}
+
+String _$planPlaceFacetsHash() => r'0000000000000000000000000000000000000000';

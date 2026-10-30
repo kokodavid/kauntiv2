@@ -9,6 +9,7 @@ import '../../../core/widgets/app_search_field.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
+import '../../../widgets/county_picker_sheet.dart';
 import '../application/plan_places_providers.dart';
 import '../domain/plan_place.dart';
 import '../domain/plan_place_query.dart';
@@ -105,13 +106,13 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
   }
 
   Future<void> _pickCounty() async {
-    final code = await showCountyFilterSheet(
+    final county = await CountyPickerSheet.show(
       context,
-      selected: _query.countyCode,
-      only: ref.read(planPlaceFacetsProvider).value?.counties,
+      selectedCounty: CountyPaths.byCode[_query.countyCode],
+      onlyCodes: ref.read(planPlaceFacetsProvider).value?.counties,
+      title: 'Browse by county',
     );
-    if (code == null) return;
-    _refine(county: code == 0 ? null : code, clearCounty: code == 0);
+    if (county != null) _refine(county: county.code);
   }
 
   Future<void> _add(PlanPlace place) async {

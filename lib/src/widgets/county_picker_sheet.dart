@@ -20,13 +20,24 @@ import 'county_list_tile.dart';
 /// the idiomatic, better-supported Flutter pattern for a picker like this
 /// over a hand-rolled floating dialog.
 class CountyPickerSheet extends StatefulWidget {
-  const CountyPickerSheet({super.key, required this.selectedCounty});
+  const CountyPickerSheet({
+    super.key,
+    required this.selectedCounty,
+    this.onlyCodes,
+    this.title = 'Search for your county',
+  });
 
   final CountyPath? selectedCounty;
+
+  /// Offer only these counties (by code); null offers all 47.
+  final Set<int>? onlyCodes;
+  final String title;
 
   static Future<CountyPath?> show(
     BuildContext context, {
     required CountyPath? selectedCounty,
+    Set<int>? onlyCodes,
+    String title = 'Search for your county',
   }) {
     return showModalBottomSheet<CountyPath>(
       context: context,
@@ -36,7 +47,11 @@ class CountyPickerSheet extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => CountyPickerSheet(selectedCounty: selectedCounty),
+      builder: (context) => CountyPickerSheet(
+        selectedCounty: selectedCounty,
+        onlyCodes: onlyCodes,
+        title: title,
+      ),
     );
   }
 
@@ -56,11 +71,13 @@ class _CountyPickerSheetState extends State<CountyPickerSheet> {
 
   List<CountyPath> get _results {
     final normalized = _query.trim().toLowerCase();
-    if (normalized.isEmpty) {
-      return CountyPaths.all;
-    }
+    final only = widget.onlyCodes;
     return CountyPaths.all
-        .where((county) => county.name.toLowerCase().contains(normalized))
+        .where(
+          (county) =>
+              (only == null || only.contains(county.code)) &&
+              county.name.toLowerCase().contains(normalized),
+        )
         .toList();
   }
 
@@ -98,8 +115,8 @@ class _CountyPickerSheetState extends State<CountyPickerSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Search for your county',
+                    Text(
+                      widget.title,
                       style: AppTextStyles.headingForeground,
                     ),
                     const SizedBox(height: 12),

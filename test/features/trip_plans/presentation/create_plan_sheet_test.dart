@@ -71,6 +71,21 @@ void main() {
     expect(repository.created.single.days, 1);
   });
 
+  testWidgets('the start chips share one row on a 360 pt phone', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await open(tester);
+    final tops = [
+      for (final label in ['Current location', 'Choose a place', 'Pick on map'])
+        tester.getTopLeft(find.text(label)).dy,
+    ];
+    expect(tops.every((y) => (y - tops.first).abs() < 2), isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Free stops at 3 days and explains the grey +', (tester) async {
     await open(tester);
     await tester.tap(find.bySemanticsLabel('One day more'));

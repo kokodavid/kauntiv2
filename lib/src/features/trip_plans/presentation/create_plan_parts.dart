@@ -45,17 +45,21 @@ class CreatePlanChip extends StatelessWidget {
         onTap: onTap,
         child: Container(
           height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontFamily: AppTypeScale.family,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: selected
-                  ? AppColors.accentForeground
-                  : AppColors.foreground,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: TextStyle(
+                fontFamily: AppTypeScale.family,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: selected
+                    ? AppColors.accentForeground
+                    : AppColors.foreground,
+              ),
             ),
           ),
         ),

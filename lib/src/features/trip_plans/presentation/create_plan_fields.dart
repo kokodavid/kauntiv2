@@ -110,26 +110,32 @@ class CreatePlanStartField extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const CreatePlanLabel('Start from'),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        // One row of equal chips; the text shrinks rather than wrapping.
+        Row(
+          spacing: 6,
           children: [
-            CreatePlanChip(
-              label: 'Current location',
-              selected: usesLocation,
-              onTap: () => onChoose(PlanStartKind.currentLocation),
+            Expanded(
+              child: CreatePlanChip(
+                label: 'Current location',
+                selected: usesLocation,
+                onTap: () => onChoose(PlanStartKind.currentLocation),
+              ),
             ),
             if (canChoosePlace)
-              CreatePlanChip(
-                label: 'Choose a place',
-                selected: start.kind == PlanStartKind.place,
-                onTap: () => onChoose(PlanStartKind.place),
+              Expanded(
+                child: CreatePlanChip(
+                  label: 'Choose a place',
+                  selected: start.kind == PlanStartKind.place,
+                  onTap: () => onChoose(PlanStartKind.place),
+                ),
               ),
             if (canPickOnMap)
-              CreatePlanChip(
-                label: 'Pick on map',
-                selected: start.kind == PlanStartKind.point,
-                onTap: () => onChoose(PlanStartKind.point),
+              Expanded(
+                child: CreatePlanChip(
+                  label: 'Pick on map',
+                  selected: start.kind == PlanStartKind.point,
+                  onTap: () => onChoose(PlanStartKind.point),
+                ),
               ),
           ],
         ),

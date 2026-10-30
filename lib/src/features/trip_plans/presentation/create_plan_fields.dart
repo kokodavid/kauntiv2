@@ -91,16 +91,21 @@ class CreatePlanStartField extends ConsumerWidget {
     required this.canChoosePlace,
     required this.canPickOnMap,
     required this.onChoose,
+    required this.onClear,
   });
 
-  final PlanStart start;
+  /// Null once the user has removed their choice.
+  final PlanStart? start;
   final bool canChoosePlace;
   final bool canPickOnMap;
   final ValueChanged<PlanStartKind> onChoose;
 
+  /// Clears the chosen spot, so the user can search again.
+  final VoidCallback onClear;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usesLocation = start.kind == PlanStartKind.currentLocation;
+    final usesLocation = start?.kind == PlanStartKind.currentLocation;
     final location = usesLocation
         ? ref.watch(planCurrentLocationProvider)
         : null;
@@ -125,7 +130,9 @@ class CreatePlanStartField extends ConsumerWidget {
               Expanded(
                 child: CreatePlanChip(
                   label: 'Choose a place',
-                  selected: start.kind == PlanStartKind.place,
+                  selected:
+                      start?.kind == PlanStartKind.place ||
+                      (start?.kind == PlanStartKind.point && !canPickOnMap),
                   onTap: () => onChoose(PlanStartKind.place),
                 ),
               ),
@@ -133,15 +140,15 @@ class CreatePlanStartField extends ConsumerWidget {
               Expanded(
                 child: CreatePlanChip(
                   label: 'Pick on map',
-                  selected: start.kind == PlanStartKind.point,
+                  selected: start?.kind == PlanStartKind.point,
                   onTap: () => onChoose(PlanStartKind.point),
                 ),
               ),
           ],
         ),
-        if (!usesLocation) ...[
+        if (start != null && !usesLocation) ...[
           const SizedBox(height: 8),
-          _StartLine(label: start.displayLabel),
+          _StartLine(label: start!.displayLabel, onClear: onClear),
         ],
         if (noFix) ...[
           const SizedBox(height: 10),
@@ -192,9 +199,10 @@ class CreatePlanStartField extends ConsumerWidget {
 }
 
 class _StartLine extends StatelessWidget {
-  const _StartLine({required this.label});
+  const _StartLine({required this.label, required this.onClear});
 
   final String label;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -215,6 +223,13 @@ class _StartLine extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: AppTypeScale.small.copyWith(color: AppColors.foreground),
         ),
+      ),
+      IconButton(
+        tooltip: 'Remove start',
+        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+        icon: const Icon(Icons.close, size: 16),
+        color: AppColors.mutedForeground,
+        onPressed: onClear,
       ),
     ],
   );

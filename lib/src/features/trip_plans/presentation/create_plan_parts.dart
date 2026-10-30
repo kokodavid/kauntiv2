@@ -193,3 +193,22 @@ class CreatePlanNote extends StatelessWidget {
     ),
   );
 }
+
+/// The small "See Pro" button inside the day-limit note.
+class CreatePlanSeeProButton extends StatelessWidget {
+  const CreatePlanSeeProButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => FilledButton(
+    style: FilledButton.styleFrom(
+      backgroundColor: AppColors.accent,
+      foregroundColor: AppColors.accentForeground,
+      shape: const StadiumBorder(),
+      minimumSize: const Size(44, 36),
+    ),
+    onPressed: onPressed,
+    child: const Text('See Pro'),
+  );
+}

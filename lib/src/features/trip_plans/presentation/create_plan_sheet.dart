@@ -69,11 +69,25 @@ class CreatePlanSheet extends ConsumerStatefulWidget {
 
 class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
   final _title = TextEditingController(text: 'Weekend trip');
-  PlanStart _start = PlanStart.currentLocation;
+  // Null once the user removes their choice: they must pick a start again.
+  PlanStart? _start = PlanStart.currentLocation;
   DateTime? _date;
   int _days = 1;
   bool _showDayLimit = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _title.addListener(() => setState(() {}));
+  }
+
+  /// What is still missing before a plan can be made, or null.
+  String? get _missing {
+    if (_title.text.trim().isEmpty) return 'Give the plan a name.';
+    if (_start == null) return 'Choose where this trip starts.';
+    return null;
+  }
 
   @override
   void dispose() {
@@ -115,19 +129,17 @@ class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
 
   Future<void> _create() async {
     final title = _title.text.trim();
-    if (title.isEmpty) {
-      setState(() => _error = 'Give the plan a name.');
-      return;
-    }
+    final start = _start;
+    if (_missing != null || start == null) return;
     setState(() => _error = null);
     final request = NewPlanRequest(
       title: title,
       days: _days,
-      startKind: _start.kind,
-      startPlaceId: _start.place?.id,
-      startLabel: _start.label ?? _start.place?.name,
-      startLat: _start.lat ?? _start.place?.lat,
-      startLng: _start.lng ?? _start.place?.lng,
+      startKind: start.kind,
+      startPlaceId: start.place?.id,
+      startLabel: start.label ?? start.place?.name,
+      startLat: start.lat ?? start.place?.lat,
+      startLng: start.lng ?? start.place?.lng,
       startDate: _date,
       firstPlaceId: widget.firstPlaceId,
     );
@@ -158,6 +170,7 @@ class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
     final saving = ref.watch(createPlanControllerProvider);
     final limits = widget.limits;
     final atFreeLimit = !limits.pro && _days >= limits.maxDays;
+    final missing = _missing;
     final insets = MediaQuery.viewInsetsOf(context).bottom;
     return SafeArea(
       child: SingleChildScrollView(
@@ -174,6 +187,7 @@ class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
               canChoosePlace: widget.onChoosePlace != null,
               canPickOnMap: widget.onPickOnMap != null,
               onChoose: _chooseStart,
+              onClear: () => setState(() => _start = null),
             ),
             const SizedBox(height: 16),
             CreatePlanDateAndDays(
@@ -199,7 +213,7 @@ class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
               CreatePlanNote(
                 trailing: widget.onSeePro == null
                     ? null
-                    : _SeeProButton(onPressed: widget.onSeePro!),
+                    : CreatePlanSeeProButton(onPressed: widget.onSeePro!),
                 child: Text.rich(
                   TextSpan(
                     style: AppTypeScale.small.copyWith(
@@ -228,13 +242,25 @@ class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
               ),
             ],
             const SizedBox(height: 16),
+            if (missing != null) ...[
+              Text(
+                missing,
+                textAlign: TextAlign.center,
+                style: AppTypeScale.small,
+              ),
+              const SizedBox(height: 8),
+            ],
             SizedBox(
               height: 52,
               child: FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: AppColors.accentForeground,
-                  disabledBackgroundColor: AppColors.accent,
+                  // Saving keeps the blue; a form that isn't complete greys.
+                  disabledBackgroundColor: saving
+                      ? AppColors.accent
+                      : AppColors.segmentedTrack,
+                  disabledForegroundColor: AppColors.faintForeground,
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
                     fontFamily: AppTypeScale.family,
@@ -242,7 +268,7 @@ class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                onPressed: saving ? null : _create,
+                onPressed: saving || missing != null ? null : _create,
                 child: saving
                     ? const AppProgressIndicator(color: Colors.white)
                     : Text(
@@ -255,22 +281,4 @@ class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
       ),
     );
   }
-}
-
-class _SeeProButton extends StatelessWidget {
-  const _SeeProButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) => FilledButton(
-    style: FilledButton.styleFrom(
-      backgroundColor: AppColors.accent,
-      foregroundColor: AppColors.accentForeground,
-      shape: const StadiumBorder(),
-      minimumSize: const Size(44, 36),
-    ),
-    onPressed: onPressed,
-    child: const Text('See Pro'),
-  );
 }

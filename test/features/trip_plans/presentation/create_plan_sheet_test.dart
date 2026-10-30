@@ -7,6 +7,7 @@ import 'package:kaunti47_v2/src/features/trip_plans/application/planned_trips_li
 import 'package:kaunti47_v2/src/features/trip_plans/application/trip_plans_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_failure.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_limits.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/trip_plan.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/presentation/create_plan_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,6 +28,8 @@ void main() {
     WidgetTester tester, {
     PlanLimits limits = PlanLimits.free,
     bool locationAvailable = true,
+    ChoosePlanStart? onChoosePlace,
+    ChoosePlanStart? onPickOnMap,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -47,6 +50,8 @@ void main() {
                     context,
                     limits: limits,
                     onSeePro: () {},
+                    onChoosePlace: onChoosePlace,
+                    onPickOnMap: onPickOnMap,
                   );
                 },
                 child: const Text('open'),
@@ -77,7 +82,11 @@ void main() {
     tester.view.physicalSize = const Size(360, 740);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    await open(tester);
+    await open(
+      tester,
+      onChoosePlace: (_) async => null,
+      onPickOnMap: (_) async => null,
+    );
     final tops = [
       for (final label in ['Current location', 'Choose a place', 'Pick on map'])
         tester.getTopLeft(find.text(label)).dy,
@@ -136,6 +145,63 @@ void main() {
     expect(
       find.text("You're offline. Try again when connected."),
       findsOneWidget,
+    );
+  });
+
+  const westlands = PlanStart(
+    kind: PlanStartKind.point,
+    label: 'Total Energies Westlands, Nairobi, Kenya',
+    lat: -1.2635,
+    lng: 36.8047,
+  );
+
+  testWidgets('a searched spot is shown and saved as an exact point', (
+    tester,
+  ) async {
+    await open(tester, onChoosePlace: (_) async => westlands);
+    await tester.tap(find.text('Choose a place'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Total Energies Westlands, Nairobi, Kenya'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Create plan'));
+    await tester.pumpAndSettle();
+    final request = repository.created.single;
+    expect(request.startKind, PlanStartKind.point);
+    expect(request.startLat, -1.2635);
+    expect(request.startLng, 36.8047);
+  });
+
+  testWidgets('removing the spot greys Create until a start is chosen', (
+    tester,
+  ) async {
+    await open(tester, onChoosePlace: (_) async => westlands);
+    await tester.tap(find.text('Choose a place'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Remove start'));
+    await tester.pumpAndSettle();
+    expect(find.text('Choose where this trip starts.'), findsOneWidget);
+    final button = tester.widget<FilledButton>(find.byType(FilledButton));
+    expect(button.onPressed, isNull);
+
+    await tester.tap(find.text('Current location'));
+    await tester.pumpAndSettle();
+    expect(find.text('Choose where this trip starts.'), findsNothing);
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('an empty title greys Create and says why', (tester) async {
+    await open(tester);
+    await tester.enterText(find.byType(TextField).first, '   ');
+    await tester.pumpAndSettle();
+    expect(find.text('Give the plan a name.'), findsOneWidget);
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
     );
   });
 }

@@ -125,11 +125,11 @@ void main() {
     await open(tester, _plan(buddy: false));
     await tester.tap(find.byType(PlanInvitePill));
     await tester.pumpAndSettle();
-    expect(find.text('Your travel buddy can add and move places.'), findsOneWidget);
+    expect(find.text('They can add and move places. Only usernames are shown.'), findsOneWidget);
     await tester.tap(find.text('Create invite link'));
     await tester.pumpAndSettle();
     expect(collaboration.calls, ['create|plan-1|editor']);
-    expect(find.text('https://kaunti47.com/p/tok'), findsOneWidget);
+    expect(find.text('kaunti47.com/p/tok'), findsOneWidget);
     expect(find.text('Copy'), findsOneWidget);
   });
 
@@ -152,7 +152,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'nya');
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Invite'));
+    await tester.tap(find.widgetWithText(TextButton, 'Invite'));
     await tester.pumpAndSettle();
     expect(collaboration.calls, ['invite|plan-1|nyati7']);
   });

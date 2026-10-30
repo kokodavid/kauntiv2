@@ -20,9 +20,21 @@ Future<T?> showPlanSheet<T>(BuildContext context, WidgetBuilder builder) =>
 
 /// Grabber, title and a scrolling body for the sharing sheets.
 class PlanSheetFrame extends StatelessWidget {
-  const PlanSheetFrame({super.key, required this.title, required this.children});
+  const PlanSheetFrame({
+    super.key,
+    required this.title,
+    required this.children,
+    this.subtitle,
+    this.closeButton = false,
+  });
 
   final String title;
+
+  /// A quiet line under the title.
+  final String? subtitle;
+
+  /// A round "×" at the right of the title.
+  final bool closeButton;
   final List<Widget> children;
 
   @override
@@ -45,7 +57,46 @@ class PlanSheetFrame extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text(title, style: AppTypeScale.sectionTitle),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppTypeScale.sectionTitle),
+                    if (subtitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(subtitle!, style: AppTypeScale.small),
+                      ),
+                  ],
+                ),
+              ),
+              if (closeButton)
+                Semantics(
+                  button: true,
+                  label: 'Close',
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: AppColors.secondaryFill,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 20,
+                        color: AppColors.foreground,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           const SizedBox(height: 12),
           ...children,
         ],

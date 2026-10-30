@@ -15,6 +15,7 @@ import '../domain/plan_member.dart';
 import '../domain/trip_plan.dart';
 import 'plan_edit_sheets.dart';
 import 'plan_invite_user_section.dart';
+import 'plan_share_parts.dart';
 import 'plan_pro_sheet.dart';
 import 'plan_sheet_frame.dart';
 
@@ -59,139 +60,110 @@ class _PlanShareSheetState extends ConsumerState<PlanShareSheet> {
     showAppToast(context, variant: AppToastVariant.success, title: 'Link copied');
   }
 
+  Future<void> _turnOff(String inviteId, {bool current = false}) async {
+    final failure = await ref
+        .read(planSharingProvider)
+        .revokeLink(widget.plan.id, inviteId);
+    if (!mounted) return;
+    if (failure != null) {
+      reportPlanFailure(context, failure);
+    } else if (current) {
+      setState(() => _link = null);
+    }
+  }
+
+  /// The link without "https://", as the design shows it.
+  static String _shown(String url) => url.replaceFirst('https://', '');
+
   @override
   Widget build(BuildContext context) {
     final plan = _plan;
     final link = _link;
-    final live = ref.watch(planInvitesProvider(plan.id)).value ?? const [];
+    final pro = plan.limits.roles;
+    final joined = plan.members.where((m) => m.joined).length;
+    final others = [
+      for (final i
+          in ref.watch(planInvitesProvider(plan.id)).value ??
+              const <PlanInviteInfo>[])
+        if (i.id != link?.id) i,
+    ];
     return PlanSheetFrame(
-      title: 'Invite people',
+      title: pro ? 'Invite people' : 'Invite a travel buddy',
+      subtitle: pro
+          ? '$joined of ${plan.limits.maxMembers} people'
+          : 'Free plans have ${plan.limits.maxMembers - 1} travel buddy · '
+                '${(joined - 1).clamp(0, 99)} of ${plan.limits.maxMembers - 1}',
+      closeButton: true,
       children: [
-        if (plan.limits.roles)
-          SegmentedButton<PlanRole>(
-            segments: const [
-              ButtonSegment(value: PlanRole.editor, label: Text('Can edit')),
-              ButtonSegment(value: PlanRole.viewer, label: Text('View only')),
-            ],
-            selected: {_role},
-            onSelectionChanged: (s) => setState(() => _role = s.first),
-          )
-        else
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Your travel buddy can add and move places.',
-                  style: AppTypeScale.small,
-                ),
-              ),
-              TextButton(
-                onPressed: () => unawaited(
-                  showPlanProSheet(context, trigger: PlanProTrigger.invitee),
-                ),
-                child: const Text('More with Pro'),
-              ),
-            ],
+        if (pro) ...[
+          const PlanShareLabel('New people can'),
+          PlanRoleSwitch(
+            role: _role,
+            onChanged: (r) => setState(() => _role = r),
           ),
-        const SizedBox(height: 12),
+        ],
+        const PlanShareLabel('Invite by link'),
         if (link == null)
           FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              foregroundColor: AppColors.accentForeground,
+              textStyle: AppTypeScale.action.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              minimumSize: const Size.fromHeight(44),
+              shape: const StadiumBorder(),
+            ),
             onPressed: _busy ? null : () => unawaited(_makeLink()),
-            icon: const Icon(Icons.link),
+            icon: const Icon(Icons.link, size: 18),
             label: Text(_busy ? 'Making link…' : 'Create invite link'),
           )
         else ...[
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.lockedFill,
-              borderRadius: BorderRadius.circular(12),
+          PlanLinkRow(
+            url: _shown(link.url),
+            onCopy: () => unawaited(_copy(link)),
+            onShare: () => unawaited(
+              AppShare.text(
+                'Join my trip plan "${plan.title}" on Kaunti47: ${link.url}',
+              ),
             ),
-            child: Text(link.url, style: AppTypeScale.body),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => unawaited(_copy(link)),
-                  icon: const Icon(Icons.copy, size: 18),
-                  label: const Text('Copy'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => unawaited(
-                    AppShare.text(
-                      'Join my trip plan "${plan.title}" on Kaunti47: '
-                      '${link.url}',
-                    ),
-                  ),
-                  icon: const Icon(Icons.ios_share, size: 18),
-                  label: const Text('Share'),
-                ),
-              ),
-            ],
+          PlanLinkFooter(
+            expiresAt: link.expiresAt,
+            onTurnOff: () => unawaited(_turnOff(link.id, current: true)),
           ),
-          if (!plan.limits.roles)
-            const Padding(
-              padding: EdgeInsets.only(top: 6),
-              child: Text(
-                'Works for 7 days, until your buddy joins. A new link '
-                'turns this one off.',
-                style: AppTypeScale.small,
-              ),
-            ),
         ],
-        if (live.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          const Text('Active links', style: AppTypeScale.sectionLabel),
-          for (final invite in live)
-            _LiveLink(
-              invite: invite,
-              onTurnOff: () async {
-                final failure = await ref
-                    .read(planSharingProvider)
-                    .revokeLink(plan.id, invite.id);
-                if (failure != null && context.mounted) {
-                  reportPlanFailure(context, failure);
-                }
-              },
-            ),
-        ],
-        const SizedBox(height: 20),
+        for (final invite in others)
+          PlanLiveLink(
+            invite: invite,
+            onTurnOff: () => unawaited(_turnOff(invite.id)),
+          ),
         PlanInviteUserSection(plan: plan, role: _role),
-      ],
-    );
-  }
-}
-
-class _LiveLink extends StatelessWidget {
-  const _LiveLink({required this.invite, required this.onTurnOff});
-
-  final PlanInviteInfo invite;
-  final VoidCallback onTurnOff;
-
-  @override
-  Widget build(BuildContext context) {
-    final role = invite.role == PlanRole.viewer ? 'View only' : 'Can edit';
-    final until = MaterialLocalizations.of(context).formatShortDate(
-      invite.expiresAt.toLocal(),
-    );
-    return Row(
-      children: [
-        Expanded(
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
           child: Text(
-            '$role · until $until · ${invite.uses} joined',
+            pro
+                ? "You can change anyone's role later in Members."
+                : 'They can add and move places. Only usernames are shown.',
             style: AppTypeScale.small,
           ),
         ),
-        TextButton(
-          style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
-          onPressed: onTurnOff,
-          child: const Text('Turn off'),
-        ),
+        if (!pro)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                textStyle: AppTypeScale.action,
+                minimumSize: const Size(44, 44),
+                padding: EdgeInsets.zero,
+              ),
+              onPressed: () => unawaited(
+                showPlanProSheet(context, trigger: PlanProTrigger.invitee),
+              ),
+              child: const Text('More with Pro'),
+            ),
+          ),
       ],
     );
   }

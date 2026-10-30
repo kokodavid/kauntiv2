@@ -18,6 +18,7 @@ import 'plan_day_parts.dart';
 import 'plan_edit_sheets.dart';
 import 'plan_day_colors.dart';
 import 'plan_menu.dart';
+import 'plan_pick_day_sheet.dart';
 import 'plan_note_sheet.dart';
 import 'plan_stop_menu.dart';
 import 'plan_stop_row.dart';
@@ -132,16 +133,18 @@ class PlanScreenActions {
   }
 
   /// "Add to Day…" on a Places to visit card: straight onto the only day,
-  /// or after asking which.
+  /// or after asking which (or for a new one).
   Future<void> addIdeaToDay(PlanIdea idea) async {
-    final PlanDay? day = plan.days.length == 1
-        ? plan.days.first
-        : await _pick<PlanDay>(
-            'Add ${idea.place.name} to',
-            plan.days,
-            (d) => d.displayTitle,
-            (d) => d.stops.length == 1 ? '1 stop' : '${d.stops.length} stops',
-          );
+    var day = plan.days.length == 1 ? plan.days.first : null;
+    if (day == null) {
+      final choice = await showPlanPickDaySheet(
+        context,
+        plan,
+        placeName: idea.place.name,
+      );
+      if (choice == null) return;
+      day = choice.day ?? await addPlanDay(context, ref, plan);
+    }
     if (day != null) {
       await _report(_editor.addIdeaToDay(plan.id, day.id, idea.place.id));
     }

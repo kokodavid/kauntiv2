@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
-import '../../../counties/county_paths.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_search_field.dart';
+import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../application/plan_places_providers.dart';
-import '../domain/plan_place_facets.dart';
 import '../domain/plan_place.dart';
 import '../domain/plan_place_query.dart';
 import 'add_places_filters.dart';
@@ -143,6 +143,16 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
       appBar: AppBar(
         backgroundColor: AppColors.pageBackground,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leadingWidth: 64,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Center(
+            child: AppBackButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+          ),
+        ),
         title: Text(widget.title, style: AppTypeScale.sectionTitle),
       ),
       body: Column(

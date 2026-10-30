@@ -115,11 +115,8 @@ class PlanDaySection extends StatelessWidget {
             onRemove: actions?.onRemoveDay,
           ),
           if (!collapsed) ...[
-            if (day.number == 1)
-              PlanEndpointRow(
-                top: 0,
-                label: 'Start · ${plan.start.displayLabel}',
-              ),
+            if (_startLabel() case final start?)
+              PlanEndpointRow(top: 0, label: 'Start · $start'),
             if (day.stops.isEmpty)
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -156,7 +153,7 @@ class PlanDaySection extends StatelessWidget {
                 stay: true,
                 last: true,
                 label:
-                    'Overnight · ${day.overnightPlace?.name ?? day.overnightLabel ?? 'Chosen point'}',
+                    '${day.number == plan.days.last.number ? 'End' : 'Overnight'} · ${day.overnightPlace?.name ?? day.overnightLabel ?? 'Chosen point'}',
               ),
             ],
             const Divider(height: 1, color: AppColors.exploreBorder),
@@ -181,6 +178,18 @@ class PlanDaySection extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Where the day starts: the plan's start on Day 1, then wherever the day
+  /// before ended (its overnight stay, or else its last stop).
+  String? _startLabel() {
+    if (day.number == 1) return plan.start.displayLabel;
+    final before = plan.days.where((d) => d.number == day.number - 1);
+    if (before.isEmpty) return null;
+    final prev = before.first;
+    return prev.overnightPlace?.name ??
+        prev.overnightLabel ??
+        prev.stops.lastOrNull?.place.name;
   }
 
   /// "Open place" is handled here; the rest go to the plan's editor.

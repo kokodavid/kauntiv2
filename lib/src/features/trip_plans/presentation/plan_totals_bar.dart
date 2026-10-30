@@ -44,9 +44,14 @@ class PlanTotalsBar extends StatelessWidget {
           IntrinsicHeight(
             child: Row(
               children: [
-                _Stat(value: Text('$days'), label: days == 1 ? 'Day' : 'Days'),
+                _Stat(
+                  flex: 2,
+                  value: Text('$days'),
+                  label: days == 1 ? 'Day' : 'Days',
+                ),
                 const _Rule(),
                 _Stat(
+                  flex: 3,
                   value: Text(
                     totals.hasRoute ? PlanLabels.distance(totals.distanceM) : '–',
                   ),
@@ -54,6 +59,7 @@ class PlanTotalsBar extends StatelessWidget {
                 ),
                 const _Rule(),
                 _Stat(
+                  flex: 5,
                   value: Text(
                     totals.hasRoute
                         ? PlanLabels.driveShort(totals.durationS)
@@ -63,6 +69,7 @@ class PlanTotalsBar extends StatelessWidget {
                 ),
                 const _Rule(),
                 _Stat(
+                  flex: 4,
                   value: counties.isEmpty
                       ? const Text('–')
                       : Text.rich(
@@ -111,23 +118,28 @@ class _Rule extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label});
+  const _Stat({required this.value, required this.label, required this.flex});
 
   final Widget value;
+  final int flex;
   final String label;
 
   @override
   Widget build(BuildContext context) => Expanded(
+    flex: flex,
     child: Padding(
       padding: const EdgeInsets.fromLTRB(12, 14, 6, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DefaultTextStyle.merge(
-            style: AppTypeScale.cardTitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            child: value,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: DefaultTextStyle.merge(
+              style: AppTypeScale.cardTitle,
+              maxLines: 1,
+              child: value,
+            ),
           ),
           Text(label, style: AppTypeScale.meta),
         ],

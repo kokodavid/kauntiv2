@@ -14,29 +14,29 @@ void main() {
     await tester.pumpWidget(_app());
     expect(find.text('Mombasa day'), findsOneWidget);
 
-    await tester.pump(const Duration(milliseconds: 2400));
-    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(milliseconds: 4000));
+    await tester.pump(const Duration(milliseconds: 1100));
     expect(find.text('Coast drive north'), findsOneWidget);
 
-    await tester.pump(const Duration(milliseconds: 2400));
-    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(milliseconds: 4000));
+    await tester.pump(const Duration(milliseconds: 1100));
     expect(find.text('To Lamu'), findsOneWidget);
 
-    await tester.pump(const Duration(milliseconds: 2400));
-    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(milliseconds: 4000));
+    await tester.pump(const Duration(milliseconds: 1100));
     expect(find.text('Mombasa day'), findsOneWidget);
   });
 
   testWidgets('a tap pauses it and a second tap resumes', (tester) async {
     await tester.pumpWidget(_app());
     await tester.tap(find.byType(PlannedExampleLoop));
-    await tester.pump(const Duration(milliseconds: 2400));
-    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(milliseconds: 4000));
+    await tester.pump(const Duration(milliseconds: 1100));
     expect(find.text('Mombasa day'), findsOneWidget);
 
     await tester.tap(find.byType(PlannedExampleLoop));
-    await tester.pump(const Duration(milliseconds: 2400));
-    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(milliseconds: 4000));
+    await tester.pump(const Duration(milliseconds: 1100));
     expect(find.text('Coast drive north'), findsOneWidget);
   });
 

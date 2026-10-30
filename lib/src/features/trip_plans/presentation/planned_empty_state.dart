@@ -27,7 +27,7 @@ class PlannedEmptyState extends StatelessWidget {
       // Air above the loop so it sits nearer the middle of the page.
       const SizedBox(height: 28),
       const PlannedExampleLoop(),
-      const SizedBox(height: 14),
+      const SizedBox(height: 4),
       const Text(
         'No plans yet',
         textAlign: TextAlign.center,

@@ -6,15 +6,14 @@ import '../../../design/app_colors.dart';
 import 'planned_example_day.dart';
 
 /// The looping example on the empty Planned page: three collapsed day
-/// cards that cross-fade in place, one at a time, with dots under them.
-/// Tap to pause and resume. With reduced motion it shows Day 1 only, and it
+/// cards that cross-fade in place, one at a time. Tap to pause and resume. With reduced motion it shows Day 1 only, and it
 /// stops while its tab is not visible.
 class PlannedExampleLoop extends StatefulWidget {
   const PlannedExampleLoop({
     super.key,
     this.days = exampleDays,
-    this.hold = const Duration(milliseconds: 2400),
-    this.fade = const Duration(milliseconds: 600),
+    this.hold = const Duration(milliseconds: 4000),
+    this.fade = const Duration(milliseconds: 1000),
   });
 
   final List<ExampleDay> days;
@@ -103,27 +102,6 @@ class _PlannedExampleLoopState extends State<PlannedExampleLoop> {
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          ExcludeSemantics(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var i = 0; i < widget.days.length; i++)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 400),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    height: 6,
-                    width: i == _index ? 18 : 6,
-                    decoration: BoxDecoration(
-                      color: i == _index
-                          ? AppColors.foreground
-                          : AppColors.lockedStroke,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
               ],
             ),
           ),

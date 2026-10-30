@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,14 +7,12 @@ import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../application/planned_trips_list.dart';
 import '../application/trip_plans_providers.dart';
-import '../domain/plan_labels.dart';
 import '../domain/plan_limits.dart';
 import '../domain/planned_trips.dart';
 import '../domain/trip_plan_summary.dart';
-import 'plan_archive_actions.dart';
 import 'plan_card.dart';
 import 'plan_trip_button.dart';
-import 'planned_archived_row.dart';
+import 'planned_archived_section.dart';
 import 'planned_empty_state.dart';
 import 'planned_invitations.dart';
 import 'planned_section.dart';
@@ -63,7 +59,7 @@ class _PlannedViewState extends ConsumerState<PlannedView> {
     final view = list.value;
     final Widget body;
     if (view != null) {
-      body = view.plans.isEmpty
+      body = !view.plans.hasActive
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -75,6 +71,16 @@ class _PlannedViewState extends ConsumerState<PlannedView> {
                   onPlanTrip: widget.onPlanTrip,
                   onFindPlaces: widget.onFindPlaces,
                 ),
+                // Plans put away still come back from here.
+                if (!view.offline)
+                  PlannedArchivedSection(
+                    plans: view.plans.archived,
+                    open: _showArchived,
+                    onToggle: () =>
+                        setState(() => _showArchived = !_showArchived),
+                    onOpenPlan: widget.onOpenPlan,
+                    homeCode: widget.homeCountyCode,
+                  ),
               ],
             )
           : _Sections(
@@ -171,19 +177,12 @@ class _Sections extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final claimed = ref.watch(planClaimedCountyCodesProvider).value ?? <int>{};
-    Widget card(
-      TripPlanSummary plan, {
-      Widget? action,
-      String? dateLine,
-    }) => Padding(
+    Widget card(TripPlanSummary plan) => Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: PlanCard(
         plan: plan,
         claimed: claimed,
         homeCode: homeCode,
-        action: action,
-        dateLine: dateLine,
-        dimmed: dateLine != null,
         onTap: onOpenPlan == null ? null : () => onOpenPlan!(context, plan.id),
       ),
     );
@@ -215,46 +214,17 @@ class _Sections extends ConsumerWidget {
           if (showPast)
             for (final plan in plans.past) card(plan),
         ],
-        if (plans.archived.isNotEmpty && !offline) ...[
-          if (!plans.hasUpcoming && plans.past.isEmpty)
-            const PlannedNoActiveNote(),
-          PlannedArchivedRow(
-            count: plans.archived.length,
+        if (!offline)
+          PlannedArchivedSection(
+            plans: plans.archived,
             open: showArchived,
-            onTap: onToggleArchived,
+            onToggle: onToggleArchived,
+            onOpenPlan: onOpenPlan,
+            homeCode: homeCode,
           ),
-          if (showArchived)
-            for (final plan in plans.archived)
-              card(
-                plan,
-                dateLine: _archivedLine(plan),
-                action: TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: AppColors.accentTint,
-                    foregroundColor: AppColors.accent,
-                    textStyle: AppTypeScale.action,
-                    minimumSize: const Size(44, 34),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    shape: const StadiumBorder(),
-                  ),
-                  onPressed: () => unawaited(
-                    PlanArchiveActions(context, ref).restore(plan.id),
-                  ),
-                  child: const Text('Restore'),
-                ),
-              ),
-        ],
       ],
     );
   }
-}
-
-/// "Archived 3 d ago", or the trip dates when it was a while back.
-String _archivedLine(TripPlanSummary plan) {
-  final ago = PlanLabels.ago(plan.updatedAt, DateTime.now());
-  return ago != null
-      ? 'Archived $ago'
-      : 'Archived · ${PlanLabels.range(plan.startDate, plan.endDate)}';
 }
 
 class _OfflineNote extends StatelessWidget {

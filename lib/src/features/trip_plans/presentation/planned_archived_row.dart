@@ -66,29 +66,3 @@ class PlannedArchivedRow extends StatelessWidget {
     ),
   );
 }
-
-/// Shown above Archived when every plan is shelved, so the page doesn't
-/// look empty or broken.
-class PlannedNoActiveNote extends StatelessWidget {
-  const PlannedNoActiveNote({super.key});
-
-  @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.fromLTRB(8, 28, 8, 0),
-    child: Column(
-      children: [
-        Text(
-          'No upcoming plans',
-          textAlign: TextAlign.center,
-          style: AppTypeScale.sectionTitle,
-        ),
-        SizedBox(height: 4),
-        Text(
-          'Start a new one, or bring an archived plan back.',
-          textAlign: TextAlign.center,
-          style: AppTypeScale.small,
-        ),
-      ],
-    ),
-  );
-}

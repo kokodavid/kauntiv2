@@ -29,6 +29,10 @@ class PlannedTrips {
   bool get isEmpty =>
       upcoming.isEmpty && shared.isEmpty && past.isEmpty && archived.isEmpty;
 
+  /// Anything besides archived plans.
+  bool get hasActive =>
+      upcoming.isNotEmpty || shared.isNotEmpty || past.isNotEmpty;
+
   bool get hasUpcoming => upcoming.isNotEmpty || shared.isNotEmpty;
 
   /// The plan Home shows: the soonest of the user's own and joined plans

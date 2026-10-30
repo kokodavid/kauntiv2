@@ -140,7 +140,7 @@ class PlanScreenActions {
       final choice = await showPlanPickDaySheet(
         context,
         plan,
-        placeName: idea.place.name,
+        title: 'Add ${idea.place.name} to',
       );
       if (choice == null) return;
       day = choice.day ?? await addPlanDay(context, ref, plan);
@@ -150,15 +150,17 @@ class PlanScreenActions {
     }
   }
 
-  Future<PlanDay?> _pickDay(PlanDay from) => _pick<PlanDay>(
-    'Move to',
-    [
-      for (final d in plan.days)
-        if (d.id != from.id) d,
-    ],
-    (d) => d.displayTitle,
-    (d) => d.stops.length == 1 ? '1 stop' : '${d.stops.length} stops',
-  );
+  Future<PlanDay?> _pickDay(PlanDay from) async {
+    final choice = await showPlanPickDaySheet(
+      context,
+      plan,
+      title: 'Move to',
+      subtitle: 'Pick a day. It goes in as the last stop.',
+      exceptDayId: from.id,
+    );
+    if (choice == null) return null;
+    return choice.day ?? await addPlanDay(context, ref, plan);
+  }
 
   Future<T?> _pick<T>(
     String title,

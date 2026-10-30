@@ -21,27 +21,31 @@ class PlanDayChoice {
   bool get isNewDay => day == null;
 }
 
-/// "Add Lake Elementaita to" (design): each day with its colour, date and
+/// "Add Lake Elementaita to" or "Move to" (design): each day with its colour, date and
 /// where the place will land, then "New day".
 Future<PlanDayChoice?> showPlanPickDaySheet(
   BuildContext context,
   TripPlan plan, {
-  required String placeName,
+  required String title,
+  String subtitle =
+      'Pick a day. It goes in as the last stop; you can reorder after.',
+  String? exceptDayId,
   bool canAddDay = true,
 }) => showPlanSheet<PlanDayChoice>(
   context,
   (sheet) => PlanSheetFrame(
-    title: 'Add $placeName to',
-    subtitle: 'Pick a day. It goes in as the last stop; you can reorder after.',
+    title: title,
+    subtitle: subtitle,
     children: [
       const SizedBox(height: 12),
       for (final day in plan.days)
-        _DayRow(
-          color: PlanDayColors.of(day.number),
-          title: _title(plan, day),
-          detail: _detail(day),
-          onTap: () => Navigator.of(sheet).pop(PlanDayChoice.day(day)),
-        ),
+        if (day.id != exceptDayId)
+          _DayRow(
+            color: PlanDayColors.of(day.number),
+            title: _title(plan, day),
+            detail: _detail(day),
+            onTap: () => Navigator.of(sheet).pop(PlanDayChoice.day(day)),
+          ),
       if (canAddDay)
         _NewDayRow(
           label: 'New day (Day ${plan.days.length + 1})',

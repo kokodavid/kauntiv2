@@ -11,6 +11,7 @@ import '../domain/plan_failure.dart';
 import '../domain/trip_plan.dart';
 import 'add_places_page.dart';
 import 'plan_best_order_actions.dart';
+import 'plan_date_picker_sheet.dart';
 import 'plan_day_parts.dart';
 import 'plan_edit_sheets.dart';
 import 'plan_menu.dart';
@@ -206,12 +207,12 @@ class PlanScreenActions {
         if (title != null) await _report(_editor.rename(plan.id, title));
       case PlanMenuAction.dates:
         final now = DateTime.now();
-        final date = await showDatePicker(
-          context: context,
-          initialDate: plan.startDate ?? now,
-          firstDate: DateTime(now.year, now.month, now.day),
-          lastDate: now.add(const Duration(days: 730)),
-          helpText: 'Day 1 is on',
+        final date = await showPlanDateSheet(
+          context,
+          title: 'Day 1 is on',
+          first: DateTime(now.year, now.month, now.day),
+          last: now.add(const Duration(days: 730)),
+          selected: plan.startDate,
         );
         if (date != null) await _report(_editor.setStartDate(plan.id, date));
       case PlanMenuAction.invite ||

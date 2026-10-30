@@ -14,6 +14,7 @@ import '../domain/trip_plan.dart';
 import 'create_plan_days_fields.dart';
 import 'create_plan_fields.dart';
 import 'create_plan_parts.dart';
+import 'plan_date_picker_sheet.dart';
 import 'plan_pro_sheet.dart';
 
 /// Picks a start for a plan (place search, or a pin on the map). Null when
@@ -109,20 +110,12 @@ class _CreatePlanSheetState extends ConsumerState<CreatePlanSheet> {
 
   Future<void> _pickDate() async {
     final today = DateUtils.dateOnly(DateTime.now());
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date ?? today,
-      firstDate: today,
-      lastDate: today.add(const Duration(days: 730)),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(
-            primary: AppColors.accent,
-            onPrimary: AppColors.accentForeground,
-          ),
-        ),
-        child: child!,
-      ),
+    final picked = await showPlanDateSheet(
+      context,
+      title: 'Start date',
+      first: today,
+      last: today.add(const Duration(days: 730)),
+      selected: _date,
     );
     if (picked != null && mounted) setState(() => _date = picked);
   }

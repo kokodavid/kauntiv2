@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
 import '../domain/plan_labels.dart';
 import '../domain/plan_member.dart';
@@ -51,19 +52,15 @@ class PlanHeader extends StatelessWidget {
       if (plan.role == PlanRole.viewer) 'View only',
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 4, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconButton(
-            tooltip: 'Back',
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-            onPressed: onBack,
-            icon: const Icon(Icons.arrow_back),
-          ),
+          AppBackButton(onPressed: onBack),
+          const SizedBox(width: 12),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 2),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

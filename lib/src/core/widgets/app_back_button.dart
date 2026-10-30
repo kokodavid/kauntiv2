@@ -8,9 +8,17 @@ import '../../design/app_colors.dart';
 /// back affordance -- Detail, Profile, Settings -- uses the same shape
 /// and colors instead of a one-off per screen.
 class AppBackButton extends StatelessWidget {
-  const AppBackButton({super.key, required this.onPressed, this.size = 40});
+  const AppBackButton({
+    super.key,
+    required this.onPressed,
+    this.size = 40,
+    this.tooltip = 'Back',
+  });
 
   final VoidCallback onPressed;
+
+  /// Read out by screen readers and shown on long press.
+  final String tooltip;
 
   /// Overall square side. Every call site uses the default 40 so the
   /// button is identical wherever it appears (Detail's floated photo
@@ -21,9 +29,11 @@ class AppBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: OutlinedButton(
+    return Tooltip(
+      message: tooltip,
+      child: SizedBox.square(
+        dimension: size,
+        child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
@@ -47,6 +57,7 @@ class AppBackButton extends StatelessWidget {
           size: size * 0.5,
           color: AppColors.foreground,
         ),
+      ),
       ),
     );
   }

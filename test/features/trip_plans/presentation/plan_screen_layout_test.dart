@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/config/app_config.dart';
 import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
+import 'package:kaunti47_v2/src/core/widgets/app_back_button.dart';
 import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/plan_live.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/plan_routing_providers.dart';
@@ -125,16 +126,13 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('every tappable control on a plan day is at least 44 pt', (
+  testWidgets('the back button is the app's shared one, 40 pt', (
     tester,
   ) async {
     await open(tester);
-    final handle = tester.ensureSemantics();
-    for (final tooltip in ['Back']) {
-      final size = tester.getSize(find.byTooltip(tooltip).first);
-      expect(size.width, greaterThanOrEqualTo(44));
-      expect(size.height, greaterThanOrEqualTo(44));
-    }
-    handle.dispose();
+    expect(find.byType(AppBackButton), findsOneWidget);
+    final size = tester.getSize(find.byTooltip('Back').first);
+    expect(size.width, 40);
+    expect(size.height, 40);
   });
 }

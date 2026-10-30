@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_colors.dart';
 import '../application/plan_collapsed_days.dart';
 import '../application/plan_detail.dart';
@@ -99,11 +100,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconButton(
-            tooltip: 'Back',
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-            onPressed: widget.onBack,
-            icon: const Icon(Icons.arrow_back),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: AppBackButton(onPressed: widget.onBack),
           ),
           const PlanScreenSkeleton(),
         ],

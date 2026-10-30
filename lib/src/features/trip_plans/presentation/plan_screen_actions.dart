@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../application/plan_editor.dart';
+import '../application/trip_plans_providers.dart';
+import '../domain/plan_counties.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_failure.dart';
 import '../domain/trip_plan.dart';
@@ -14,7 +16,9 @@ import 'plan_best_order_actions.dart';
 import 'plan_date_picker_sheet.dart';
 import 'plan_day_parts.dart';
 import 'plan_edit_sheets.dart';
+import 'plan_day_colors.dart';
 import 'plan_menu.dart';
+import 'plan_note_sheet.dart';
 import 'plan_stop_menu.dart';
 import 'plan_stop_row.dart';
 
@@ -68,13 +72,18 @@ class PlanScreenActions {
           await _report(_editor.moveStopToDay(plan.id, stop.id, target.id));
         }
       case PlanStopAction.note:
-        final note = await showPlanTextInput(
+        final claimed =
+            ref.read(planClaimedCountyCodesProvider).value ?? const <int>{};
+        final note = await showPlanNoteSheet(
           context,
-          title: 'Note for ${stop.place.name}',
-          initial: stop.note,
-          hint: 'Book ahead, bring a jacket…',
-          maxLength: 200,
-          allowEmpty: true,
+          stop: stop,
+          number: index + 1,
+          color: PlanDayColors.of(day.number),
+          dayLabel: 'Day ${day.number}',
+          countyStatus: PlanCounties.of(
+            [stop.place.countyCode],
+            claimed: claimed,
+          ).first.status,
         );
         if (note != null) {
           await _report(_editor.setNote(plan.id, stop.id, note));

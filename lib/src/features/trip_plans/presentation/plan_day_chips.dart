@@ -48,7 +48,7 @@ class PlanDayChipsDelegate extends SliverPersistentHeaderDelegate {
       children: [
         _Chip(
           label: 'All days',
-          color: AppColors.ink,
+          color: AppColors.accent,
           selected: active == null,
           onTap: () => onSelect(null),
         ),

@@ -23,6 +23,23 @@ class App extends ConsumerWidget {
         // input's border from the color scheme's seed by default, which is
         // the old brand green above -- explicit here so every sheet and
         // text field reads as the app's actual (blue) accent instead.
+        // Unstyled buttons would pick up the seed green above; every action
+        // is accent blue (design-tokens rule).
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.accent,
+            foregroundColor: AppColors.accentForeground,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.accent,
+            side: const BorderSide(color: AppColors.accent),
+          ),
+        ),
         bottomSheetTheme: const BottomSheetThemeData(
           backgroundColor: AppColors.sheetBackground,
           surfaceTintColor: Colors.transparent,

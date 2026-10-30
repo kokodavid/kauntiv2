@@ -18,12 +18,16 @@ class PlanCard extends StatelessWidget {
     required this.claimed,
     this.homeCode,
     this.onTap,
+    this.action,
   });
 
   final TripPlanSummary plan;
   final Set<int> claimed;
   final int? homeCode;
   final VoidCallback? onTap;
+
+  /// Shown in place of the chevron (Restore on an archived plan).
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -102,11 +106,12 @@ class PlanCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: AppColors.faintForeground,
-              ),
+              action ??
+                  const Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: AppColors.faintForeground,
+                  ),
             ],
           ),
         ),

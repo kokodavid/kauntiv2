@@ -19,6 +19,7 @@ enum PlanMenuAction {
   keepOffline,
   removeOffline,
   archive,
+  unarchive,
   delete;
 
   /// Sharing actions are handled apart from the editing ones.
@@ -73,7 +74,10 @@ class PlanMenu extends ConsumerWidget {
       if (!isOwner || plan.isShared)
         const PlanMenuEntry(PlanMenuAction.leave, 'Leave plan'),
       if (isOwner)
-        const PlanMenuEntry(PlanMenuAction.archive, 'Archive plan'),
+        PlanMenuEntry(
+          plan.archived ? PlanMenuAction.unarchive : PlanMenuAction.archive,
+          plan.archived ? 'Unarchive plan' : 'Archive plan',
+        ),
       if (isOwner)
         const PlanMenuEntry(
           PlanMenuAction.delete,

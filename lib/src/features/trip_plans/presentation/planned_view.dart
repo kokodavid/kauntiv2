@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +12,7 @@ import '../application/trip_plans_providers.dart';
 import '../domain/plan_limits.dart';
 import '../domain/planned_trips.dart';
 import '../domain/trip_plan_summary.dart';
+import 'plan_archive_actions.dart';
 import 'plan_card.dart';
 import 'plan_trip_button.dart';
 import 'planned_empty_state.dart';
@@ -49,6 +52,7 @@ class PlannedView extends ConsumerStatefulWidget {
 
 class _PlannedViewState extends ConsumerState<PlannedView> {
   bool _showPast = false;
+  bool _showArchived = false;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +81,9 @@ class _PlannedViewState extends ConsumerState<PlannedView> {
               offline: view.offline,
               showPast: _showPast,
               onTogglePast: () => setState(() => _showPast = !_showPast),
+              showArchived: _showArchived,
+              onToggleArchived: () =>
+                  setState(() => _showArchived = !_showArchived),
               onPlanTrip: widget.onPlanTrip,
               onOpenPlan: widget.onOpenPlan,
               homeCode: widget.homeCountyCode,
@@ -141,6 +148,8 @@ class _Sections extends ConsumerWidget {
     required this.offline,
     required this.showPast,
     required this.onTogglePast,
+    required this.showArchived,
+    required this.onToggleArchived,
     required this.onPlanTrip,
     this.onOpenPlan,
     this.homeCode,
@@ -151,6 +160,8 @@ class _Sections extends ConsumerWidget {
   final bool offline;
   final bool showPast;
   final VoidCallback onTogglePast;
+  final bool showArchived;
+  final VoidCallback onToggleArchived;
   final VoidCallback onPlanTrip;
   final OpenTripPlan? onOpenPlan;
   final int? homeCode;
@@ -158,12 +169,13 @@ class _Sections extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final claimed = ref.watch(planClaimedCountyCodesProvider).value ?? <int>{};
-    Widget card(TripPlanSummary plan) => Padding(
+    Widget card(TripPlanSummary plan, {Widget? action}) => Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: PlanCard(
         plan: plan,
         claimed: claimed,
         homeCode: homeCode,
+        action: action,
         onTap: onOpenPlan == null ? null : () => onOpenPlan!(context, plan.id),
       ),
     );
@@ -194,6 +206,31 @@ class _Sections extends ConsumerWidget {
           ),
           if (showPast)
             for (final plan in plans.past) card(plan),
+        ],
+        if (plans.archived.isNotEmpty && !offline) ...[
+          PlannedSectionHeader(
+            title: 'Archived',
+            actionLabel: showArchived
+                ? 'Hide'
+                : 'Show ${plans.archived.length} ›',
+            onAction: onToggleArchived,
+          ),
+          if (showArchived)
+            for (final plan in plans.archived)
+              card(
+                plan,
+                action: TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    textStyle: AppTypeScale.action,
+                    minimumSize: const Size(44, 44),
+                  ),
+                  onPressed: () => unawaited(
+                    PlanArchiveActions(context, ref).restore(plan.id),
+                  ),
+                  child: const Text('Restore'),
+                ),
+              ),
         ],
       ],
     );

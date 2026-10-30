@@ -46,6 +46,12 @@ class PlanEditor {
     () => _ref.read(tripPlansRepositoryProvider)!.archive(planId, archived: true),
   );
 
+  Future<PlanFailure?> unarchive(String planId) => _run(
+    planId,
+    () =>
+        _ref.read(tripPlansRepositoryProvider)!.archive(planId, archived: false),
+  );
+
   Future<PlanFailure?> delete(String planId) => _run(
     planId,
     () => _ref.read(tripPlansRepositoryProvider)!.delete(planId),

@@ -12,6 +12,7 @@ import '../domain/plan_day.dart';
 import '../domain/plan_failure.dart';
 import '../domain/trip_plan.dart';
 import 'add_places_page.dart';
+import 'plan_archive_actions.dart';
 import 'plan_best_order_actions.dart';
 import 'plan_date_picker_sheet.dart';
 import 'plan_day_parts.dart';
@@ -259,21 +260,11 @@ class PlanScreenActions {
           PlanMenuAction.removeOffline:
         break; // handled by PlanShareActions and PlanOfflineActions
       case PlanMenuAction.archive:
-        final ok = await showPlanConfirm(
-          context,
-          title: 'Archive this plan?',
-          message: 'It stops counting toward your upcoming plans.',
-          action: 'Archive',
-          icon: Icons.archive_outlined,
-          destructive: false,
-        );
-        if (!ok) return;
-        final failure = await _editor.archive(plan.id);
-        if (failure != null && context.mounted) {
-          reportPlanFailure(context, failure);
-        } else {
+        if (await PlanArchiveActions(context, ref).archive(plan.id)) {
           onGone?.call();
         }
+      case PlanMenuAction.unarchive:
+        await PlanArchiveActions(context, ref).restore(plan.id);
       case PlanMenuAction.delete:
         final ok = await showPlanConfirm(
           context,

@@ -121,6 +121,9 @@ class PlanIdeaCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                // Cards in the row share a height; the button sits at the
+                // bottom of each, whether or not there is a note above it.
+                const Spacer(),
                 if (onAddToDay != null) ...[
                   const SizedBox(height: 10),
                   SizedBox(

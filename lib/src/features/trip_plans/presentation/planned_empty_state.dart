@@ -24,6 +24,8 @@ class PlannedEmptyState extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      // Air above the loop so it sits nearer the middle of the page.
+      const SizedBox(height: 28),
       const PlannedExampleLoop(),
       const SizedBox(height: 14),
       const Text(
@@ -31,10 +33,10 @@ class PlannedEmptyState extends StatelessWidget {
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: AppTypeScale.family,
-          fontSize: 22,
-          height: 28 / 22,
+          fontSize: 18,
+          height: 24 / 18,
           fontWeight: FontWeight.w600,
-          letterSpacing: -0.22,
+          letterSpacing: -0.18,
           color: AppColors.foreground,
         ),
       ),
@@ -72,25 +74,21 @@ class PlannedEmptyState extends StatelessWidget {
         ),
       ),
       if (onFindPlaces != null) ...[
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 48,
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.foreground,
-              backgroundColor: AppColors.exploreSurface,
-              side: const BorderSide(color: AppColors.cardBorder),
-              shape: const StadiumBorder(),
-              textStyle: const TextStyle(
-                fontFamily: AppTypeScale.family,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+        const SizedBox(height: 4),
+        TextButton.icon(
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.accentDark,
+            minimumSize: const Size.fromHeight(44),
+            shape: const StadiumBorder(),
+            textStyle: const TextStyle(
+              fontFamily: AppTypeScale.family,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
-            onPressed: onFindPlaces,
-            icon: const Icon(Icons.search, size: 16),
-            label: const Text('Browse places in Explore'),
           ),
+          onPressed: onFindPlaces,
+          icon: const Icon(Icons.search, size: 16),
+          label: const Text('Browse places in Explore'),
         ),
       ],
       if (!limits.pro) ...[

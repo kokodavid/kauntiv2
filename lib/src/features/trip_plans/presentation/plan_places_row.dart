@@ -75,24 +75,31 @@ class PlanPlacesRow extends StatelessWidget {
               ),
             )
           else
-            SizedBox(
-              height: onAddToDay == null ? 148 : 204,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                itemCount: ideas.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (_, i) => PlanIdeaCard(
-                  idea: ideas[i],
-                  adder: showAddedBy
-                      ? members
-                            .where((m) => m.handle == ideas[i].addedByHandle)
-                            .firstOrNull
-                      : null,
-                  onOpen: onOpenPlace,
-                  onAddToDay: onAddToDay == null
-                      ? null
-                      : () => onAddToDay!(ideas[i]),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              // Cards are as tall as their content; the row matches the
+              // tallest so they line up.
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, idea) in ideas.indexed) ...[
+                      if (i > 0) const SizedBox(width: 12),
+                      PlanIdeaCard(
+                        idea: idea,
+                        adder: showAddedBy
+                            ? members
+                                  .where((m) => m.handle == idea.addedByHandle)
+                                  .firstOrNull
+                            : null,
+                        onOpen: onOpenPlace,
+                        onAddToDay: onAddToDay == null
+                            ? null
+                            : () => onAddToDay!(idea),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),

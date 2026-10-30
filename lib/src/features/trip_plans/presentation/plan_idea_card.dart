@@ -45,7 +45,7 @@ class PlanIdeaCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           onTap: onOpen == null ? null : () => onOpen!(context, place.id),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -55,7 +55,7 @@ class PlanIdeaCard extends StatelessWidget {
                     Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        PlanPlaceThumb(url: place.thumbnailUrl, size: 52),
+                        PlanPlaceThumb(url: place.thumbnailUrl, size: 48),
                         if (adder != null)
                           Positioned(
                             right: -8,
@@ -120,7 +120,7 @@ class PlanIdeaCard extends StatelessWidget {
                     ),
                   ),
                 if (onAddToDay != null) ...[
-                  const Spacer(),
+                  const SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
                     child: TextButton(
@@ -128,7 +128,7 @@ class PlanIdeaCard extends StatelessWidget {
                         foregroundColor: AppColors.accent,
                         backgroundColor: AppColors.accentTint,
                         textStyle: AppTypeScale.action,
-                        minimumSize: const Size.fromHeight(44),
+                        minimumSize: const Size.fromHeight(40),
                         shape: const StadiumBorder(),
                       ),
                       onPressed: onAddToDay,

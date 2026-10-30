@@ -83,14 +83,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('no plans: the worked example, Plan a trip and the allowance', (
+  testWidgets('no plans: the example, the first-trip button and the allowance', (
     tester,
   ) async {
     await pump(tester);
-    expect(find.text('No plans yet'), findsOneWidget);
+    expect(find.text('Plan the trip. Claim new counties.'), findsOneWidget);
+    expect(find.text('EXAMPLE PLAN'), findsOneWidget);
     expect(find.text('Mombasa day'), findsOneWidget);
-    expect(find.text('Free · 3 plans · up to 3 days each'), findsOneWidget);
-    await tester.tap(find.text('Plan a trip'));
+    expect(find.text(
+        'Free includes 3 upcoming plans of up to 3 days. Pro adds more.',
+      ), findsOneWidget);
+    await tester.tap(find.text('Plan your first trip'));
     expect(planTripTaps, 1);
   });
 
@@ -145,7 +148,7 @@ void main() {
     await pump(tester);
     expect(find.text('Invitations'), findsOneWidget);
     expect(find.text('Coast trip'), findsOneWidget);
-    expect(find.text('No plans yet'), findsOneWidget);
+    expect(find.text('Plan the trip. Claim new counties.'), findsOneWidget);
   });
 
   testWidgets('Pro users see no allowance line', (tester) async {

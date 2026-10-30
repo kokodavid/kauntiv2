@@ -25,11 +25,17 @@ class PlannedEmptyState extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       // Air above the loop so it sits nearer the middle of the page.
-      const SizedBox(height: 28),
+      const SizedBox(height: 16),
+      const Text(
+        'EXAMPLE PLAN',
+        textAlign: TextAlign.center,
+        style: AppTypeScale.sectionLabel,
+      ),
+      const SizedBox(height: 10),
       const PlannedExampleLoop(),
       const SizedBox(height: 4),
       const Text(
-        'No plans yet',
+        'Plan the trip. Claim new counties.',
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: AppTypeScale.family,
@@ -40,19 +46,30 @@ class PlannedEmptyState extends StatelessWidget {
           color: AppColors.foreground,
         ),
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 6),
+      const Text(
+        'Build your route day by day and see which counties it would add '
+        'to your Passport.',
+        textAlign: TextAlign.center,
+        style: AppTypeScale.small,
+      ),
+      const SizedBox(height: 16),
+      const _FeatureRow(
+        icon: Icons.route_outlined,
+        title: 'See the drive',
+        body: 'Driving time and distance for every day.',
+      ),
+      const SizedBox(height: 12),
       const _FeatureRow(
         icon: Icons.badge_outlined,
-        title: 'New counties, before you go',
-        body:
-            'Each day shows the counties on the route that would be new in '
-            'your Passport.',
+        title: 'Spot new counties',
+        body: "Your Passport counts the ones you haven't claimed yet.",
       ),
       const SizedBox(height: 12),
       const _FeatureRow(
         icon: Icons.person_add_alt_outlined,
-        title: 'Plan with a travel buddy',
-        body: 'Invite friends with a link. Everyone edits the same plan.',
+        title: 'Plan with friends',
+        body: 'Share a link and everyone edits the same plan.',
       ),
       const SizedBox(height: 18),
       SizedBox(
@@ -70,7 +87,7 @@ class PlannedEmptyState extends StatelessWidget {
           ),
           onPressed: onPlanTrip,
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Plan a trip'),
+          label: const Text('Plan your first trip'),
         ),
       ),
       if (onFindPlaces != null) ...[
@@ -88,14 +105,14 @@ class PlannedEmptyState extends StatelessWidget {
           ),
           onPressed: onFindPlaces,
           icon: const Icon(Icons.search, size: 16),
-          label: const Text('Browse places in Explore'),
+          label: const Text('Find places to add in Explore'),
         ),
       ],
       if (!limits.pro) ...[
         const SizedBox(height: 10),
         Text(
-          'Free · ${limits.maxUpcomingPlans ?? 3} plans · '
-          'up to ${limits.maxDays} days each',
+          'Free includes ${limits.maxUpcomingPlans ?? 3} upcoming plans of '
+          'up to ${limits.maxDays} days. Pro adds more.',
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontFamily: AppTypeScale.family,

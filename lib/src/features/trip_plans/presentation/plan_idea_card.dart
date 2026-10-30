@@ -11,7 +11,8 @@ import 'plan_place_thumb.dart';
 import 'plan_stop_row.dart';
 
 /// One place in Places to visit (design 3a): photo, who added it, its type
-/// and county, the note, and "Add to Day…" for people who can edit.
+/// and county, a "Note" mark when it has one, and "Add to Day…" for people
+/// who can edit.
 class PlanIdeaCard extends StatelessWidget {
   const PlanIdeaCard({
     super.key,
@@ -96,14 +97,24 @@ class PlanIdeaCard extends StatelessWidget {
                                 ),
                             ],
                           ),
-                          if (adder != null)
+                          if (adder != null || idea.note != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 6),
-                              child: Text(
-                                'Added by ${adder!.handle}',
-                                style: AppTypeScale.meta,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              child: Row(
+                                children: [
+                                  if (adder != null)
+                                    Flexible(
+                                      child: Text(
+                                        'Added by ${adder!.handle}',
+                                        style: AppTypeScale.meta,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  if (adder != null && idea.note != null)
+                                    const SizedBox(width: 8),
+                                  if (idea.note != null) const _NoteBadge(),
+                                ],
                               ),
                             ),
                         ],
@@ -111,18 +122,8 @@ class PlanIdeaCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (idea.note != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Text(
-                      idea.note!,
-                      style: AppTypeScale.body,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
                 // Cards in the row share a height; the button sits at the
-                // bottom of each, whether or not there is a note above it.
+                // bottom of each.
                 const Spacer(),
                 if (onAddToDay != null) ...[
                   const SizedBox(height: 10),
@@ -166,5 +167,24 @@ class _TypeChip extends StatelessWidget {
       label,
       style: AppTypeScale.meta.copyWith(color: AppColors.green),
     ),
+  );
+}
+
+/// "Note": this place has a note; open it to read.
+class _NoteBadge extends StatelessWidget {
+  const _NoteBadge();
+
+  @override
+  Widget build(BuildContext context) => const Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(
+        Icons.sticky_note_2_outlined,
+        size: 13,
+        color: AppColors.mutedForeground,
+      ),
+      SizedBox(width: 3),
+      Text('Note', style: AppTypeScale.meta),
+    ],
   );
 }

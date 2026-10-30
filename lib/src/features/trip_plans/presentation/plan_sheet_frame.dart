@@ -26,6 +26,7 @@ class PlanSheetFrame extends StatelessWidget {
     required this.children,
     this.subtitle,
     this.closeButton = false,
+    this.onBack,
   });
 
   final String title;
@@ -35,6 +36,9 @@ class PlanSheetFrame extends StatelessWidget {
 
   /// A round "×" at the right of the title.
   final bool closeButton;
+
+  /// A round "‹" before the title, to go back a step.
+  final VoidCallback? onBack;
   final List<Widget> children;
 
   @override
@@ -60,6 +64,31 @@ class PlanSheetFrame extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (onBack != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Semantics(
+                    button: true,
+                    label: 'Back',
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onBack,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: const BoxDecoration(
+                          color: AppColors.secondaryFill,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          size: 20,
+                          color: AppColors.foreground,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

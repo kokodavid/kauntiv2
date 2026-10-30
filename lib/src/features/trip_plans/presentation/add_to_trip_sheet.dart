@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/presentation/planned_view.dart';
 
-import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
@@ -17,7 +16,11 @@ import '../domain/plan_failure.dart';
 import '../domain/plan_labels.dart';
 import '../domain/trip_plan.dart';
 import '../domain/trip_plan_summary.dart';
+import 'plan_day_colors.dart';
 import 'plan_edit_sheets.dart';
+import 'plan_pick_day_sheet.dart';
+import 'plan_pick_rows.dart';
+import 'plan_sheet_frame.dart';
 import 'start_plan_trip.dart';
 
 /// "Add to trip" from a place (design 5a to 5c): pick a plan, then a day or
@@ -29,12 +32,9 @@ Future<void> showAddToTrip(
   required String placeName,
   OpenTripPlan? onOpenPlan,
 }) async {
-  final picked = await showModalBottomSheet<_Added>(
-    context: context,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    showDragHandle: true,
-    builder: (_) => _AddToTripSheet(placeId: placeId, placeName: placeName),
+  final picked = await showPlanSheet<_Added>(
+    context,
+    (_) => _AddToTripSheet(placeId: placeId, placeName: placeName),
   );
   if (!context.mounted) return;
   if (picked == null) return;
@@ -154,13 +154,11 @@ class _AddToTripSheetState extends ConsumerState<_AddToTripSheet> {
   }
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.75,
-      ),
-      child: _chosen == null ? _plans() : _days(),
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: BoxConstraints(
+      maxHeight: MediaQuery.sizeOf(context).height * 0.8,
     ),
+    child: _chosen == null ? _plans() : _days(),
   );
 
   Widget _plans() {
@@ -171,42 +169,40 @@ class _AddToTripSheetState extends ConsumerState<_AddToTripSheet> {
       ...?list?.plans.upcoming,
       ...?list?.plans.shared.where((p) => p.role.canEdit),
     ];
-    return ListView(
-      shrinkWrap: true,
+    return PlanSheetFrame(
+      title: 'Add ${widget.placeName} to',
+      subtitle: 'Pick a trip, then a day or Places to visit.',
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: Text(
-            'Add ${widget.placeName} to a trip',
-            style: AppTypeScale.sectionTitle,
-          ),
-        ),
         if (list == null)
           const Padding(
             padding: EdgeInsets.all(24),
             child: Center(child: AppProgressIndicator()),
           ),
         for (final plan in plans)
-          ListTile(
-            minTileHeight: 60,
-            title: Text(plan.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(
+          PlanPickRow(
+            title: plan.title,
+            detail: heldIds.contains(plan.id)
+                ? 'Already in this plan'
+                : [
+                    PlanLabels.days(plan.days.length),
+                    if (plan.startDate != null) PlanLabels.day(plan.startDate!),
+                  ].join(' · '),
+            trailing: Icon(
               heldIds.contains(plan.id)
-                  ? 'Already in this plan'
-                  : [
-                      PlanLabels.days(plan.days.length),
-                      if (plan.startDate != null)
-                        PlanLabels.day(plan.startDate!),
-                    ].join(' · '),
+                  ? Icons.check_circle
+                  : Icons.chevron_right,
+              size: 20,
+              color: heldIds.contains(plan.id)
+                  ? AppColors.accent
+                  : AppColors.faintForeground,
             ),
-            trailing: const Icon(Icons.chevron_right),
-            enabled: !heldIds.contains(plan.id),
-            onTap: () => unawaited(_choose(plan)),
+            onTap: heldIds.contains(plan.id)
+                ? null
+                : () => unawaited(_choose(plan)),
           ),
-        ListTile(
-          minTileHeight: 60,
-          leading: const Icon(Icons.add_circle_outline, color: AppColors.accent),
-          title: const Text('New plan with this place'),
+        PlanPickLinkRow(
+          label: 'New plan with this place',
+          icon: Icons.add_circle_outline,
           onTap: () => Navigator.of(context).pop(const _Added.newPlan()),
         ),
       ],
@@ -217,33 +213,11 @@ class _AddToTripSheetState extends ConsumerState<_AddToTripSheet> {
     future: _plan,
     builder: (context, snapshot) {
       final plan = snapshot.data;
-      return ListView(
-        shrinkWrap: true,
+      return PlanSheetFrame(
+        title: _chosen!.title,
+        subtitle: 'Pick a day. It goes in as the last stop.',
+        onBack: () => setState(() => _chosen = null),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 20, 8),
-            child: Row(
-              children: [
-                IconButton(
-                  tooltip: 'Back',
-                  constraints: const BoxConstraints(
-                    minWidth: 44,
-                    minHeight: 44,
-                  ),
-                  onPressed: () => setState(() => _chosen = null),
-                  icon: const Icon(Icons.arrow_back),
-                ),
-                Expanded(
-                  child: Text(
-                    _chosen!.title,
-                    style: AppTypeScale.sectionTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
           if (snapshot.hasError)
             const Padding(
               padding: EdgeInsets.all(24),
@@ -256,26 +230,22 @@ class _AddToTripSheetState extends ConsumerState<_AddToTripSheet> {
             )
           else ...[
             for (final day in plan.days)
-              ListTile(
-                minTileHeight: 60,
-                enabled: !_busy && plan.limits.canAddStop(day.stops.length),
-                title: Text(day.displayTitle),
-                subtitle: Text(
-                  plan.limits.canAddStop(day.stops.length)
-                      ? '${day.stops.length} stops'
-                      : 'This day is full',
-                ),
-                onTap: () => unawaited(
-                  _add(plan, dayId: day.id, dayLabel: day.displayTitle),
-                ),
+              PlanPickRow(
+                leading: PlanPickRow.dot(PlanDayColors.of(day.number)),
+                title: planDayTitle(plan, day),
+                detail: plan.limits.canAddStop(day.stops.length)
+                    ? planDayLanding(day)
+                    : 'This day is full',
+                onTap: _busy || !plan.limits.canAddStop(day.stops.length)
+                    ? null
+                    : () => unawaited(
+                        _add(plan, dayId: day.id, dayLabel: day.displayTitle),
+                      ),
               ),
-            ListTile(
-              minTileHeight: 60,
-              enabled: !_busy,
-              leading: const Icon(Icons.bookmark_border),
-              title: const Text('Places to visit'),
-              subtitle: const Text('Not on a day yet'),
-              onTap: () => unawaited(_add(plan)),
+            PlanPickLinkRow(
+              label: 'Places to visit (not on a day yet)',
+              icon: Icons.bookmark_border,
+              onTap: _busy ? null : () => unawaited(_add(plan)),
             ),
           ],
         ],

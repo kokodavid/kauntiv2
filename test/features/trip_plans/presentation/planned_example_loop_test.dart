@@ -15,15 +15,15 @@ void main() {
     expect(find.text('Mombasa day'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 4000));
-    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pump(const Duration(milliseconds: 900));
     expect(find.text('Coast drive north'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 4000));
-    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pump(const Duration(milliseconds: 900));
     expect(find.text('To Lamu'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 4000));
-    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pump(const Duration(milliseconds: 900));
     expect(find.text('Mombasa day'), findsOneWidget);
   });
 
@@ -31,12 +31,12 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.tap(find.byType(PlannedExampleLoop));
     await tester.pump(const Duration(milliseconds: 4000));
-    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pump(const Duration(milliseconds: 900));
     expect(find.text('Mombasa day'), findsOneWidget);
 
     await tester.tap(find.byType(PlannedExampleLoop));
     await tester.pump(const Duration(milliseconds: 4000));
-    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pump(const Duration(milliseconds: 900));
     expect(find.text('Coast drive north'), findsOneWidget);
   });
 

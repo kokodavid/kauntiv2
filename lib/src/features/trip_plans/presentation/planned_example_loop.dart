@@ -6,30 +6,40 @@ import '../../../design/app_colors.dart';
 import 'planned_example_day.dart';
 
 /// The looping example on the empty Planned page: three collapsed day
-/// cards that cross-fade in place, one at a time. Tap to pause and resume. With reduced motion it shows Day 1 only, and it
-/// stops while its tab is not visible.
+/// cards. The front card drops away and the next one rises out of the
+/// stack behind it (a deck swap, no overlapping fade). Tap to pause and
+/// resume. With reduced motion it shows Day 1 only, and it stops while its
+/// tab is not visible.
 class PlannedExampleLoop extends StatefulWidget {
   const PlannedExampleLoop({
     super.key,
     this.days = exampleDays,
     this.hold = const Duration(milliseconds: 4000),
-    this.fade = const Duration(milliseconds: 1000),
+    this.swap = const Duration(milliseconds: 800),
   });
 
   final List<ExampleDay> days;
 
-  /// How long each day stays up, and how long the cross-fade takes.
+  /// How long each day stays up, and how long the swap takes.
   final Duration hold;
-  final Duration fade;
+  final Duration swap;
 
   @override
   State<PlannedExampleLoop> createState() => _PlannedExampleLoopState();
 }
 
-class _PlannedExampleLoopState extends State<PlannedExampleLoop> {
+class _PlannedExampleLoopState extends State<PlannedExampleLoop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _swap = AnimationController(
+    vsync: this,
+    duration: widget.swap,
+  );
   int _index = 0;
+  bool _swapping = false;
   bool _paused = false;
   Timer? _timer;
+
+  int get _next => (_index + 1) % widget.days.length;
 
   @override
   void didChangeDependencies() {
@@ -39,16 +49,25 @@ class _PlannedExampleLoopState extends State<PlannedExampleLoop> {
     final still =
         MediaQuery.of(context).disableAnimations || !TickerMode.of(context);
     if (still) return;
-    _timer = Timer.periodic(widget.hold, (_) {
-      if (!_paused && mounted) {
-        setState(() => _index = (_index + 1) % widget.days.length);
-      }
+    _timer = Timer.periodic(widget.hold, (_) => _advance());
+  }
+
+  void _advance() {
+    if (_paused || _swapping || !mounted) return;
+    setState(() => _swapping = true);
+    _swap.forward(from: 0).whenComplete(() {
+      if (!mounted) return;
+      setState(() {
+        _index = _next;
+        _swapping = false;
+      });
     });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _swap.dispose();
     super.dispose();
   }
 
@@ -57,10 +76,11 @@ class _PlannedExampleLoopState extends State<PlannedExampleLoop> {
     child: GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() => _paused = !_paused),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 170,
+      child: SizedBox(
+        height: 170,
+        child: Semantics(
+          label: 'Example plan, day ${_index + 1} of ${widget.days.length}',
+          child: ExcludeSemantics(
             child: Stack(
               children: [
                 Positioned(
@@ -68,53 +88,76 @@ class _PlannedExampleLoopState extends State<PlannedExampleLoop> {
                   right: 20,
                   top: 18,
                   height: 140,
-                  child: Opacity(opacity: 0.7, child: _peekCard()),
+                  child: _peekCard(),
                 ),
-                Positioned(
-                  left: 8,
-                  right: 8,
-                  top: 0,
-                  bottom: 14,
-                  child: Semantics(
-                    label:
-                        'Example plan, day ${_index + 1} of '
-                        '${widget.days.length}',
-                    child: AnimatedSwitcher(
-                      duration: widget.fade,
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween(
-                            begin: const Offset(0, 0.05),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      ),
-                      child: KeyedSubtree(
-                        key: ValueKey(_index),
-                        child: ExcludeSemantics(
-                          child: ExampleDayCard(day: widget.days[_index]),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                if (_swapping) _incoming(widget.days[_next]),
+                _front(widget.days[_index]),
               ],
             ),
           ),
-        ],
+        ),
       ),
     ),
   );
 
-  Widget _peekCard() => Container(
-    decoration: BoxDecoration(
-      color: AppColors.exploreSurface,
-      border: Border.all(color: AppColors.exploreBorder),
-      borderRadius: BorderRadius.circular(16),
+  /// The card on top. While swapping it drops and fades out.
+  Widget _front(ExampleDay day) => Positioned(
+    left: 8,
+    right: 8,
+    top: 0,
+    bottom: 14,
+    child: AnimatedBuilder(
+      animation: _swap,
+      builder: (context, child) {
+        final t = _swapping
+            ? Curves.easeIn.transform(const Interval(0, 0.7).transform(_swap.value))
+            : 0.0;
+        return Opacity(
+          opacity: 1 - t,
+          child: Transform.translate(
+            offset: Offset(0, 36 * t),
+            child: Transform.scale(scale: 1 - 0.04 * t, child: child),
+          ),
+        );
+      },
+      child: ExampleDayCard(key: ValueKey(day.number), day: day),
+    ),
+  );
+
+  /// The next card, starting where the peek card sits and rising to the
+  /// front as the old one leaves.
+  Widget _incoming(ExampleDay day) => Positioned(
+    left: 8,
+    right: 8,
+    top: 0,
+    bottom: 14,
+    child: AnimatedBuilder(
+      animation: _swap,
+      builder: (context, child) {
+        final t = Curves.easeOutCubic.transform(
+          const Interval(0.25, 1).transform(_swap.value),
+        );
+        return Transform.translate(
+          offset: Offset(0, 18 * (1 - t)),
+          child: Transform.scale(
+            scale: 0.93 + 0.07 * t,
+            alignment: Alignment.topCenter,
+            child: child,
+          ),
+        );
+      },
+      child: ExampleDayCard(key: ValueKey(day.number), day: day),
+    ),
+  );
+
+  Widget _peekCard() => Opacity(
+    opacity: 0.7,
+    child: Container(
+      decoration: BoxDecoration(
+        color: AppColors.exploreSurface,
+        border: Border.all(color: AppColors.exploreBorder),
+        borderRadius: BorderRadius.circular(16),
+      ),
     ),
   );
 }

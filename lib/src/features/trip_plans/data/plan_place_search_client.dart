@@ -45,7 +45,7 @@ class MapboxPlanPlaceSearch implements PlanPlaceSearchClient {
       'q': query,
       'country': 'ke',
       'language': 'en',
-      'limit': '6',
+      'limit': '10',
       'autocomplete': 'true',
       'permanent': '$permanent',
       if (nearLat != null && nearLng != null) 'proximity': '$nearLng,$nearLat',

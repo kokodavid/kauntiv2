@@ -8,21 +8,21 @@ part of 'trips_segment.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Which half of the Trips tab is showing. Null until the default has been
-/// worked out (see [resolveDefault]); after that only the user changes it,
-/// so a refresh never flips the tab under them. Not kept between sessions.
+/// Which half of the Trips tab is showing. The tab always opens on
+/// Recorded; after that only the user (or a notification that points at
+/// plans) changes it. Not kept between sessions.
 
 @ProviderFor(TripsSegmentChoice)
 const tripsSegmentChoiceProvider = TripsSegmentChoiceProvider._();
 
-/// Which half of the Trips tab is showing. Null until the default has been
-/// worked out (see [resolveDefault]); after that only the user changes it,
-/// so a refresh never flips the tab under them. Not kept between sessions.
+/// Which half of the Trips tab is showing. The tab always opens on
+/// Recorded; after that only the user (or a notification that points at
+/// plans) changes it. Not kept between sessions.
 final class TripsSegmentChoiceProvider
     extends $NotifierProvider<TripsSegmentChoice, TripsSegment> {
-  /// Which half of the Trips tab is showing. Null until the default has been
-  /// worked out (see [resolveDefault]); after that only the user changes it,
-  /// so a refresh never flips the tab under them. Not kept between sessions.
+  /// Which half of the Trips tab is showing. The tab always opens on
+  /// Recorded; after that only the user (or a notification that points at
+  /// plans) changes it. Not kept between sessions.
   const TripsSegmentChoiceProvider._()
     : super(
         from: null,
@@ -51,11 +51,11 @@ final class TripsSegmentChoiceProvider
 }
 
 String _$tripsSegmentChoiceHash() =>
-    r'c4b01ed5ae617d1a1e3b5fce51d1fc07b6224150';
+    r'c2f7d58e2c007e7cbe4b6672e0bb1683816ca06a';
 
-/// Which half of the Trips tab is showing. Null until the default has been
-/// worked out (see [resolveDefault]); after that only the user changes it,
-/// so a refresh never flips the tab under them. Not kept between sessions.
+/// Which half of the Trips tab is showing. The tab always opens on
+/// Recorded; after that only the user (or a notification that points at
+/// plans) changes it. Not kept between sessions.
 
 abstract class _$TripsSegmentChoice extends $Notifier<TripsSegment> {
   TripsSegment build();

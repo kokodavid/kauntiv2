@@ -105,7 +105,7 @@ class PlanScreenActions {
   Future<void> _renameDay(PlanDay day) async {
     final title = await showPlanTextInput(
       context,
-      title: 'Name this day',
+      title: 'Name this day', label: 'Day name',
       initial: day.title,
       hint: 'Day ${day.number}',
       maxLength: 40,
@@ -235,7 +235,7 @@ class PlanScreenActions {
       case PlanMenuAction.rename:
         final title = await showPlanTextInput(
           context,
-          title: 'Rename plan',
+          title: 'Rename plan', label: 'Plan name',
           initial: plan.title,
           maxLength: 60,
         );

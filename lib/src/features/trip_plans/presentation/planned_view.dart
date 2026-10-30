@@ -22,7 +22,7 @@ typedef OpenTripPlan = void Function(BuildContext context, String planId);
 
 /// The Planned half of the Trips tab (design 1a to 1c, 1e): Plan a trip,
 /// then Upcoming, Shared with you and Past. [header] is the Planned /
-/// Recorded switch, drawn under the title like on Recorded.
+/// Recorded switch, drawn at the right of the title like on Recorded.
 class PlannedView extends ConsumerStatefulWidget {
   const PlannedView({
     super.key,
@@ -120,9 +120,14 @@ class _Frame extends StatelessWidget {
     // Room for the floating tab bar.
     padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
     children: [
-      const Text('Trips', style: AppTextStyles.headingForeground),
-      const SizedBox(height: 16),
-      header,
+      Row(
+        children: [
+          const Expanded(
+            child: Text('Trips', style: AppTextStyles.headingForeground),
+          ),
+          header,
+        ],
+      ),
       const SizedBox(height: 16),
       child,
     ],

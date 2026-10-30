@@ -25,7 +25,7 @@ import 'detail_routes.dart';
 class TripsTab extends ConsumerWidget {
   const TripsTab({super.key});
 
-  /// Today's Trips page, with the switch drawn under its title.
+  /// Today's Trips page, with the switch drawn at the right of its title.
   static Widget recorded(Widget? header) => JourneysScreen(
     header: header,
     onOpenJourney: (context, id) => context.push(AppRoutes.journey(id)),

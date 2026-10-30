@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../design/app_colors.dart';
-import '../design/app_type_scale.dart';
+import '../../design/app_text_styles.dart';
 
-/// A two-or-more option switch on a light grey track with a white selected
-/// segment (Trips' Planned / Recorded, Place Detail's tabs). 44 pt tall.
+/// A compact two-or-more option switch for the right of a page title: a
+/// soft pill track with a white selected segment, the same look as
+/// Explore's Places / Counties switch (Trips' Planned / Recorded).
 class AppSegmentedTabs<T> extends StatelessWidget {
   const AppSegmentedTabs({
     super.key,
@@ -20,25 +21,24 @@ class AppSegmentedTabs<T> extends StatelessWidget {
   final ValueChanged<T> onChanged;
 
   @override
-  Widget build(BuildContext context) => Container(
-    height: 44,
-    padding: const EdgeInsets.all(3),
+  Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: AppColors.segmentedTrack,
-      borderRadius: BorderRadius.circular(22),
+      color: AppColors.secondaryFill,
+      borderRadius: BorderRadius.circular(999),
     ),
-    child: Row(
-      spacing: 3,
-      children: [
-        for (final option in options)
-          Expanded(
-            child: _Segment(
+    child: Padding(
+      padding: const EdgeInsets.all(3),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final option in options)
+            _Segment(
               label: labelOf(option),
               selected: option == selected,
               onTap: () => onChanged(option),
             ),
-          ),
-      ],
+        ],
+      ),
     ),
   );
 }
@@ -58,20 +58,23 @@ class _Segment extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     button: true,
     selected: selected,
-    child: GestureDetector(
+    label: label,
+    child: InkWell(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
+      borderRadius: BorderRadius.circular(999),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
+        constraints: const BoxConstraints(minHeight: 38),
         alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(19),
+          color: selected ? AppColors.exploreSurface : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
           boxShadow: selected
               ? const [
                   BoxShadow(
-                    color: Color(0x1A000000),
-                    blurRadius: 3,
+                    color: Color(0x14000000),
+                    blurRadius: 2,
                     offset: Offset(0, 1),
                   ),
                 ]
@@ -79,11 +82,11 @@ class _Segment extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(
-            fontFamily: AppTypeScale.family,
-            fontSize: 13,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            color: selected ? AppColors.foreground : AppColors.mutedForeground,
+          style: AppTextStyles.chipLabel.copyWith(
+            color: selected
+                ? AppColors.exploreText
+                : AppColors.mutedForeground,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),

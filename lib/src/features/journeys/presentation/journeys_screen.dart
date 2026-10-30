@@ -29,7 +29,8 @@ class JourneysScreen extends ConsumerWidget {
   /// The full-screen map for the Journey in progress.
   final OpenJourneyRecording? onOpenRecording;
 
-  /// Drawn under the title: the Trips tab's Planned / Recorded switch.
+  /// Drawn at the right of the title: the Trips tab's Planned / Recorded
+  /// switch.
   final Widget? header;
 
   @override
@@ -49,15 +50,10 @@ class JourneysScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Text('Trips', style: AppTextStyles.headingForeground),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: _TitleRow(trailing: header),
               ),
-              if (header != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: header,
-                ),
               Expanded(
                 child: OfflineScreen(
                   key: const Key('trips-offline-screen'),
@@ -86,9 +82,8 @@ class JourneysScreen extends ConsumerWidget {
             // Room for the floating tab bar.
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             children: [
-              const Text('Trips', style: AppTextStyles.headingForeground),
+              _TitleRow(trailing: header),
               const SizedBox(height: 16),
-              if (header != null) ...[header!, const SizedBox(height: 16)],
               const JourneyHeroStats(),
               const SizedBox(height: 16),
               if (active)
@@ -106,4 +101,22 @@ class JourneysScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The page title, with the Planned / Recorded switch at its right when
+/// the planner is on.
+class _TitleRow extends StatelessWidget {
+  const _TitleRow({this.trailing});
+
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      const Expanded(
+        child: Text('Trips', style: AppTextStyles.headingForeground),
+      ),
+      if (trailing != null) trailing!,
+    ],
+  );
 }

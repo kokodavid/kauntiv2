@@ -116,7 +116,10 @@ class PlanDaySection extends StatelessWidget {
           ),
           if (!collapsed) ...[
             if (day.number == 1)
-              PlanEndpointRow(label: 'Start · ${plan.start.displayLabel}'),
+              PlanEndpointRow(
+                top: 0,
+                label: 'Start · ${plan.start.displayLabel}',
+              ),
             if (day.stops.isEmpty)
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 14, 16, 14),

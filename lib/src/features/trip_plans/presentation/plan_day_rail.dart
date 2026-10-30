@@ -14,6 +14,7 @@ class PlanEndpointRow extends StatelessWidget {
     required this.label,
     this.stay = false,
     this.last = false,
+    this.top = 8,
   });
 
   final String label;
@@ -22,9 +23,12 @@ class PlanEndpointRow extends StatelessWidget {
   final bool stay;
   final bool last;
 
+  /// Space above; none when it is the first thing under the day header.
+  final double top;
+
   @override
   Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.fromLTRB(12, 8, 16, last ? 10 : 2),
+    padding: EdgeInsets.fromLTRB(12, top, 16, last ? 10 : 2),
     child: Row(
       children: [
         SizedBox(

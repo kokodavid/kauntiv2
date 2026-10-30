@@ -49,7 +49,7 @@ class PlanDayHeader extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: onToggle,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 4, 10),
+        padding: const EdgeInsets.fromLTRB(16, 10, 4, 0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

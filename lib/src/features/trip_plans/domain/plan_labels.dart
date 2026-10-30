@@ -48,6 +48,15 @@ abstract final class PlanLabels {
     return m == 0 ? 'about $h h' : 'about $h h $m min';
   }
 
+  /// "~6 h 5 m", "~45 m": the short drive time for the totals card.
+  static String driveShort(int seconds) {
+    final minutes = (seconds / 60).round();
+    if (minutes < 60) return '~${minutes < 1 ? 1 : minutes} m';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return m == 0 ? '~$h h' : '~$h h $m m';
+  }
+
   /// "62 km", "800 m".
   static String distance(int meters) {
     if (meters < 1000) return '${(meters / 50).round() * 50} m';

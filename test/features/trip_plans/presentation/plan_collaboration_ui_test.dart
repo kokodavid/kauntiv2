@@ -6,6 +6,7 @@ import 'package:kaunti47_v2/src/config/app_config.dart';
 import 'package:kaunti47_v2/src/core/services/app_config_provider.dart';
 import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/plan_collaboration_providers.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/presentation/plan_header_people.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/plan_live.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/plan_routing_providers.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/application/planned_trips_list.dart';
@@ -104,24 +105,25 @@ void main() {
       findsOneWidget,
     );
     await openMenu(tester);
-    expect(find.text('People'), findsOneWidget);
+    expect(find.text('Members'), findsOneWidget);
     expect(find.text('Leave plan'), findsOneWidget);
-    expect(find.text('Rename plan'), findsNothing);
-    expect(find.text('Invite people'), findsNothing);
+    expect(find.text('Rename'), findsNothing);
+    expect(find.byTooltip('Invite people'), findsNothing);
     expect(find.text('Delete plan'), findsNothing);
   });
 
   testWidgets('a Free editor can edit but not invite', (tester) async {
     await open(tester, _plan(role: PlanRole.editor));
     await openMenu(tester);
-    expect(find.text('Rename plan'), findsOneWidget);
-    expect(find.text('Invite people'), findsNothing);
+    expect(find.text('Rename'), findsOneWidget);
+    await tester.tapAt(Offset.zero);
+    await tester.pumpAndSettle();
+    expect(find.text('Invite'), findsNothing);
   });
 
   testWidgets('the owner makes a link and it can be copied', (tester) async {
     await open(tester, _plan(buddy: false));
-    await openMenu(tester);
-    await tester.tap(find.text('Invite people'));
+    await tester.tap(find.byType(PlanInvitePill));
     await tester.pumpAndSettle();
     expect(find.text('Your travel buddy can add and move places.'), findsOneWidget);
     await tester.tap(find.text('Create invite link'));
@@ -133,8 +135,7 @@ void main() {
 
   testWidgets('Pro offers View only for the link', (tester) async {
     await open(tester, _plan(limits: PlanLimits.proTier));
-    await openMenu(tester);
-    await tester.tap(find.text('Invite people'));
+    await tester.tap(find.byType(PlanInvitePill));
     await tester.pumpAndSettle();
     await tester.tap(find.text('View only'));
     await tester.pumpAndSettle();
@@ -146,8 +147,7 @@ void main() {
   testWidgets('searching by username and inviting', (tester) async {
     collaboration.hits = const [UsernameHit(handle: 'nyati7')];
     await open(tester, _plan(buddy: false));
-    await openMenu(tester);
-    await tester.tap(find.text('Invite people'));
+    await tester.tap(find.byType(PlanInvitePill));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'nya');
     await tester.pump(const Duration(milliseconds: 500));
@@ -160,7 +160,7 @@ void main() {
   testWidgets('the owner removes a person from People', (tester) async {
     await open(tester, _plan());
     await openMenu(tester);
-    await tester.tap(find.text('People'));
+    await tester.tap(find.text('Members'));
     await tester.pumpAndSettle();
     expect(find.text('amina7 (you)'), findsOneWidget);
     expect(find.text('nyati7'), findsOneWidget);
@@ -260,7 +260,7 @@ void main() {
         ],
       ),
     );
-    expect(find.text('Updated by nyati7 · just now'), findsOneWidget);
+    expect(find.text('Updated by nyati7 just now'), findsOneWidget);
     expect(find.text('Added by nyati7 · just now'), findsOneWidget);
   });
 

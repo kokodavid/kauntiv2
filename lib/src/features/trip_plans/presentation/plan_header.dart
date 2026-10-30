@@ -6,10 +6,11 @@ import '../../../design/app_colors.dart';
 import '../domain/plan_labels.dart';
 import '../domain/plan_member.dart';
 import '../domain/trip_plan.dart';
-import 'plan_avatar_stack.dart';
+import 'plan_header_people.dart';
 
-/// The top of the plan screen (design 3a): back, title, dates, days and
-/// who is on it, plus the "view only" and offline notes.
+/// The top of the plan screen (design 3a, 3b): back, title and dates, then
+/// the Invite pill (a plan nobody has joined) or who is on it, and the "…".
+/// The "view only" and offline notes sit under the title.
 class PlanHeader extends StatelessWidget {
   const PlanHeader({
     super.key,
@@ -18,6 +19,8 @@ class PlanHeader extends StatelessWidget {
     this.offline = false,
     this.savedAt,
     this.menu,
+    this.onInvite,
+    this.onPeople,
   });
 
   final TripPlan plan;
@@ -27,6 +30,12 @@ class PlanHeader extends StatelessWidget {
 
   /// The plan's "…" for people who can edit.
   final Widget? menu;
+
+  /// Opens the invite sheet; null when this person can't invite.
+  final VoidCallback? onInvite;
+
+  /// Opens People.
+  final VoidCallback? onPeople;
 
   static String _time(DateTime at) =>
       '${at.hour.toString().padLeft(2, '0')}:'
@@ -38,12 +47,6 @@ class PlanHeader extends StatelessWidget {
         ? 'No date yet'
         : PlanLabels.range(plan.startDate, plan.endDate);
     final joined = plan.members.where((m) => m.joined).toList();
-    final ago = plan.isShared
-        ? PlanLabels.ago(plan.updatedAt, DateTime.now())
-        : null;
-    final updated = ago == null || plan.updatedByHandle == null
-        ? null
-        : 'Updated by ${plan.updatedByHandle} · $ago';
     final notes = [
       if (offline)
         savedAt == null
@@ -51,8 +54,17 @@ class PlanHeader extends StatelessWidget {
             : 'Offline · saved copy from ${_time(savedAt!.toLocal())}',
       if (plan.role == PlanRole.viewer) 'View only',
     ];
+    final Widget? people = joined.length > 1
+        ? PlanHeaderPeople(
+            members: joined,
+            onPeople: onPeople ?? () {},
+            onInvite: onInvite,
+          )
+        : onInvite != null
+        ? PlanInvitePill(onPressed: onInvite!)
+        : null;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -67,19 +79,11 @@ class PlanHeader extends StatelessWidget {
                   Text(
                     plan.title,
                     style: AppTypeScale.sectionTitle,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    '$dates · ${PlanLabels.days(plan.days.length)}',
-                    style: AppTypeScale.small,
-                  ),
-                  if (updated != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(updated, style: AppTypeScale.meta),
-                    ),
+                  Text(dates, style: AppTypeScale.small),
                   if (notes.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -94,10 +98,10 @@ class PlanHeader extends StatelessWidget {
               ),
             ),
           ),
-          if (joined.length > 1)
+          if (people != null)
             Padding(
-              padding: const EdgeInsets.only(top: 14),
-              child: PlanAvatarStack(members: joined),
+              padding: const EdgeInsets.only(left: 8, top: 2),
+              child: people,
             ),
           ?menu,
         ],

@@ -29,6 +29,7 @@ import 'plan_screen_actions.dart';
 import 'plan_screen_states.dart';
 import 'plan_stop_row.dart';
 import 'plan_totals_bar.dart';
+import 'plan_updated_by.dart';
 import 'plan_view_only_note.dart';
 import 'start_day_confirm.dart';
 
@@ -188,6 +189,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     final stored = ref.watch(planCollapsedDaysProvider(plan.id)).value;
     final collapsed = stored ?? PlanCollapsedDays.defaultFor(plan.days.length);
 
+    void run(PlanMenuAction a) => unawaited(menu.handle(a));
     return RefreshIndicator(
       onRefresh: () => ref.read(planDetailProvider(plan.id).notifier).refresh(),
       child: CustomScrollView(
@@ -199,12 +201,11 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               onBack: widget.onBack,
               offline: view.offline,
               savedAt: view.savedAt,
-              menu: view.offline
-                  ? null
-                  : PlanMenu(
-                      plan: plan,
-                      onSelected: (a) => unawaited(menu.handle(a)),
-                    ),
+              menu: view.offline ? null : PlanMenu(plan: plan, onSelected: run),
+              onInvite: plan.canInvite && !view.offline
+                  ? () => run(PlanMenuAction.invite)
+                  : null,
+              onPeople: () => run(PlanMenuAction.people),
             ),
           ),
           if (!plan.canEdit)
@@ -220,10 +221,12 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           SliverToBoxAdapter(
             child: PlanTotalsBar(
               totals: totals,
+              days: plan.days.length,
               claimed: claimed,
               homeCode: widget.homeCountyCode,
             ),
           ),
+          SliverToBoxAdapter(child: PlanUpdatedBy(plan: plan)),
           SliverPersistentHeader(
             pinned: true,
             delegate: PlanDayChipsDelegate(

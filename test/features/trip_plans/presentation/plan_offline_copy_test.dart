@@ -98,7 +98,7 @@ void main() {
 
   testWidgets('Pro: Keep offline saves the map and pictures', (tester) async {
     await open(tester, PlanLimits.proTier);
-    await menu(tester, 'Keep offline');
+    await menu(tester, 'Offline copy');
     expect(map.downloads, ['plan-me-plan-1']);
     expect(images.fetched.length, 2);
     expect(find.text('Saved offline'), findsOneWidget);
@@ -110,17 +110,17 @@ void main() {
 
   testWidgets('Remove offline copy puts it back', (tester) async {
     await open(tester, PlanLimits.proTier);
-    await menu(tester, 'Keep offline');
+    await menu(tester, 'Offline copy');
     await menu(tester, 'Remove offline copy');
     expect(map.removed, ['plan-me-plan-1']);
     await tester.tap(find.byTooltip('Plan options'));
     await tester.pumpAndSettle();
-    expect(find.text('Keep offline'), findsOneWidget);
+    expect(find.text('Offline copy'), findsOneWidget);
   });
 
   testWidgets('Free: opens the Pro sheet and saves nothing', (tester) async {
     await open(tester, PlanLimits.free);
-    await menu(tester, 'Keep offline (Pro)');
+    await menu(tester, 'Offline copy');
     expect(find.text('Keep this plan offline'), findsOneWidget);
     expect(map.downloads, isEmpty);
   });
@@ -128,11 +128,11 @@ void main() {
   testWidgets('a failed download says so and keeps nothing', (tester) async {
     map.fail = true;
     await open(tester, PlanLimits.proTier);
-    await menu(tester, 'Keep offline');
+    await menu(tester, 'Offline copy');
     expect(find.text("You're offline. Try again when connected."), findsOneWidget);
     await tester.tap(find.byTooltip('Plan options'));
     await tester.pumpAndSettle();
-    expect(find.text('Keep offline'), findsOneWidget);
+    expect(find.text('Offline copy'), findsOneWidget);
   });
 
   test('PlanBounds covers the stops with room around them', () {

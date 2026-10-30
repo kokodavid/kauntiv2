@@ -162,7 +162,8 @@ void main() {
     await openMenu(tester);
     await tester.tap(find.text('Members'));
     await tester.pumpAndSettle();
-    expect(find.text('amina7 (you)'), findsOneWidget);
+    expect(find.text('amina7'), findsOneWidget);
+    expect(find.text('Owner · you'), findsOneWidget);
     expect(find.text('nyati7'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.more_vert).last);
     await tester.pumpAndSettle();

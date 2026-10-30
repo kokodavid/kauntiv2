@@ -37,12 +37,16 @@ class PlanPopupMenu<T> extends StatelessWidget {
     required this.entries,
     required this.onSelected,
     this.iconColor = AppColors.foreground,
+    this.icon = Icons.more_horiz,
   });
 
   final String tooltip;
   final List<PlanMenuEntry<T>> entries;
   final ValueChanged<T> onSelected;
   final Color iconColor;
+
+  /// "…" on the plan and days, "⋮" on rows (stops, people).
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) => PopupMenuButton<T>(
@@ -57,7 +61,7 @@ class PlanPopupMenu<T> extends StatelessWidget {
     icon: SizedBox(
       width: 44,
       height: 44,
-      child: Icon(Icons.more_horiz, color: iconColor),
+      child: Icon(icon, color: iconColor),
     ),
     onSelected: onSelected,
     itemBuilder: (_) => [

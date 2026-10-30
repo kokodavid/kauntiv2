@@ -27,6 +27,7 @@ class PlanStopMenu extends StatelessWidget {
   Widget build(BuildContext context) => PlanPopupMenu<PlanStopAction>(
     tooltip: 'Stop options',
     iconColor: AppColors.mutedForeground,
+    icon: Icons.more_vert,
     onSelected: onSelected,
     entries: [
       if (canMoveToDay)

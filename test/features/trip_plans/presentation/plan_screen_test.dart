@@ -111,7 +111,7 @@ void main() {
     expect(find.text("Hell's Gate"), findsOneWidget);
     expect(find.text('Bring a jacket'), findsOneWidget);
     expect(find.text('Menengai'), findsOneWidget);
-    expect(find.textContaining('by road'), findsWidgets);
+    expect(find.textContaining('drive'), findsWidgets);
     expect(find.text('Road and driving time are estimates.'), findsOneWidget);
     expect(routing.calls, 2);
   });
@@ -123,7 +123,7 @@ void main() {
 
   testWidgets('folding a day hides its stops', (tester) async {
     await open(tester);
-    await tester.tap(find.textContaining('Day 2'));
+    await tester.tap(find.text('DAY 2'));
     await tester.pumpAndSettle();
     expect(find.text('Menengai'), findsNothing);
     expect(find.text("Hell's Gate"), findsOneWidget);
@@ -176,7 +176,7 @@ void main() {
     await open(tester);
     await tester.tap(find.byTooltip('Stop options').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Back to Places to visit'));
+    await tester.tap(find.text('Remove from day'));
     await tester.pumpAndSettle();
     expect(repository.removed, ['s1|true']);
   });

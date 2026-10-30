@@ -42,28 +42,6 @@ class PlanDayActions {
   final bool bestOrderIsPro;
 }
 
-class PlanEndpointRow extends StatelessWidget {
-  const PlanEndpointRow({super.key, required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
-    child: Row(
-      children: [
-        const Icon(
-          Icons.flag_outlined,
-          size: 18,
-          color: AppColors.mutedForeground,
-        ),
-        const SizedBox(width: 8),
-        Expanded(child: Text(label, style: AppTypeScale.small)),
-      ],
-    ),
-  );
-}
-
 /// Whether the road for the day is loading, worked out, or failed. The
 /// stops stay whatever happens here.
 class PlanRouteLine extends StatelessWidget {
@@ -111,11 +89,13 @@ class PlanRouteLine extends StatelessWidget {
     final worked = route.value;
     if (worked == null) return const SizedBox(height: 4);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Text(
-        '${PlanLabels.distance(worked.distanceM)} by road · '
-        '${PlanLabels.drive(worked.durationS)} · estimate',
-        style: AppTypeScale.meta,
+        '${PlanLabels.drive(worked.durationS)} drive · '
+        '${PlanLabels.distance(worked.distanceM)}',
+        style: AppTypeScale.itemTitle.copyWith(
+          color: AppColors.mutedForeground,
+        ),
       ),
     );
   }

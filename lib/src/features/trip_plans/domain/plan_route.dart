@@ -13,17 +13,29 @@ class PlanRoutePoint {
   int get hashCode => Object.hash(lat, lng);
 }
 
+/// One stretch of a day's road, from one waypoint to the next.
+class PlanLeg {
+  const PlanLeg({required this.distanceM, required this.durationS});
+
+  final int distanceM;
+  final int durationS;
+}
+
 /// A road route worked out for one day. Always an estimate.
 class PlanRoute {
   const PlanRoute({
     required this.points,
     required this.distanceM,
     required this.durationS,
+    this.legs = const [],
   });
 
   final List<PlanRoutePoint> points;
   final int distanceM;
   final int durationS;
+
+  /// One per pair of waypoints, in order; empty when not known.
+  final List<PlanLeg> legs;
 }
 
 /// Why a day's route could not be worked out. [message] is fit to show.

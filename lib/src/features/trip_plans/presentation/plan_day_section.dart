@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,19 +7,24 @@ import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../domain/plan_counties.dart';
 import '../domain/plan_day.dart';
+import '../domain/plan_day_legs.dart';
 import '../domain/plan_day_path.dart';
 import '../domain/plan_day_recording.dart';
 import '../domain/plan_labels.dart';
 import '../domain/plan_route.dart';
 import '../domain/trip_plan.dart';
+import '../application/plan_directions.dart';
 import 'plan_day_colors.dart';
+import 'plan_day_footer.dart';
+import 'plan_day_header.dart';
 import 'plan_day_parts.dart';
-import 'plan_pro_sheet.dart';
+import 'plan_day_rail.dart';
 import 'plan_stop_menu.dart';
 import 'plan_stop_row.dart';
 
-/// One day of the plan (design 3b, 3c): a header that folds the day, then
-/// its start, stops in order, tonight's stay and the road line.
+/// One day of the plan (design 3a): a header that folds the day, then its
+/// start, the stops in order with the road between them, tonight's stay, the
+/// day's total, the counties it passes through, and the buttons.
 class PlanDaySection extends StatelessWidget {
   const PlanDaySection({
     super.key,
@@ -59,7 +66,6 @@ class PlanDaySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = PlanDayColors.of(day.number);
-    final date = plan.dateOf(day);
     final worked = route.value;
     final distance =
         worked?.distanceM ?? (day.hasFreshRoute ? day.distanceM : null);
@@ -75,10 +81,17 @@ class PlanDaySection extends StatelessWidget {
       claimed: claimed,
       homeCode: homeCode,
     );
-    final countiesLine = PlanLabels.counties(
-      counties.length,
-      counties.where((c) => c.isNew).length,
-    );
+    final stopStatus = {
+      for (final c in PlanCounties.of(
+        [for (final s in day.stops) s.place.countyCode],
+        claimed: claimed,
+        homeCode: homeCode,
+      ))
+        c.code: c.status,
+    };
+    final legs = PlanDayLegs.of(plan, day, worked);
+    final title = day.title?.trim();
+    final points = PlanDayPath.waypoints(plan, day);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       decoration: BoxDecoration(
@@ -89,87 +102,19 @@ class PlanDaySection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Semantics(
-            button: true,
-            expanded: !collapsed,
-            label: '${day.displayTitle}, $summary',
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: onToggle,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 60),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '${day.number}',
-                          style: AppTypeScale.itemTitle.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              date == null
-                                  ? day.displayTitle
-                                  : '${day.displayTitle} · ${PlanLabels.day(date)}',
-                              style: AppTypeScale.itemTitle,
-                            ),
-                            Text(summary, style: AppTypeScale.meta),
-                          ],
-                        ),
-                      ),
-                      if (actions != null)
-                        PopupMenuButton<bool>(
-                          tooltip: 'Day options',
-                          constraints: const BoxConstraints(
-                            minWidth: 44,
-                            minHeight: 44,
-                          ),
-                          icon: const Icon(
-                            Icons.more_horiz,
-                            color: AppColors.mutedForeground,
-                          ),
-                          onSelected: (rename) => rename
-                              ? actions!.onRenameDay()
-                              : actions!.onRemoveDay?.call(),
-                          itemBuilder: (_) => [
-                            const PopupMenuItem(
-                              value: true,
-                              child: Text('Rename day'),
-                            ),
-                            if (actions!.onRemoveDay != null)
-                              const PopupMenuItem(
-                                value: false,
-                                child: Text('Remove day'),
-                              ),
-                          ],
-                        ),
-                      Icon(
-                        collapsed ? Icons.expand_more : Icons.expand_less,
-                        color: AppColors.mutedForeground,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          PlanDayHeader(
+            number: day.number,
+            color: color,
+            date: plan.dateOf(day),
+            title: title == null || title.isEmpty ? null : title,
+            summary: summary,
+            collapsed: collapsed,
+            onToggle: onToggle,
+            semanticLabel: '${day.displayTitle}, $summary',
+            onRename: actions?.onRenameDay,
+            onRemove: actions?.onRemoveDay,
           ),
           if (!collapsed) ...[
-            const Divider(height: 1, color: AppColors.exploreBorder),
             if (day.number == 1)
               PlanEndpointRow(label: 'Start · ${plan.start.displayLabel}'),
             if (day.stops.isEmpty)
@@ -181,12 +126,13 @@ class PlanDaySection extends StatelessWidget {
                 ),
               )
             else
-              for (var i = 0; i < day.stops.length; i++)
+              for (var i = 0; i < day.stops.length; i++) ...[
+                if (legs.before(i) case final leg?) PlanLegRow(leg: leg),
                 PlanStopRow(
                   stop: day.stops[i],
                   number: i + 1,
                   color: color,
-                  isLast: i == day.stops.length - 1 && !day.hasOvernight,
+                  countyStatus: stopStatus[day.stops[i].place.countyCode],
                   locked: plan.limits.isStopLocked(i),
                   showAddedBy: plan.isShared,
                   onOpenPlace: onOpenPlace,
@@ -197,57 +143,23 @@ class PlanDaySection extends StatelessWidget {
                           canMoveDown: i < day.stops.length - 1,
                           canMoveToDay: actions!.canMoveStopsToDay,
                           hasNote: day.stops[i].note != null,
-                          onSelected: (action) => actions!.onStop(i, action),
+                          onSelected: (action) => _stop(context, i, action),
                         ),
                 ),
-            if (day.hasOvernight)
+              ],
+            if (day.hasOvernight) ...[
+              if (legs.toOvernight case final leg?) PlanLegRow(leg: leg),
               PlanEndpointRow(
+                stay: true,
+                last: true,
                 label:
-                    'Stay · ${day.overnightPlace?.name ?? day.overnightLabel ?? 'Chosen point'}',
+                    'Overnight · ${day.overnightPlace?.name ?? day.overnightLabel ?? 'Chosen point'}',
               ),
-            if (actions != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-                child: Wrap(
-                  children: [
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(44, 44),
-                      ),
-                      onPressed: actions!.onAddPlaces,
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Add a place'),
-                    ),
-                    if (actions!.onAddFromPlaces != null)
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          minimumSize: const Size(44, 44),
-                        ),
-                        onPressed: actions!.onAddFromPlaces,
-                        child: const Text('From Places to visit'),
-                      ),
-                    if (actions!.onBestOrder != null)
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          minimumSize: const Size(44, 44),
-                        ),
-                        onPressed: actions!.onBestOrder,
-                        icon: const Icon(Icons.auto_fix_high, size: 18),
-                        label: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('Best order'),
-                            if (actions!.bestOrderIsPro) ...[
-                              const SizedBox(width: 6),
-                              const PlanProTag(),
-                            ],
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
+            ],
+            const Divider(height: 1, color: AppColors.exploreBorder),
             PlanRouteLine(route: route, onRetry: onRetryRoute),
+            PlanPassesThrough(counties: counties),
+            if (actions != null) PlanDayLinks(actions: actions!),
             if (recording != null)
               PlanRecordedRow(
                 recording: recording!,
@@ -255,31 +167,25 @@ class PlanDaySection extends StatelessWidget {
                     ? null
                     : () => onWatchReplay!(recording!.journeyId),
               ),
-            if (onStart != null && day.stops.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                    ),
-                    onPressed: onStart,
-                    icon: const Icon(Icons.play_arrow),
-                    label: Text(
-                      recording == null ? 'Start trip' : 'Record again',
-                    ),
-                  ),
-                ),
-              ),
-            if (countiesLine != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: Text(countiesLine, style: AppTypeScale.meta),
-              ),
+            PlanDayButtons(
+              startLabel: recording == null ? 'Start trip' : 'Record again',
+              onStart: onStart != null && day.stops.isNotEmpty ? onStart : null,
+              onDirections: points.length >= 2
+                  ? () => unawaited(openPlanDirections(points))
+                  : null,
+            ),
           ],
         ],
       ),
     );
+  }
+
+  /// "Open place" is handled here; the rest go to the plan's editor.
+  void _stop(BuildContext context, int index, PlanStopAction action) {
+    if (action == PlanStopAction.open) {
+      onOpenPlace?.call(context, day.stops[index].place.id);
+    } else {
+      actions?.onStop(index, action);
+    }
   }
 }

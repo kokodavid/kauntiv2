@@ -146,4 +146,16 @@ void main() {
       throwsA(isA<PlanRouteFailure>()),
     );
   });
+
+  test('the road keeps the time and distance of each leg', () {
+    const body =
+        '{"routes":[{"distance":3000,"duration":900,'
+        '"geometry":{"coordinates":[[36.8,-1.3],[36.4,-0.7]]},'
+        '"legs":[{"distance":1000,"duration":300},'
+        '{"distance":2000,"duration":600}]}]}';
+    final route = MapboxPlanRoutingClient.parse(body);
+    expect(route.legs.length, 2);
+    expect(route.legs.last.distanceM, 2000);
+    expect(route.legs.first.durationS, 300);
+  });
 }

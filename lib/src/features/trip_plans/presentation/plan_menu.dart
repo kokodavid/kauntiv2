@@ -6,8 +6,7 @@ import '../application/plan_sharing.dart';
 import '../domain/plan_member.dart';
 import '../domain/plan_offline.dart';
 import '../domain/trip_plan.dart';
-import '../../../design/app_colors.dart';
-import 'plan_pro_sheet.dart';
+import 'plan_popup_menu.dart';
 
 enum PlanMenuAction {
   rename,
@@ -49,10 +48,11 @@ class PlanMenu extends ConsumerWidget {
         PlanOfflineState.none;
     final muted = ref.watch(planMutedProvider(plan.id)).value ?? false;
     final isOwner = plan.role == PlanRole.owner;
-    final rows = <_Row>[
-      if (plan.canEdit) const _Row(PlanMenuAction.rename, 'Rename'),
-      if (plan.canEdit) const _Row(PlanMenuAction.dates, 'Change dates'),
-      _Row(
+    final rows = <PlanMenuEntry<PlanMenuAction>>[
+      if (plan.canEdit) const PlanMenuEntry(PlanMenuAction.rename, 'Rename'),
+      if (plan.canEdit)
+        const PlanMenuEntry(PlanMenuAction.dates, 'Change dates'),
+      PlanMenuEntry(
         offline.saved
             ? PlanMenuAction.removeOffline
             : PlanMenuAction.keepOffline,
@@ -64,93 +64,27 @@ class PlanMenu extends ConsumerWidget {
         enabled: !offline.saving,
         pro: !offline.saved && !plan.limits.offlineCopy,
       ),
-      const _Row(PlanMenuAction.people, 'Members'),
+      const PlanMenuEntry(PlanMenuAction.people, 'Members'),
       if (plan.isShared)
-        _Row(
+        PlanMenuEntry(
           muted ? PlanMenuAction.unmute : PlanMenuAction.mute,
           muted ? 'Unmute updates' : 'Mute updates',
         ),
       if (!isOwner || plan.isShared)
-        const _Row(PlanMenuAction.leave, 'Leave plan'),
-      if (isOwner) const _Row(PlanMenuAction.archive, 'Archive plan'),
+        const PlanMenuEntry(PlanMenuAction.leave, 'Leave plan'),
       if (isOwner)
-        const _Row(PlanMenuAction.delete, 'Delete plan', destructive: true),
+        const PlanMenuEntry(PlanMenuAction.archive, 'Archive plan'),
+      if (isOwner)
+        const PlanMenuEntry(
+          PlanMenuAction.delete,
+          'Delete plan',
+          destructive: true,
+        ),
     ];
-    return PopupMenuButton<PlanMenuAction>(
+    return PlanPopupMenu<PlanMenuAction>(
       tooltip: 'Plan options',
-      constraints: const BoxConstraints(minWidth: 220, maxWidth: 280),
-      padding: EdgeInsets.zero,
-      offset: const Offset(0, 44),
-      color: AppColors.exploreSurface,
-      surfaceTintColor: Colors.transparent,
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      icon: const SizedBox(
-        width: 44,
-        height: 44,
-        child: Icon(Icons.more_horiz, color: AppColors.foreground),
-      ),
+      entries: rows,
       onSelected: onSelected,
-      itemBuilder: (_) => [
-        for (var i = 0; i < rows.length; i++)
-          PopupMenuItem(
-            value: rows[i].action,
-            enabled: rows[i].enabled,
-            padding: EdgeInsets.zero,
-            height: 52,
-            child: _RowView(rows[i], last: i == rows.length - 1),
-          ),
-      ],
     );
   }
-}
-
-class _Row {
-  const _Row(
-    this.action,
-    this.label, {
-    this.enabled = true,
-    this.pro = false,
-    this.destructive = false,
-  });
-
-  final PlanMenuAction action;
-  final String label;
-  final bool enabled;
-  final bool pro;
-  final bool destructive;
-}
-
-class _RowView extends StatelessWidget {
-  const _RowView(this.row, {required this.last});
-
-  final _Row row;
-  final bool last;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    height: 52,
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    decoration: BoxDecoration(
-      border: last
-          ? null
-          : const Border(bottom: BorderSide(color: AppColors.exploreBorder)),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            row.label,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: row.destructive ? AppColors.danger : AppColors.foreground,
-            ),
-          ),
-        ),
-        if (row.pro) const PlanProTag(),
-      ],
-    ),
-  );
 }

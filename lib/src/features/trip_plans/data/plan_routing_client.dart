@@ -66,6 +66,15 @@ class MapboxPlanRoutingClient implements PlanRoutingClient {
         ],
         distanceM: (route['distance']! as num).round(),
         durationS: (route['duration']! as num).round(),
+        legs: [
+          for (final leg in (route['legs'] as List<Object?>? ?? const []))
+            PlanLeg(
+              distanceM: ((leg! as Map<String, Object?>)['distance']! as num)
+                  .round(),
+              durationS: ((leg as Map<String, Object?>)['duration']! as num)
+                  .round(),
+            ),
+        ],
       );
     } on PlanRouteFailure {
       rethrow;

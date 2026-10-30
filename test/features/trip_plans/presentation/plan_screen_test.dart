@@ -183,8 +183,7 @@ void main() {
 
   testWidgets('Add a day', (tester) async {
     await open(tester);
-    await tester.scrollUntilVisible(find.text('Add a day'), 300);
-    await tester.tap(find.text('Add a day'));
+    await tester.tap(find.text('+ Day'));
     await tester.pumpAndSettle();
     expect(repository.addedDays, 1);
   });
@@ -192,8 +191,7 @@ void main() {
   testWidgets('a limit refusal opens the Pro sheet', (tester) async {
     await open(tester);
     repository.failWith = PlanFailureKind.limitDays;
-    await tester.scrollUntilVisible(find.text('Add a day'), 300);
-    await tester.tap(find.text('Add a day'));
+    await tester.tap(find.text('+ Day'));
     await tester.pumpAndSettle();
     expect(find.text('Longer trips with Pro'), findsOneWidget);
   });
@@ -210,7 +208,7 @@ void main() {
     );
     await open(tester);
     expect(find.byTooltip('Stop options'), findsNothing);
-    expect(find.text('Add a day'), findsNothing);
+    expect(find.text('+ Day'), findsNothing);
     expect(find.text('View only'), findsOneWidget);
   });
 

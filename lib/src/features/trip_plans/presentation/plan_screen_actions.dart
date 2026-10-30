@@ -120,6 +120,22 @@ class PlanScreenActions {
     }
   }
 
+  /// "Add to Day…" on a Places to visit card: straight onto the only day,
+  /// or after asking which.
+  Future<void> addIdeaToDay(PlanIdea idea) async {
+    final PlanDay? day = plan.days.length == 1
+        ? plan.days.first
+        : await _pick<PlanDay>(
+            'Add ${idea.place.name} to',
+            plan.days,
+            (d) => d.displayTitle,
+            (d) => d.stops.length == 1 ? '1 stop' : '${d.stops.length} stops',
+          );
+    if (day != null) {
+      await _report(_editor.addIdeaToDay(plan.id, day.id, idea.place.id));
+    }
+  }
+
   Future<PlanDay?> _pickDay(PlanDay from) => _pick<PlanDay>(
     'Move to',
     [

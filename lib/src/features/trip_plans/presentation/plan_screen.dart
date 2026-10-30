@@ -230,9 +230,24 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           SliverPersistentHeader(
             pinned: true,
             delegate: PlanDayChipsDelegate(
-              dayNumbers: [for (final d in plan.days) d.number],
+              plan: plan,
               active: _activeDay,
               onSelect: _selectDay,
+              onAddDay: actions == null ? null : () => unawaited(actions.addDay()),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: PlanPlacesRow(
+              ideas: plan.places,
+              members: plan.members,
+              showAddedBy: plan.isShared,
+              onAdd: actions == null
+                  ? null
+                  : () => unawaited(actions.addPlaces()),
+              onAddToDay: actions == null
+                  ? null
+                  : (idea) => unawaited(actions.addIdeaToDay(idea)),
+              onOpenPlace: widget.onOpenPlace,
             ),
           ),
           SliverList(
@@ -268,29 +283,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                         : (id) => widget.onWatchReplay!(context, id),
                   ),
                 ),
-              if (actions != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                    ),
-                    onPressed: () => unawaited(actions.addDay()),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add a day'),
-                  ),
-                ),
             ]),
-          ),
-          SliverToBoxAdapter(
-            child: PlanPlacesRow(
-              ideas: plan.places,
-              maxPlaces: plan.limits.maxPlaces,
-              onAdd: actions == null
-                  ? null
-                  : () => unawaited(actions.addPlaces()),
-              onOpenPlace: widget.onOpenPlace,
-            ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
         ],

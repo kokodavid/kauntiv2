@@ -178,6 +178,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove from day'));
     await tester.pumpAndSettle();
+    expect(repository.removed, isEmpty, reason: 'asks first');
+    await tester.tap(find.widgetWithText(TextButton, 'Remove from day'));
+    await tester.pumpAndSettle();
     expect(repository.removed, ['s1|true']);
   });
 

@@ -73,30 +73,39 @@ class PlanStopRow extends ConsumerWidget {
         child: ColoredBox(
           color: fresh ? AppColors.accentTint : Colors.transparent,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 6, 0, 6),
+            padding: const EdgeInsets.fromLTRB(12, 4, 0, 4),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                SizedBox(
                   width: 32,
-                  height: 32,
-                  margin: const EdgeInsets.only(top: 12),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: locked ? AppColors.mutedForeground : color,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    '$number',
-                    style: AppTypeScale.action.copyWith(color: Colors.white),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      margin: const EdgeInsets.only(top: 10),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: locked ? AppColors.mutedForeground : color,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$number',
+                        style: AppTypeScale.meta.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: PlanPlaceThumb(url: place.thumbnailUrl, size: 56),
+                  child: PlanPlaceThumb(url: place.thumbnailUrl, size: 44),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 4),
@@ -105,7 +114,10 @@ class PlanStopRow extends ConsumerWidget {
                       children: [
                         Text(
                           place.name,
-                          style: AppTypeScale.itemTitle.copyWith(fontWeight: FontWeight.w600),
+                          style: AppTypeScale.itemTitle.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13.5,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -122,7 +134,7 @@ class PlanStopRow extends ConsumerWidget {
                         if (stop.note != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text(stop.note!, style: AppTypeScale.body),
+                            child: Text(stop.note!, style: AppTypeScale.small),
                           ),
                         if (by != null)
                           Padding(
@@ -151,7 +163,7 @@ class PlanStopRow extends ConsumerWidget {
                   ),
                 ),
                 if (menu != null)
-                  Padding(padding: const EdgeInsets.only(top: 4), child: menu)
+                  Padding(padding: const EdgeInsets.only(top: 0), child: menu)
                 else
                   const SizedBox(width: 12),
               ],
@@ -171,14 +183,14 @@ class PlanTypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
     decoration: BoxDecoration(
       color: AppColors.successTint,
       borderRadius: BorderRadius.circular(999),
     ),
     child: Text(
       label,
-      style: AppTypeScale.meta.copyWith(color: AppColors.green),
+      style: AppTypeScale.meta.copyWith(color: AppColors.green, fontSize: 10.5),
     ),
   );
 }
@@ -216,12 +228,13 @@ class _County extends StatelessWidget {
     children: [
       PlanCountyDot(status),
       const SizedBox(width: 5),
-      Text(name, style: AppTypeScale.small),
+      Text(name, style: AppTypeScale.small.copyWith(fontSize: 11.5)),
       if (status == PlanCountyStatus.notClaimed) ...[
         const SizedBox(width: 5),
         Text(
           'New',
           style: AppTypeScale.small.copyWith(
+            fontSize: 11.5,
             color: AppColors.newCountyText,
             fontWeight: FontWeight.w600,
           ),

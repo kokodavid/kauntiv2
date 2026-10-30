@@ -24,7 +24,7 @@ class PlanEndpointRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.fromLTRB(12, 10, 16, last ? 12 : 2),
+    padding: EdgeInsets.fromLTRB(12, 8, 16, last ? 10 : 2),
     child: Row(
       children: [
         SizedBox(
@@ -37,12 +37,12 @@ class PlanEndpointRow extends StatelessWidget {
                     color: AppColors.mutedForeground,
                   )
                 : Container(
-                    width: 14,
-                    height: 14,
+                    width: 12,
+                    height: 12,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.foreground, width: 3),
+                      border: Border.all(color: AppColors.foreground, width: 2.5),
                     ),
                   ),
           ),
@@ -71,7 +71,7 @@ class PlanLegRow extends StatelessWidget {
             child: Center(
               child: Container(
                 width: 3,
-                height: 36,
+                height: 28,
                 decoration: BoxDecoration(
                   color: AppColors.exploreBorder,
                   borderRadius: BorderRadius.circular(2),
@@ -82,14 +82,14 @@ class PlanLegRow extends StatelessWidget {
           const SizedBox(width: 12),
           const Icon(
             Icons.directions_car_outlined,
-            size: 16,
+            size: 14,
             color: AppColors.mutedForeground,
           ),
           const SizedBox(width: 8),
           Text(
             '${PlanLabels.drive(leg.durationS)} · '
             '${PlanLabels.distance(leg.distanceM)}',
-            style: AppTypeScale.small,
+            style: AppTypeScale.meta,
           ),
         ],
       ),

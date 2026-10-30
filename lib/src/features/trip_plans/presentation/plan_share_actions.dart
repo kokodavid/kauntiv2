@@ -69,6 +69,7 @@ class PlanShareActions {
                 'else is on it, it is deleted.'
           : "You'll lose access. Someone can invite you again.",
       action: 'Leave',
+      icon: Icons.logout,
     );
     if (!ok) return;
     final failure = await ref.read(planSharingProvider).leave(plan.id);

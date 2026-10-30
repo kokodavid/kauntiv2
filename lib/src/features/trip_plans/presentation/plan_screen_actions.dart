@@ -19,6 +19,7 @@ import 'plan_edit_sheets.dart';
 import 'plan_day_colors.dart';
 import 'plan_menu.dart';
 import 'plan_pick_day_sheet.dart';
+import 'plan_remove_confirms.dart';
 import 'plan_note_sheet.dart';
 import 'plan_stop_menu.dart';
 import 'plan_stop_row.dart';
@@ -37,7 +38,6 @@ class PlanScreenActions {
   final VoidCallback? onGone;
 
   PlanEditor get _editor => ref.read(planEditorProvider);
-
   Future<void> _report(Future<PlanFailure?> change) async {
     final failure = await change;
     if (failure != null && context.mounted) {
@@ -66,7 +66,7 @@ class PlanScreenActions {
       case PlanStopAction.down:
         await _report(_editor.nudgeStop(plan.id, day, index, 1));
       case PlanStopAction.open:
-        break; // handled by the day card, which has the place opener
+        break; // the day card opens places
       case PlanStopAction.moveToDay:
         final target = await _pickDay(day);
         if (target != null) {
@@ -90,9 +90,15 @@ class PlanScreenActions {
           await _report(_editor.setNote(plan.id, stop.id, note));
         }
       case PlanStopAction.toPlaces:
-        await _report(_editor.removeStop(plan.id, stop.id, toPlacesList: true));
+        if (await PlanRemoveConfirms.stopToPlaces(context, day, stop)) {
+          await _report(
+            _editor.removeStop(plan.id, stop.id, toPlacesList: true),
+          );
+        }
       case PlanStopAction.remove:
-        await _report(_editor.removeStop(plan.id, stop.id));
+        if (await PlanRemoveConfirms.stopFromPlan(context, day, stop)) {
+          await _report(_editor.removeStop(plan.id, stop.id));
+        }
     }
   }
 
@@ -109,13 +115,10 @@ class PlanScreenActions {
   }
 
   Future<void> _removeDay(PlanDay day) async {
-    final ok = await showPlanConfirm(
+    final ok = await PlanRemoveConfirms.day(
       context,
-      title: 'Remove ${day.displayTitle}?',
-      message: day.stops.isEmpty
-          ? 'The day is empty.'
-          : 'Its ${day.stops.length} stops will be taken off the plan.',
-      action: 'Remove',
+      day,
+      laterDays: day.number < plan.days.length,
     );
     if (ok) await _report(_editor.removeDay(plan.id, day.id));
   }
@@ -261,6 +264,8 @@ class PlanScreenActions {
           title: 'Archive this plan?',
           message: 'It stops counting toward your upcoming plans.',
           action: 'Archive',
+          icon: Icons.archive_outlined,
+          destructive: false,
         );
         if (!ok) return;
         final failure = await _editor.archive(plan.id);

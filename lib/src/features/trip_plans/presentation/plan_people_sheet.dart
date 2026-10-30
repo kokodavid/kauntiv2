@@ -64,6 +64,19 @@ class PlanPeopleSheet extends ConsumerWidget {
       await showPlanProSheet(context, trigger: PlanProTrigger.invitee);
       return;
     }
+    if (action == _MemberAction.remove) {
+      final name = member.handle ?? 'this person';
+      final ok = await showPlanConfirm(
+        context,
+        title: member.joined ? 'Remove $name?' : 'Cancel the invitation?',
+        message: member.joined
+            ? "$name loses access to this plan. Someone can invite them again."
+            : 'The invitation to $name stops working.',
+        action: member.joined ? 'Remove' : 'Cancel invitation',
+        icon: Icons.person_remove_outlined,
+      );
+      if (!ok || !context.mounted) return;
+    }
     final failure = switch (action) {
       _MemberAction.makeEditor => await sharing.setRole(
         current.id,

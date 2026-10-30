@@ -170,6 +170,10 @@ void main() {
     expect(find.text('Make owner'), findsOneWidget);
     await tester.tap(find.text('Remove'));
     await tester.pumpAndSettle();
+    expect(collaboration.calls, isEmpty, reason: 'asks first');
+    expect(find.textContaining('loses access'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Remove'));
+    await tester.pumpAndSettle();
     expect(collaboration.calls, ['remove|plan-1|buddy-1']);
   });
 

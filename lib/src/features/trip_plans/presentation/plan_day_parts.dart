@@ -93,7 +93,8 @@ class PlanRouteLine extends StatelessWidget {
       child: Text(
         '${PlanLabels.drive(worked.durationS)} drive · '
         '${PlanLabels.distance(worked.distanceM)}',
-        style: AppTypeScale.itemTitle.copyWith(
+        style: AppTypeScale.body.copyWith(
+          fontWeight: FontWeight.w500,
           color: AppColors.mutedForeground,
         ),
       ),

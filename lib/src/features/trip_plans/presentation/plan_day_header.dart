@@ -85,7 +85,7 @@ class PlanDayHeader extends StatelessWidget {
                   if (title != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: Text(title!, style: AppTypeScale.sectionTitle),
+                      child: Text(title!, style: AppTypeScale.cardTitle),
                     ),
                   if (collapsed && summary != null)
                     Padding(

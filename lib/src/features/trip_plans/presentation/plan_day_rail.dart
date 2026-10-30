@@ -48,7 +48,7 @@ class PlanEndpointRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(child: Text(label, style: AppTypeScale.body)),
+        Expanded(child: Text(label, style: AppTypeScale.small)),
       ],
     ),
   );

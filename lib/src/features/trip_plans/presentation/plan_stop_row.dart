@@ -105,7 +105,7 @@ class PlanStopRow extends ConsumerWidget {
                       children: [
                         Text(
                           place.name,
-                          style: AppTypeScale.cardTitle,
+                          style: AppTypeScale.itemTitle.copyWith(fontWeight: FontWeight.w600),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),

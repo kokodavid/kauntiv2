@@ -136,7 +136,7 @@ class _Stat extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: DefaultTextStyle.merge(
-              style: AppTypeScale.cardTitle,
+              style: AppTypeScale.cardTitle.copyWith(fontSize: 15),
               maxLines: 1,
               child: value,
             ),

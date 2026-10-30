@@ -34,8 +34,8 @@ class PlanPassesThrough extends StatelessWidget {
               for (final c in counties)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                    horizontal: 10,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.exploreSurface,
@@ -49,7 +49,10 @@ class PlanPassesThrough extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(
                         CountyPaths.byCode[c.code]?.name ?? '',
-                        style: AppTypeScale.itemTitle,
+                        style: AppTypeScale.body.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.foreground,
+                        ),
                       ),
                       if (c.status != PlanCountyStatus.claimed) ...[
                         const SizedBox(width: 6),
@@ -154,8 +157,8 @@ class PlanDayButtons extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: AppColors.accentForeground,
-                  textStyle: AppTypeScale.cardTitle,
-                  minimumSize: const Size.fromHeight(52),
+                  textStyle: AppTypeScale.itemTitle.copyWith(fontWeight: FontWeight.w600),
+                  minimumSize: const Size.fromHeight(48),
                   shape: const StadiumBorder(),
                 ),
                 onPressed: onStart,
@@ -170,9 +173,9 @@ class PlanDayButtons extends StatelessWidget {
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.foreground,
-                  textStyle: AppTypeScale.cardTitle,
+                  textStyle: AppTypeScale.itemTitle.copyWith(fontWeight: FontWeight.w600),
                   side: const BorderSide(color: AppColors.exploreBorder),
-                  minimumSize: const Size.fromHeight(52),
+                  minimumSize: const Size.fromHeight(48),
                   shape: const StadiumBorder(),
                 ),
                 onPressed: onDirections,

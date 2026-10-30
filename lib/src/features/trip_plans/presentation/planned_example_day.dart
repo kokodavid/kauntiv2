@@ -4,68 +4,131 @@ import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import 'plan_day_colors.dart';
 
-/// The worked example on the empty Planned page (design 1a): a sample Day 1
-/// built from the same parts as a real day, tagged EXAMPLE.
-class PlannedExampleDay extends StatelessWidget {
-  const PlannedExampleDay({super.key});
+/// One county on an example day: claimed (blue) or new (grey, "new").
+class ExampleCounty {
+  const ExampleCounty(this.name, {this.isNew = false});
+
+  final String name;
+  final bool isNew;
+}
+
+/// A sample day for the empty Planned page. Fixed copy, so the page stays
+/// static and works offline.
+class ExampleDay {
+  const ExampleDay({
+    required this.number,
+    required this.date,
+    required this.title,
+    required this.meta,
+    required this.stops,
+    required this.counties,
+  });
+
+  final int number;
+  final String date;
+  final String title;
+  final String meta;
+  final List<String> stops;
+  final List<ExampleCounty> counties;
+}
+
+/// The three days the empty state cycles through (a coast trip).
+const exampleDays = [
+  ExampleDay(
+    number: 1,
+    date: 'Fri 11 Dec',
+    title: 'Mombasa day',
+    meta: '3 stops · about 55 min drive · 24 km',
+    stops: ['Fort Jesus', 'Haller Park', 'Nyali Beach'],
+    counties: [ExampleCounty('Mombasa')],
+  ),
+  ExampleDay(
+    number: 2,
+    date: 'Sat 12 Dec',
+    title: 'Coast drive north',
+    meta: '3 stops · about 2 h 30 min drive · 118 km',
+    stops: ['Kilifi Creek', 'Gede Ruins', 'Watamu Marine Park'],
+    counties: [ExampleCounty('Mombasa'), ExampleCounty('Kilifi', isNew: true)],
+  ),
+  ExampleDay(
+    number: 3,
+    date: 'Sun 13 Dec',
+    title: 'To Lamu',
+    meta: '2 stops · about 4 h 10 min drive · 236 km',
+    stops: ['Malindi Marine Park', 'Lamu Old Town'],
+    counties: [
+      ExampleCounty('Kilifi', isNew: true),
+      ExampleCounty('Tana River', isNew: true),
+      ExampleCounty('Lamu', isNew: true),
+    ],
+  ),
+];
+
+/// A collapsed example day: the card the real plan screen shows for a day,
+/// at a fixed height so the loop never jumps.
+class ExampleDayCard extends StatelessWidget {
+  const ExampleDayCard({super.key, required this.day});
+
+  final ExampleDay day;
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
     decoration: BoxDecoration(
       color: AppColors.exploreSurface,
       borderRadius: BorderRadius.circular(16),
       border: Border.all(color: AppColors.exploreBorder),
-    ),
-    child: const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            PlanDayPill(number: 1),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text('Rift Valley drive', style: AppTypeScale.itemTitle),
-            ),
-            Text('EXAMPLE', style: AppTypeScale.sectionLabel),
-          ],
-        ),
-        SizedBox(height: 10),
-        _ExampleStop(
-          number: 1,
-          name: 'Rift Valley Viewpoint',
-          type: 'Viewpoint',
-          county: 'Kiambu',
-          countyColor: AppColors.legendVisited,
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 32, top: 4, bottom: 4),
-          child: Text('about 1 h 10 min · 62 km', style: AppTypeScale.meta),
-        ),
-        _ExampleStop(
-          number: 2,
-          name: "Hell's Gate National Park",
-          type: 'Park',
-          county: 'Nakuru',
-          countyColor: AppColors.lockedStroke,
-          isNew: true,
-        ),
-        Divider(height: 20, color: AppColors.softDivider),
-        Wrap(
-          spacing: 10,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text('PASSES', style: AppTypeScale.sectionLabel),
-            _CountyDot(name: 'Nairobi', color: AppColors.legendHome),
-            _CountyDot(name: 'Kiambu', color: AppColors.legendVisited),
-            _CountyDot(
-              name: 'Nakuru',
-              color: AppColors.lockedStroke,
-              isNew: true,
-            ),
-          ],
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0F000000),
+          blurRadius: 24,
+          offset: Offset(0, 8),
         ),
       ],
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                PlanDayPill(number: day.number),
+                const SizedBox(width: 8),
+                Text(day.date, style: AppTypeScale.meta),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              day.title,
+              style: AppTypeScale.cardTitle.copyWith(height: 22 / 16),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              day.meta,
+              style: AppTypeScale.small.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.detailStatValue,
+              ),
+            ),
+            Text(
+              day.stops.join(' → '),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypeScale.small,
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 10,
+              runSpacing: 4,
+              children: [
+                for (final county in day.counties) _CountyDot(county: county),
+              ],
+            ),
+          ],
+        ),
+      ),
     ),
   );
 }
@@ -99,104 +162,45 @@ class PlanDayPill extends StatelessWidget {
   );
 }
 
-class _ExampleStop extends StatelessWidget {
-  const _ExampleStop({
-    required this.number,
-    required this.name,
-    required this.type,
-    required this.county,
-    required this.countyColor,
-    this.isNew = false,
-  });
+class _CountyDot extends StatelessWidget {
+  const _CountyDot({required this.county});
 
-  final int number;
-  final String name;
-  final String type;
-  final String county;
-  final Color countyColor;
-  final bool isNew;
+  final ExampleCounty county;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      CircleAvatar(
-        radius: 11,
-        backgroundColor: PlanDayColors.of(1),
-        child: Text(
-          '$number',
-          style: const TextStyle(
-            fontFamily: AppTypeScale.family,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+  Widget build(BuildContext context) {
+    const style = TextStyle(
+      fontFamily: AppTypeScale.family,
+      fontSize: 11,
+      height: 16 / 11,
+      color: AppColors.bodyText,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(
+            color: county.isNew
+                ? AppColors.lockedStroke
+                : AppColors.legendVisited,
+            shape: BoxShape.circle,
           ),
         ),
-      ),
-      const SizedBox(width: 10),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(name, style: AppTypeScale.itemTitle),
-            const SizedBox(height: 2),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.exploreCategoryFill,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    type,
-                    style: AppTypeScale.meta.copyWith(
-                      color: AppColors.exploreCategoryText,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _CountyDot(name: county, color: countyColor, isNew: isNew),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
-class _CountyDot extends StatelessWidget {
-  const _CountyDot({
-    required this.name,
-    required this.color,
-    this.isNew = false,
-  });
-
-  final String name;
-  final Color color;
-  final bool isNew;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Container(
-        width: 7,
-        height: 7,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      ),
-      const SizedBox(width: 4),
-      Text(name, style: AppTypeScale.meta),
-      if (isNew) ...[
         const SizedBox(width: 4),
-        Text(
-          'new',
-          style: AppTypeScale.meta.copyWith(color: AppColors.newCountyText),
-        ),
+        Text(county.name, style: style),
+        if (county.isNew) ...[
+          const SizedBox(width: 4),
+          Text(
+            'new',
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.newCountyText,
+            ),
+          ),
+        ],
       ],
-    ],
-  );
+    );
+  }
 }

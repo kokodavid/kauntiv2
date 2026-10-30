@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../domain/plan_limits.dart';
-import 'planned_example_day.dart';
+import 'planned_example_loop.dart';
 
-/// Planned with no plans yet (design 1a): what a plan looks like, two
-/// things it adds, and the free allowance so the 3-day limit is no surprise.
+/// Planned with no plans yet (design 1a-A): a looping example plan, two
+/// things plans add, and the free allowance so the 3-day limit is no
+/// surprise.
 class PlannedEmptyState extends StatelessWidget {
   const PlannedEmptyState({
     super.key,
@@ -23,8 +24,11 @@ class PlannedEmptyState extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      const PlannedExampleLoop(),
+      const SizedBox(height: 14),
       const Text(
-        'Plan your next trip, day by day',
+        'No plans yet',
+        textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: AppTypeScale.family,
           fontSize: 22,
@@ -34,15 +38,7 @@ class PlannedEmptyState extends StatelessWidget {
           color: AppColors.foreground,
         ),
       ),
-      const SizedBox(height: 6),
-      const Text(
-        'Line up stops, see driving times, and find out which counties '
-        "you'll pass for the first time.",
-        style: AppTypeScale.body,
-      ),
-      const SizedBox(height: 16),
-      const PlannedExampleDay(),
-      const SizedBox(height: 16),
+      const SizedBox(height: 14),
       const _FeatureRow(
         icon: Icons.badge_outlined,
         title: 'New counties, before you go',
@@ -56,33 +52,34 @@ class PlannedEmptyState extends StatelessWidget {
         title: 'Plan with a travel buddy',
         body: 'Invite friends with a link. Everyone edits the same plan.',
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 18),
       SizedBox(
         height: 52,
-        child: FilledButton(
+        child: FilledButton.icon(
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.accent,
             foregroundColor: AppColors.accentForeground,
             shape: const StadiumBorder(),
             textStyle: const TextStyle(
               fontFamily: AppTypeScale.family,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
           onPressed: onPlanTrip,
-          child: const Text('Plan a trip'),
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Plan a trip'),
         ),
       ),
       if (onFindPlaces != null) ...[
         const SizedBox(height: 8),
         SizedBox(
-          height: 44,
-          child: OutlinedButton(
+          height: 48,
+          child: OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.foreground,
               backgroundColor: AppColors.exploreSurface,
-              side: const BorderSide(color: AppColors.exploreBorder),
+              side: const BorderSide(color: AppColors.cardBorder),
               shape: const StadiumBorder(),
               textStyle: const TextStyle(
                 fontFamily: AppTypeScale.family,
@@ -91,17 +88,24 @@ class PlannedEmptyState extends StatelessWidget {
               ),
             ),
             onPressed: onFindPlaces,
-            child: const Text('Find places in Explore'),
+            icon: const Icon(Icons.search, size: 16),
+            label: const Text('Browse places in Explore'),
           ),
         ),
       ],
       if (!limits.pro) ...[
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Text(
-          'Free: ${limits.maxUpcomingPlans ?? 3} upcoming plans, '
-          'up to ${limits.maxDays} days each.',
+          'Free · ${limits.maxUpcomingPlans ?? 3} plans · '
+          'up to ${limits.maxDays} days each',
           textAlign: TextAlign.center,
-          style: AppTypeScale.meta,
+          style: const TextStyle(
+            fontFamily: AppTypeScale.family,
+            fontSize: 11,
+            height: 16 / 11,
+            letterSpacing: 0.3,
+            color: AppColors.faintForeground,
+          ),
         ),
       ],
     ],

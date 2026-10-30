@@ -87,12 +87,9 @@ void main() {
     tester,
   ) async {
     await pump(tester);
-    expect(find.text('Plan your next trip, day by day'), findsOneWidget);
-    expect(find.text('EXAMPLE'), findsOneWidget);
-    expect(
-      find.text('Free: 3 upcoming plans, up to 3 days each.'),
-      findsOneWidget,
-    );
+    expect(find.text('No plans yet'), findsOneWidget);
+    expect(find.text('Mombasa day'), findsOneWidget);
+    expect(find.text('Free · 3 plans · up to 3 days each'), findsOneWidget);
     await tester.tap(find.text('Plan a trip'));
     expect(planTripTaps, 1);
   });
@@ -148,7 +145,7 @@ void main() {
     await pump(tester);
     expect(find.text('Invitations'), findsOneWidget);
     expect(find.text('Coast trip'), findsOneWidget);
-    expect(find.text('Plan your next trip, day by day'), findsOneWidget);
+    expect(find.text('No plans yet'), findsOneWidget);
   });
 
   testWidgets('Pro users see no allowance line', (tester) async {

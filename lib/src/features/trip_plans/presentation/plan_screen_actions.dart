@@ -60,6 +60,8 @@ class PlanScreenActions {
         await _report(_editor.nudgeStop(plan.id, day, index, -1));
       case PlanStopAction.down:
         await _report(_editor.nudgeStop(plan.id, day, index, 1));
+      case PlanStopAction.open:
+        break; // handled by the day card, which has the place opener
       case PlanStopAction.moveToDay:
         final target = await _pickDay(day);
         if (target != null) {

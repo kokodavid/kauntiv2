@@ -126,7 +126,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the back button is the app's shared one, 40 pt', (
+  testWidgets('the back button is the shared app one, 40 pt', (
     tester,
   ) async {
     await open(tester);

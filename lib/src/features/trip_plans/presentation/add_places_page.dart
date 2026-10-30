@@ -166,7 +166,7 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
             ),
           ),
           SizedBox(
-            height: 48,
+            height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),

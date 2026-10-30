@@ -5,7 +5,7 @@ import '../../../core/domain/place_type.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 
-/// A filter chip: county or type, 44 high.
+/// A filter chip: county or type, 34 high.
 class PlaceFilterChip extends StatelessWidget {
   const PlaceFilterChip({
     super.key,
@@ -37,8 +37,8 @@ class PlaceFilterChip extends StatelessWidget {
           customBorder: const StadiumBorder(),
           onTap: onTap,
           child: Container(
-            constraints: const BoxConstraints(minHeight: 44),
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            constraints: const BoxConstraints(minHeight: 34),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             alignment: Alignment.center,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -46,14 +46,15 @@ class PlaceFilterChip extends StatelessWidget {
                 if (icon != null) ...[
                   Icon(
                     icon,
-                    size: 16,
+                    size: 14,
                     color: selected ? Colors.white : AppColors.ink,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                 ],
                 Text(
                   label,
-                  style: AppTypeScale.action.copyWith(
+                  style: AppTypeScale.small.copyWith(
+                    fontWeight: FontWeight.w500,
                     color: selected ? Colors.white : AppColors.ink,
                   ),
                 ),

@@ -19,6 +19,8 @@ class PlanCard extends StatelessWidget {
     this.homeCode,
     this.onTap,
     this.action,
+    this.dateLine,
+    this.dimmed = false,
   });
 
   final TripPlanSummary plan;
@@ -28,6 +30,12 @@ class PlanCard extends StatelessWidget {
 
   /// Shown in place of the chevron (Restore on an archived plan).
   final Widget? action;
+
+  /// Replaces the dates line ("Archived 3 d ago").
+  final String? dateLine;
+
+  /// Quieter, for a plan that is put away.
+  final bool dimmed;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +47,7 @@ class PlanCard extends StatelessWidget {
     final newCount = counties.where((c) => c.isNew).length;
     final countiesLine = PlanLabels.counties(counties.length, newCount);
     final owner = plan.owner;
-    return Material(
+    final card = Material(
       color: AppColors.exploreSurface,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
@@ -81,8 +89,9 @@ class PlanCard extends StatelessWidget {
                       ],
                     ),
                     Text(
-                      '${PlanLabels.range(plan.startDate, plan.endDate)}'
-                      ' · ${PlanLabels.days(plan.dayCount)}',
+                      dateLine ??
+                          '${PlanLabels.range(plan.startDate, plan.endDate)}'
+                              ' · ${PlanLabels.days(plan.dayCount)}',
                       style: AppTypeScale.small,
                     ),
                     if (countiesLine != null)
@@ -117,6 +126,7 @@ class PlanCard extends StatelessWidget {
         ),
       ),
     );
+    return dimmed ? Opacity(opacity: 0.72, child: card) : card;
   }
 }
 

@@ -56,6 +56,9 @@ class PlanShareActions {
           PlanMenuAction.keepOffline ||
           PlanMenuAction.removeOffline:
         break; // handled elsewhere
+      case PlanMenuAction.unarchive:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 

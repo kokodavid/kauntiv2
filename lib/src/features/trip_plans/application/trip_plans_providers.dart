@@ -41,6 +41,19 @@ Future<bool> tripPlansEnabled(Ref ref) async {
   }
 }
 
+/// Whether invite links are switched on. Read once at start-up; any failure
+/// means off, so only username invitations are offered.
+@Riverpod(keepAlive: true)
+Future<bool> tripPlanLinksEnabled(Ref ref) async {
+  final repository = ref.watch(tripPlansFlagRepositoryProvider);
+  if (repository == null) return false;
+  try {
+    return await repository.linksEnabled().timeout(const Duration(seconds: 5));
+  } on Object {
+    return false;
+  }
+}
+
 /// The signed-in user's own limits and upcoming-plan count, for the create
 /// sheet and "2 of 3 upcoming plans". Free limits when they can't be read.
 @riverpod

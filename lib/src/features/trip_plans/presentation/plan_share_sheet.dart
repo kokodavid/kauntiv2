@@ -10,6 +10,7 @@ import '../../../core/widgets/app_floating_toast.dart';
 import '../../../design/app_colors.dart';
 import '../application/plan_detail.dart';
 import '../application/plan_sharing.dart';
+import '../application/trip_plans_providers.dart';
 import '../domain/plan_invite.dart';
 import '../domain/plan_member.dart';
 import '../domain/trip_plan.dart';
@@ -79,6 +80,7 @@ class _PlanShareSheetState extends ConsumerState<PlanShareSheet> {
   Widget build(BuildContext context) {
     final plan = _plan;
     final link = _link;
+    final links = ref.watch(tripPlanLinksEnabledProvider).value ?? false;
     final pro = plan.limits.roles;
     final joined = plan.members.where((m) => m.joined).length;
     final others = [
@@ -102,42 +104,44 @@ class _PlanShareSheetState extends ConsumerState<PlanShareSheet> {
             onChanged: (r) => setState(() => _role = r),
           ),
         ],
-        const PlanShareLabel('Invite by link'),
-        if (link == null)
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: AppColors.accentForeground,
-              textStyle: AppTypeScale.action.copyWith(
-                fontWeight: FontWeight.w600,
+        if (links) ...[
+          const PlanShareLabel('Invite by link'),
+          if (link == null)
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.accentForeground,
+                textStyle: AppTypeScale.action.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                minimumSize: const Size.fromHeight(44),
+                shape: const StadiumBorder(),
               ),
-              minimumSize: const Size.fromHeight(44),
-              shape: const StadiumBorder(),
-            ),
-            onPressed: _busy ? null : () => unawaited(_makeLink()),
-            icon: const Icon(Icons.link, size: 18),
-            label: Text(_busy ? 'Making link…' : 'Create invite link'),
-          )
-        else ...[
-          PlanLinkRow(
-            url: _shown(link.url),
-            onCopy: () => unawaited(_copy(link)),
-            onShare: () => unawaited(
-              AppShare.text(
-                'Join my trip plan "${plan.title}" on Kaunti47: ${link.url}',
+              onPressed: _busy ? null : () => unawaited(_makeLink()),
+              icon: const Icon(Icons.link, size: 18),
+              label: Text(_busy ? 'Making link…' : 'Create invite link'),
+            )
+          else ...[
+            PlanLinkRow(
+              url: _shown(link.url),
+              onCopy: () => unawaited(_copy(link)),
+              onShare: () => unawaited(
+                AppShare.text(
+                  'Join my trip plan "${plan.title}" on Kaunti47: ${link.url}',
+                ),
               ),
             ),
-          ),
-          PlanLinkFooter(
-            expiresAt: link.expiresAt,
-            onTurnOff: () => unawaited(_turnOff(link.id, current: true)),
-          ),
+            PlanLinkFooter(
+              expiresAt: link.expiresAt,
+              onTurnOff: () => unawaited(_turnOff(link.id, current: true)),
+            ),
+          ],
+          for (final invite in others)
+            PlanLiveLink(
+              invite: invite,
+              onTurnOff: () => unawaited(_turnOff(invite.id)),
+            ),
         ],
-        for (final invite in others)
-          PlanLiveLink(
-            invite: invite,
-            onTurnOff: () => unawaited(_turnOff(invite.id)),
-          ),
         PlanInviteUserSection(plan: plan, role: _role),
         Padding(
           padding: const EdgeInsets.only(top: 12),

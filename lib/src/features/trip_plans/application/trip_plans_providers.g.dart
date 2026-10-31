@@ -289,3 +289,45 @@ final class PlanClaimedCountyCodesProvider
 
 String _$planClaimedCountyCodesHash() =>
     r'0db0bc7ef2084dcbc7f94ca1c6a81473410e472f';
+
+/// Whether invite links are switched on. Read once at start-up; any failure
+/// means off, so only username invitations are offered.
+
+@ProviderFor(tripPlanLinksEnabled)
+const tripPlanLinksEnabledProvider = TripPlanLinksEnabledProvider._();
+
+/// Whether invite links are switched on. Read once at start-up; any failure
+/// means off, so only username invitations are offered.
+
+final class TripPlanLinksEnabledProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
+    with $FutureModifier<bool>, $FutureProvider<bool> {
+  /// Whether invite links are switched on. Read once at start-up; any failure
+  /// means off, so only username invitations are offered.
+  const TripPlanLinksEnabledProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'tripPlanLinksEnabledProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$tripPlanLinksEnabledHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<bool> create(Ref ref) {
+    return tripPlanLinksEnabled(ref);
+  }
+}
+
+String _$tripPlanLinksEnabledHash() =>
+    r'0000000000000000000000000000000000000000';

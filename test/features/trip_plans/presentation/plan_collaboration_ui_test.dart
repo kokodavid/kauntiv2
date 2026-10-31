@@ -65,7 +65,7 @@ void main() {
     live = FakePlanLiveSource();
   });
 
-  List<Override> overrides() => [
+  List<Override> overrides({bool links = true}) => [
     appConfigProvider.overrideWithValue(const AppConfig.dev()),
     tripPlansRepositoryProvider.overrideWithValue(repository),
     planCollaborationRepositoryProvider.overrideWithValue(collaboration),
@@ -74,13 +74,18 @@ void main() {
     currentUserIdProvider.overrideWithValue(() => 'me'),
     planRoutingClientProvider.overrideWithValue(FakePlanRoutingClient()),
     planClaimedCountyCodesProvider.overrideWith((ref) async => {}),
+    tripPlanLinksEnabledProvider.overrideWith((ref) async => links),
   ];
 
-  Future<void> open(WidgetTester tester, TripPlan plan) async {
+  Future<void> open(
+    WidgetTester tester,
+    TripPlan plan, {
+    bool links = true,
+  }) async {
     repository.detail['plan-1'] = plan;
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides(),
+        overrides: overrides(links: links),
         child: MaterialApp(
           home: PlanScreen(planId: 'plan-1', onBack: () {}),
         ),
@@ -155,6 +160,17 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Invite'));
     await tester.pumpAndSettle();
     expect(collaboration.calls, ['invite|plan-1|nyati7']);
+  });
+
+  testWidgets('with links off the invite sheet offers usernames only', (
+    tester,
+  ) async {
+    await open(tester, _plan(buddy: false), links: false);
+    await tester.tap(find.byType(PlanInvitePill));
+    await tester.pumpAndSettle();
+    expect(find.text('Invite by link'), findsNothing);
+    expect(find.text('Create invite link'), findsNothing);
+    expect(find.text('Invite a travel buddy'), findsOneWidget);
   });
 
   testWidgets('the owner removes a person from People', (tester) async {

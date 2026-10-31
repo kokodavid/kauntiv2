@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../application/plan_editor.dart';
 import '../application/trip_plans_providers.dart';
@@ -20,10 +19,10 @@ import 'plan_edit_sheets.dart';
 import 'plan_day_colors.dart';
 import 'plan_menu.dart';
 import 'plan_pick_day_sheet.dart';
+import 'plan_pick_idea_sheet.dart';
 import 'plan_remove_confirms.dart';
 import 'plan_note_sheet.dart';
 import 'plan_stop_menu.dart';
-import 'plan_stop_row.dart';
 
 /// What the plan screen does when someone edits (design 3d to 3g): asks
 /// for what's needed (a name, a day, a date), makes the change through
@@ -125,12 +124,7 @@ class PlanScreenActions {
   }
 
   Future<void> _addIdea(PlanDay day) async {
-    final idea = await _pick<PlanIdea>(
-      'Add to ${day.displayTitle}',
-      plan.places,
-      (i) => i.place.name,
-      (i) => planPlaceMeta(i.place.type, i.place.countyCode),
-    );
+    final idea = await showPlanPickIdeaSheet(context, plan, day);
     if (idea != null) {
       await _report(_editor.addIdeaToDay(plan.id, day.id, idea.place.id));
     }
@@ -165,41 +159,6 @@ class PlanScreenActions {
     if (choice == null) return null;
     return choice.day ?? await addPlanDay(context, ref, plan);
   }
-
-  Future<T?> _pick<T>(
-    String title,
-    List<T> items,
-    String Function(T) label,
-    String Function(T) detail,
-  ) => showModalBottomSheet<T>(
-    context: context,
-    useRootNavigator: true,
-    showDragHandle: true,
-    isScrollControlled: true,
-    builder: (sheet) => SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(sheet).height * 0.6,
-        ),
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Text(title, style: AppTypeScale.sectionTitle),
-            ),
-            for (final item in items)
-              ListTile(
-                minTileHeight: 56,
-                title: Text(label(item)),
-                subtitle: Text(detail(item)),
-                onTap: () => Navigator.of(sheet).pop(item),
-              ),
-          ],
-        ),
-      ),
-    ),
-  );
 
   /// Add places: onto [day], or onto Places to visit when [day] is null.
   Future<void> addPlaces({PlanDay? day}) async {

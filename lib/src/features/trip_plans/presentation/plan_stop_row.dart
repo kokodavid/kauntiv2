@@ -15,8 +15,12 @@ import 'plan_pro_sheet.dart';
 typedef OpenPlanPlace = void Function(BuildContext context, String placeId);
 
 /// "Waterfall · Nakuru".
-String planPlaceMeta(String type, int countyCode) {
-  final kind = type.isEmpty ? null : PlaceType.of(type).label;
+String planPlaceMeta(String type, int countyCode, {bool custom = false}) {
+  final kind = custom
+      ? 'Other place'
+      : type.isEmpty
+      ? null
+      : PlaceType.of(type).label;
   final county = CountyPaths.byCode[countyCode]?.name;
   return [?kind, ?county].join(' · ');
 }
@@ -55,7 +59,11 @@ class PlanStopRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final place = stop.place;
-    final kind = place.type.isEmpty ? null : PlaceType.of(place.type).label;
+    final kind = place.isCustom
+        ? 'Other place'
+        : place.type.isEmpty
+        ? null
+        : PlaceType.of(place.type).label;
     final county = CountyPaths.byCode[place.countyCode]?.name;
     final by = showAddedBy ? stop.addedByHandle : null;
     final now = DateTime.now();
@@ -103,7 +111,11 @@ class PlanStopRow extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: PlanPlaceThumb(url: place.thumbnailUrl, size: 44),
+                  child: PlanPlaceThumb(
+                    url: place.thumbnailUrl,
+                    size: 44,
+                    custom: place.isCustom,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

@@ -1,7 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../domain/custom_place_draft.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_failure.dart';
+import '../domain/plan_place.dart';
 import 'plan_detail.dart';
 import 'planned_trips_list.dart';
 import 'trip_plans_providers.dart';
@@ -143,17 +145,50 @@ class PlanEditor {
   );
 
   /// A place from Places to visit onto the end of [dayId].
-  Future<PlanFailure?> addIdeaToDay(String planId, String dayId, String placeId) =>
+  Future<PlanFailure?> addIdeaToDay(
+    String planId,
+    String dayId,
+    PlanPlace place,
+  ) => _run(
+    planId,
+    // The server takes the place off Places to visit as it adds it.
+    () => place.isCustom
+        ? _ref
+              .read(tripPlansRepositoryProvider)!
+              .addCustomIdeaToDay(dayId, place.id)
+        : _ref.read(tripPlansRepositoryProvider)!.addStop(dayId, place.id),
+  );
+
+  /// An idea off Places to visit; [place] may be a custom one.
+  Future<PlanFailure?> removeIdea(String planId, PlanPlace place) => _run(
+    planId,
+    () => place.isCustom
+        ? _ref
+              .read(tripPlansRepositoryProvider)!
+              .removeCustomPlace(planId, place.id)
+        : _ref.read(tripPlansRepositoryProvider)!.removePlace(planId, place.id),
+  );
+
+  /// A place from outside the Kaunti47 list onto the end of [dayId].
+  Future<(PlanFailure?, String?)> addCustomStop(
+    String planId,
+    String dayId,
+    CustomPlaceDraft place,
+  ) async {
+    String? stopId;
+    final failure = await _run(planId, () async {
+      stopId = await _ref
+          .read(tripPlansRepositoryProvider)!
+          .addCustomStop(dayId, place);
+    });
+    return (failure, stopId);
+  }
+
+  Future<PlanFailure?> addCustomToList(String planId, CustomPlaceDraft place) =>
       _run(
         planId,
-        // The server takes the place off Places to visit as it adds it.
-        () => _ref.read(tripPlansRepositoryProvider)!.addStop(dayId, placeId),
+        () => _ref.read(tripPlansRepositoryProvider)!.addCustomPlace(planId, place),
       );
-
-  Future<PlanFailure?> removeIdea(String planId, String placeId) => _run(
-    planId,
-    () => _ref.read(tripPlansRepositoryProvider)!.removePlace(planId, placeId),
-  );
 }
 
 @Riverpod(keepAlive: true)

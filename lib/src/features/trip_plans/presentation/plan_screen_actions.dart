@@ -126,7 +126,7 @@ class PlanScreenActions {
   Future<void> _addIdea(PlanDay day) async {
     final idea = await showPlanPickIdeaSheet(context, plan, day);
     if (idea != null) {
-      await _report(_editor.addIdeaToDay(plan.id, day.id, idea.place.id));
+      await _report(_editor.addIdeaToDay(plan.id, day.id, idea.place));
     }
   }
 
@@ -144,7 +144,7 @@ class PlanScreenActions {
       day = choice.day ?? await addPlanDay(context, ref, plan);
     }
     if (day != null) {
-      await _report(_editor.addIdeaToDay(plan.id, day.id, idea.place.id));
+      await _report(_editor.addIdeaToDay(plan.id, day.id, idea.place));
     }
   }
 
@@ -179,6 +179,18 @@ class PlanScreenActions {
           failure = await _editor.addToList(plan.id, place.id);
         } else {
           failure = (await _editor.addStop(plan.id, day.id, place.id)).$1;
+        }
+        if (failure != null && context.mounted) {
+          reportPlanFailure(context, failure);
+        }
+        return failure == null;
+      },
+      onAddCustom: (place) async {
+        final PlanFailure? failure;
+        if (day == null) {
+          failure = await _editor.addCustomToList(plan.id, place);
+        } else {
+          failure = (await _editor.addCustomStop(plan.id, day.id, place)).$1;
         }
         if (failure != null && context.mounted) {
           reportPlanFailure(context, failure);

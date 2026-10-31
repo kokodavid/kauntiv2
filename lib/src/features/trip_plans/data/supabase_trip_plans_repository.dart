@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../domain/custom_place_draft.dart';
 import '../domain/new_plan_request.dart';
 import '../domain/plan_day_recording.dart';
 import '../domain/plan_failure.dart';
@@ -178,6 +179,49 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
   @override
   Future<void> removePlace(String planId, String placeId) =>
       _call('remove_trip_plan_place', {'p_plan': planId, 'p_place': placeId});
+
+  Map<String, Object?> _customArgs(CustomPlaceDraft place) => {
+    'p_name': place.name,
+    'p_address': place.address,
+    'p_lat': place.lat,
+    'p_lng': place.lng,
+    'p_county_code': place.countyCode,
+    'p_source': place.source.name,
+  };
+
+  @override
+  Future<String> addCustomStop(
+    String dayId,
+    CustomPlaceDraft place, {
+    String? beforeStopId,
+  }) async {
+    final result = await _call('add_trip_plan_custom_stop', {
+      'p_day': dayId,
+      ..._customArgs(place),
+      'p_before_stop': beforeStopId,
+    });
+    if (result is! String) throw const PlanFailure(PlanFailureKind.unknown);
+    return result;
+  }
+
+  @override
+  Future<void> addCustomPlace(String planId, CustomPlaceDraft place) =>
+      _call('add_trip_plan_custom_place', {
+        'p_plan': planId,
+        ..._customArgs(place),
+      });
+
+  @override
+  Future<void> removeCustomPlace(String planId, String customId) => _call(
+    'remove_trip_plan_custom_place',
+    {'p_plan': planId, 'p_custom': customId},
+  );
+
+  @override
+  Future<void> addCustomIdeaToDay(String dayId, String customId) => _call(
+    'add_trip_plan_custom_idea_to_day',
+    {'p_day': dayId, 'p_custom': customId},
+  );
 
   @override
   Future<void> saveDayRoute(

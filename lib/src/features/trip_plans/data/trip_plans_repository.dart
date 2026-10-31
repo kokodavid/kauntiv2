@@ -1,3 +1,4 @@
+import '../domain/custom_place_draft.dart';
 import '../domain/new_plan_request.dart';
 import '../domain/plan_day_recording.dart';
 import '../domain/plan_limits.dart';
@@ -41,6 +42,17 @@ abstract interface class TripPlansRepository {
 
   Future<void> addPlace(String planId, String placeId, {String? note});
   Future<void> removePlace(String planId, String placeId);
+
+  /// Places from outside the Kaunti47 list (a search result or a pin).
+  /// Returns the new stop's id.
+  Future<String> addCustomStop(
+    String dayId,
+    CustomPlaceDraft place, {
+    String? beforeStopId,
+  });
+  Future<void> addCustomPlace(String planId, CustomPlaceDraft place);
+  Future<void> removeCustomPlace(String planId, String customId);
+  Future<void> addCustomIdeaToDay(String dayId, String customId);
 
   /// Saves the route worked out for a day. Refused (routeStale) when the
   /// day changed meanwhile.

@@ -32,7 +32,11 @@ class AddPlacesRow extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 64),
         child: Row(
           children: [
-            PlanPlaceThumb(url: place.thumbnailUrl, size: 48),
+            PlanPlaceThumb(
+              url: place.thumbnailUrl,
+              size: 48,
+              custom: place.isCustom,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -45,7 +49,13 @@ class AddPlacesRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    planPlaceMeta(place.type, place.countyCode),
+                    place.isCustom && place.address != null
+                        ? place.address!
+                        : planPlaceMeta(
+                            place.type,
+                            place.countyCode,
+                            custom: place.isCustom,
+                          ),
                     style: AppTypeScale.meta,
                   ),
                 ],

@@ -1,4 +1,5 @@
 import 'package:kaunti47_v2/src/features/trip_plans/data/trip_plans_repository.dart';
+import 'package:kaunti47_v2/src/features/trip_plans/domain/custom_place_draft.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/new_plan_request.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_day_recording.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/domain/plan_failure.dart';
@@ -170,6 +171,33 @@ class FakeTripPlansRepository implements TripPlansRepository {
   }
   @override
   Future<void> removePlace(String planId, String placeId) async => _maybeFail();
+  @override
+  Future<String> addCustomStop(
+    String dayId,
+    CustomPlaceDraft place, {
+    String? beforeStopId,
+  }) async {
+    _maybeFail();
+    added.add('$dayId|custom:${place.name}');
+    return 'stop-${added.length}';
+  }
+
+  @override
+  Future<void> addCustomPlace(String planId, CustomPlaceDraft place) async {
+    _maybeFail();
+    added.add('list|custom:${place.name}');
+  }
+
+  @override
+  Future<void> removeCustomPlace(String planId, String customId) async =>
+      _maybeFail();
+
+  @override
+  Future<void> addCustomIdeaToDay(String dayId, String customId) async {
+    _maybeFail();
+    added.add('$dayId|custom:$customId');
+  }
+
   @override
   Future<void> saveDayRoute(
     String dayId, {

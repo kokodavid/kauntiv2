@@ -10,6 +10,8 @@ class PlanPlace {
     this.lat,
     this.lng,
     this.thumbnailUrl,
+    this.isCustom = false,
+    this.address,
   });
 
   final String id;
@@ -21,6 +23,11 @@ class PlanPlace {
   final double? lat;
   final double? lng;
   final String? thumbnailUrl;
+
+  /// A place from outside the Kaunti47 list (searched for or a dropped pin).
+  /// Its [id] is the custom place's id, not a `places` row.
+  final bool isCustom;
+  final String? address;
 
   bool get hasPosition => lat != null && lng != null;
 
@@ -37,12 +44,18 @@ class PlanPlace {
     return PlanPlace(
       id: id,
       name: name,
-      type: json['type'] is String ? json['type'] as String : '',
+      type: json['custom'] == true || json['type'] is! String
+          ? ''
+          : json['type'] as String,
       countyCode: county.toInt(),
       lat: lat is num ? lat.toDouble() : null,
       lng: lng is num ? lng.toDouble() : null,
       thumbnailUrl: thumbnail is String && thumbnail.isNotEmpty
           ? thumbnail
+          : null,
+      isCustom: json['custom'] == true,
+      address: json['address'] is String && (json['address'] as String).isNotEmpty
+          ? json['address'] as String
           : null,
     );
   }
@@ -55,5 +68,7 @@ class PlanPlace {
     'lat': lat,
     'lng': lng,
     'thumbnail_url': thumbnailUrl,
+    if (isCustom) 'custom': true,
+    if (address != null) 'address': address,
   };
 }

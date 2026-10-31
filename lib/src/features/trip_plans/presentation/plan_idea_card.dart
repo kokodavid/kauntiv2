@@ -32,7 +32,11 @@ class PlanIdeaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final place = idea.place;
-    final kind = place.type.isEmpty ? null : PlaceType.of(place.type).label;
+    final kind = place.isCustom
+        ? 'Other place'
+        : place.type.isEmpty
+        ? null
+        : PlaceType.of(place.type).label;
     final county = CountyPaths.byCode[place.countyCode]?.name;
     return SizedBox(
       width: 252,
@@ -56,7 +60,11 @@ class PlanIdeaCard extends StatelessWidget {
                     Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        PlanPlaceThumb(url: place.thumbnailUrl, size: 48),
+                        PlanPlaceThumb(
+                          url: place.thumbnailUrl,
+                          size: 48,
+                          custom: place.isCustom,
+                        ),
                         if (adder != null)
                           Positioned(
                             right: -8,

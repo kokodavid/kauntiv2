@@ -22,9 +22,17 @@ Future<PlanIdea?> showPlanPickIdeaSheet(
     children: [
       for (final idea in plan.places)
         PlanPickRow(
-          leading: PlanPlaceThumb(url: idea.place.thumbnailUrl, size: 40),
+          leading: PlanPlaceThumb(
+            url: idea.place.thumbnailUrl,
+            size: 40,
+            custom: idea.place.isCustom,
+          ),
           title: idea.place.name,
-          detail: planPlaceMeta(idea.place.type, idea.place.countyCode),
+          detail: planPlaceMeta(
+          idea.place.type,
+          idea.place.countyCode,
+          custom: idea.place.isCustom,
+        ),
           trailing: const Icon(Icons.add_circle_outline, size: 20),
           onTap: () => Navigator.of(sheet).pop(idea),
         ),

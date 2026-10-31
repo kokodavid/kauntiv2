@@ -5,10 +5,18 @@ import '../../../design/app_colors.dart';
 
 /// A place's small photo, or a quiet block when it has none.
 class PlanPlaceThumb extends StatelessWidget {
-  const PlanPlaceThumb({super.key, required this.url, this.size = 48});
+  const PlanPlaceThumb({
+    super.key,
+    required this.url,
+    this.size = 48,
+    this.custom = false,
+  });
 
   final String? url;
   final double size;
+
+  /// A place from outside the Kaunti47 list: a pin instead of a landscape.
+  final bool custom;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -25,8 +33,8 @@ class PlanPlaceThumb extends StatelessWidget {
             ),
     ),
     child: url == null
-        ? const Icon(
-            Icons.landscape_outlined,
+        ? Icon(
+            custom ? Icons.place_outlined : Icons.landscape_outlined,
             size: 20,
             color: AppColors.mutedForeground,
           )

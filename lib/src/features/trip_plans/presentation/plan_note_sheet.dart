@@ -178,7 +178,11 @@ class _StopCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final place = stop.place;
-    final kind = place.type.isEmpty ? null : PlaceType.of(place.type).label;
+    final kind = place.isCustom
+        ? 'Other place'
+        : place.type.isEmpty
+        ? null
+        : PlaceType.of(place.type).label;
     final county = CountyPaths.byCode[place.countyCode]?.name;
     return Container(
       padding: const EdgeInsets.all(12),

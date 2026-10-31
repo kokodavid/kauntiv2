@@ -5,19 +5,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_floating_toast.dart';
 import '../../../core/widgets/app_search_field.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../../../widgets/county_picker_sheet.dart';
 import '../application/plan_places_providers.dart';
+import '../domain/custom_place_draft.dart';
 import '../domain/plan_place.dart';
 import '../domain/plan_place_query.dart';
 import 'add_places_filters.dart';
+import 'add_places_outside.dart';
 import 'add_places_parts.dart';
+import 'drop_pin_page.dart';
 
 /// Adds [place] to the plan; true when it was added.
 typedef AddPlanPlace = Future<bool> Function(PlanPlace place);
+
+/// Adds a place from outside Kaunti47 to the plan; true when it was added.
+typedef AddCustomPlace = Future<bool> Function(CustomPlaceDraft place);
 
 /// Opens the Add places page. With [onAdd] it stays open so several places
 /// can be added; without it, tapping a place closes the page and returns it
@@ -26,11 +33,16 @@ Future<PlanPlace?> showAddPlacesPage(
   BuildContext context, {
   required String title,
   AddPlanPlace? onAdd,
+  AddCustomPlace? onAddCustom,
   Set<String> alreadyIn = const {},
 }) => Navigator.of(context).push<PlanPlace>(
   MaterialPageRoute(
-    builder: (_) =>
-        AddPlacesPage(title: title, onAdd: onAdd, alreadyIn: alreadyIn),
+    builder: (_) => AddPlacesPage(
+      title: title,
+      onAdd: onAdd,
+      onAddCustom: onAddCustom,
+      alreadyIn: alreadyIn,
+    ),
   ),
 );
 
@@ -41,11 +53,15 @@ class AddPlacesPage extends ConsumerStatefulWidget {
     super.key,
     required this.title,
     this.onAdd,
+    this.onAddCustom,
     this.alreadyIn = const {},
   });
 
   final String title;
   final AddPlanPlace? onAdd;
+
+  /// When set, the page also offers places from outside Kaunti47.
+  final AddCustomPlace? onAddCustom;
   final Set<String> alreadyIn;
 
   @override
@@ -58,6 +74,7 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
   PlanPlaceQuery _query = const PlanPlaceQuery();
   late final Set<String> _added = {...widget.alreadyIn};
   final _adding = <String>{};
+  bool _searchOutside = false;
 
   @override
   void dispose() {
@@ -71,11 +88,14 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
     _debounce = Timer(const Duration(milliseconds: 350), () {
       if (mounted) {
         setState(
-          () => _query = PlanPlaceQuery(
+          () {
+            _searchOutside = false;
+            _query = PlanPlaceQuery(
             text: value,
             countyCode: _query.countyCode,
             type: _query.type,
-          ),
+          );
+          },
         );
       }
     });
@@ -131,14 +151,49 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
     });
   }
 
+  Future<void> _addCustom(CustomPlaceDraft draft) async {
+    final onAddCustom = widget.onAddCustom;
+    if (onAddCustom == null || _added.contains(draft.key)) return;
+    if (!_adding.add(draft.key)) return;
+    setState(() {});
+    final ok = await onAddCustom(draft);
+    _adding.remove(draft.key);
+    if (!mounted) return;
+    setState(() {
+      if (ok) _added.add(draft.key);
+    });
+  }
+
+  Future<void> _dropPin() async {
+    final draft = await showDropPinPage(context);
+    if (draft == null || !mounted) return;
+    await _addCustom(draft);
+    if (!mounted || !_added.contains(draft.key)) return;
+    showAppToast(
+      context,
+      variant: AppToastVariant.neutral,
+      title: '${draft.name} added',
+    );
+  }
+
+  Widget? _outside() {
+    if (widget.onAddCustom == null) return null;
+    return AddPlacesOutside(
+      text: _text.text,
+      searching: _searchOutside,
+      added: _added,
+      adding: _adding,
+      onSearch: () => setState(() => _searchOutside = true),
+      onPick: (draft) => unawaited(_addCustom(draft)),
+      onPin: () => unawaited(_dropPin()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final results = ref.watch(planPlaceSearchProvider(_query));
     // Until it is known (or if it can't be read) every filter is offered.
     final facets = ref.watch(planPlaceFacetsProvider).value;
-    final countyName = _query.countyCode == null
-        ? 'County'
-        : CountyPaths.byCode[_query.countyCode]?.name ?? 'County';
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(
@@ -166,36 +221,14 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
               hint: 'Search places',
             ),
           ),
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                PlaceFilterChip(
-                  label: 'All',
-                  selected: _query.countyCode == null && _query.type == null,
-                  onTap: () => _refine(clearCounty: true, clearType: true),
-                ),
-                if (facets == null ||
-                    facets.counties.isNotEmpty ||
-                    _query.countyCode != null)
-                  PlaceFilterChip(
-                    label: countyName,
-                    icon: Icons.map_outlined,
-                    selected: _query.countyCode != null,
-                    onTap: () => unawaited(_pickCounty()),
-                  ),
-                for (final choice in placeTypeChoices(only: facets?.types))
-                  PlaceFilterChip(
-                    label: choice.label,
-                    selected: _query.type == choice.key,
-                    onTap: () => _query.type == choice.key
-                        ? _refine(clearType: true)
-                        : _refine(type: choice.key),
-                  ),
-              ],
-            ),
+          AddPlacesFilterBar(
+            query: _query,
+            facets: facets,
+            onAll: () => _refine(clearCounty: true, clearType: true),
+            onCounty: () => unawaited(_pickCounty()),
+            onType: (key) => _query.type == key
+                ? _refine(clearType: true)
+                : _refine(type: key),
           ),
           Expanded(child: _body(results)),
         ],
@@ -214,29 +247,51 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
     if (places == null) {
       return const Center(child: AppProgressIndicator());
     }
-    if (places.isEmpty) return const AddPlacesNote('No places match. Try fewer words.');
+    final outside = _outside();
+    if (places.isEmpty) {
+      return outside == null
+          ? const AddPlacesNote('No places match. Try fewer words.')
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+              children: [
+                const Text(
+                  'No places in Kaunti47 match.',
+                  textAlign: TextAlign.center,
+                  style: AppTypeScale.small,
+                ),
+                outside,
+              ],
+            );
+    }
+    final more = places.length >= _query.limit;
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-      itemCount: places.length + (places.length >= _query.limit ? 1 : 0),
-      itemBuilder: (context, i) => i == places.length
-          ? Center(
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.accent,
-                  textStyle: AppTypeScale.action,
-                  minimumSize: const Size(44, 44),
-                ),
-                onPressed: _showMore,
-                child: const Text('Show more'),
+      itemCount: places.length + (more ? 1 : 0) + (outside == null ? 0 : 1),
+      itemBuilder: (context, i) {
+        if (i < places.length) {
+          return AddPlacesRow(
+            place: places[i],
+            added: _added.contains(places[i].id),
+            adding: _adding.contains(places[i].id),
+            pickOnly: widget.onAdd == null,
+            onTap: () => unawaited(_add(places[i])),
+          );
+        }
+        if (more && i == places.length) {
+          return Center(
+            child: TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                textStyle: AppTypeScale.action,
+                minimumSize: const Size(44, 44),
               ),
-            )
-          : AddPlacesRow(
-              place: places[i],
-              added: _added.contains(places[i].id),
-              adding: _adding.contains(places[i].id),
-              pickOnly: widget.onAdd == null,
-              onTap: () => unawaited(_add(places[i])),
+              onPressed: _showMore,
+              child: const Text('Show more'),
             ),
+          );
+        }
+        return outside!;
+      },
     );
   }
 }

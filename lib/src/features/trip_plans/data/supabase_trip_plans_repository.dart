@@ -132,6 +132,22 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
       });
 
   @override
+  Future<void> setOvernight(
+    String dayId, {
+    String? placeId,
+    String? label,
+    double? lat,
+    double? lng,
+  }) => _call('update_trip_plan_day', {
+    'p_day': dayId,
+    'p_set_overnight': true,
+    'p_overnight_place_id': placeId,
+    'p_overnight_label': label,
+    'p_overnight_lat': lat,
+    'p_overnight_lng': lng,
+  });
+
+  @override
   Future<String> addStop(
     String dayId,
     String placeId, {

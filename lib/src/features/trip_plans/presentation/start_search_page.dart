@@ -9,15 +9,19 @@ import '../domain/trip_plan.dart';
 
 /// Opens the start-point search. Returns the chosen spot as a plan start,
 /// or null when the user backs out.
-Future<PlanStart?> showStartSearchPage(BuildContext context) =>
-    Navigator.of(context).push<PlanStart>(
-      MaterialPageRoute(builder: (_) => const StartSearchPage()),
-    );
+Future<PlanStart?> showStartSearchPage(
+  BuildContext context, {
+  String title = 'Start from a place',
+}) => Navigator.of(context).push<PlanStart>(
+  MaterialPageRoute(builder: (_) => StartSearchPage(title: title)),
+);
 
 /// Where does Day 1 start? A search box that suggests real places (an
 /// address, a business, a landmark, a town) as the user types.
 class StartSearchPage extends ConsumerStatefulWidget {
-  const StartSearchPage({super.key});
+  const StartSearchPage({super.key, this.title = 'Start from a place'});
+
+  final String title;
 
   @override
   ConsumerState<StartSearchPage> createState() => _StartSearchPageState();
@@ -42,7 +46,7 @@ class _StartSearchPageState extends ConsumerState<StartSearchPage> {
       appBar: AppBar(
         backgroundColor: AppColors.pageBackground,
         elevation: 0,
-        title: const Text('Start from a place', style: AppTypeScale.sectionTitle),
+        title: Text(widget.title, style: AppTypeScale.sectionTitle),
       ),
       body: Column(
         children: [

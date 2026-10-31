@@ -22,6 +22,7 @@ import 'plan_pick_day_sheet.dart';
 import 'plan_pick_idea_sheet.dart';
 import 'plan_remove_confirms.dart';
 import 'plan_note_sheet.dart';
+import 'plan_overnight_actions.dart';
 import 'plan_stop_menu.dart';
 
 /// What the plan screen does when someone edits (design 3d to 3g): asks
@@ -50,6 +51,9 @@ class PlanScreenActions {
     onStop: (index, action) => _stop(day, index, action),
     onRenameDay: () => _renameDay(day),
     onAddPlaces: () => unawaited(addPlaces(day: day)),
+    onOvernight: () =>
+        unawaited(PlanOvernightActions(context, ref, plan).run(day)),
+    hasOvernight: day.hasOvernight,
     onRemoveDay: plan.days.length > 1 ? () => _removeDay(day) : null,
     onAddFromPlaces: plan.places.isEmpty ? null : () => _addIdea(day),
     onBestOrder: day.stops.length >= 3

@@ -66,6 +66,21 @@ class PlanEditor {
         .addDay(planId, afterDayId: afterDayId),
   );
 
+  /// Where [dayId] ends; all null clears it.
+  Future<PlanFailure?> setOvernight(
+    String planId,
+    String dayId, {
+    String? placeId,
+    String? label,
+    double? lat,
+    double? lng,
+  }) => _run(
+    planId,
+    () => _ref
+        .read(tripPlansRepositoryProvider)!
+        .setOvernight(dayId, placeId: placeId, label: label, lat: lat, lng: lng),
+  );
+
   Future<PlanFailure?> removeDay(String planId, String dayId) => _run(
     planId,
     () => _ref.read(tripPlansRepositoryProvider)!.removeDay(dayId),

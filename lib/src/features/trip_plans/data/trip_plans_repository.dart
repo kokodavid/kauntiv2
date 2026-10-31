@@ -26,6 +26,16 @@ abstract interface class TripPlansRepository {
   Future<void> removeDay(String dayId);
   Future<void> renameDay(String dayId, String? title);
 
+  /// Where the day ends: a Kaunti47 place, or a labelled point. All null
+  /// clears it.
+  Future<void> setOvernight(
+    String dayId, {
+    String? placeId,
+    String? label,
+    double? lat,
+    double? lng,
+  });
+
   /// Returns the new stop's id.
   Future<String> addStop(
     String dayId,

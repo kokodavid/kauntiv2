@@ -172,6 +172,18 @@ class FakeTripPlansRepository implements TripPlansRepository {
   @override
   Future<void> removePlace(String planId, String placeId) async => _maybeFail();
   @override
+  Future<void> setOvernight(
+    String dayId, {
+    String? placeId,
+    String? label,
+    double? lat,
+    double? lng,
+  }) async {
+    _maybeFail();
+    added.add('$dayId|overnight:${placeId ?? label}');
+  }
+
+  @override
   Future<String> addCustomStop(
     String dayId,
     CustomPlaceDraft place, {

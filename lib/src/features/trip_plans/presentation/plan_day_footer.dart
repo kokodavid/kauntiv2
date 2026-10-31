@@ -92,6 +92,10 @@ class PlanDayLinks extends StatelessWidget {
         _Link('+ Add stop', actions.onAddPlaces),
         if (actions.onAddFromPlaces != null)
           _Link('From Places to visit', actions.onAddFromPlaces!),
+        _Link(
+          actions.hasOvernight ? 'Change stay' : 'Add overnight stay',
+          actions.onOvernight,
+        ),
         if (actions.onBestOrder != null)
           _Link(
             'Best order',

@@ -16,6 +16,8 @@ class PlanDayActions {
     required this.onRenameDay,
     required this.canMoveStopsToDay,
     required this.onAddPlaces,
+    required this.onOvernight,
+    this.hasOvernight = false,
     this.onRemoveDay,
     this.onAddFromPlaces,
     this.onBestOrder,
@@ -27,6 +29,10 @@ class PlanDayActions {
 
   /// Opens Add places for this day.
   final VoidCallback onAddPlaces;
+
+  /// Opens the "where do you stay tonight" sheet.
+  final VoidCallback onOvernight;
+  final bool hasOvernight;
 
   /// Null when this is the plan's only day.
   final VoidCallback? onRemoveDay;

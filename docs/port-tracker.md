@@ -6,6 +6,21 @@ the feature's section below (if it has one) and the progress log.
 
 Status: `Not started` · `In progress` · `In review` · `Done`
 
+## 2026-11-02: Waitlist invitations without founder seats
+
+Dashboard owners/admins can invite open waitlist applicants using their selected
+platform without awarding a seat, changing application status or granting Premium.
+Migration `20261102120000_waitlist_invitations_without_seats.sql` adds an isolated
+claim RPC and permits null founder numbers in the delivery ledger. The email
+function retains the seat flow and adds a general invitation with no seat promises.
+Regression SQL: `supabase/tests/waitlist_invitations.sql`; no mobile UI changes.
+Production migration and `send-tester-invite` deployed on 2026-11-02. Dev is
+deferred at the user's request. SQL regression checks passed in PGlite, including
+the previous migration and real claim/record functions. Node email tests passed.
+Production migration tracking, RPC existence and anonymous denial were verified.
+Dashboard desktop/375px and applicant loading/error/retry checks passed with mocks.
+No real email sent; Flutter/Dart commands were not run (backend-only update).
+
 | # | Feature | V1 location | V2 status | PR | Notes |
 |---|---|---|---|---|---|
 | 0 | Guardrails (rules, CI, review) | n/a | Done | #1 (main) | Riverpod deps, strict analysis, architecture guard + baseline, CI, Claude review, docs |

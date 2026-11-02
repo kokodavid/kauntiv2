@@ -8,16 +8,13 @@ import 'create_plan_controller.dart';
 
 part 'plan_place_search.g.dart';
 
-/// The start-point search: Geoapify when its key is set (it finds businesses
-/// and landmarks), else Mapbox's address search, else none.
+/// The place search: Geoapify (OpenStreetMap data, results may be stored).
+/// Without its key there is no search. There is deliberately no fallback to
+/// Mapbox, whose permanent geocoding is billed per request.
 @Riverpod(keepAlive: true)
 PlanPlaceSearchClient? planPlaceSearchClient(Ref ref) {
-  final config = ref.watch(appConfigProvider);
-  if (config.geoapifyApiKey.isNotEmpty) {
-    return GeoapifyPlanPlaceSearch(apiKey: config.geoapifyApiKey);
-  }
-  final token = config.mapboxAccessToken;
-  return token.isEmpty ? null : MapboxPlanPlaceSearch(accessToken: token);
+  final key = ref.watch(appConfigProvider).geoapifyApiKey;
+  return key.isEmpty ? null : GeoapifyPlanPlaceSearch(apiKey: key);
 }
 
 /// Shortest text worth searching for.

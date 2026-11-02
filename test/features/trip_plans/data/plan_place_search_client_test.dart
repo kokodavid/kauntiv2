@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/data/geoapify_plan_place_search.dart';
 import 'package:kaunti47_v2/src/features/trip_plans/data/plan_place_search_client.dart';
-import 'package:kaunti47_v2/src/features/trip_plans/domain/trip_plan.dart';
 
 void main() {
   test('reads Geoapify results, businesses included', () {

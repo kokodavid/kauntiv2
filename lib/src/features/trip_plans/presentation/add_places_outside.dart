@@ -1,10 +1,9 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design/app_type_scale.dart';
 import '../../../core/counties/county_boundary_resolver.dart';
+import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
 import '../../../widgets/app_progress_indicator.dart';
 import '../application/plan_place_search.dart';

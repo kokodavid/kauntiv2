@@ -4,6 +4,7 @@ import '../domain/custom_place_draft.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_failure.dart';
 import '../domain/plan_place.dart';
+import '../domain/trip_plan.dart';
 import 'plan_detail.dart';
 import 'planned_trips_list.dart';
 import 'trip_plans_providers.dart';
@@ -41,6 +42,11 @@ class PlanEditor {
   Future<PlanFailure?> setStartDate(String planId, DateTime? date) => _run(
     planId,
     () => _ref.read(tripPlansRepositoryProvider)!.setStartDate(planId, date),
+  );
+
+  Future<PlanFailure?> setStart(String planId, PlanStart start) => _run(
+    planId,
+    () => _ref.read(tripPlansRepositoryProvider)!.setStart(planId, start),
   );
 
   Future<PlanFailure?> archive(String planId) => _run(

@@ -94,6 +94,17 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
       _call('update_trip_plan', {'p_plan': planId, 'p_title': title});
 
   @override
+  Future<void> setStart(String planId, PlanStart start) =>
+      _call('set_trip_plan_start', {
+        'p_plan': planId,
+        'p_start_kind': start.kind.wire,
+        'p_start_place_id': start.place?.id,
+        'p_start_label': start.label,
+        'p_start_lat': start.lat,
+        'p_start_lng': start.lng,
+      });
+
+  @override
   Future<void> setStartDate(String planId, DateTime? date) =>
       _call('update_trip_plan', {
         'p_plan': planId,

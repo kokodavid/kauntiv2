@@ -18,6 +18,9 @@ abstract interface class TripPlansRepository {
   Future<String> create(NewPlanRequest request);
   Future<void> rename(String planId, String title);
   Future<void> setStartDate(String planId, DateTime? date);
+
+  /// Where Day 1 starts.
+  Future<void> setStart(String planId, PlanStart start);
   Future<void> archive(String planId, {required bool archived});
   Future<void> delete(String planId);
 

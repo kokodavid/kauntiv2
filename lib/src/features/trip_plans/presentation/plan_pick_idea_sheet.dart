@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../domain/plan_day.dart';
 import '../domain/trip_plan.dart';
-import 'plan_pick_day_sheet.dart';
 import 'plan_pick_rows.dart';
 import 'plan_place_thumb.dart';
 import 'plan_sheet_frame.dart';

@@ -1,8 +1,9 @@
-// Sends a one-to-one beta access email only after the dashboard has approved
-// the tester's seat. Resend credentials never leave this function.
+// Sends beta access emails for founder seats or open waitlist applicants.
+// Resend credentials never leave this function.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { seatInviteEmail } from '../_shared/emails/templates.ts'
+import { testerInviteEmail } from '../_shared/emails/tester-invite.ts'
 import { SUPPORT_EMAIL, sendWithResend } from '../_shared/emails/resend.ts'
 
 const corsHeaders = {
@@ -20,7 +21,7 @@ type Invite = {
   invite_id: string
   email: string
   platform: 'android' | 'ios'
-  founder_number: number
+  founder_number: number | null
   access_url: string
 }
 
@@ -44,10 +45,16 @@ Deno.serve(async (request) => {
 
   let inviteId: string | null = null
   try {
-    const body = await request.json() as { signup_id?: unknown }
+    const body = await request.json() as { signup_id?: unknown; platform?: unknown }
     if (typeof body.signup_id !== 'string' || !body.signup_id.trim()) return json({ error: 'signup_id is required' }, 400)
+    const withoutSeat = body.platform !== undefined
+    if (withoutSeat && body.platform !== 'android' && body.platform !== 'ios') {
+      return json({ error: 'Choose Android or iPhone for this tester' }, 400)
+    }
     const { userClient, serviceClient } = await requireAdmin(request)
-    const { data, error } = await userClient.rpc('claim_beta_tester_invite_dashboard', { p_signup_id: body.signup_id })
+    const { data, error } = withoutSeat
+      ? await userClient.rpc('claim_waitlist_tester_invite_dashboard', { p_signup_id: body.signup_id, p_platform: body.platform })
+      : await userClient.rpc('claim_beta_tester_invite_dashboard', { p_signup_id: body.signup_id })
     if (error) return json({ error: error.message }, error.code === '42501' ? 403 : 400)
     const invite = (data as Invite[] | null)?.[0]
     if (!invite) return json({ error: 'Could not prepare invitation' }, 500)
@@ -55,7 +62,9 @@ Deno.serve(async (request) => {
 
     const from = Deno.env.get('BETA_INVITE_FROM')
     if (!from) throw new Error('Email delivery is not configured')
-    const content = seatInviteEmail(invite)
+    const content = invite.founder_number === null
+      ? testerInviteEmail(invite)
+      : seatInviteEmail({ ...invite, founder_number: invite.founder_number })
     const messageId = await sendWithResend({
       from,
       to: invite.email,
@@ -63,7 +72,7 @@ Deno.serve(async (request) => {
       subject: content.subject,
       html: content.html,
       text: content.text,
-      tags: [{ name: 'category', value: 'tester-seat-invite' }, { name: 'platform', value: invite.platform }],
+      tags: [{ name: 'category', value: withoutSeat ? 'tester-waitlist-invite' : 'tester-seat-invite' }, { name: 'platform', value: invite.platform }],
     })
     await serviceClient.rpc('record_beta_tester_invite_delivery', {
       p_invite_id: inviteId,

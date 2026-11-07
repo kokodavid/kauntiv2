@@ -10,7 +10,8 @@ the platform listing is available so the update prompt can open the correct
 store destination.
 Major releases are always required. Minor releases are required by default,
 but an owner/admin can deliberately mark a minor release optional. Patch
-releases are always optional. The first published release establishes the
+releases are optional by default and can be marked required. The dashboard's
+"Require this update" checkbox controls both minor and patch drafts. The first published release establishes the
 required baseline. The database enforces this policy; the dashboard preview is
 only explanatory.
 
@@ -44,6 +45,8 @@ the follow-up `supabase/migrations/20261023110000_app_version_build_optional.sql
 `supabase/migrations/20261023130000_app_version_status_controls.sql`, and
 `supabase/migrations/20261023140000_app_version_draft_editing.sql`, and
 `supabase/migrations/20261023150000_app_version_release_deletion.sql`.
+The required-patch override adds
+`supabase/migrations/20261107120000_app_version_required_override.sql`.
 Apply the complete files to **both** Supabase projects independently, dev first
 and production only after dev verification. Do not run these against the
 production project while the dashboard is still configured for dev.
@@ -58,6 +61,22 @@ The migration creates `public.app_version_releases` and these functions:
 - `public.set_app_version_release_status_dashboard(uuid, boolean)` - activate or deactivate a published release.
 - `public.update_app_version_release_draft_dashboard(uuid, text, text, text, integer, text, text, boolean)` - edit an existing draft.
 - `public.delete_app_version_release_dashboard(uuid)` - permanently delete a draft or withdrawn release; live releases are protected.
+- `public.save_app_version_release_dashboard(text, text, text, integer, text, text, boolean, uuid)` - create or edit a draft with an explicit required-update choice. A null final UUID creates a draft; a draft UUID edits it. An omitted/null boolean preserves the semantic defaults. Initial and major releases remain required. Existing create/edit RPC signatures remain available for older dashboards.
+
+### Required-update checkbox rollout
+
+Apply `20261107120000_app_version_required_override.sql` before deploying the
+dashboard checkbox. No mobile release or Edge Function deployment is needed:
+the existing mobile policy lookup already evaluates required patch releases.
+Saving a draft never changes live policy; publishing it makes the policy active.
+Published versions, including an already-live optional 1.6.2, remain immutable.
+Changing an existing published policy is a separate operation not introduced here.
+
+Regression SQL: `supabase/tests/app_version_required_override.sql` (run only on
+a local/test database; fixtures roll back). Verify required/optional patches and
+minors, mandatory initial/major releases, draft edits, published immutability,
+owner/admin permissions and the mobile required floor when a newer optional
+release exists. Reverting the dashboard is safe because the legacy RPCs remain.
 
 There are no Edge Functions, secrets, external cron jobs, or Storage changes
 for this feature.

@@ -5,8 +5,8 @@ begin
  s:=public.dashboard_growth_stats(now()-interval '7 days',now(),false);
  first_row:=s->'leaderboard'->0;
  if first_row->>'user_id'<>'00000000-0000-0000-0000-000000000002' then raise exception 'Explored tie-break failed'; end if;
- if (first_row->>'total')::int<>3 or (s->'leaderboard'->1->>'total')::int<>3 then raise exception 'Distinct coverage failed'; end if;
- if jsonb_array_length(s->'leaderboard')<>2 then raise exception 'Privacy/hidden filtering failed'; end if;
+ if (first_row->>'total')::int<>6 or (s->'leaderboard'->1->>'total')::int<>6 then raise exception 'Distinct coverage failed'; end if;
+ if jsonb_array_length(s->'leaderboard')<>2 then raise exception 'Privacy, hidden or minimum-county filtering failed'; end if;
  if (s->'counties'->>'this_week')::int<>6 then raise exception 'Inclusive lower date boundary or seed filter failed'; end if;
  s:=public.dashboard_growth_stats(now()-interval '7 days',now(),true);
  if (s->'leaderboard'->0->>'total')::int<>2 then raise exception 'First-reached period failed'; end if;
@@ -16,6 +16,7 @@ begin
  s:=public.dashboard_growth_stats(now()-interval '3 days',now()-interval '2 days',true);
  if (s->'counties'->>'this_week')::int<>1 then raise exception 'Exclusive upper date boundary failed'; end if;
  s:=public.dashboard_growth_stats(now()-interval '41 days',now()-interval '39 days',true);
+ if jsonb_array_length(s->'leaderboard')<>1 then raise exception 'Minimum counties at period end failed'; end if;
  if (s->'leaderboard'->0->>'explored')::int<>0 then raise exception 'Later explored upgrade leaked into historical ranking'; end if;
  s:=public.dashboard_growth_stats(null,null,false);
  if (s->'period'->>'comparable')::boolean then raise exception 'All-time comparison enabled'; end if;

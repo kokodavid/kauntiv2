@@ -24,7 +24,8 @@ insert into public.profiles(id,created_at) values
  ('00000000-0000-0000-0000-000000000001',now()-interval '50 days'),
  ('00000000-0000-0000-0000-000000000002',now()-interval '50 days'),
  ('00000000-0000-0000-0000-000000000003',now()-interval '50 days'),
- ('00000000-0000-0000-0000-000000000004',now()-interval '40 days');
+ ('00000000-0000-0000-0000-000000000004',now()-interval '40 days'),
+ ('00000000-0000-0000-0000-000000000005',now()-interval '250 days');
 update public.profiles set hidden=true where id='00000000-0000-0000-0000-000000000003';
 update public.profiles set show_on_leaderboards=false where id='00000000-0000-0000-0000-000000000004';
 insert into auth.users select id,id::text||'@example.test',created_at from public.profiles;
@@ -40,7 +41,18 @@ insert into public.county_visit_events values
  ('00000000-0000-0000-0000-000000000002',3,now()-interval '1 day','passed_through','automatic'),
  ('00000000-0000-0000-0000-000000000003',1,now()-interval '1 day','explored','automatic'),
  ('00000000-0000-0000-0000-000000000004',1,now()-interval '32 days','explored','automatic'),
- ('00000000-0000-0000-0000-000000000004',2,now()-interval '8 days','explored','automatic');
+ ('00000000-0000-0000-0000-000000000004',2,now()-interval '8 days','explored','automatic'),
+ -- Older coverage lifts users 1 and 2 above the 3-county leaderboard minimum.
+ ('00000000-0000-0000-0000-000000000001',10,now()-interval '90 days','passed_through','automatic'),
+ ('00000000-0000-0000-0000-000000000001',11,now()-interval '90 days','passed_through','automatic'),
+ ('00000000-0000-0000-0000-000000000001',12,now()-interval '90 days','passed_through','automatic'),
+ ('00000000-0000-0000-0000-000000000002',10,now()-interval '80 days','passed_through','automatic'),
+ ('00000000-0000-0000-0000-000000000002',11,now()-interval '80 days','passed_through','automatic'),
+ ('00000000-0000-0000-0000-000000000002',12,now()-interval '30 days','passed_through','automatic'),
+ -- User 5 has exactly 3 counties, so never appears on the leaderboard.
+ ('00000000-0000-0000-0000-000000000005',20,now()-interval '90 days','explored','automatic'),
+ ('00000000-0000-0000-0000-000000000005',21,now()-interval '90 days','explored','automatic'),
+ ('00000000-0000-0000-0000-000000000005',22,now()-interval '90 days','explored','automatic');
 -- Legacy duplicate and seeded fallback must not increase coverage.
 insert into public.county_visits values
  ('00000000-0000-0000-0000-000000000001',1,now()-interval '40 days','explored'),

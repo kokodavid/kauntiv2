@@ -42,7 +42,8 @@ installed. The migration must also be recorded in the migration ledger.
 
 ## Leaderboard
 
-Top 20 users, sorted by distinct counties descending, then explored counties
+Only users with more than 3 distinct counties (4 or more) by the period end
+appear (`20261108100000_leaderboard_min_counties.sql`). Top 20 of them, sorted by distinct counties descending, then explored counties
 descending, then earliest coverage completion, then stable user ID. A county is
 either explored or passed-through-only, never counted twice. Repeated visits do
 not increase coverage. Confirmed legacy county records are included alongside

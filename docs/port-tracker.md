@@ -1,5 +1,13 @@
 # V1 → V2 port tracker
 
+## CSV Place Import
+
+Dashboard-only CSV ingestion: validated preview, reference/template downloads,
+draft-only atomic batch writes and duplicate skipping. Backend migration:
+`20261109120000_place_csv_import.sql`. Roles, deployment and focused SQL tests:
+[place-csv-import.md](place-csv-import.md). No migration deployed or mobile code
+changed; no Flutter/Dart verification run.
+
 One row per feature. Source: `kokodavid/kaunti47`, branch `redesign/figma-v2`
 (about 40k lines). Update this file in the same commit/PR that moves a feature: the table row,
 the feature's section below (if it has one) and the progress log.

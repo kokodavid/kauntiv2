@@ -10,6 +10,21 @@ people-by-state list:
 
 Helpers (`dashboard_metric_*`) are not callable by clients.
 
+## Production Deployment Checks
+
+Apply `20261108100000_leaderboard_min_counties.sql`, then
+`20261109100000_dashboard_overview_metrics.sql`. The second migration recreates
+its temporary working tables per call rather than reusing caller-owned tables
+inside a security-definer RPC. No mobile release, Edge Function or new secret
+is required. The legacy growth RPC remains available.
+
+`supabase/tests/dashboard_overview_metrics_smoke.sql` checks owner responses,
+leaderboard totals, multiple calls/date ranges, authorization and private helper
+permissions in a rolled-back transaction. It also pre-creates incompatible
+caller temporary tables to verify safe replacement.
+
+Only production is in scope for this rollout; development is unchanged.
+
 ## Definitions (agreed 8 Nov 2026)
 
 - **Real Trip:** at least 1 km and 5 minutes of moving time (`moving_seconds`,

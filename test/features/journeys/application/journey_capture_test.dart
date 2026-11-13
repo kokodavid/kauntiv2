@@ -6,6 +6,7 @@ import 'package:kaunti47_v2/src/features/journeys/application/journey_capture.da
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_pause_reason.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_transport_mode.dart';
 
@@ -426,4 +427,109 @@ void main() {
       expect(source.started, isFalse);
     },
   );
+
+  test('a pause the person makes is recorded as a user pause', () async {
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    final attaching = capture.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 1)),
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
+    now = t0.add(const Duration(seconds: 2));
+
+    final paused = await capture.pause();
+
+    expect(paused.pauseReason, JourneyPauseReason.user);
+    expect(
+      await repository.pauseReason('one', 'alice'),
+      JourneyPauseReason.user,
+    );
+  });
+
+  test('a recovered session is paused as app restarted', () async {
+    await repository.start(id: 'one', userId: 'alice', at: t0);
+    now = t0.add(const Duration(minutes: 3));
+
+    final recovered = await capture.recover('alice');
+
+    expect(recovered?.pauseReason, JourneyPauseReason.appRestarted);
+    expect(
+      await repository.pauseReason('one', 'alice'),
+      JourneyPauseReason.appRestarted,
+    );
+  });
+
+  test('resuming clears the pause reason', () async {
+    await repository.start(id: 'one', userId: 'alice', at: t0);
+    now = t0.add(const Duration(minutes: 3));
+    await capture.recover('alice');
+    now = t0.add(const Duration(minutes: 5));
+
+    final resumed = await capture.resume();
+
+    expect(resumed.pauseReason, isNull);
+    expect(await repository.pauseReason('one', 'alice'), isNull);
+  });
+
+  test('a failed start pauses as start failed', () async {
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    source.failStart = true;
+    await expectLater(
+      capture.attachStarted(session: session, userId: 'alice'),
+      throwsStateError,
+    );
+    expect(
+      await repository.pauseReason('one', 'alice'),
+      JourneyPauseReason.startFailed,
+    );
+  });
+
+  test('a lost stream keeps recording through the recovery window', () async {
+    var pauseNotifications = 0;
+    final patient = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+      streamRecoveryDelays: const [Duration.zero],
+      recoveryRepeatDelay: const Duration(milliseconds: 20),
+      maxRecoveryTime: const Duration(milliseconds: 300),
+      onDiagnosticEvent: (event, data) async => diagnosticEvents.add(event),
+    )..onUnexpectedPause = (_) => pauseNotifications++;
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    final attaching = patient.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 1)),
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
+    source.failStart = true;
+    source.controller.addError(StateError('GPS stopped'));
+
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    expect(patient.session?.recording.phase, JourneyRecordingPhase.recording);
+    expect(pauseNotifications, 0);
+
+    for (
+      var attempt = 0;
+      attempt < 100 &&
+          patient.session?.recording.phase != JourneyRecordingPhase.paused;
+      attempt++
+    ) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    expect(patient.session?.recording.phase, JourneyRecordingPhase.paused);
+    expect(patient.session?.pauseReason, JourneyPauseReason.locationLost);
+    expect(pauseNotifications, 1);
+  });
 }

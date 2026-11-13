@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../../services/app_logger.dart';
 import '../data/local_journey_repository.dart';
 import '../domain/journey_fix.dart';
+import '../domain/journey_pause_reason.dart';
 import '../domain/journey_recording.dart';
 
 part 'journey_capture_lifecycle.dart';
@@ -21,6 +22,8 @@ class JourneyCapture {
       Duration(seconds: 5),
       Duration(seconds: 10),
     ],
+    this.recoveryRepeatDelay = const Duration(seconds: 30),
+    this.maxRecoveryTime = Duration.zero,
     this.onDiagnosticEvent,
   }) : _repository = repository,
        _locationSource = locationSource,
@@ -40,6 +43,17 @@ class JourneyCapture {
 
   /// Delays between attempts to restart an interrupted location stream.
   final List<Duration> streamRecoveryDelays;
+
+  /// Once [streamRecoveryDelays] are used up, restart attempts carry on at
+  /// this interval until [maxRecoveryTime] has passed since the stream was
+  /// lost. A Trip that loses location (power saving, a tunnel, a weak
+  /// signal) stays recording through that time instead of pausing itself.
+  final Duration recoveryRepeatDelay;
+
+  /// How long to keep trying before the Trip pauses itself with
+  /// [JourneyPauseReason.locationLost]. Zero means only the delays in
+  /// [streamRecoveryDelays] are tried.
+  final Duration maxRecoveryTime;
 
   final Future<void> Function(String, Map<String, Object?>)? onDiagnosticEvent;
 
@@ -168,8 +182,19 @@ class JourneyCapture {
     unawaited(
       Future<void>(() async {
         try {
-          for (var index = 0; index < streamRecoveryDelays.length; index++) {
-            final delay = streamRecoveryDelays[index];
+          final stopwatch = Stopwatch()..start();
+          var attempt = 0;
+          while (true) {
+            final Duration delay;
+            if (attempt < streamRecoveryDelays.length) {
+              delay = streamRecoveryDelays[attempt];
+            } else if (stopwatch.elapsed + recoveryRepeatDelay <=
+                maxRecoveryTime) {
+              delay = recoveryRepeatDelay;
+            } else {
+              break;
+            }
+            attempt++;
             await Future<void>.delayed(delay);
             if (_closing ||
                 _session?.recording.phase != JourneyRecordingPhase.recording) {
@@ -181,18 +206,21 @@ class JourneyCapture {
               await _startLocationSource(current.id, _userId!);
               _splitOnNextFix = true;
               _listen();
-              _recordDiagnostic('journey_location_recovered', {});
+              _recordDiagnostic('journey_location_recovered', {
+                'attempts': attempt,
+                'lost_ms': stopwatch.elapsed.inMilliseconds,
+              });
               return;
             } catch (error) {
               lastError = error;
               _recordDiagnostic('journey_location_recovery_failed', {
-                'attempt': index + 1,
+                'attempt': attempt,
               });
             }
           }
           shouldNotifyPause = true;
           try {
-            await pause();
+            await pause(reason: JourneyPauseReason.locationLost);
           } catch (error) {
             lastError = error;
           }

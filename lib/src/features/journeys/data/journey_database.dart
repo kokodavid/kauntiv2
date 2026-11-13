@@ -44,7 +44,7 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -57,6 +57,7 @@ class JourneyDatabase extends _$JourneyDatabase {
       await _createMediaCapturesTable();
       await _addTransportModeColumn();
       await _addStopsColumn();
+      await _addPauseReasonColumn();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -74,6 +75,7 @@ class JourneyDatabase extends _$JourneyDatabase {
       if (from < 9) await _addTransportModeColumn();
       if (from < 10) await _addStopsColumn();
       if (from >= 8 && from < 11) await _addTimelinePlacementColumn();
+      if (from < 12) await _addPauseReasonColumn();
     },
   );
 
@@ -160,6 +162,14 @@ class JourneyDatabase extends _$JourneyDatabase {
   Future<void> _addTransportModeColumn() async {
     await customStatement(
       'ALTER TABLE journey_sessions ADD COLUMN transport_mode TEXT',
+    );
+  }
+
+  /// Why the Trip is paused: a [JourneyPauseReason] storage value (schema
+  /// 12). NULL when not paused, or paused before reasons existed.
+  Future<void> _addPauseReasonColumn() async {
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN pause_reason TEXT',
     );
   }
 

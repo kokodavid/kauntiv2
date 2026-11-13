@@ -51,7 +51,9 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
       interval: sampling.intervalMs,
       backgroundInterval: sampling.backgroundIntervalMs,
       distanceFilter: sampling.distanceMeters,
-      pausesLocationUpdatesAutomatically: true,
+      // iOS must not stop updates on its own when it thinks the person has
+      // stopped; the recorder handles gaps and pauses itself.
+      pausesLocationUpdatesAutomatically: false,
     )) {
       throw const JourneyLocationException(
         JourneyLocationFailure.settingsUnavailable,

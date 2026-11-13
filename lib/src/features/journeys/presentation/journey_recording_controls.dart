@@ -11,6 +11,7 @@ import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
 import '../application/journey_recorder.dart';
 import '../application/journey_views.dart';
+import '../domain/journey_pause_reason.dart';
 import '../domain/journey_preview.dart';
 import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
@@ -50,6 +51,25 @@ class JourneyRecordingControls extends ConsumerStatefulWidget {
   ConsumerState<JourneyRecordingControls> createState() =>
       _JourneyRecordingControlsState();
 }
+
+/// What the paused note says. A pause the person made keeps the original
+/// wording; one the app made says why, so it never looks like a mistake.
+String _pausedNote(JourneyPauseReason? reason) => switch (reason) {
+  JourneyPauseReason.locationLost =>
+    'We lost your location, so the Trip paused. Tap Resume once it is '
+        "back. The gap isn't drawn.",
+  JourneyPauseReason.appRestarted =>
+    'The app was closed, so the Trip paused. Tap Resume to carry on. '
+        "The time it was closed isn't drawn.",
+  JourneyPauseReason.startFailed =>
+    "We couldn't get your location, so the Trip paused. Check that "
+        'location is on, then tap Resume.',
+  JourneyPauseReason.accountChanged =>
+    'The account changed, so this Trip paused. Sign back in to resume it.',
+  JourneyPauseReason.user || JourneyPauseReason.unknown || null =>
+    "Anything between now and Resume isn't drawn, "
+        'including time the app was closed.',
+};
 
 class _JourneyRecordingControlsState
     extends ConsumerState<JourneyRecordingControls> {
@@ -229,9 +249,8 @@ class _JourneyRecordingControlsState
                   ),
                   if (!isRecording && !widget.compact) ...[
                     const SizedBox(height: 8),
-                    const Text(
-                      "Anything between now and Resume isn't drawn, "
-                      'including time the app was closed.',
+                    Text(
+                      _pausedNote(session.pauseReason),
                       style: AppTypeScale.small,
                     ),
                   ],

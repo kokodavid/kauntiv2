@@ -35,6 +35,17 @@ JourneyLocationSource journeyLocationSource(Ref ref) =>
 JourneyCapture journeyCapture(Ref ref) => JourneyCapture(
   repository: ref.watch(localJourneyRepositoryProvider),
   locationSource: ref.watch(journeyLocationSourceProvider),
+  // A Trip that loses location keeps recording and retrying for up to 15
+  // minutes (power saving and weak signal often cut it for longer than a
+  // few seconds) before pausing itself with a visible reason.
+  streamRecoveryDelays: const [
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 5),
+    Duration(seconds: 10),
+    Duration(seconds: 30),
+  ],
+  maxRecoveryTime: const Duration(minutes: 15),
   onDiagnosticEvent:
       AppFeatureFlags.locationDiagnostics && ref.watch(appConfigProvider).isDev
       ? LocationDiagnostics.record

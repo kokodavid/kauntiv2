@@ -22,9 +22,16 @@ extension JourneyCaptureLifecycle on JourneyCapture {
         id: saved.id,
         userId: userId,
         at: stoppedAt,
+        reason: JourneyPauseReason.appRestarted,
       );
     } else {
-      _session = saved;
+      _session = LocalJourneySession(
+        id: saved.id,
+        recording: saved.recording,
+        pauseReason: saved.recording.phase == JourneyRecordingPhase.paused
+            ? await _repository.pauseReason(saved.id, userId)
+            : null,
+      );
     }
     return _session;
   }
@@ -63,6 +70,7 @@ extension JourneyCaptureLifecycle on JourneyCapture {
           id: session.id,
           userId: userId,
           at: _notBefore(session.recording.lastChangedAt!),
+          reason: JourneyPauseReason.startFailed,
         );
       }
       rethrow;
@@ -93,6 +101,7 @@ extension JourneyCaptureLifecycle on JourneyCapture {
             id: resumed!.id,
             userId: _userId!,
             at: _notBefore(resumed.recording.lastChangedAt!),
+            reason: JourneyPauseReason.startFailed,
           );
         }
       }
@@ -100,7 +109,9 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     }
   }
 
-  Future<LocalJourneySession> pause() async {
+  Future<LocalJourneySession> pause({
+    JourneyPauseReason reason = JourneyPauseReason.user,
+  }) async {
     final current = _requireSession(JourneyRecordingPhase.recording);
     try {
       await _endStream();
@@ -109,6 +120,7 @@ extension JourneyCaptureLifecycle on JourneyCapture {
         id: current.id,
         userId: _userId!,
         at: _notBefore(current.recording.lastChangedAt!),
+        reason: reason,
       );
     }
     return _session!;
@@ -146,7 +158,7 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     final current = _session;
     if (current == null) return;
     if (current.recording.phase == JourneyRecordingPhase.recording) {
-      await pause();
+      await pause(reason: JourneyPauseReason.accountChanged);
     }
     if (_teardownPending) await _endStream();
     _session = null;

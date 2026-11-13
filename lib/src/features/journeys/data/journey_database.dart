@@ -44,7 +44,7 @@ class JourneyDatabase extends _$JourneyDatabase {
   JourneyDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -58,6 +58,7 @@ class JourneyDatabase extends _$JourneyDatabase {
       await _addTransportModeColumn();
       await _addStopsColumn();
       await _addPauseReasonColumn();
+      await _addQualityColumn();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -76,6 +77,7 @@ class JourneyDatabase extends _$JourneyDatabase {
       if (from < 10) await _addStopsColumn();
       if (from >= 8 && from < 11) await _addTimelinePlacementColumn();
       if (from < 12) await _addPauseReasonColumn();
+      if (from < 13) await _addQualityColumn();
     },
   );
 
@@ -170,6 +172,14 @@ class JourneyDatabase extends _$JourneyDatabase {
   Future<void> _addPauseReasonColumn() async {
     await customStatement(
       'ALTER TABLE journey_sessions ADD COLUMN pause_reason TEXT',
+    );
+  }
+
+  /// How well the Trip recorded, as JSON text of a JourneyQuality (schema
+  /// 13). NULL for a Trip recorded before this existed.
+  Future<void> _addQualityColumn() async {
+    await customStatement(
+      'ALTER TABLE journey_sessions ADD COLUMN quality_json TEXT',
     );
   }
 

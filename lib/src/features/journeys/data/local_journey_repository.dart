@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_pause_reason.dart';
 import '../domain/journey_point.dart';
+import '../domain/journey_quality.dart';
 import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_transport_mode.dart';
@@ -151,6 +152,14 @@ class LocalJourneyRepository {
     }
     return LocalJourneySession(id: id, recording: recording);
   });
+
+  /// How well this Trip has recorded so far; null for a Trip recorded
+  /// before quality was kept.
+  Future<JourneyQuality?> quality(String id, String userId) =>
+      _quality(_db, id, userId);
+
+  Future<void> saveQuality(String id, String userId, JourneyQuality quality) =>
+      _saveQuality(_db, id, userId, quality);
 
   /// Why this Trip is paused, or null when it is not paused or was paused
   /// before reasons were saved.

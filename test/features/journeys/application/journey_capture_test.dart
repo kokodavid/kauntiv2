@@ -591,4 +591,100 @@ void main() {
       expect(diagnosticEvents, contains('journey_jump_accepted'));
     });
   });
+
+  group('Trip quality', () {
+    test('counts accepted fixes and a user pause, and saves them', () async {
+      final session = await repository.start(
+        id: 'one',
+        userId: 'alice',
+        at: t0,
+      );
+      final attaching = capture.attachStarted(
+        session: session,
+        userId: 'alice',
+      );
+      await pumpEventQueue();
+      source.controller
+        ..add(
+          JourneyFix(
+            recordedAt: t0.add(const Duration(seconds: 1)),
+            latitude: -1.28,
+            longitude: 36.82,
+            accuracyMeters: 7,
+          ),
+        )
+        ..add(
+          JourneyFix(
+            recordedAt: t0.add(const Duration(seconds: 11)),
+            latitude: -1.2799,
+            longitude: 36.82,
+            accuracyMeters: 7,
+          ),
+        );
+      await attaching;
+      await pumpEventQueue();
+      now = t0.add(const Duration(minutes: 1));
+
+      await capture.pause();
+
+      final saved = await repository.quality('one', 'alice');
+      expect(saved, isNotNull);
+      expect(saved!.fixesAccepted, 2);
+      expect(saved.userPauses, 1);
+      expect(saved.systemPauses, 0);
+    });
+
+    test('a recovered session counts an app-restart pause', () async {
+      await repository.start(id: 'one', userId: 'alice', at: t0);
+      now = t0.add(const Duration(minutes: 3));
+
+      await capture.recover('alice');
+
+      final saved = await repository.quality('one', 'alice');
+      expect(saved?.pausesByReason['app_restarted'], 1);
+      expect(saved?.systemPauses, 1);
+    });
+
+    test('a lost and restarted stream is counted', () async {
+      final session = await repository.start(
+        id: 'one',
+        userId: 'alice',
+        at: t0,
+      );
+      final attaching = capture.attachStarted(
+        session: session,
+        userId: 'alice',
+      );
+      await pumpEventQueue();
+      source.controller.add(
+        JourneyFix(
+          recordedAt: t0.add(const Duration(seconds: 1)),
+          latitude: -1.28,
+          longitude: 36.82,
+          accuracyMeters: 7,
+        ),
+      );
+      await attaching;
+      source.controller.addError(StateError('GPS stopped'));
+      for (
+        var attempt = 0;
+        attempt < 100 &&
+            !diagnosticEvents.contains('journey_location_recovered');
+        attempt++
+      ) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+
+      expect(capture.quality.streamLosses, 1);
+      expect(capture.quality.streamRecoveries, 1);
+      final saved = await repository.quality('one', 'alice');
+      expect(saved?.streamRecoveries, 1);
+    });
+
+    test('a Trip recorded before quality existed reads as null', () async {
+      await repository.start(id: 'one', userId: 'alice', at: t0);
+
+      expect(await repository.quality('one', 'alice'), isNull);
+    });
+  });
 }

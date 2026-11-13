@@ -12,6 +12,8 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     final saved = await _repository.activeSession(userId);
     if (saved == null) return null;
     _userId = userId;
+    _quality =
+        await _repository.quality(saved.id, userId) ?? const JourneyQuality();
     if (saved.recording.phase == JourneyRecordingPhase.recording) {
       final lastPoint = await _repository.lastPointAt(saved.id, userId);
       final lastChange = saved.recording.lastChangedAt!;
@@ -24,6 +26,8 @@ extension JourneyCaptureLifecycle on JourneyCapture {
         at: stoppedAt,
         reason: JourneyPauseReason.appRestarted,
       );
+      _quality = _quality.withPause(JourneyPauseReason.appRestarted);
+      await _flushQuality();
     } else {
       _session = LocalJourneySession(
         id: saved.id,
@@ -48,6 +52,7 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     }
     _userId = userId;
     _session = session;
+    _quality = const JourneyQuality();
     try {
       await _startStream();
       final firstFix = _firstFix = Completer<void>();
@@ -72,6 +77,8 @@ extension JourneyCaptureLifecycle on JourneyCapture {
           at: _notBefore(session.recording.lastChangedAt!),
           reason: JourneyPauseReason.startFailed,
         );
+        _quality = _quality.withPause(JourneyPauseReason.startFailed);
+        await _flushQuality();
       }
       rethrow;
     }
@@ -122,6 +129,8 @@ extension JourneyCaptureLifecycle on JourneyCapture {
         at: _notBefore(current.recording.lastChangedAt!),
         reason: reason,
       );
+      _quality = _quality.withPause(reason);
+      await _flushQuality();
     }
     return _session!;
   }
@@ -142,6 +151,7 @@ extension JourneyCaptureLifecycle on JourneyCapture {
       }
     }
     if (_teardownPending) await _endStream();
+    await _flushQuality();
     final finished = await _repository.finish(
       id: current.id,
       userId: _userId!,
@@ -163,5 +173,6 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     if (_teardownPending) await _endStream();
     _session = null;
     _userId = null;
+    _quality = const JourneyQuality();
   }
 }

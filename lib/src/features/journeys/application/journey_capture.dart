@@ -4,6 +4,7 @@ import '../../../services/app_logger.dart';
 import '../data/local_journey_repository.dart';
 import '../domain/journey_fix.dart';
 import '../domain/journey_pause_reason.dart';
+import '../domain/journey_quality.dart';
 import '../domain/journey_recording.dart';
 import '../domain/journey_spike_filter.dart';
 
@@ -82,6 +83,11 @@ class JourneyCapture {
   int spikesDropped = 0;
   int jumpsAccepted = 0;
 
+  /// How well this Trip is recording; saved with the Trip and sent when it
+  /// uploads. Counts only.
+  JourneyQuality _quality = const JourneyQuality();
+  JourneyQuality get quality => _quality;
+
   JourneySpikeFilter _spikeFilter = JourneySpikeFilter(
     maxSpeedMetersPerSecond: null,
   );
@@ -150,13 +156,25 @@ class JourneyCapture {
                   );
                   _splitOnNextFix = false;
                   _spikeFilter.reset();
+                  if (gap != null && gap > missingFixGap) {
+                    _quality = _quality.copyWith(
+                      gaps: _quality.gaps + 1,
+                      gapMillis: _quality.gapMillis + gap.inMilliseconds,
+                    );
+                    await _flushQuality();
+                  }
                 }
                 final verdict = _spikeFilter.judge(fix);
                 if (verdict.spikesDropped > 0) {
                   spikesDropped += verdict.spikesDropped;
+                  _quality = _quality.copyWith(
+                    spikesDropped:
+                        _quality.spikesDropped + verdict.spikesDropped,
+                  );
                   _recordDiagnostic('journey_spike_dropped', {
                     'count': verdict.spikesDropped,
                   });
+                  await _flushQuality();
                 }
                 for (var index = 0; index < verdict.accepted.length; index++) {
                   final accepted = verdict.accepted[index];
@@ -164,7 +182,11 @@ class JourneyCapture {
                     // Two fixes agree on a far-away position: a real jump
                     // (tunnel, long signal loss), so no line is drawn across.
                     jumpsAccepted++;
+                    _quality = _quality.copyWith(
+                      jumpsAccepted: _quality.jumpsAccepted + 1,
+                    );
                     _recordDiagnostic('journey_jump_accepted', {});
+                    await _flushQuality();
                     _session = await _repository.splitSegment(
                       id: current.id,
                       userId: userId,
@@ -177,6 +199,9 @@ class JourneyCapture {
                     point: accepted.inSegment(_session!.recording.segmentNumber),
                   );
                   _lastRecordedAt = accepted.recordedAt;
+                  _quality = _quality.copyWith(
+                    fixesAccepted: _quality.fixesAccepted + 1,
+                  );
                 }
               } on JourneyPointRejected {
                 // Delayed or out-of-order fixes are not part of the route.
@@ -210,6 +235,7 @@ class JourneyCapture {
       return;
     }
     _recoveringStream = true;
+    _quality = _quality.copyWith(streamLosses: _quality.streamLosses + 1);
     var shouldNotifyPause = false;
     unawaited(
       Future<void>(() async {
@@ -242,6 +268,12 @@ class JourneyCapture {
                 'attempts': attempt,
                 'lost_ms': stopwatch.elapsed.inMilliseconds,
               });
+              _quality = _quality.copyWith(
+                streamRecoveries: _quality.streamRecoveries + 1,
+                lostMillis:
+                    _quality.lostMillis + stopwatch.elapsed.inMilliseconds,
+              );
+              await _flushQuality();
               return;
             } catch (error) {
               lastError = error;
@@ -266,6 +298,23 @@ class JourneyCapture {
         }
       }),
     );
+  }
+
+  /// Saves the counts to the local Trip. Never throws: quality is extra
+  /// information and must not stop a Trip from recording.
+  Future<void> _flushQuality() async {
+    final id = _session?.id;
+    final userId = _userId;
+    if (id == null || userId == null) return;
+    try {
+      await _repository.saveQuality(id, userId, _quality);
+    } on Object catch (error, stackTrace) {
+      _logger.warning(
+        'Journey quality not saved.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<void> _endStream() async {

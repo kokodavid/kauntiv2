@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/app_logger.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_point.dart';
+import '../domain/journey_quality.dart';
 import '../domain/journey_summary.dart';
 import '../domain/journey_transport_mode.dart';
 import 'journey_database.dart';
@@ -27,6 +28,13 @@ typedef UploadJourney =
       JourneyTransportMode? transportMode,
     });
 
+/// Sends how well a Trip recorded, after the Trip itself has uploaded.
+typedef SaveJourneyQuality =
+    Future<void> Function({
+      required String id,
+      required JourneyQuality quality,
+    });
+
 /// Uploads completed local Journeys for the signed-in account, oldest
 /// first, then deletes the local copy so precise points don't linger on
 /// the phone once they're in the private cloud history.
@@ -44,8 +52,10 @@ class JourneyUploadQueue {
     this._db, {
     required String? Function() currentUserId,
     required UploadJourney upload,
+    SaveJourneyQuality? saveQuality,
   }) : _currentUserId = currentUserId,
        _upload = upload,
+       _saveQuality = saveQuality,
        _local = LocalJourneyRepository(_db);
 
   factory JourneyUploadQueue.supabase(
@@ -54,6 +64,7 @@ class JourneyUploadQueue {
   ) => JourneyUploadQueue(
     db,
     currentUserId: () => cloud.currentUserId,
+    saveQuality: cloud.saveQuality,
     upload:
         ({
           required userId,
@@ -82,8 +93,26 @@ class JourneyUploadQueue {
   final LocalJourneyRepository _local;
   final String? Function() _currentUserId;
   final UploadJourney _upload;
+  final SaveJourneyQuality? _saveQuality;
 
   static const _logger = AppLogger.journeys();
+
+  /// Best effort: how well the Trip recorded is extra information, so a
+  /// failure here never holds back the Trip or keeps its local copy.
+  Future<void> _sendQuality(String id, String userId) async {
+    final save = _saveQuality;
+    if (save == null) return;
+    try {
+      final quality = await _local.quality(id, userId);
+      if (quality != null) await save(id: id, quality: quality);
+    } on Object catch (error, stackTrace) {
+      _logger.warning(
+        'Journey quality not sent.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 
   /// Postgres codes that won't succeed on retry: permission (wrong
   /// owner), invalid value / check / cast, or the free Trip limit for
@@ -161,6 +190,7 @@ class JourneyUploadQueue {
           destination: summary.destination,
           transportMode: summary.transportMode,
         );
+        await _sendQuality(row.id, userId);
         // Stored under [userId] on the server; the local copy is theirs.
         await _removeLocal(row.id);
         uploaded++;

@@ -5,10 +5,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/domain/map_place.dart';
 import '../../../counties/county_paths.dart';
+import '../../feedback/data/feedback_context_source.dart';
 import '../domain/journey_destination.dart';
 import '../domain/journey_media_capture.dart';
 import '../domain/journey_media_quota.dart';
 import '../domain/journey_point.dart';
+import '../domain/journey_quality.dart';
 import '../domain/journey_summary.dart';
 import '../domain/journey_transport_mode.dart';
 import '../domain/pro_status.dart';
@@ -70,6 +72,28 @@ class SupabaseJourneyRepository {
       isPro: row['is_pro'] == true,
       proMaxPhotos: (row['pro_max_photos'] as num).toInt(),
     );
+  }
+
+  /// Sends how well a Trip recorded (counts only) with the phone and app
+  /// version, for the team's quality view. Call after [upload] succeeds.
+  Future<void> saveQuality({
+    required String id,
+    required JourneyQuality quality,
+  }) async {
+    final context = await const FeedbackContextSource().capture();
+    await _client
+        .rpc<dynamic>(
+          'save_journey_quality',
+          params: {
+            'p_journey_id': id,
+            'p_summary': quality.toJson(),
+            'p_app_version': context.appVersion,
+            'p_platform': context.platform,
+            'p_os_version': context.osVersion,
+            'p_device_model': context.deviceModel,
+          },
+        )
+        .timeout(_timeout);
   }
 
   static const _summaryColumns =

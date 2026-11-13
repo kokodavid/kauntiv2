@@ -5,6 +5,7 @@ import '../data/local_journey_repository.dart';
 import '../domain/journey_fix.dart';
 import '../domain/journey_pause_reason.dart';
 import '../domain/journey_recording.dart';
+import '../domain/journey_spike_filter.dart';
 
 part 'journey_capture_lifecycle.dart';
 
@@ -75,6 +76,15 @@ class JourneyCapture {
   bool _recoveringStream = false;
   bool _splitOnNextFix = false;
   Object? lastError;
+
+  /// Fixes thrown away as GPS spikes, and real jumps accepted after a
+  /// second fix confirmed them, since this capture was created.
+  int spikesDropped = 0;
+  int jumpsAccepted = 0;
+
+  JourneySpikeFilter _spikeFilter = JourneySpikeFilter(
+    maxSpeedMetersPerSecond: null,
+  );
   void Function(LocalJourneySession)? onUnexpectedPause;
 
   LocalJourneySession? get session => _session;
@@ -139,13 +149,35 @@ class JourneyCapture {
                     at: fix.recordedAt,
                   );
                   _splitOnNextFix = false;
+                  _spikeFilter.reset();
                 }
-                await _repository.appendPoint(
-                  id: current.id,
-                  userId: userId,
-                  point: fix.inSegment(_session!.recording.segmentNumber),
-                );
-                _lastRecordedAt = fix.recordedAt;
+                final verdict = _spikeFilter.judge(fix);
+                if (verdict.spikesDropped > 0) {
+                  spikesDropped += verdict.spikesDropped;
+                  _recordDiagnostic('journey_spike_dropped', {
+                    'count': verdict.spikesDropped,
+                  });
+                }
+                for (var index = 0; index < verdict.accepted.length; index++) {
+                  final accepted = verdict.accepted[index];
+                  if (index == 0 && verdict.startsNewSegment) {
+                    // Two fixes agree on a far-away position: a real jump
+                    // (tunnel, long signal loss), so no line is drawn across.
+                    jumpsAccepted++;
+                    _recordDiagnostic('journey_jump_accepted', {});
+                    _session = await _repository.splitSegment(
+                      id: current.id,
+                      userId: userId,
+                      at: accepted.recordedAt,
+                    );
+                  }
+                  await _repository.appendPoint(
+                    id: current.id,
+                    userId: userId,
+                    point: accepted.inSegment(_session!.recording.segmentNumber),
+                  );
+                  _lastRecordedAt = accepted.recordedAt;
+                }
               } on JourneyPointRejected {
                 // Delayed or out-of-order fixes are not part of the route.
               }
@@ -261,6 +293,11 @@ class JourneyCapture {
 
   Future<void> _startLocationSource(String id, String userId) async {
     final mode = await _repository.transportMode(id, userId);
+    // A fresh filter for every stream start: a resume or a restart begins a
+    // new segment, so nothing from before it should be compared against.
+    _spikeFilter = JourneySpikeFilter(
+      maxSpeedMetersPerSecond: mode?.maxSpeedMetersPerSecond,
+    );
     await _locationSource.start(mode: mode);
     _recordDiagnostic('journey_location_started', {
       'transport_mode': mode?.storageValue ?? 'unknown',

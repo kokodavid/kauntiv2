@@ -532,4 +532,63 @@ void main() {
     expect(patient.session?.pauseReason, JourneyPauseReason.locationLost);
     expect(pauseNotifications, 1);
   });
+
+  group('GPS spikes', () {
+    JourneyFix northOf(int seconds, double metres) => JourneyFix(
+      recordedAt: t0.add(Duration(seconds: seconds)),
+      latitude: -1.28 + metres / 111000,
+      longitude: 36.82,
+      accuracyMeters: 8,
+    );
+
+    Future<void> attachWalking() async {
+      final session = await repository.start(
+        id: 'one',
+        userId: 'alice',
+        at: t0,
+        mode: JourneyTransportMode.walk,
+      );
+      final attaching = capture.attachStarted(
+        session: session,
+        userId: 'alice',
+      );
+      await pumpEventQueue();
+      source.controller.add(northOf(1, 0));
+      await attaching;
+    }
+
+    test('a single spike is left out of the route', () async {
+      await attachWalking();
+      source.controller
+        ..add(northOf(11, 15))
+        ..add(northOf(21, 600))
+        ..add(northOf(31, 45));
+      await pumpEventQueue();
+      now = t0.add(const Duration(minutes: 2));
+      await capture.pause();
+
+      final points = await repository.points('one', 'alice');
+      expect(points, hasLength(3));
+      expect(points.map((point) => point.segmentNumber), [0, 0, 0]);
+      expect(capture.spikesDropped, 1);
+      expect(diagnosticEvents, contains('journey_spike_dropped'));
+    });
+
+    test('a jump confirmed by the next fix starts a new segment', () async {
+      await attachWalking();
+      source.controller
+        ..add(northOf(11, 15))
+        ..add(northOf(21, 2000))
+        ..add(northOf(31, 2020));
+      await pumpEventQueue();
+      now = t0.add(const Duration(minutes: 2));
+      await capture.pause();
+
+      final points = await repository.points('one', 'alice');
+      expect(points.map((point) => point.segmentNumber), [0, 0, 1, 1]);
+      expect(capture.jumpsAccepted, 1);
+      expect(capture.spikesDropped, 0);
+      expect(diagnosticEvents, contains('journey_jump_accepted'));
+    });
+  });
 }

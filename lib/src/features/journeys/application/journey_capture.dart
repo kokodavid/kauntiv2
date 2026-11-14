@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../../services/app_logger.dart';
 import '../data/local_journey_repository.dart';
+import '../domain/journey_device_settings.dart';
 import '../domain/journey_fix.dart';
 import '../domain/journey_pause_reason.dart';
 import '../domain/journey_quality.dart';
@@ -26,6 +27,7 @@ class JourneyCapture {
     ],
     this.recoveryRepeatDelay = const Duration(seconds: 30),
     this.maxRecoveryTime = Duration.zero,
+    this.deviceSettings,
     this.onDiagnosticEvent,
   }) : _repository = repository,
        _locationSource = locationSource,
@@ -56,6 +58,10 @@ class JourneyCapture {
   /// [JourneyPauseReason.locationLost]. Zero means only the delays in
   /// [streamRecoveryDelays] are tried.
   final Duration maxRecoveryTime;
+
+  /// Reads the phone's power settings, for the pre-trip check and the
+  /// quality summary. Optional: without it neither is available.
+  final JourneyDeviceSettingsSource? deviceSettings;
 
   final Future<void> Function(String, Map<String, Object?>)? onDiagnosticEvent;
 
@@ -314,6 +320,18 @@ class JourneyCapture {
         error: error,
         stackTrace: stackTrace,
       );
+    }
+  }
+
+  /// The phone's power settings now, or null when they can't be read in time.
+  /// Never throws: a failed reading must not stop a Trip from starting.
+  Future<JourneyDeviceSettings?> readDeviceSettings() async {
+    final source = deviceSettings;
+    if (source == null) return null;
+    try {
+      return await source.read().timeout(const Duration(seconds: 2));
+    } on Object {
+      return null;
     }
   }
 

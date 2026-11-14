@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'journey_device_settings.dart';
 import 'journey_pause_reason.dart';
 
 /// How well one Trip recorded, as plain counts: no places, no coordinates.
@@ -16,6 +17,7 @@ class JourneyQuality {
     this.streamLosses = 0,
     this.streamRecoveries = 0,
     this.lostMillis = 0,
+    this.settings,
   });
 
   /// Pauses by [JourneyPauseReason.storageValue].
@@ -37,6 +39,9 @@ class JourneyQuality {
   final int streamLosses;
   final int streamRecoveries;
   final int lostMillis;
+
+  /// The phone's power settings when the Trip started; null when unknown.
+  final JourneyDeviceSettings? settings;
 
   int get userPauses =>
       pausesByReason[JourneyPauseReason.user.storageValue] ?? 0;
@@ -67,6 +72,7 @@ class JourneyQuality {
     int? streamLosses,
     int? streamRecoveries,
     int? lostMillis,
+    JourneyDeviceSettings? settings,
   }) => JourneyQuality(
     pausesByReason: pausesByReason ?? this.pausesByReason,
     gaps: gaps ?? this.gaps,
@@ -77,6 +83,7 @@ class JourneyQuality {
     streamLosses: streamLosses ?? this.streamLosses,
     streamRecoveries: streamRecoveries ?? this.streamRecoveries,
     lostMillis: lostMillis ?? this.lostMillis,
+    settings: settings ?? this.settings,
   );
 
   Map<String, Object> toJson() => {
@@ -89,6 +96,7 @@ class JourneyQuality {
     'stream_losses': streamLosses,
     'stream_recoveries': streamRecoveries,
     'lost_ms': lostMillis,
+    if (settings != null) 'settings': settings!.toJson(),
   };
 
   String encode() => jsonEncode(toJson());
@@ -122,6 +130,7 @@ class JourneyQuality {
         streamLosses: count('stream_losses'),
         streamRecoveries: count('stream_recoveries'),
         lostMillis: count('lost_ms'),
+        settings: JourneyDeviceSettings.fromJson(data['settings']),
       );
     } on FormatException {
       return null;

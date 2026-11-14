@@ -7,6 +7,7 @@ import '../data/device_journey_location_source.dart';
 import '../data/journey_database.dart';
 import '../data/local_journey_media_repository.dart';
 import '../data/local_journey_repository.dart';
+import '../data/platform_journey_settings_source.dart';
 import '../domain/journey_fix.dart';
 import 'journey_capture.dart';
 
@@ -46,6 +47,7 @@ JourneyCapture journeyCapture(Ref ref) => JourneyCapture(
     Duration(seconds: 30),
   ],
   maxRecoveryTime: const Duration(minutes: 15),
+  deviceSettings: PlatformJourneySettingsSource(),
   onDiagnosticEvent:
       AppFeatureFlags.locationDiagnostics && ref.watch(appConfigProvider).isDev
       ? LocationDiagnostics.record

@@ -113,6 +113,7 @@ dependencies:
 
   # Beta feedback: the app version and device model that go on every report
   # so a tester never has to describe their phone.
+  battery_plus: ^7.1.2
   package_info_plus: ^8.3.0
   device_info_plus: ^11.5.0
 

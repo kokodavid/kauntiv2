@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_capture.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_device_settings.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_pause_reason.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_recording.dart';
@@ -39,6 +40,15 @@ class FakeJourneyLocationSource implements JourneyLocationSource {
   }
 
   Future<void> dispose() => controller.close();
+}
+
+class FakeSettingsSource implements JourneyDeviceSettingsSource {
+  FakeSettingsSource(this.result);
+
+  final Future<JourneyDeviceSettings> Function() result;
+
+  @override
+  Future<JourneyDeviceSettings> read() => result();
 }
 
 void main() {
@@ -685,6 +695,80 @@ void main() {
       await repository.start(id: 'one', userId: 'alice', at: t0);
 
       expect(await repository.quality('one', 'alice'), isNull);
+    });
+  });
+
+  group('device settings', () {
+    JourneyFix firstFix() => JourneyFix(
+      recordedAt: t0.add(const Duration(seconds: 1)),
+      latitude: -1.28,
+      longitude: 36.82,
+      accuracyMeters: 7,
+    );
+
+    test('are read at start and saved with the Trip quality', () async {
+      final withSettings = JourneyCapture(
+        repository: repository,
+        locationSource: source,
+        clock: () => now,
+        deviceSettings: FakeSettingsSource(
+          () async => const JourneyDeviceSettings(
+            batterySaver: true,
+            batteryPercent: 40,
+          ),
+        ),
+      );
+      final session = await repository.start(
+        id: 'one',
+        userId: 'alice',
+        at: t0,
+      );
+      final attaching = withSettings.attachStarted(
+        session: session,
+        userId: 'alice',
+      );
+      await pumpEventQueue();
+      source.controller.add(firstFix());
+      await attaching;
+      now = t0.add(const Duration(minutes: 1));
+
+      await withSettings.pause();
+
+      final saved = await repository.quality('one', 'alice');
+      expect(saved?.settings?.batterySaver, isTrue);
+      expect(saved?.settings?.batteryPercent, 40);
+    });
+
+    test('a failing reading does not stop the Trip starting', () async {
+      final failing = JourneyCapture(
+        repository: repository,
+        locationSource: source,
+        clock: () => now,
+        deviceSettings: FakeSettingsSource(
+          () async => throw StateError('no battery info'),
+        ),
+      );
+
+      expect(await failing.readDeviceSettings(), isNull);
+
+      final session = await repository.start(
+        id: 'one',
+        userId: 'alice',
+        at: t0,
+      );
+      final attaching = failing.attachStarted(
+        session: session,
+        userId: 'alice',
+      );
+      await pumpEventQueue();
+      source.controller.add(firstFix());
+      await attaching;
+      expect(failing.session?.recording.phase, JourneyRecordingPhase.recording);
+      expect(failing.quality.settings, isNull);
+    });
+
+    test('without a source there are no settings', () async {
+      expect(await capture.readDeviceSettings(), isNull);
     });
   });
 }

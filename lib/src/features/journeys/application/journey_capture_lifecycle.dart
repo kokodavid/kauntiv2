@@ -55,6 +55,8 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     _quality = const JourneyQuality();
     try {
       await _startStream();
+      final settings = await readDeviceSettings();
+      if (settings != null) _quality = _quality.copyWith(settings: settings);
       final firstFix = _firstFix = Completer<void>();
       try {
         await firstFix.future.timeout(firstFixTimeout);

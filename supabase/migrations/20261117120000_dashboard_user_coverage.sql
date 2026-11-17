@@ -192,22 +192,26 @@ begin
     raise exception 'Invalid reporting dates' using errcode = '22023';
   end if;
 
-  create temp table if not exists dl_trips on commit drop as
+  drop table if exists pg_temp.dl_trips;
+  create temp table dl_trips on commit drop as
     select * from public.dashboard_metric_trips(v_users, v_end) limit 0;
   truncate dl_trips;
   insert into dl_trips select * from public.dashboard_metric_trips(v_users, v_end);
 
-  create temp table if not exists dl_coverage on commit drop as
+  drop table if exists pg_temp.dl_coverage;
+  create temp table dl_coverage on commit drop as
     select * from public.dashboard_metric_coverage(v_users, v_end) limit 0;
   truncate dl_coverage;
   insert into dl_coverage select * from public.dashboard_metric_coverage(v_users, v_end);
 
-  create temp table if not exists dl_travel on commit drop as
+  drop table if exists pg_temp.dl_travel;
+  create temp table dl_travel on commit drop as
     select a.user_id, a.at from public.dashboard_metric_actions(v_users, v_end) a limit 0;
   truncate dl_travel;
   insert into dl_travel select a.user_id, a.at from public.dashboard_metric_actions(v_users, v_end) a where a.kind = 'travel';
 
-  create temp table if not exists dl_people (
+  drop table if exists pg_temp.dl_people;
+  create temp table dl_people (
     user_id uuid primary key, shown boolean, name text, home_county text, pro boolean, state text,
     total integer, explored integer, new_in_period integer, real_trips integer, notable_trips integer,
     best_score integer, total_km numeric, longest_km numeric, travel_days integer, streak_months integer

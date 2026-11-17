@@ -1,5 +1,16 @@
 # V1 → V2 port tracker
 
+## 2026-11-17 Dashboard user coverage
+
+Migration `20261117120000_dashboard_user_coverage.sql` uses the full eligible
+account set for Overview and Leaderboard analysis. App users filters before
+pagination, with stable ordering for accounts created at the same time. The
+leaderboard still requires four qualifying counties and honors sharing opt-outs.
+
+The isolated PostgreSQL regression covers more than 200 accounts, including
+accounts with earlier signup dates, protected filters, and deliberately hidden
+accounts. No mobile code changes or Flutter/Dart commands.
+
 ## 2026-11-07 Dashboard Growth Statistics
 
 Dashboard-only reporting adds period filters, distinct county coverage ranking,

@@ -15,7 +15,6 @@ declare
   v_end timestamptz := least(coalesce(p_end, now()), now());
   v_users uuid[];
   v_data_start timestamptz;
-  v_first_travel timestamptz;
   v_result jsonb;
 begin
   if coalesce(public.current_admin_role() in ('owner', 'admin'), false) is not true then
@@ -26,26 +25,12 @@ begin
   end if;
   v_users := public.dashboard_metric_users();
 
-  create temp table if not exists gs_trips on commit drop as
-    select * from public.dashboard_metric_trips(v_users, v_end) limit 0;
-  truncate gs_trips;
-  insert into gs_trips select * from public.dashboard_metric_trips(v_users, v_end);
-
-  create temp table if not exists gs_actions on commit drop as
-    select * from public.dashboard_metric_actions(v_users, v_end) limit 0;
-  truncate gs_actions;
-  insert into gs_actions select * from public.dashboard_metric_actions(v_users, v_end);
-
-  create temp table if not exists gs_states on commit drop as
-    select * from public.dashboard_metric_states(v_users) limit 0;
-  truncate gs_states;
-  insert into gs_states select * from public.dashboard_metric_states(v_users);
-
   select min(p.created_at) into v_data_start from public.profiles p where p.id = any(v_users);
-  select min(a.at) into v_first_travel from gs_actions a where a.kind = 'travel';
 
   with
-  travel as (select a.user_id, a.at from gs_actions a where a.kind = 'travel'),
+  gs_trips as materialized (select * from public.dashboard_metric_trips(v_users, v_end)),
+  gs_states as materialized (select * from public.dashboard_metric_states(v_users)),
+  travel as materialized (select a.user_id, a.at from public.dashboard_metric_actions(v_users, v_end) a where a.kind = 'travel'),
   weeks as (
     select k, v_end - (k * interval '7 days') as week_end,
       v_end - ((k + 1) * interval '7 days') as week_start
@@ -78,7 +63,7 @@ begin
         where t.at >= wk.week_end - interval '60 days' and t.at < wk.week_end - interval '30 days'
           and exists (select 1 from travel r where r.user_id = t.user_id
             and r.at >= wk.week_end - interval '30 days' and r.at < wk.week_end)) as returned,
-      v_first_travel is not null and v_first_travel <= wk.week_end - interval '60 days' as measurable
+      coalesce((select min(t.at) from travel t) <= wk.week_end - interval '60 days', false) as measurable
     from weeks wk
   ),
   reliability as (

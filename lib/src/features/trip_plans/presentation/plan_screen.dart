@@ -233,7 +233,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               plan: plan,
               active: _activeDay,
               onSelect: _selectDay,
-              onAddDay: actions == null ? null : () => unawaited(actions.addDay()),
+              onAddDay: actions == null
+                  ? null
+                  : () => unawaited(actions.addDay()),
             ),
           ),
           SliverToBoxAdapter(

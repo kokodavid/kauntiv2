@@ -34,7 +34,8 @@ class PlanDayLegs {
     }
     final hasOrigin = PlanDayPath.origin(plan, day) != null;
     final offset = hasOrigin ? 0 : -1;
-    PlanLeg? at(int i) => i >= 0 && i < route.legs.length ? route.legs[i] : null;
+    PlanLeg? at(int i) =>
+        i >= 0 && i < route.legs.length ? route.legs[i] : null;
     return PlanDayLegs(
       beforeStop: [for (var i = 0; i < day.stops.length; i++) at(i + offset)],
       toOvernight: at(day.stops.length + offset),

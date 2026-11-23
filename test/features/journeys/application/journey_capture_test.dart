@@ -543,72 +543,62 @@ void main() {
     expect(pauseNotifications, 1);
   });
 
-  test(
-    'a locationLost pause re-reads device settings, since battery saver '
-    'or similar can switch on partway through a Trip, after the settings '
-    'read at start',
-    () async {
-      var reads = 0;
-      final patient = JourneyCapture(
-        repository: repository,
-        locationSource: source,
-        clock: () => now,
-        streamRecoveryDelays: const [Duration.zero],
-        recoveryRepeatDelay: const Duration(milliseconds: 20),
-        maxRecoveryTime: const Duration(milliseconds: 300),
-        deviceSettings: FakeSettingsSource(() async {
-          reads++;
-          // Clean at start, battery saver on by the time it is read again
-          // right before the pause.
-          return reads == 1
-              ? const JourneyDeviceSettings(batterySaver: false)
-              : const JourneyDeviceSettings(batterySaver: true);
-        }),
-      );
-      final session = await repository.start(
-        id: 'one',
-        userId: 'alice',
-        at: t0,
-      );
-      final attaching = patient.attachStarted(
-        session: session,
-        userId: 'alice',
-      );
-      await pumpEventQueue();
-      source.controller.add(
-        JourneyFix(
-          recordedAt: t0.add(const Duration(seconds: 1)),
-          latitude: -1.28,
-          longitude: 36.82,
-          accuracyMeters: 7,
-        ),
-      );
-      await attaching;
-      expect(patient.quality.settings?.batterySaver, false);
+  test('a locationLost pause re-reads device settings, since battery saver '
+      'or similar can switch on partway through a Trip, after the settings '
+      'read at start', () async {
+    var reads = 0;
+    final patient = JourneyCapture(
+      repository: repository,
+      locationSource: source,
+      clock: () => now,
+      streamRecoveryDelays: const [Duration.zero],
+      recoveryRepeatDelay: const Duration(milliseconds: 20),
+      maxRecoveryTime: const Duration(milliseconds: 300),
+      deviceSettings: FakeSettingsSource(() async {
+        reads++;
+        // Clean at start, battery saver on by the time it is read again
+        // right before the pause.
+        return reads == 1
+            ? const JourneyDeviceSettings(batterySaver: false)
+            : const JourneyDeviceSettings(batterySaver: true);
+      }),
+    );
+    final session = await repository.start(id: 'one', userId: 'alice', at: t0);
+    final attaching = patient.attachStarted(session: session, userId: 'alice');
+    await pumpEventQueue();
+    source.controller.add(
+      JourneyFix(
+        recordedAt: t0.add(const Duration(seconds: 1)),
+        latitude: -1.28,
+        longitude: 36.82,
+        accuracyMeters: 7,
+      ),
+    );
+    await attaching;
+    expect(patient.quality.settings?.batterySaver, false);
 
-      source.failStart = true;
-      source.controller.addError(StateError('GPS stopped'));
+    source.failStart = true;
+    source.controller.addError(StateError('GPS stopped'));
 
-      for (
-        var attempt = 0;
-        attempt < 100 &&
-            patient.session?.recording.phase != JourneyRecordingPhase.paused;
-        attempt++
-      ) {
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-      }
+    for (
+      var attempt = 0;
+      attempt < 100 &&
+          patient.session?.recording.phase != JourneyRecordingPhase.paused;
+      attempt++
+    ) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
 
-      expect(patient.session?.recording.phase, JourneyRecordingPhase.paused);
-      expect(patient.session?.pauseReason, JourneyPauseReason.locationLost);
-      // The settings read at start are untouched; the pause-time read is a
-      // separate snapshot that caught what actually changed.
-      expect(patient.quality.settings?.batterySaver, false);
-      expect(patient.quality.settingsAtPause?.batterySaver, true);
+    expect(patient.session?.recording.phase, JourneyRecordingPhase.paused);
+    expect(patient.session?.pauseReason, JourneyPauseReason.locationLost);
+    // The settings read at start are untouched; the pause-time read is a
+    // separate snapshot that caught what actually changed.
+    expect(patient.quality.settings?.batterySaver, false);
+    expect(patient.quality.settingsAtPause?.batterySaver, true);
 
-      final saved = await repository.quality('one', 'alice');
-      expect(saved?.settingsAtPause?.batterySaver, true);
-    },
-  );
+    final saved = await repository.quality('one', 'alice');
+    expect(saved?.settingsAtPause?.batterySaver, true);
+  });
 
   group('GPS spikes', () {
     JourneyFix northOf(int seconds, double metres) => JourneyFix(

@@ -50,7 +50,8 @@ TripPlan _plan(PlanLimits limits, {int stops = 3}) => TripPlan(
       id: 'd1',
       number: 1,
       stops: [
-        for (var i = 1; i <= stops; i++) _stop('s$i', 'Place $i', -0.9 + i / 10, 36.3),
+        for (var i = 1; i <= stops; i++)
+          _stop('s$i', 'Place $i', -0.9 + i / 10, 36.3),
       ],
     ),
   ],

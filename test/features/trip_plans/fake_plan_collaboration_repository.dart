@@ -51,8 +51,11 @@ class FakePlanCollaborationRepository implements PlanCollaborationRepository {
   Future<List<PlanInviteInfo>> listInvites(String planId) async => const [];
 
   @override
-  Future<void> inviteUser(String planId, String handle, {PlanRole? role}) async =>
-      calls.add('invite|$planId|$handle');
+  Future<void> inviteUser(
+    String planId,
+    String handle, {
+    PlanRole? role,
+  }) async => calls.add('invite|$planId|$handle');
 
   @override
   Future<List<PlanInvitation>> myInvitations() async => invitations;
@@ -62,8 +65,11 @@ class FakePlanCollaborationRepository implements PlanCollaborationRepository {
       calls.add('respond|$planId|$accept');
 
   @override
-  Future<void> setMemberRole(String planId, String userId, PlanRole role) async =>
-      calls.add('role|$planId|$userId|${role.name}');
+  Future<void> setMemberRole(
+    String planId,
+    String userId,
+    PlanRole role,
+  ) async => calls.add('role|$planId|$userId|${role.name}');
 
   @override
   Future<void> removeMember(String planId, String userId) async =>

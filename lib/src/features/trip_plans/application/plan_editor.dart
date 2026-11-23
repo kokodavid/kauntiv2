@@ -19,9 +19,13 @@ class PlanEditor {
 
   final Ref _ref;
 
-  Future<PlanFailure?> _run(String planId, Future<void> Function() change) async {
+  Future<PlanFailure?> _run(
+    String planId,
+    Future<void> Function() change,
+  ) async {
     final repository = _ref.read(tripPlansRepositoryProvider);
-    if (repository == null) return const PlanFailure(PlanFailureKind.unavailable);
+    if (repository == null)
+      return const PlanFailure(PlanFailureKind.unavailable);
     try {
       await change();
     } on PlanFailure catch (failure) {
@@ -36,8 +40,10 @@ class PlanEditor {
     return null;
   }
 
-  Future<PlanFailure?> rename(String planId, String title) =>
-      _run(planId, () => _ref.read(tripPlansRepositoryProvider)!.rename(planId, title.trim()));
+  Future<PlanFailure?> rename(String planId, String title) => _run(
+    planId,
+    () => _ref.read(tripPlansRepositoryProvider)!.rename(planId, title.trim()),
+  );
 
   Future<PlanFailure?> setStartDate(String planId, DateTime? date) => _run(
     planId,
@@ -51,13 +57,15 @@ class PlanEditor {
 
   Future<PlanFailure?> archive(String planId) => _run(
     planId,
-    () => _ref.read(tripPlansRepositoryProvider)!.archive(planId, archived: true),
+    () =>
+        _ref.read(tripPlansRepositoryProvider)!.archive(planId, archived: true),
   );
 
   Future<PlanFailure?> unarchive(String planId) => _run(
     planId,
-    () =>
-        _ref.read(tripPlansRepositoryProvider)!.archive(planId, archived: false),
+    () => _ref
+        .read(tripPlansRepositoryProvider)!
+        .archive(planId, archived: false),
   );
 
   Future<PlanFailure?> delete(String planId) => _run(
@@ -84,7 +92,13 @@ class PlanEditor {
     planId,
     () => _ref
         .read(tripPlansRepositoryProvider)!
-        .setOvernight(dayId, placeId: placeId, label: label, lat: lat, lng: lng),
+        .setOvernight(
+          dayId,
+          placeId: placeId,
+          label: label,
+          lat: lat,
+          lng: lng,
+        ),
   );
 
   Future<PlanFailure?> removeDay(String planId, String dayId) => _run(
@@ -95,14 +109,21 @@ class PlanEditor {
   Future<PlanFailure?> renameDay(String planId, String dayId, String? title) =>
       _run(
         planId,
-        () => _ref.read(tripPlansRepositoryProvider)!.renameDay(
-          dayId,
-          title == null || title.trim().isEmpty ? null : title.trim(),
-        ),
+        () => _ref
+            .read(tripPlansRepositoryProvider)!
+            .renameDay(
+              dayId,
+              title == null || title.trim().isEmpty ? null : title.trim(),
+            ),
       );
 
   /// One place earlier ([delta] -1) or later (+1) on the same day.
-  Future<PlanFailure?> nudgeStop(String planId, PlanDay day, int index, int delta) {
+  Future<PlanFailure?> nudgeStop(
+    String planId,
+    PlanDay day,
+    int index,
+    int delta,
+  ) {
     final stops = day.stops;
     final target = index + delta;
     if (target < 0 || target >= stops.length) return Future.value();
@@ -118,11 +139,14 @@ class PlanEditor {
   }
 
   /// To the end of [toDayId].
-  Future<PlanFailure?> moveStopToDay(String planId, String stopId, String toDayId) =>
-      _run(
-        planId,
-        () => _ref.read(tripPlansRepositoryProvider)!.moveStop(stopId, toDayId),
-      );
+  Future<PlanFailure?> moveStopToDay(
+    String planId,
+    String stopId,
+    String toDayId,
+  ) => _run(
+    planId,
+    () => _ref.read(tripPlansRepositoryProvider)!.moveStop(stopId, toDayId),
+  );
 
   Future<PlanFailure?> removeStop(
     String planId,
@@ -138,10 +162,12 @@ class PlanEditor {
   Future<PlanFailure?> setNote(String planId, String stopId, String? note) =>
       _run(
         planId,
-        () => _ref.read(tripPlansRepositoryProvider)!.setStopNote(
-          stopId,
-          note == null || note.trim().isEmpty ? null : note.trim(),
-        ),
+        () => _ref
+            .read(tripPlansRepositoryProvider)!
+            .setStopNote(
+              stopId,
+              note == null || note.trim().isEmpty ? null : note.trim(),
+            ),
       );
 
   /// A place onto the end of [dayId]. Returns the new stop's id for Undo.
@@ -208,7 +234,9 @@ class PlanEditor {
   Future<PlanFailure?> addCustomToList(String planId, CustomPlaceDraft place) =>
       _run(
         planId,
-        () => _ref.read(tripPlansRepositoryProvider)!.addCustomPlace(planId, place),
+        () => _ref
+            .read(tripPlansRepositoryProvider)!
+            .addCustomPlace(planId, place),
       );
 }
 

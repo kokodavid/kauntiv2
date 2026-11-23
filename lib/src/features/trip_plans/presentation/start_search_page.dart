@@ -40,7 +40,9 @@ class _StartSearchPageState extends ConsumerState<StartSearchPage> {
   Widget build(BuildContext context) {
     final query = _text.text.trim();
     final ready = query.length >= planPlaceSearchMinLength;
-    final results = ready ? ref.watch(planPlaceSuggestionsProvider(query)) : null;
+    final results = ready
+        ? ref.watch(planPlaceSuggestionsProvider(query))
+        : null;
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: AppBar(

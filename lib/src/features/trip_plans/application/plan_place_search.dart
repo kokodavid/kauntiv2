@@ -37,9 +37,5 @@ Future<List<PlanPlaceSuggestion>> planPlaceSuggestions(
   await Future<void>.delayed(const Duration(milliseconds: 350));
   if (!ref.mounted) return const [];
   final near = ref.read(planCurrentLocationProvider).value;
-  return client.search(
-    text,
-    nearLat: near?.latitude,
-    nearLng: near?.longitude,
-  );
+  return client.search(text, nearLat: near?.latitude, nearLng: near?.longitude);
 }

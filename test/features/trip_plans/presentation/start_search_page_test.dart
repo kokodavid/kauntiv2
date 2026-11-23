@@ -51,7 +51,8 @@ void main() {
         child: MaterialApp(
           home: Builder(
             builder: (context) => TextButton(
-              onPressed: () async => picked = await showStartSearchPage(context),
+              onPressed: () async =>
+                  picked = await showStartSearchPage(context),
               child: const Text('open'),
             ),
           ),

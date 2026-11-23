@@ -71,7 +71,8 @@ class _State extends ConsumerState<PlanInviteUserSection> {
   /// "Already in this plan" or "Invited", else null.
   String? _status(String handle) {
     for (final m in widget.plan.members) {
-      if (m.handle == handle) return m.joined ? 'Already in this plan' : 'Invited';
+      if (m.handle == handle)
+        return m.joined ? 'Already in this plan' : 'Invited';
     }
     return null;
   }

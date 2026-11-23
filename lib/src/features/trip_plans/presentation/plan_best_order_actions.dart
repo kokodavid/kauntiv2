@@ -50,9 +50,8 @@ class PlanBestOrderActions {
       variant: AppToastVariant.success,
       title: '${day.displayTitle} reordered',
       actionLabel: 'Undo',
-      onAction: () => unawaited(
-        service.restore(plan.id, day.id, result.previous),
-      ),
+      onAction: () =>
+          unawaited(service.restore(plan.id, day.id, result.previous)),
     );
   }
 }

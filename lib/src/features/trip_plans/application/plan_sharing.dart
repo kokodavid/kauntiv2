@@ -63,7 +63,8 @@ class PlanSharing {
     bool leaving = false,
   }) async {
     final repository = _ref.read(planCollaborationRepositoryProvider);
-    if (repository == null) return const PlanFailure(PlanFailureKind.unavailable);
+    if (repository == null)
+      return const PlanFailure(PlanFailureKind.unavailable);
     try {
       await change(repository);
     } on PlanFailure catch (failure) {
@@ -101,10 +102,7 @@ class PlanSharing {
   }
 
   Future<PlanFailure?> revokeLink(String planId, String inviteId) async {
-    final failure = await _run(
-      planId,
-      (r) => r.revokeInvite(inviteId),
-    );
+    final failure = await _run(planId, (r) => r.revokeInvite(inviteId));
     if (failure == null && _ref.mounted) {
       _ref.invalidate(planInvitesProvider(planId));
     }
@@ -126,15 +124,13 @@ class PlanSharing {
   Future<PlanFailure?> handOver(String planId, String userId) =>
       _run(planId, (r) => r.handOver(planId, userId));
 
-  Future<PlanFailure?> leave(String planId) => _run(
-    planId,
-    (r) => r.leave(planId),
-    leaving: true,
-  );
+  Future<PlanFailure?> leave(String planId) =>
+      _run(planId, (r) => r.leave(planId), leaving: true);
 
   Future<PlanFailure?> setMuted(String planId, {required bool muted}) async {
     final repository = _ref.read(planCollaborationRepositoryProvider);
-    if (repository == null) return const PlanFailure(PlanFailureKind.unavailable);
+    if (repository == null)
+      return const PlanFailure(PlanFailureKind.unavailable);
     try {
       await repository.setMuted(planId, muted: muted);
     } on PlanFailure catch (failure) {
@@ -153,7 +149,8 @@ class PlanSharing {
       (r) => r.respondInvitation(planId, accept: accept),
       leaving: true,
     );
-    if (failure == null && _ref.mounted) _ref.invalidate(myPlanInvitationsProvider);
+    if (failure == null && _ref.mounted)
+      _ref.invalidate(myPlanInvitationsProvider);
     return failure;
   }
 }

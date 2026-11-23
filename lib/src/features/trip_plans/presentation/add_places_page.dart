@@ -87,16 +87,14 @@ class _AddPlacesPageState extends ConsumerState<AddPlacesPage> {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 350), () {
       if (mounted) {
-        setState(
-          () {
-            _searchOutside = false;
-            _query = PlanPlaceQuery(
+        setState(() {
+          _searchOutside = false;
+          _query = PlanPlaceQuery(
             text: value,
             countyCode: _query.countyCode,
             type: _query.type,
           );
-          },
-        );
+        });
       }
     });
   }

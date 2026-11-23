@@ -17,7 +17,8 @@ class FakePlanPlacesRepository implements PlanPlacesRepository {
     return [
       for (final place in places)
         if ((text.length < 2 || place.name.toLowerCase().contains(text)) &&
-            (query.countyCode == null || place.countyCode == query.countyCode) &&
+            (query.countyCode == null ||
+                place.countyCode == query.countyCode) &&
             (query.type == null || place.type == query.type))
           place,
     ];

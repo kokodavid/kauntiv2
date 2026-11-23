@@ -48,6 +48,7 @@ abstract interface class TripPlansRepository {
   });
   Future<void> moveStop(String stopId, String dayId, {String? beforeStopId});
   Future<void> removeStop(String stopId, {bool toPlacesList = false});
+
   /// Puts a day's stops in this order (all of them, once each). Refused
   /// (orderStale) when the day changed meanwhile.
   Future<void> setDayOrder(String dayId, List<String> stopIds);

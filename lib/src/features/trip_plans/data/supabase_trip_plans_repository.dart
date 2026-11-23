@@ -232,11 +232,10 @@ class SupabaseTripPlansRepository implements TripPlansRepository {
   }
 
   @override
-  Future<void> addCustomPlace(String planId, CustomPlaceDraft place) =>
-      _call('add_trip_plan_custom_place', {
-        'p_plan': planId,
-        ..._customArgs(place),
-      });
+  Future<void> addCustomPlace(String planId, CustomPlaceDraft place) => _call(
+    'add_trip_plan_custom_place',
+    {'p_plan': planId, ..._customArgs(place)},
+  );
 
   @override
   Future<void> removeCustomPlace(String planId, String customId) => _call(

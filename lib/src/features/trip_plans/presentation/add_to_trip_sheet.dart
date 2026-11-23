@@ -163,7 +163,8 @@ class _AddToTripSheetState extends ConsumerState<_AddToTripSheet> {
 
   Widget _plans() {
     final list = ref.watch(plannedTripsListProvider).value;
-    final here = ref.watch(placeTripsProvider(widget.placeId)).value ?? const [];
+    final here =
+        ref.watch(placeTripsProvider(widget.placeId)).value ?? const [];
     final heldIds = {for (final p in here) p.id};
     final plans = [
       ...?list?.plans.upcoming,

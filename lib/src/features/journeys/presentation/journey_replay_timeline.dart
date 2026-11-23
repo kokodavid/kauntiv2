@@ -87,13 +87,7 @@ class JourneyReplayTimeline extends ConsumerStatefulWidget {
 /// for this Trip. [idle] only until the first post-frame check runs;
 /// [unavailable] is used on Android, where the system picker is the only
 /// supported media access path; [noAccess] covers iOS permission states.
-enum _CameraRollStatus {
-  idle,
-  unavailable,
-  noAccess,
-  noMatches,
-  matchesFound,
-}
+enum _CameraRollStatus { idle, unavailable, noAccess, noMatches, matchesFound }
 
 class _CameraRollScan {
   const _CameraRollScan(this.status, [this.matches = const []]);

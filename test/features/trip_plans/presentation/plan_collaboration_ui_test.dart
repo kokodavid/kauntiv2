@@ -130,7 +130,10 @@ void main() {
     await open(tester, _plan(buddy: false));
     await tester.tap(find.byType(PlanInvitePill));
     await tester.pumpAndSettle();
-    expect(find.text('They can add and move places. Only usernames are shown.'), findsOneWidget);
+    expect(
+      find.text('They can add and move places. Only usernames are shown.'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Create invite link'));
     await tester.pumpAndSettle();
     expect(collaboration.calls, ['create|plan-1|editor']);

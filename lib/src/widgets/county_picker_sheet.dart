@@ -115,10 +115,7 @@ class _CountyPickerSheetState extends State<CountyPickerSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.title,
-                      style: AppTextStyles.headingForeground,
-                    ),
+                    Text(widget.title, style: AppTextStyles.headingForeground),
                     const SizedBox(height: 12),
                     _CountySearchField(
                       controller: _controller,

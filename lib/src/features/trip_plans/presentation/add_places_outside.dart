@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -181,10 +180,7 @@ class _ActionRow extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.mutedForeground,
-            ),
+            const Icon(Icons.chevron_right, color: AppColors.mutedForeground),
           ],
         ),
       ),

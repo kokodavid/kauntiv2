@@ -50,7 +50,12 @@ class PlanDayHeader extends StatelessWidget {
       onTap: onToggle,
       child: Padding(
         // Folded, the card is only this header, so it gets room all round.
-        padding: EdgeInsets.fromLTRB(16, collapsed ? 14 : 10, 4, collapsed ? 16 : 0),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          collapsed ? 14 : 10,
+          4,
+          collapsed ? 16 : 0,
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

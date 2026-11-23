@@ -217,10 +217,7 @@ void main() {
 
   testWidgets('Start trip asks first, then hands the day over', (tester) async {
     PlanDay? started;
-    await open(
-      tester,
-      onStartDay: (context, plan, day) async => started = day,
-    );
+    await open(tester, onStartDay: (context, plan, day) async => started = day);
     await tester.tap(find.text('Start trip').first);
     await tester.pumpAndSettle();
     expect(find.text('Start Day 1?'), findsOneWidget);
@@ -230,9 +227,7 @@ void main() {
     expect(started?.id, 'd1');
   });
 
-  testWidgets('a recorded day shows its Trip and Watch replay', (
-    tester,
-  ) async {
+  testWidgets('a recorded day shows its Trip and Watch replay', (tester) async {
     repository.recordings['plan-1'] = [
       PlanDayRecording(
         dayId: 'd1',

@@ -22,6 +22,7 @@ import 'journey_start_card.dart';
 import 'journey_stop_dialog.dart';
 
 part 'journey_recording_control_parts.dart';
+
 /// The Journey in progress, collapsed to a glanceable bottom sheet over
 /// the map: status, the live clock, distance and county so far, with
 /// Photo / Pause-Resume / Stop as small round buttons - no text labels
@@ -197,7 +198,6 @@ class _JourneyRecordingControlsState
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    // Recorded time: stands still while paused.
                     JourneyFormat.clock(recording.recordedTime(DateTime.now())),
                     style: const TextStyle(
                       fontFamily: AppTypeScale.family,

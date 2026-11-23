@@ -40,9 +40,9 @@ class _JoinPlanScreenState extends ConsumerState<JoinPlanScreen> {
 
   Future<void> _join() async {
     setState(() => _joining = true);
-    final (failure, planId) = await ref.read(planJoinerProvider).join(
-      widget.token,
-    );
+    final (failure, planId) = await ref
+        .read(planJoinerProvider)
+        .join(widget.token);
     if (!mounted) return;
     setState(() => _joining = false);
     if (failure != null) {
@@ -181,10 +181,7 @@ class _Message extends StatelessWidget {
       Text(body, textAlign: TextAlign.center, style: AppTypeScale.small),
       if (action != null) ...[
         const SizedBox(height: 20),
-        FilledButton(
-          onPressed: action!.onPressed,
-          child: Text(action!.label),
-        ),
+        FilledButton(onPressed: action!.onPressed, child: Text(action!.label)),
       ],
     ],
   );

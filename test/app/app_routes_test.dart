@@ -73,10 +73,7 @@ void main() {
       ),
       AppRoutes.join('abc123'),
     );
-    expect(
-      AppRoutes.redirect(StartupStep.ready, '/sign-in'),
-      AppRoutes.map,
-    );
+    expect(AppRoutes.redirect(StartupStep.ready, '/sign-in'), AppRoutes.map);
     expect(
       AppRoutes.redirect(
         StartupStep.signIn,

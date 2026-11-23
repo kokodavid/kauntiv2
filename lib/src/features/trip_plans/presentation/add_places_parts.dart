@@ -72,9 +72,7 @@ class AddPlacesRow extends StatelessWidget {
                       )
                     : Icon(
                         added ? Icons.check_circle : Icons.add_circle_outline,
-                        color: added
-                            ? AppColors.legendHome
-                            : AppColors.accent,
+                        color: added ? AppColors.legendHome : AppColors.accent,
                       ),
               ),
           ],

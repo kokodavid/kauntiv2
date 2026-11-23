@@ -80,7 +80,8 @@ class PlanBestOrder {
     List<String> stopIds,
   ) async {
     final repository = _ref.read(tripPlansRepositoryProvider);
-    if (repository == null) return const PlanFailure(PlanFailureKind.unavailable);
+    if (repository == null)
+      return const PlanFailure(PlanFailureKind.unavailable);
     try {
       await repository.setDayOrder(dayId, stopIds);
     } on PlanFailure catch (failure) {

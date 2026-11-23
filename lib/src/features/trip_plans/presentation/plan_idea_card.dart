@@ -84,7 +84,9 @@ class PlanIdeaCard extends StatelessWidget {
                         children: [
                           Text(
                             place.name,
-                            style: AppTypeScale.itemTitle.copyWith(fontWeight: FontWeight.w600),
+                            style: AppTypeScale.itemTitle.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

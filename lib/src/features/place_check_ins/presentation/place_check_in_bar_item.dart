@@ -64,7 +64,8 @@ class PlaceCheckInBarItem extends ConsumerWidget {
       failed: controller.hasError,
     );
     final failure = controller.value?.failure;
-    final label = view.action ??
+    final label =
+        view.action ??
         switch (failure) {
           CheckInFailure.dailyLimit => "Today's limit",
           CheckInFailure.placeUnavailable => 'Unavailable',
@@ -84,8 +85,9 @@ class PlaceCheckInBarItem extends ConsumerWidget {
       tone: view.tinted ? AppColors.accentDark : null,
       onPressed: view.action == null
           ? null
-          : () =>
-                ref.read(placeCheckInControllerProvider(placeId).notifier).checkIn(),
+          : () => ref
+                .read(placeCheckInControllerProvider(placeId).notifier)
+                .checkIn(),
     );
   }
 }

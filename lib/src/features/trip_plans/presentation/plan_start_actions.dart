@@ -23,7 +23,10 @@ class PlanStartActions {
   final TripPlan plan;
 
   Future<void> run() async {
-    final choice = await showPlanSheet<_Start>(context, (_) => const _StartSheet());
+    final choice = await showPlanSheet<_Start>(
+      context,
+      (_) => const _StartSheet(),
+    );
     if (choice == null || !context.mounted) return;
     final PlanStart? start;
     switch (choice) {

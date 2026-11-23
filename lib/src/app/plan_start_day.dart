@@ -43,8 +43,7 @@ Future<void> startPlanDay(
     ),
     // Maps takes about 9 stops on the way; the Trip keeps them all.
     waypoints: [for (final s in via.take(9)) '${s.latitude},${s.longitude}'],
-    onStarted: (journeyId) =>
-        unawaited(_link(container, plan, day, journeyId)),
+    onStarted: (journeyId) => unawaited(_link(container, plan, day, journeyId)),
   );
 }
 

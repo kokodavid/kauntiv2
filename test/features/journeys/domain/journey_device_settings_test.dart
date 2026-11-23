@@ -8,14 +8,12 @@ void main() {
   });
 
   test('battery saver and a low battery are warned about', () {
-    expect(
-      const JourneyDeviceSettings(batterySaver: true).warnings,
-      [JourneySettingsWarning.batterySaver],
-    );
-    expect(
-      const JourneyDeviceSettings(batteryPercent: 10).warnings,
-      [JourneySettingsWarning.lowBattery],
-    );
+    expect(const JourneyDeviceSettings(batterySaver: true).warnings, [
+      JourneySettingsWarning.batterySaver,
+    ]);
+    expect(const JourneyDeviceSettings(batteryPercent: 10).warnings, [
+      JourneySettingsWarning.lowBattery,
+    ]);
     expect(const JourneyDeviceSettings(batteryPercent: 15).warnings, isEmpty);
   });
 

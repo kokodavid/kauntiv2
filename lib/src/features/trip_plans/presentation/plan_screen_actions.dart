@@ -89,10 +89,9 @@ class PlanScreenActions {
           number: index + 1,
           color: PlanDayColors.of(day.number),
           dayLabel: 'Day ${day.number}',
-          countyStatus: PlanCounties.of(
-            [stop.place.countyCode],
-            claimed: claimed,
-          ).first.status,
+          countyStatus: PlanCounties.of([
+            stop.place.countyCode,
+          ], claimed: claimed).first.status,
         );
         if (note != null) {
           await _report(_editor.setNote(plan.id, stop.id, note));
@@ -113,7 +112,8 @@ class PlanScreenActions {
   Future<void> _renameDay(PlanDay day) async {
     final title = await showPlanTextInput(
       context,
-      title: 'Name this day', label: 'Day name',
+      title: 'Name this day',
+      label: 'Day name',
       initial: day.title,
       hint: 'Day ${day.number}',
       maxLength: 40,
@@ -215,7 +215,8 @@ class PlanScreenActions {
       case PlanMenuAction.rename:
         final title = await showPlanTextInput(
           context,
-          title: 'Rename plan', label: 'Plan name',
+          title: 'Rename plan',
+          label: 'Plan name',
           initial: plan.title,
           maxLength: 60,
         );

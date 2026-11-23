@@ -150,7 +150,11 @@ class _PlanDatePickerSheetState extends State<PlanDatePickerSheet> {
 }
 
 class _Arrow extends StatelessWidget {
-  const _Arrow({required this.icon, required this.tooltip, required this.onTap});
+  const _Arrow({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String tooltip;

@@ -93,10 +93,7 @@ Future<void> _bestEffortSync(DetectionDatabase db) async {
       defaultValue: String.fromEnvironment('SUPABASE_ANON_KEY'),
     );
     if (url.isEmpty || key.isEmpty) return;
-    final supabase = await Supabase.initialize(
-      url: url,
-      publishableKey: key,
-    );
+    final supabase = await Supabase.initialize(url: url, publishableKey: key);
     final queue = VisitSyncQueue.supabase(db, supabase.client);
     await queue.drain();
   } on Object catch (error, stackTrace) {

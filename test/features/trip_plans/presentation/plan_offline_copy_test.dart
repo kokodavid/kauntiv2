@@ -47,7 +47,11 @@ TripPlan _plan(PlanLimits limits) => TripPlan(
   ),
   limits: limits,
   days: [
-    PlanDay(id: 'd1', number: 1, stops: [_stop('a', -0.9, 36.3), _stop('b', -0.2, 36.1)]),
+    PlanDay(
+      id: 'd1',
+      number: 1,
+      stops: [_stop('a', -0.9, 36.3), _stop('b', -0.2, 36.1)],
+    ),
   ],
 );
 
@@ -129,7 +133,10 @@ void main() {
     map.fail = true;
     await open(tester, PlanLimits.proTier);
     await menu(tester, 'Offline copy');
-    expect(find.text("You're offline. Try again when connected."), findsOneWidget);
+    expect(
+      find.text("You're offline. Try again when connected."),
+      findsOneWidget,
+    );
     await tester.tap(find.byTooltip('Plan options'));
     await tester.pumpAndSettle();
     expect(find.text('Offline copy'), findsOneWidget);

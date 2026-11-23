@@ -81,7 +81,11 @@ class PlanShareActions {
       reportPlanFailure(context, failure);
       return;
     }
-    showAppToast(context, variant: AppToastVariant.neutral, title: 'You left the plan');
+    showAppToast(
+      context,
+      variant: AppToastVariant.neutral,
+      title: 'You left the plan',
+    );
     onGone?.call();
   }
 }

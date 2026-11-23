@@ -77,7 +77,9 @@ class PlanStopRow extends ConsumerWidget {
       button: onOpenPlace != null,
       label: 'Stop $number, ${place.name}',
       child: InkWell(
-        onTap: onOpenPlace == null ? null : () => onOpenPlace!(context, place.id),
+        onTap: onOpenPlace == null
+            ? null
+            : () => onOpenPlace!(context, place.id),
         child: ColoredBox(
           color: fresh ? AppColors.accentTint : Colors.transparent,
           child: Padding(
@@ -139,8 +141,7 @@ class PlanStopRow extends ConsumerWidget {
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             if (kind != null) PlanTypeChip(kind),
-                            if (county != null)
-                              _County(county, countyStatus),
+                            if (county != null) _County(county, countyStatus),
                           ],
                         ),
                         if (stop.note != null)
@@ -152,7 +153,9 @@ class PlanStopRow extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
                             child: Text(
-                              ago == null ? 'Added by $by' : 'Added by $by · $ago',
+                              ago == null
+                                  ? 'Added by $by'
+                                  : 'Added by $by · $ago',
                               style: AppTypeScale.meta,
                             ),
                           ),

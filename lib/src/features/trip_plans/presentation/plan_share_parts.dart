@@ -21,7 +21,11 @@ class PlanShareLabel extends StatelessWidget {
 /// "NEW PEOPLE CAN": Edit or View only (Pro), a grey track with a white
 /// pill under the chosen one.
 class PlanRoleSwitch extends StatelessWidget {
-  const PlanRoleSwitch({super.key, required this.role, required this.onChanged});
+  const PlanRoleSwitch({
+    super.key,
+    required this.role,
+    required this.onChanged,
+  });
 
   final PlanRole role;
   final ValueChanged<PlanRole> onChanged;
@@ -36,7 +40,11 @@ class PlanRoleSwitch extends StatelessWidget {
     ),
     child: Row(
       children: [
-        _Segment('Edit', role == PlanRole.editor, () => onChanged(PlanRole.editor)),
+        _Segment(
+          'Edit',
+          role == PlanRole.editor,
+          () => onChanged(PlanRole.editor),
+        ),
         _Segment(
           'View only',
           role == PlanRole.viewer,
@@ -156,7 +164,11 @@ class PlanLinkRow extends StatelessWidget {
 
 /// "Link expires in 7 days" and "Turn off link".
 class PlanLinkFooter extends StatelessWidget {
-  const PlanLinkFooter({super.key, required this.expiresAt, required this.onTurnOff});
+  const PlanLinkFooter({
+    super.key,
+    required this.expiresAt,
+    required this.onTurnOff,
+  });
 
   final DateTime expiresAt;
   final VoidCallback onTurnOff;
@@ -172,7 +184,10 @@ class PlanLinkFooter extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     children: [
       Expanded(
-        child: Text(expiry(expiresAt, DateTime.now()), style: AppTypeScale.small),
+        child: Text(
+          expiry(expiresAt, DateTime.now()),
+          style: AppTypeScale.small,
+        ),
       ),
       TextButton(
         style: TextButton.styleFrom(
@@ -189,7 +204,11 @@ class PlanLinkFooter extends StatelessWidget {
 
 /// An older link that is still on ("Can edit · until 6 Nov · 0 joined").
 class PlanLiveLink extends StatelessWidget {
-  const PlanLiveLink({super.key, required this.invite, required this.onTurnOff});
+  const PlanLiveLink({
+    super.key,
+    required this.invite,
+    required this.onTurnOff,
+  });
 
   final PlanInviteInfo invite;
   final VoidCallback onTurnOff;

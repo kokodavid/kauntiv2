@@ -51,7 +51,10 @@ void main() {
 
   testWidgets('a good link names the plan and joins it', (tester) async {
     await pump(tester);
-    expect(find.text('mwangi_j invited you to Naivasha weekend'), findsOneWidget);
+    expect(
+      find.text('mwangi_j invited you to Naivasha weekend'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Join plan'));
     await tester.pumpAndSettle();
     expect(collaboration.joined, ['tok']);

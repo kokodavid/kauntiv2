@@ -16,15 +16,14 @@ class CustomPlaceDraft {
   factory CustomPlaceDraft.fromSuggestion(
     PlanPlaceSuggestion s, {
     int? countyCode,
-  }) =>
-      CustomPlaceDraft(
-        name: _clip(s.name, 80),
-        address: s.address == null ? null : _clip(s.address!, 200),
-        lat: s.lat,
-        lng: s.lng,
-        source: CustomPlaceSource.search,
-        countyCode: countyCode,
-      );
+  }) => CustomPlaceDraft(
+    name: _clip(s.name, 80),
+    address: s.address == null ? null : _clip(s.address!, 200),
+    lat: s.lat,
+    lng: s.lng,
+    source: CustomPlaceSource.search,
+    countyCode: countyCode,
+  );
 
   /// A dropped pin the user named.
   factory CustomPlaceDraft.pin({

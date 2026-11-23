@@ -28,11 +28,7 @@ void reportPlanFailure(BuildContext context, PlanFailure failure) {
     unawaited(showPlanProSheet(context, trigger: trigger));
     return;
   }
-  showAppToast(
-    context,
-    variant: AppToastVariant.error,
-    title: failure.message,
-  );
+  showAppToast(context, variant: AppToastVariant.error, title: failure.message);
 }
 
 /// A yes or no as a bottom sheet (design 3g): an icon, what happens, then

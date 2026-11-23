@@ -80,7 +80,8 @@ class PlanDateMonth extends StatelessWidget {
     );
   }
 
-  bool _enabled(DateTime? d) => d != null && !d.isBefore(first) && !d.isAfter(last);
+  bool _enabled(DateTime? d) =>
+      d != null && !d.isBefore(first) && !d.isAfter(last);
 }
 
 class _Day extends StatelessWidget {

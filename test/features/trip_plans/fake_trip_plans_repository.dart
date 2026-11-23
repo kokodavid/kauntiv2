@@ -156,6 +156,7 @@ class FakeTripPlansRepository implements TripPlansRepository {
     _maybeFail();
     removed.add('$stopId|$toPlacesList');
   }
+
   @override
   Future<void> setDayOrder(String dayId, List<String> stopIds) async {
     _maybeFail();
@@ -169,6 +170,7 @@ class FakeTripPlansRepository implements TripPlansRepository {
     _maybeFail();
     added.add('list|$placeId');
   }
+
   @override
   Future<void> removePlace(String planId, String placeId) async => _maybeFail();
   @override

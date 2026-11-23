@@ -66,7 +66,8 @@ void main() {
     tester.view.physicalSize = const Size(360, 740);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final repository = FakeTripPlansRepository()..detail['plan-1'] = _fullPlan();
+    final repository = FakeTripPlansRepository()
+      ..detail['plan-1'] = _fullPlan();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -106,7 +107,10 @@ void main() {
   ) async {
     await open(tester, textScale: 1.6);
     expect(tester.takeException(), isNull);
-    await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -600));
+    await tester.drag(
+      find.byType(CustomScrollView).first,
+      const Offset(0, -600),
+    );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
@@ -126,9 +130,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the back button is the shared app one, 40 pt', (
-    tester,
-  ) async {
+  testWidgets('the back button is the shared app one, 40 pt', (tester) async {
     await open(tester);
     expect(find.byType(AppBackButton), findsOneWidget);
     final size = tester.getSize(find.byTooltip('Back').first);

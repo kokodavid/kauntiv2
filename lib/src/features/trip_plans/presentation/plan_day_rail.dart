@@ -46,7 +46,10 @@ class PlanEndpointRow extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.foreground, width: 2.5),
+                      border: Border.all(
+                        color: AppColors.foreground,
+                        width: 2.5,
+                      ),
                     ),
                   ),
           ),

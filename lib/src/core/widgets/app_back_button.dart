@@ -34,30 +34,30 @@ class AppBackButton extends StatelessWidget {
       child: SizedBox.square(
         dimension: size,
         child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: const BorderSide(color: AppColors.backButtonBorder),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(size * 0.35),
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: Colors.white,
+            side: const BorderSide(color: AppColors.backButtonBorder),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(size * 0.35),
+            ),
+            padding: EdgeInsets.zero,
+            minimumSize: Size.square(size),
+            // Material's default tap-target padding pads the button's hit
+            // area (and, inside some ambient themes, its visible box) out
+            // to 48dp regardless of the requested size -- shrinkWrap turns
+            // that off so this renders at exactly [size] everywhere it's
+            // used (a bare Row, an AppBar's leading slot, a floated photo
+            // control), instead of looking bigger in one context than
+            // another.
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          padding: EdgeInsets.zero,
-          minimumSize: Size.square(size),
-          // Material's default tap-target padding pads the button's hit
-          // area (and, inside some ambient themes, its visible box) out
-          // to 48dp regardless of the requested size -- shrinkWrap turns
-          // that off so this renders at exactly [size] everywhere it's
-          // used (a bare Row, an AppBar's leading slot, a floated photo
-          // control), instead of looking bigger in one context than
-          // another.
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          child: Icon(
+            Icons.arrow_back,
+            size: size * 0.5,
+            color: AppColors.foreground,
+          ),
         ),
-        child: Icon(
-          Icons.arrow_back,
-          size: size * 0.5,
-          color: AppColors.foreground,
-        ),
-      ),
       ),
     );
   }

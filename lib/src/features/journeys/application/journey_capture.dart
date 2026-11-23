@@ -203,7 +203,9 @@ class JourneyCapture {
                   await _repository.appendPoint(
                     id: current.id,
                     userId: userId,
-                    point: accepted.inSegment(_session!.recording.segmentNumber),
+                    point: accepted.inSegment(
+                      _session!.recording.segmentNumber,
+                    ),
                   );
                   _lastRecordedAt = accepted.recordedAt;
                   _quality = _quality.copyWith(

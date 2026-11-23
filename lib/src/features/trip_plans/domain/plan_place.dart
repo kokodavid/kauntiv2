@@ -54,7 +54,8 @@ class PlanPlace {
           ? thumbnail
           : null,
       isCustom: json['custom'] == true,
-      address: json['address'] is String && (json['address'] as String).isNotEmpty
+      address:
+          json['address'] is String && (json['address'] as String).isNotEmpty
           ? json['address'] as String
           : null,
     );

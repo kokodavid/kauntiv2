@@ -115,7 +115,9 @@ class PlanInviteInfo {
       role: PlanRole.parse(json['role']),
       expiresAt: DateTime.parse('${json['expires_at']}'),
       uses: json['uses'] is num ? (json['uses'] as num).toInt() : 0,
-      maxUses: json['max_uses'] is num ? (json['max_uses'] as num).toInt() : null,
+      maxUses: json['max_uses'] is num
+          ? (json['max_uses'] as num).toInt()
+          : null,
       createdByHandle: handle is String ? handle : null,
     );
   }
@@ -136,7 +138,9 @@ class PlanInvitation {
   final String? inviterHandle;
 
   static PlanInvitation? fromJson(Object? json) {
-    if (json is! Map || json['plan_id'] is! String || json['title'] is! String) {
+    if (json is! Map ||
+        json['plan_id'] is! String ||
+        json['title'] is! String) {
       return null;
     }
     final handle = json['inviter_handle'];

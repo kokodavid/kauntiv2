@@ -58,11 +58,7 @@ class PlanPopupMenu<T> extends StatelessWidget {
     surfaceTintColor: Colors.transparent,
     elevation: 8,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    icon: SizedBox(
-      width: 44,
-      height: 44,
-      child: Icon(icon, color: iconColor),
-    ),
+    icon: SizedBox(width: 44, height: 44, child: Icon(icon, color: iconColor)),
     onSelected: onSelected,
     itemBuilder: (_) => [
       for (var i = 0; i < entries.length; i++)

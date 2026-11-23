@@ -43,9 +43,7 @@ class PlaceDetailActionBar extends StatelessWidget {
       bottom: AppBottomNav.bottomGap(context),
       child: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: _maxWidthByCount[count] ?? 360,
-          ),
+          constraints: BoxConstraints(maxWidth: _maxWidthByCount[count] ?? 360),
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(

@@ -15,9 +15,7 @@ Future<Map<String, PlanDayRecording>> planRecordings(
   final repository = ref.watch(tripPlansRepositoryProvider);
   if (repository == null) return const {};
   try {
-    return {
-      for (final r in await repository.myRecordings(planId)) r.dayId: r,
-    };
+    return {for (final r in await repository.myRecordings(planId)) r.dayId: r};
   } on Object {
     return const {};
   }

@@ -163,7 +163,9 @@ class PlanDayButtons extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: AppColors.accentForeground,
-                  textStyle: AppTypeScale.action.copyWith(fontWeight: FontWeight.w600),
+                  textStyle: AppTypeScale.action.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                   minimumSize: const Size.fromHeight(40),
                   shape: const StadiumBorder(),
                 ),
@@ -179,7 +181,9 @@ class PlanDayButtons extends StatelessWidget {
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.foreground,
-                  textStyle: AppTypeScale.action.copyWith(fontWeight: FontWeight.w600),
+                  textStyle: AppTypeScale.action.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                   side: const BorderSide(color: AppColors.exploreBorder),
                   minimumSize: const Size.fromHeight(40),
                   shape: const StadiumBorder(),

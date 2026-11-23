@@ -83,9 +83,7 @@ class _Segment extends StatelessWidget {
         child: Text(
           label,
           style: AppTextStyles.chipLabel.copyWith(
-            color: selected
-                ? AppColors.exploreText
-                : AppColors.mutedForeground,
+            color: selected ? AppColors.exploreText : AppColors.mutedForeground,
             fontWeight: FontWeight.w500,
           ),
         ),

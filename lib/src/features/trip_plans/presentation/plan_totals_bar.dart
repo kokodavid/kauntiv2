@@ -53,7 +53,9 @@ class PlanTotalsBar extends StatelessWidget {
                 _Stat(
                   flex: 3,
                   value: Text(
-                    totals.hasRoute ? PlanLabels.distance(totals.distanceM) : '–',
+                    totals.hasRoute
+                        ? PlanLabels.distance(totals.distanceM)
+                        : '–',
                   ),
                   label: 'Distance',
                 ),

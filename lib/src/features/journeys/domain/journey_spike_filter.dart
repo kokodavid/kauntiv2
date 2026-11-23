@@ -85,10 +85,7 @@ class JourneySpikeFilter {
       // Two fixes agree with each other and not with the old route.
       _last = fix;
       _held = null;
-      return JourneySpikeVerdict(
-        accepted: [held, fix],
-        startsNewSegment: true,
-      );
+      return JourneySpikeVerdict(accepted: [held, fix], startsNewSegment: true);
     }
     // The new fix agrees with neither: the held one was a spike, and this one
     // is now the suspect.

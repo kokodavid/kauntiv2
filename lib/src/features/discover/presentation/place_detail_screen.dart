@@ -130,11 +130,8 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
     }
   }
 
-  void _toastError(BuildContext context, String message) => showAppToast(
-    context,
-    variant: AppToastVariant.error,
-    title: message,
-  );
+  void _toastError(BuildContext context, String message) =>
+      showAppToast(context, variant: AppToastVariant.error, title: message);
 
   @override
   Widget build(BuildContext context) {
@@ -200,8 +197,8 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
           ),
         ),
         PlaceDetailActionBar(
-          addToTrip: widget.addToTrip?.call(context, data) ??
-              const SizedBox.shrink(),
+          addToTrip:
+              widget.addToTrip?.call(context, data) ?? const SizedBox.shrink(),
           checkIn: widget.checkIn != null && data.hasCoordinates
               ? widget.checkIn!(context, data)
               : null,

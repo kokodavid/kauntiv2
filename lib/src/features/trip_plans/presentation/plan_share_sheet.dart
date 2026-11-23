@@ -58,7 +58,11 @@ class _PlanShareSheetState extends ConsumerState<PlanShareSheet> {
   Future<void> _copy(PlanInviteLink link) async {
     await Clipboard.setData(ClipboardData(text: link.url));
     if (!mounted) return;
-    showAppToast(context, variant: AppToastVariant.success, title: 'Link copied');
+    showAppToast(
+      context,
+      variant: AppToastVariant.success,
+      title: 'Link copied',
+    );
   }
 
   Future<void> _turnOff(String inviteId, {bool current = false}) async {

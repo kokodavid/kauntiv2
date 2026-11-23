@@ -316,7 +316,7 @@ final class PlanSharingProvider
         argument: null,
         retry: null,
         name: r'planSharingProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -343,4 +343,4 @@ final class PlanSharingProvider
   }
 }
 
-String _$planSharingHash() => r'4ce23ee3e388d6347c5d7cfdf69a08330fd154bf';
+String _$planSharingHash() => r'9722a624ef2a37cda77ad7a1336f4a3710a789fc';

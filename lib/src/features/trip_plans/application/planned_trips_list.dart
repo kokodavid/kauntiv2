@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../auth/application/auth_providers.dart';
+import '../domain/plan_failure.dart';
 import '../domain/planned_trips.dart';
 import '../domain/trip_plan_summary.dart';
 import 'trip_plans_providers.dart';
@@ -31,7 +32,9 @@ class PlannedTripsView {
 /// doesn't flash empty), then the server's list. Offline, the copy stays
 /// with [PlannedTripsView.offline] set. The old planner's saved trips are
 /// moved across once per session before the first server read.
-@riverpod
+Duration? _plannedTripsRetry(int retryCount, Object error) => null;
+
+@Riverpod(retry: _plannedTripsRetry)
 class PlannedTripsList extends _$PlannedTripsList {
   /// Accounts whose saved trips were moved across in this session.
   static final _convertedThisSession = <String>{};
@@ -41,19 +44,26 @@ class PlannedTripsList extends _$PlannedTripsList {
   static void resetSessionForTest() => _convertedThisSession.clear();
 
   @override
-  Future<PlannedTripsView> build() async {
+  Future<PlannedTripsView> build() => _load().timeout(
+    const Duration(seconds: 5),
+    onTimeout: () => throw const PlanFailure(PlanFailureKind.offline),
+  );
+
+  Future<PlannedTripsView> _load() async {
     final userId = ref.watch(currentUserIdProvider)();
     if (userId == null) {
       return const PlannedTripsView(plans: PlannedTrips());
     }
     final store = ref.watch(tripPlansSnapshotStoreProvider);
     ref.watch(tripPlansRepositoryProvider);
-    final cached = await store.readList(userId);
+    final cached = await store
+        .readList(userId)
+        .timeout(const Duration(seconds: 2), onTimeout: () => null);
     if (cached != null) {
       unawaited(_refreshQuietly(userId));
       return PlannedTripsView(plans: PlannedTrips.split(cached));
     }
-    return _fetch(userId);
+    return _fetch(userId, useCachedFallback: false);
   }
 
   /// Pull-to-refresh, and after a change made elsewhere.
@@ -65,7 +75,7 @@ class PlannedTripsList extends _$PlannedTripsList {
 
   Future<void> _refreshQuietly(String userId) async {
     try {
-      final view = await _fetch(userId);
+      final view = await _fetch(userId, useCachedFallback: true);
       if (ref.mounted) state = AsyncData(view);
     } on Object catch (error) {
       developer.log('Planned list refresh failed: $error', name: 'trip_plans');
@@ -82,7 +92,10 @@ class PlannedTripsList extends _$PlannedTripsList {
     }
   }
 
-  Future<PlannedTripsView> _fetch(String userId) async {
+  Future<PlannedTripsView> _fetch(
+    String userId, {
+    required bool useCachedFallback,
+  }) async {
     final repository = ref.read(tripPlansRepositoryProvider);
     final store = ref.read(tripPlansSnapshotStoreProvider);
     if (repository == null) {
@@ -90,7 +103,9 @@ class PlannedTripsList extends _$PlannedTripsList {
     }
     if (!_convertedThisSession.contains(userId)) {
       try {
-        await repository.convertSavedTrips();
+        await repository.convertSavedTrips().timeout(
+          const Duration(seconds: 10),
+        );
         _convertedThisSession.add(userId);
       } on Object catch (error) {
         developer.log(
@@ -101,10 +116,17 @@ class PlannedTripsList extends _$PlannedTripsList {
     }
     final List<TripPlanSummary> plans;
     try {
-      plans = await repository.list();
-    } on Object {
-      final cached = await store.readList(userId);
-      if (cached == null) rethrow;
+      plans = await repository.list().timeout(const Duration(seconds: 10));
+    } on Object catch (error, stackTrace) {
+      if (!useCachedFallback) {
+        Error.throwWithStackTrace(error, stackTrace);
+      }
+      final cached = await store
+          .readList(userId)
+          .timeout(const Duration(seconds: 2), onTimeout: () => null);
+      if (cached == null) {
+        Error.throwWithStackTrace(error, stackTrace);
+      }
       return PlannedTripsView(plans: PlannedTrips.split(cached), offline: true);
     }
     final now = DateTime.now();

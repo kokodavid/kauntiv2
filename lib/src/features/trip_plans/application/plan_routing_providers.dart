@@ -18,7 +18,9 @@ PlanRoutingClient? planRoutingClient(Ref ref) {
 /// asks once; a good answer is kept for the session, keyed by the points,
 /// so the same stops never ask twice. A failure is not kept, so Retry (an
 /// invalidate) asks again. Null when there is nothing to route.
-@riverpod
+Duration? _planDayRouteRetry(int retryCount, Object error) => null;
+
+@Riverpod(retry: _planDayRouteRetry)
 Future<PlanRoute?> planDayRoute(Ref ref, PlanLegRequest request) async {
   if (!request.isRoutable) return null;
   final client = ref.watch(planRoutingClientProvider);

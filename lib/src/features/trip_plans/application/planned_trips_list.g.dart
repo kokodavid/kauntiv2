@@ -8,29 +8,17 @@ part of 'planned_trips_list.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The Planned list. Shows the copy on this phone at once (so the Trips tab
-/// doesn't flash empty), then the server's list. Offline, the copy stays
-/// with [PlannedTripsView.offline] set. The old planner's saved trips are
-/// moved across once per session before the first server read.
 
 @ProviderFor(PlannedTripsList)
 const plannedTripsListProvider = PlannedTripsListProvider._();
 
-/// The Planned list. Shows the copy on this phone at once (so the Trips tab
-/// doesn't flash empty), then the server's list. Offline, the copy stays
-/// with [PlannedTripsView.offline] set. The old planner's saved trips are
-/// moved across once per session before the first server read.
 final class PlannedTripsListProvider
     extends $AsyncNotifierProvider<PlannedTripsList, PlannedTripsView> {
-  /// The Planned list. Shows the copy on this phone at once (so the Trips tab
-  /// doesn't flash empty), then the server's list. Offline, the copy stays
-  /// with [PlannedTripsView.offline] set. The old planner's saved trips are
-  /// moved across once per session before the first server read.
   const PlannedTripsListProvider._()
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: _plannedTripsRetry,
         name: r'plannedTripsListProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -45,12 +33,7 @@ final class PlannedTripsListProvider
   PlannedTripsList create() => PlannedTripsList();
 }
 
-String _$plannedTripsListHash() => r'91d491ebffe5a4d9e2748486908610c183b6997a';
-
-/// The Planned list. Shows the copy on this phone at once (so the Trips tab
-/// doesn't flash empty), then the server's list. Offline, the copy stays
-/// with [PlannedTripsView.offline] set. The old planner's saved trips are
-/// moved across once per session before the first server read.
+String _$plannedTripsListHash() => r'a4c4c5fb67146afe1ff4624b171491f15a87eccf';
 
 abstract class _$PlannedTripsList extends $AsyncNotifier<PlannedTripsView> {
   FutureOr<PlannedTripsView> build();

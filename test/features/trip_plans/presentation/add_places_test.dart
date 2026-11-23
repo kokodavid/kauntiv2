@@ -60,6 +60,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
     // Everything is listed before any search or filter.
     expect(find.text('All'), findsOneWidget);
     expect(find.text("Hell's Gate"), findsOneWidget);
@@ -156,7 +157,7 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    expect(find.text("Add Hell's Gate to a trip"), findsOneWidget);
+    expect(find.text("Add Hell's Gate to"), findsOneWidget);
     await tester.tap(find.text('Naivasha weekend'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Day 1'));

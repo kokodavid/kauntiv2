@@ -77,6 +77,15 @@ void main() {
     tripPlanLinksEnabledProvider.overrideWith((ref) async => links),
   ];
 
+  Future<void> tapInvite(WidgetTester tester) async {
+    final pill = find.byType(PlanInvitePill);
+    if (pill.evaluate().isNotEmpty) {
+      await tester.tap(pill);
+    } else {
+      await tester.tap(find.bySemanticsLabel('Invite people'));
+    }
+  }
+
   Future<void> open(
     WidgetTester tester,
     TripPlan plan, {
@@ -128,7 +137,7 @@ void main() {
 
   testWidgets('the owner makes a link and it can be copied', (tester) async {
     await open(tester, _plan(buddy: false));
-    await tester.tap(find.byType(PlanInvitePill));
+    await tapInvite(tester);
     await tester.pumpAndSettle();
     expect(
       find.text('They can add and move places. Only usernames are shown.'),
@@ -143,7 +152,7 @@ void main() {
 
   testWidgets('Pro offers View only for the link', (tester) async {
     await open(tester, _plan(limits: PlanLimits.proTier));
-    await tester.tap(find.byType(PlanInvitePill));
+    await tapInvite(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('View only'));
     await tester.pumpAndSettle();
@@ -155,7 +164,7 @@ void main() {
   testWidgets('searching by username and inviting', (tester) async {
     collaboration.hits = const [UsernameHit(handle: 'nyati7')];
     await open(tester, _plan(buddy: false));
-    await tester.tap(find.byType(PlanInvitePill));
+    await tapInvite(tester);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'nya');
     await tester.pump(const Duration(milliseconds: 500));
@@ -169,7 +178,7 @@ void main() {
     tester,
   ) async {
     await open(tester, _plan(buddy: false), links: false);
-    await tester.tap(find.byType(PlanInvitePill));
+    await tapInvite(tester);
     await tester.pumpAndSettle();
     expect(find.text('Invite by link'), findsNothing);
     expect(find.text('Create invite link'), findsNothing);

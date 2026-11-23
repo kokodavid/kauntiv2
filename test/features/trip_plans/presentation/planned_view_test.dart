@@ -29,13 +29,16 @@ TripPlanSummary _plan(
   startDate: start,
   isPast: past,
   members: [
-    const PlanMember(userId: 'me', role: PlanRole.owner, handle: 'amina7'),
-    if (role != PlanRole.owner)
+    if (role == PlanRole.owner)
+      const PlanMember(userId: 'me', role: PlanRole.owner, handle: 'amina7')
+    else ...[
       const PlanMember(
         userId: 'them',
         role: PlanRole.owner,
         handle: 'mwangi_j',
       ),
+      const PlanMember(userId: 'me', role: PlanRole.editor, handle: 'amina7'),
+    ],
   ],
   days: [
     PlanDaySummary(
@@ -130,9 +133,17 @@ void main() {
     expect(find.text('1 new', findRichText: true), findsNothing);
 
     expect(find.text('Shared with you'), findsOneWidget);
+    await tester.dragUntilVisible(
+      find.text('Western circuit'),
+      find.byType(Scrollable).first,
+      const Offset(0, -300),
+    );
     expect(find.text('From mwangi_j'), findsOneWidget);
 
     expect(find.text('Amboseli day trip'), findsNothing);
+    await tester.ensureVisible(find.text('Show 1 ›'));
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -120));
+    await tester.pump();
     await tester.tap(find.text('Show 1 ›'));
     await tester.pumpAndSettle();
     expect(find.text('Amboseli day trip'), findsOneWidget);

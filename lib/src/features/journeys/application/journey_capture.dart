@@ -34,16 +34,9 @@ class JourneyCapture {
        _locationSource = locationSource,
        _clock = clock ?? DateTime.now;
 
-  /// How long each teardown step may take before Stop / Pause carry on
-  /// without it. A native call that never returns must not leave the
-  /// Journey stuck recording.
   final Duration teardownTimeout;
 
-  /// How long [attachStarted] waits for an actual GPS fix before giving
-  /// up. Permission/service checks alone aren't enough - a Simulator or a
-  /// phone with a poor signal can pass those and then never deliver a fix,
-  /// which is what left Recording running at 0m with no route (see
-  /// `JourneyLocationFailure.noFixReceived`).
+  /// Maximum wait for an actual GPS fix after starting a journey.
   final Duration firstFixTimeout;
 
   /// Delays between attempts to restart an interrupted location stream.
@@ -85,8 +78,6 @@ class JourneyCapture {
   bool _splitOnNextFix = false;
   Object? lastError;
 
-  /// Fixes thrown away as GPS spikes, and real jumps accepted after a
-  /// second fix confirmed them, since this capture was created.
   int spikesDropped = 0;
   int jumpsAccepted = 0;
 
@@ -223,12 +214,13 @@ class JourneyCapture {
     );
   }
 
-  Future<void> _endStream() async {
+  Future<void> _endStream({Duration? timeout}) async {
     _closing = true;
     _canceling ??= _subscription?.cancel() ?? Future<void>.value();
     final canceled = await _bounded(
       'cancel the location stream',
       () => _canceling!,
+      timeout: timeout,
     );
     if (canceled) {
       _subscription = null;
@@ -237,11 +229,16 @@ class JourneyCapture {
     final stopped = await _bounded(
       'stop background location',
       _locationSource.stop,
+      timeout: timeout,
     );
     _recordDiagnostic('journey_location_stopped', {
       'native_stop_succeeded': stopped,
     });
-    final saved = await _bounded('save the last points', () => _writes);
+    final saved = await _bounded(
+      'save the last points',
+      () => _writes,
+      timeout: timeout,
+    );
     _teardownPending = !canceled || !saved || !stopped;
     if (_teardownPending) throw const JourneyTeardownException();
   }
@@ -264,9 +261,13 @@ class JourneyCapture {
     if (record != null) unawaited(record(event, data));
   }
 
-  Future<bool> _bounded(String what, Future<void> Function() step) async {
+  Future<bool> _bounded(
+    String what,
+    Future<void> Function() step, {
+    Duration? timeout,
+  }) async {
     try {
-      await step().timeout(teardownTimeout);
+      await step().timeout(timeout ?? teardownTimeout);
       return true;
     } on TimeoutException {
       _logger.warning('Journey teardown: timed out trying to $what.');

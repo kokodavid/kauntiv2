@@ -63,18 +63,8 @@ final class PlanRoutingClientProvider
 
 String _$planRoutingClientHash() => r'c28e3cb29eed21b439f851e2448502c62a47dc75';
 
-/// The road for one day's points. Waits a moment first, so a burst of edits
-/// asks once; a good answer is kept for the session, keyed by the points,
-/// so the same stops never ask twice. A failure is not kept, so Retry (an
-/// invalidate) asks again. Null when there is nothing to route.
-
 @ProviderFor(planDayRoute)
 const planDayRouteProvider = PlanDayRouteFamily._();
-
-/// The road for one day's points. Waits a moment first, so a burst of edits
-/// asks once; a good answer is kept for the session, keyed by the points,
-/// so the same stops never ask twice. A failure is not kept, so Retry (an
-/// invalidate) asks again. Null when there is nothing to route.
 
 final class PlanDayRouteProvider
     extends
@@ -84,15 +74,11 @@ final class PlanDayRouteProvider
           FutureOr<PlanRoute?>
         >
     with $FutureModifier<PlanRoute?>, $FutureProvider<PlanRoute?> {
-  /// The road for one day's points. Waits a moment first, so a burst of edits
-  /// asks once; a good answer is kept for the session, keyed by the points,
-  /// so the same stops never ask twice. A failure is not kept, so Retry (an
-  /// invalidate) asks again. Null when there is nothing to route.
   const PlanDayRouteProvider._({
     required PlanDayRouteFamily super.from,
     required PlanLegRequest super.argument,
   }) : super(
-         retry: null,
+         retry: _planDayRouteRetry,
          name: r'planDayRouteProvider',
          isAutoDispose: true,
          dependencies: null,
@@ -131,28 +117,18 @@ final class PlanDayRouteProvider
   }
 }
 
-String _$planDayRouteHash() => r'f2712be61dcf3d90506a66fe857a514c893c11c9';
-
-/// The road for one day's points. Waits a moment first, so a burst of edits
-/// asks once; a good answer is kept for the session, keyed by the points,
-/// so the same stops never ask twice. A failure is not kept, so Retry (an
-/// invalidate) asks again. Null when there is nothing to route.
+String _$planDayRouteHash() => r'8a7991548f3e03fed9ba91e7b8edac47bbe29680';
 
 final class PlanDayRouteFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<PlanRoute?>, PlanLegRequest> {
   const PlanDayRouteFamily._()
     : super(
-        retry: null,
+        retry: _planDayRouteRetry,
         name: r'planDayRouteProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
-
-  /// The road for one day's points. Waits a moment first, so a burst of edits
-  /// asks once; a good answer is kept for the session, keyed by the points,
-  /// so the same stops never ask twice. A failure is not kept, so Retry (an
-  /// invalidate) asks again. Null when there is nothing to route.
 
   PlanDayRouteProvider call(PlanLegRequest request) =>
       PlanDayRouteProvider._(argument: request, from: this);

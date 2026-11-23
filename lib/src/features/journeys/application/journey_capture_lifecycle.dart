@@ -120,10 +120,11 @@ extension JourneyCaptureLifecycle on JourneyCapture {
 
   Future<LocalJourneySession> pause({
     JourneyPauseReason reason = JourneyPauseReason.user,
+    Duration? teardownTimeoutOverride,
   }) async {
     final current = _requireSession(JourneyRecordingPhase.recording);
     try {
-      await _endStream();
+      await _endStream(timeout: teardownTimeoutOverride);
     } finally {
       _session = await _repository.pause(
         id: current.id,

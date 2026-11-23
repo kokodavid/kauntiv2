@@ -62,7 +62,13 @@ class PlanSharing {
     Future<void> Function(PlanCollaborationRepository repository) change, {
     bool leaving = false,
   }) async {
-    final repository = _ref.read(planCollaborationRepositoryProvider);
+    if (!_ref.mounted) return null;
+    final PlanCollaborationRepository? repository;
+    try {
+      repository = _ref.read(planCollaborationRepositoryProvider);
+    } on Object {
+      return const PlanFailure(PlanFailureKind.unavailable);
+    }
     if (repository == null) {
       return const PlanFailure(PlanFailureKind.unavailable);
     }
@@ -73,12 +79,12 @@ class PlanSharing {
     } on Object {
       return const PlanFailure(PlanFailureKind.offline);
     }
-    if (_ref.mounted) {
-      if (!leaving) {
-        await _ref.read(planDetailProvider(planId).notifier).refresh();
-      }
-      await _ref.read(plannedTripsListProvider.notifier).refresh();
+    if (!_ref.mounted) return null;
+    if (!leaving) {
+      await _ref.read(planDetailProvider(planId).notifier).refresh();
+      if (!_ref.mounted) return null;
     }
+    await _ref.read(plannedTripsListProvider.notifier).refresh();
     return null;
   }
 
@@ -158,5 +164,5 @@ class PlanSharing {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 PlanSharing planSharing(Ref ref) => PlanSharing(ref);

@@ -77,6 +77,11 @@ void main() {
     planClaimedCountyCodesProvider.overrideWith((ref) async => {}),
   ];
 
+  Future<void> revealBottom(WidgetTester tester) async {
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -700));
+    await tester.pumpAndSettle();
+  }
+
   Future<void> open(WidgetTester tester, TripPlan plan) async {
     repository.detail['plan-1'] = plan;
     await tester.pumpWidget(
@@ -96,6 +101,7 @@ void main() {
     tester,
   ) async {
     await open(tester, _plan(PlanLimits.proTier));
+    await revealBottom(tester);
     await tester.tap(find.text('Best order'));
     await tester.pumpAndSettle();
     expect(bestOrder.calls.length, 1);
@@ -109,6 +115,7 @@ void main() {
   testWidgets('already in order: nothing is saved', (tester) async {
     bestOrder.answer = ['s1', 's2', 's3'];
     await open(tester, _plan(PlanLimits.proTier));
+    await revealBottom(tester);
     await tester.tap(find.text('Best order'));
     await tester.pumpAndSettle();
     expect(repository.orders, isEmpty);
@@ -120,6 +127,7 @@ void main() {
   ) async {
     await open(tester, _plan(PlanLimits.free));
     expect(find.text('PRO'), findsOneWidget);
+    await revealBottom(tester);
     await tester.tap(find.text('Best order'));
     await tester.pumpAndSettle();
     expect(find.text('Let Pro order the day'), findsOneWidget);
@@ -129,6 +137,7 @@ void main() {
   testWidgets('a refusal from the server is explained', (tester) async {
     bestOrder.failWith = PlanFailureKind.rateLimited;
     await open(tester, _plan(PlanLimits.proTier));
+    await revealBottom(tester);
     await tester.tap(find.text('Best order'));
     await tester.pumpAndSettle();
     expect(find.text('Too many tries. Wait a little.'), findsOneWidget);

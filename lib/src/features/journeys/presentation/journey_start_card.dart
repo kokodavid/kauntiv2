@@ -75,9 +75,17 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
   /// to carry on and start; false when the person dismissed the warning or
   /// went to settings first. Never blocks when the settings can't be read.
   Future<bool> _settingsAllowStart() async {
-    final settings = await ref
-        .read(journeyCaptureProvider)
-        .readDeviceSettings();
+    JourneyDeviceSettings? settings;
+    try {
+      settings = await ref
+          .read(journeyCaptureProvider)
+          .readDeviceSettings()
+          .timeout(const Duration(milliseconds: 500));
+    } on Object {
+      // Device settings are advisory. A database or platform read failure
+      // must not prevent a person from starting a Trip.
+      return true;
+    }
     final warnings = settings?.warnings ?? const <JourneySettingsWarning>[];
     if (warnings.isEmpty || !mounted) return true;
     final openSettings = widget.onOpenSettings;

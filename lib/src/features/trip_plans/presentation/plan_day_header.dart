@@ -63,7 +63,10 @@ class PlanDayHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -82,10 +85,8 @@ class PlanDayHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (date != null) ...[
-                        const SizedBox(width: 8),
+                      if (date != null)
                         Text(PlanLabels.day(date!), style: AppTypeScale.small),
-                      ],
                     ],
                   ),
                   if (title != null)

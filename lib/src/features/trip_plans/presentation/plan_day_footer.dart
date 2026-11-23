@@ -32,41 +32,48 @@ class PlanPassesThrough extends StatelessWidget {
             runSpacing: 8,
             children: [
               for (final c in counties)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width - 32,
                   ),
-                  decoration: BoxDecoration(
-                    color: AppColors.exploreSurface,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: AppColors.exploreBorder),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      PlanCountyDot(c.status),
-                      const SizedBox(width: 6),
-                      Text(
-                        CountyPaths.byCode[c.code]?.name ?? '',
-                        style: AppTypeScale.body.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.foreground,
-                        ),
-                      ),
-                      if (c.status != PlanCountyStatus.claimed) ...[
-                        const SizedBox(width: 6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.exploreSurface,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: AppColors.exploreBorder),
+                    ),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        PlanCountyDot(c.status),
                         Text(
-                          c.isNew ? 'new' : 'home',
-                          style: AppTypeScale.small.copyWith(
-                            color: c.isNew
-                                ? AppColors.newCountyText
-                                : AppColors.mutedForeground,
-                            fontWeight: c.isNew ? FontWeight.w600 : null,
+                          CountyPaths.byCode[c.code]?.name ?? '',
+                          style: AppTypeScale.body.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.foreground,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        if (c.status != PlanCountyStatus.claimed) ...[
+                          Text(
+                            c.isNew ? 'new' : 'home',
+                            style: AppTypeScale.small.copyWith(
+                              color: c.isNew
+                                  ? AppColors.newCountyText
+                                  : AppColors.mutedForeground,
+                              fontWeight: c.isNew ? FontWeight.w600 : null,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
             ],
@@ -125,12 +132,11 @@ class _Link extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8),
     ),
     onPressed: onPressed,
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label),
-        if (trailing != null) ...[const SizedBox(width: 6), trailing!],
-      ],
+    child: Wrap(
+      spacing: 6,
+      runSpacing: 2,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [Text(label, softWrap: true), ?trailing],
     ),
   );
 }

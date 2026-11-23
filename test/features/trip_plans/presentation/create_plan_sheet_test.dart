@@ -98,6 +98,7 @@ void main() {
   testWidgets('Free stops at 3 days and explains the grey +', (tester) async {
     await open(tester);
     await tester.tap(find.bySemanticsLabel('One day more'));
+    await tester.pump();
     await tester.tap(find.bySemanticsLabel('One day more'));
     await tester.pumpAndSettle();
     expect(find.text('3 of 3 days on Free.'), findsOneWidget);
@@ -105,6 +106,9 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('One day more'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.textContaining('Free plans have up to 3 days.'),
+    );
     expect(find.text('3'), findsOneWidget);
     expect(
       find.textContaining('Free plans have up to 3 days.', findRichText: true),

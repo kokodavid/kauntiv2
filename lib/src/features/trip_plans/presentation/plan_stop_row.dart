@@ -243,7 +243,14 @@ class _County extends StatelessWidget {
     children: [
       PlanCountyDot(status),
       const SizedBox(width: 5),
-      Text(name, style: AppTypeScale.small.copyWith(fontSize: 11.5)),
+      Flexible(
+        child: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypeScale.small.copyWith(fontSize: 11.5),
+        ),
+      ),
       if (status == PlanCountyStatus.notClaimed) ...[
         const SizedBox(width: 5),
         Text(

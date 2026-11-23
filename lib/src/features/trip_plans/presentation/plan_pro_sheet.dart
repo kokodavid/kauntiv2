@@ -94,79 +94,81 @@ class _PlanProSheet extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.sheetGrabber,
-                  borderRadius: BorderRadius.circular(2),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.sheetGrabber,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            const Align(alignment: Alignment.centerLeft, child: PlanProTag()),
-            const SizedBox(height: 10),
-            Text(trigger.title, style: AppTypeScale.sectionTitle),
-            const SizedBox(height: 4),
-            Text(trigger.body(free, pro), style: AppTypeScale.body),
-            const SizedBox(height: 16),
-            _CompareRow(
-              label: 'Free',
-              value:
-                  '${free.maxUpcomingPlans} upcoming · ${free.maxDays} days · '
-                  '1 buddy',
-            ),
-            const SizedBox(height: 8),
-            _CompareRow(
-              label: 'Pro',
-              value:
-                  'Unlimited · ${pro.maxDays} days · groups of '
-                  '${pro.maxMembers}',
-              highlight: true,
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Your plans stay exactly as they are.',
-              style: AppTypeScale.meta,
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 52,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: AppColors.accentForeground,
-                  shape: const StadiumBorder(),
-                ),
-                // Until the Pro overview exists, the sheet only explains.
-                onPressed: onSeePro ?? () => Navigator.of(context).pop(),
-                child: Text(onSeePro == null ? 'Got it' : 'See Pro'),
+              const SizedBox(height: 16),
+              const Align(alignment: Alignment.centerLeft, child: PlanProTag()),
+              const SizedBox(height: 10),
+              Text(trigger.title, style: AppTypeScale.sectionTitle),
+              const SizedBox(height: 4),
+              Text(trigger.body(free, pro), style: AppTypeScale.body),
+              const SizedBox(height: 16),
+              _CompareRow(
+                label: 'Free',
+                value:
+                    '${free.maxUpcomingPlans} upcoming · ${free.maxDays} days · '
+                    '1 buddy',
               ),
-            ),
-            if (onArchive != null)
-              TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.accent,
-                  minimumSize: const Size.fromHeight(44),
-                ),
-                onPressed: onArchive,
-                child: const Text('Archive a plan'),
+              const SizedBox(height: 8),
+              _CompareRow(
+                label: 'Pro',
+                value:
+                    'Unlimited · ${pro.maxDays} days · groups of '
+                    '${pro.maxMembers}',
+                highlight: true,
               ),
-            if (onSeePro != null)
-              TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.foreground,
-                  minimumSize: const Size.fromHeight(44),
-                ),
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Not now'),
+              const SizedBox(height: 10),
+              const Text(
+                'Your plans stay exactly as they are.',
+                style: AppTypeScale.meta,
               ),
-          ],
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 52,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: AppColors.accentForeground,
+                    shape: const StadiumBorder(),
+                  ),
+                  // Until the Pro overview exists, the sheet only explains.
+                  onPressed: onSeePro ?? () => Navigator.of(context).pop(),
+                  child: Text(onSeePro == null ? 'Got it' : 'See Pro'),
+                ),
+              ),
+              if (onArchive != null)
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                  onPressed: onArchive,
+                  child: const Text('Archive a plan'),
+                ),
+              if (onSeePro != null)
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.foreground,
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Not now'),
+                ),
+            ],
+          ),
         ),
       ),
     );

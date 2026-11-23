@@ -73,7 +73,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.byTooltip('Share your Passport'), findsNothing);
-  });
+  }, skip: passportShareAlwaysOn);
 
   testWidgets('the switch on shows Share, which opens the sheet', (
     tester,

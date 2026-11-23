@@ -34,6 +34,14 @@ class PassportScreen extends ConsumerStatefulWidget {
   ConsumerState<PassportScreen> createState() => _PassportScreenState();
 }
 
+/// While testing, Passport sharing ignores the dashboard switch and is
+/// always on (the `passport_share` migration isn't applied yet). Set back
+/// to false before release so the dashboard decides.
+const passportShareAlwaysOn = bool.fromEnvironment(
+  'PASSPORT_SHARE_ALWAYS_ON',
+  defaultValue: true,
+);
+
 /// The cover is built but switched off for now: the tab opens straight on
 /// the landing. Set to true to bring it (and the book opening) back.
 const showCover = false;
@@ -119,7 +127,9 @@ class _PassportScreenState extends ConsumerState<PassportScreen>
     final username = ref.watch(
       myPublicProfileProvider.select((p) => p.value?.handle),
     );
-    final shareOn = ref.watch(passportShareFlagProvider).value ?? false;
+    final shareOn =
+        passportShareAlwaysOn ||
+        (ref.watch(passportShareFlagProvider).value ?? false);
     // A shared Passport always carries the @username, so no username (not
     // loaded yet, offline first run) means no Share button.
     final shareAs = shareOn && book.claimedCount > 0 ? username?.trim() : null;

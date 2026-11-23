@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/app_colors.dart';
 import '../application/plan_editor.dart';
-import '../domain/plan_failure.dart';
 import '../domain/trip_plan.dart';
 import 'add_places_page.dart';
 import 'drop_pin_page.dart';

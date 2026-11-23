@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
-import '../../../core/domain/place_type.dart';
 import '../../../core/widgets/app_network_image.dart';
 import '../../../core/widgets/app_photo_viewer.dart';
-import '../../../core/widgets/place_type_style.dart';
 import '../../../design/app_colors.dart';
 
-/// Place Detail's 240 pt header: swipeable photos with the category, the
-/// name and county over a gradient, and a photo counter (the back button
-/// is the page's, floated over this). Without photos it keeps its height (a plain panel saying so),
-/// so the page below never jumps.
+/// Place Detail's 220 pt header: swipeable photos with the name and
+/// county over a gradient, and a photo counter (the back and save
+/// buttons are the page's, floated over this -- see
+/// `_HeaderIconButton`/`_HeaderSaveButton` in `place_detail_screen.dart`).
+/// The category pill that used to float top right has moved into the
+/// About section, now that save needs that corner. Without photos it
+/// keeps its height (a plain panel saying so), so the page below never
+/// jumps.
 class PlaceDetailHeader extends StatefulWidget {
   const PlaceDetailHeader({
     super.key,
     required this.images,
     required this.title,
     required this.countyName,
-    required this.category,
     this.credits = const [],
   });
 
@@ -26,7 +27,6 @@ class PlaceDetailHeader extends StatefulWidget {
   final List<String> images;
   final String title;
   final String countyName;
-  final PlaceType category;
 
   /// "@username" per photo, null where nobody needs crediting.
   final List<String?> credits;
@@ -95,11 +95,6 @@ class _PlaceDetailHeaderState extends State<PlaceDetailHeader> {
                 ),
               ),
             ),
-          ),
-          Positioned(
-            right: 12,
-            top: 12,
-            child: _CategoryPill(category: widget.category),
           ),
           Positioned(
             left: 16,
@@ -189,40 +184,6 @@ class _NoPhoto extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _CategoryPill extends StatelessWidget {
-  const _CategoryPill({required this.category});
-
-  final PlaceType category;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 32,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.backButtonBorder),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: category.dotColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(category.label, style: AppTypeScale.small),
-        ],
       ),
     );
   }

@@ -29,6 +29,27 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 
 ## Baseline burn-down
 
+### Place Detail release consolidation (2026-11-23)
+
+Prepared the active Place Detail route for the 1.6.3 release: an always-visible
+About section, refreshed photo gallery, a shared floating action bar for Add to
+trip, check-in, Add photo and Route, plus a per-account dismissible photo nudge.
+Removed the superseded full-width action widgets after confirming that app
+routing now composes their compact replacements. Split header actions out of
+the screen and placed local banner persistence behind the application boundary
+so the architecture guard remains clean. Device transition and screen-flash
+verification remains required before release.
+
+### Country club category (2026-11-08)
+
+Added `country_club` to the mobile category list, aliases and synchronous golf
+icon mapping; additive migration applied to production only. Dashboard category
+options are database-driven, so no frontend changes are needed. Prepared the
+39-row draft-import CSV and coordinate audit; no places imported or published.
+See [country-club-place-type.md](country-club-place-type.md) for deployment,
+county-review cases and verification limits. Regression tests added but not run;
+Flutter/Dart and device visual checks were not run per standing instructions.
+
 | Date | Baselined violations | Note |
 |---|---|---|
 | 2026-09-23 | 49 | Guard introduced over the imported v2 onboarding code |

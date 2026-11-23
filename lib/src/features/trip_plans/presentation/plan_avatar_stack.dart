@@ -76,6 +76,7 @@ class _Avatar extends StatelessWidget {
               : DecorationImage(
                   image: appNetworkImage(url, cacheWidth: 96),
                   fit: BoxFit.cover,
+                  onError: (_, _) {},
                 ),
         ),
         alignment: Alignment.center,

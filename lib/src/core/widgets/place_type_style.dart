@@ -31,6 +31,7 @@ extension PlaceTypeStyle on PlaceType {
     'market' => Icons.storefront,
     'food' => Icons.restaurant,
     'stay' => Icons.hotel,
+    'country_club' => Icons.golf_course,
     _ => Icons.place,
   };
 

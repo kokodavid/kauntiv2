@@ -34,24 +34,32 @@ class _CountyTickBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Each tick gets an equal flexible slot instead of a fixed width with
+    // Spacer gaps: fixed-width bars (total * 4px) could exceed the card's
+    // width on narrow phones once `total` -- all 47 counties, say -- grew
+    // past what fit, overflowing the Row. Expanded slots always sum to
+    // exactly the available width, however many counties there are.
     return SizedBox(
       height: 20,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          for (var i = 0; i < total; i++) ...[
-            if (i > 0) const Spacer(),
-            Container(
-              width: 4,
-              height: i < exploredCount ? 20 : 13,
-              decoration: BoxDecoration(
-                color: i < exploredCount
-                    ? AppColors.accent
-                    : AppColors.trackInactive,
-                borderRadius: BorderRadius.circular(1),
+          for (var i = 0; i < total; i++)
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: 4,
+                  height: i < exploredCount ? 20 : 13,
+                  decoration: BoxDecoration(
+                    color: i < exploredCount
+                        ? AppColors.accent
+                        : AppColors.trackInactive,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
               ),
             ),
-          ],
         ],
       ),
     );

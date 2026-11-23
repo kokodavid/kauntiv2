@@ -75,6 +75,7 @@ class AppColors {
   static const backButtonBorder = Color(0xFFDADEEC);
   static const detailStatLabel = Color(0xFF94A3B8);
   static const detailStatValue = Color(0xFF475569);
+  static const detailBodyText = Color(0xFF3F3F46);
   static const categoryHeritageDot = Color(0xFF7E22CE);
   static const categoryDotFallback = mutedForeground;
   static const detailGlassShadow = Color(0x1A000000);

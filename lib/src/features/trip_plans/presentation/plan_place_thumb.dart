@@ -30,6 +30,7 @@ class PlanPlaceThumb extends StatelessWidget {
           : DecorationImage(
               image: appNetworkImage(url!, cacheWidth: 144),
               fit: BoxFit.cover,
+              onError: (_, _) {},
             ),
     ),
     child: url == null

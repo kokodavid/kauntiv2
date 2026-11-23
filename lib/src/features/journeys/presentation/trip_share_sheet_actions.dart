@@ -249,7 +249,7 @@ mixin _TripShareSheetActions on _TripShareSheetStateBase {
           )
         : const <Offset>[];
 
-    return captureTripShareCard(
+    return captureShareCard(
       context: context,
       card: TripShareCard(
         variant: TripShareCardVariant.share,

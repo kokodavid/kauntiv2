@@ -11,9 +11,10 @@ import '../../../core/services/app_media_picker.dart';
 import '../../../core/services/app_share.dart';
 import '../../../core/widgets/app_choice_pill.dart';
 import '../../../core/widgets/app_floating_toast.dart';
-import '../../../core/widgets/app_glyph_icon.dart';
 import '../../../core/widgets/app_network_image.dart';
+import '../../../core/widgets/app_share_action_row.dart';
 import '../../../core/widgets/app_shimmer.dart';
+import '../../../core/widgets/share_card_renderer.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../../services/app_logger.dart';
@@ -26,7 +27,6 @@ import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
 import '../domain/trip_share_stat_visibility.dart';
 import 'trip_share_card.dart';
-import 'trip_share_card_renderer.dart';
 
 part 'trip_share_sheet_shell.dart';
 part 'trip_share_sheet_actions.dart';
@@ -40,7 +40,6 @@ part 'trip_share_sheet_photo_thumb.dart';
 part 'trip_share_sheet_from_phone_tile.dart';
 part 'trip_share_sheet_stat_switches.dart';
 part 'trip_share_sheet_styles.dart';
-part 'trip_share_sheet_action_row.dart';
 
 abstract class _TripShareSheetStateBase extends ConsumerState<_TripShareSheet> {
   static const _logger = AppLogger.journeys();

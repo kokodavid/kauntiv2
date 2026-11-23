@@ -37,7 +37,7 @@ class _ThumbnailContent extends StatelessWidget {
             textStyle: _Styles.thumbChipText,
           ),
           const Spacer(),
-          _Watermark(
+          AppShareWatermark(
             textStyle: _Styles.thumbWatermarkText,
             inverted: watermarkInverted,
           ),

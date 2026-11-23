@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_glyph_icon.dart';
 import '../../../core/widgets/saved_chip.dart';
+import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../domain/passport_book.dart';
 import 'passport_filter_bar.dart';
@@ -22,6 +24,7 @@ class PassportLanding extends StatelessWidget {
     required this.onQuery,
     required this.onOpenCounty,
     this.holderName,
+    this.onShare,
   });
 
   final PassportBook book;
@@ -35,6 +38,10 @@ class PassportLanding extends StatelessWidget {
   /// The traveller's name, once it has loaded.
   final String? holderName;
 
+  /// Opens "Share your Passport"; null hides the Share button (switched
+  /// off on the dashboard, nothing explored yet, or no username loaded).
+  final VoidCallback? onShare;
+
   @override
   Widget build(BuildContext context) {
     final regions = book.regions(filter: filter, query: query);
@@ -44,9 +51,29 @@ class PassportLanding extends StatelessWidget {
       // Room at the bottom for the floating tab bar.
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 120),
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 10),
-          child: Text('Passport', style: AppTextStyles.headingForeground),
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text('Passport', style: AppTextStyles.headingForeground),
+              ),
+              if (onShare != null)
+                IconButton(
+                  onPressed: onShare,
+                  tooltip: 'Share your Passport',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    fixedSize: const Size.square(44),
+                  ),
+                  icon: const AppGlyphIcon(
+                    path: AppGlyphPaths.share,
+                    size: 20,
+                    color: AppColors.buttonForeground,
+                  ),
+                ),
+            ],
+          ),
         ),
         if (book.isSavedCopy) ...[
           const SizedBox(height: 8),

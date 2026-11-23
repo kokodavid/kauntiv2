@@ -93,13 +93,11 @@ Future<void> _bestEffortSync(DetectionDatabase db) async {
       defaultValue: String.fromEnvironment('SUPABASE_ANON_KEY'),
     );
     if (url.isEmpty || key.isEmpty) return;
-    try {
-      await Supabase.initialize(url: url, publishableKey: key);
-    } on Object {
-      // Already initialized in this isolate (it can be reused across
-      // calls) -- Supabase.instance below still works.
-    }
-    final queue = VisitSyncQueue.supabase(db, Supabase.instance.client);
+    final supabase = await Supabase.initialize(
+      url: url,
+      publishableKey: key,
+    );
+    final queue = VisitSyncQueue.supabase(db, supabase.client);
     await queue.drain();
   } on Object catch (error, stackTrace) {
     logger.warning(

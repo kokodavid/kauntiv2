@@ -8,12 +8,14 @@ import '../../../core/widgets/offline_screen.dart';
 import '../../../design/app_colors.dart';
 import '../../profile/application/public_profile_providers.dart';
 import '../application/badges_providers.dart';
+import '../application/passport_share_providers.dart';
 import '../domain/passport_book.dart';
 import 'passport_book_open.dart';
 import 'passport_callbacks.dart';
 import 'passport_county_screen.dart';
 import 'passport_cover.dart';
 import 'passport_landing.dart';
+import 'passport_share_sheet.dart';
 import 'passport_skeleton.dart';
 
 /// The Passport tab: a cover the first time it opens in an app session, then
@@ -52,6 +54,11 @@ class _PassportScreenState extends ConsumerState<PassportScreen>
   @override
   void initState() {
     super.initState();
+    // The dashboard switch can change at any time: read it again each time
+    // the Passport opens (the last value stays on screen meanwhile).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.invalidate(passportShareFlagProvider);
+    });
     _open.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
         setState(() => _coverDone = true);
@@ -109,6 +116,13 @@ class _PassportScreenState extends ConsumerState<PassportScreen>
     final holderName = ref.watch(
       myPublicProfileProvider.select((p) => p.value?.displayName),
     );
+    final username = ref.watch(
+      myPublicProfileProvider.select((p) => p.value?.handle),
+    );
+    final shareOn = ref.watch(passportShareFlagProvider).value ?? false;
+    // A shared Passport always carries the @username, so no username (not
+    // loaded yet, offline first run) means no Share button.
+    final shareAs = shareOn && book.claimedCount > 0 ? username?.trim() : null;
     final landing = SafeArea(
       bottom: false,
       child: RefreshIndicator(
@@ -126,6 +140,14 @@ class _PassportScreenState extends ConsumerState<PassportScreen>
             onOpenCounty: widget.onOpenCounty,
           ),
           holderName: holderName,
+          onShare: shareAs == null || shareAs.isEmpty
+              ? null
+              : () => showPassportShareSheet(
+                  context,
+                  book: book,
+                  username: shareAs,
+                  holderName: holderName,
+                ),
         ),
       ),
     );

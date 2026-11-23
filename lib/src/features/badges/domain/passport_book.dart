@@ -43,6 +43,7 @@ class PassportBook {
     List<PassportCounty> counties, {
     this.savedAt,
     this.firstStampAt,
+    this.exploredAt = const {},
     this.checkInsLive = false,
   }) : counties = _byCode(counties);
 
@@ -67,6 +68,7 @@ class PassportBook {
       ],
       savedAt: collection.savedAt,
       firstStampAt: collection.firstStampAt,
+      exploredAt: collection.exploredAt,
       checkInsLive: collection.checkInsLive,
     );
   }
@@ -78,6 +80,26 @@ class PassportBook {
 
   /// When the traveller's first stamp was earned; null when unknown.
   final DateTime? firstStampAt;
+
+  /// When each explored county was confirmed, by county code.
+  final Map<int, DateTime> exploredAt;
+
+  /// The county most recently explored (Explored or better), shown at its
+  /// current level on the Passport share card; null when none is dated.
+  PassportCounty? get latestStamp {
+    PassportCounty? best;
+    DateTime? bestAt;
+    for (final county in counties) {
+      if (county.level.index < PassportLevel.explored.index) continue;
+      final at = exploredAt[county.code];
+      if (at == null) continue;
+      if (bestAt == null || at.isAfter(bestAt)) {
+        best = county;
+        bestAt = at;
+      }
+    }
+    return best;
+  }
 
   /// Whether the server has check-ins on, so Bronze to Gold can be earned.
   final bool checkInsLive;

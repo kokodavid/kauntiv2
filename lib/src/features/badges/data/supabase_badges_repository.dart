@@ -22,6 +22,7 @@ class SupabaseBadgesRepository {
       Map<int, String> visitStates,
       Map<int, String> ranks,
       DateTime? firstStampAt,
+      Map<int, DateTime> exploredAt,
       CheckInsOverview checkIns,
     })
   >
@@ -42,6 +43,7 @@ class SupabaseBadgesRepository {
     ]);
     return (
       firstStampAt: firstStampAt,
+      exploredAt: _exploredAt(visits),
       checkIns: overview,
       visitStates: {
         for (final row in visits)
@@ -90,6 +92,18 @@ class SupabaseBadgesRepository {
     }
   }
 
+  /// When each explored county was confirmed (`county_visits.confirmed_at`),
+  /// by county code. Counties without a date are left out.
+  static Map<int, DateTime> _exploredAt(List<Map<String, dynamic>> visits) => {
+    for (final row in visits)
+      if (row case {
+        'county_id': final num code,
+        'state': 'explored',
+        'confirmed_at': final String at,
+      })
+        if (DateTime.tryParse(at) case final DateTime date) code.toInt(): date,
+  };
+
   static DateTime? _earliest(Iterable<DateTime?> dates) {
     DateTime? best;
     for (final date in dates) {
@@ -104,6 +118,7 @@ class SupabaseBadgesRepository {
       visitStates: data.visitStates,
       ranks: data.ranks,
       firstStampAt: data.firstStampAt,
+      exploredAt: data.exploredAt,
     );
   }
 

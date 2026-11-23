@@ -57,6 +57,7 @@ class BadgeCollection {
     List<CountyBadge> badges, {
     this.savedAt,
     this.firstStampAt,
+    this.exploredAt = const {},
     this.checkInsLive = false,
   }) : badges = [
          ...badges.where((b) => b.isEarned),
@@ -70,6 +71,7 @@ class BadgeCollection {
     required Map<int, String> ranks,
     DateTime? savedAt,
     DateTime? firstStampAt,
+    Map<int, DateTime> exploredAt = const {},
     CheckInsOverview checkIns = CheckInsOverview.none,
   }) {
     final counties = [...CountyPaths.all]
@@ -86,6 +88,7 @@ class BadgeCollection {
       ],
       savedAt: savedAt,
       firstStampAt: firstStampAt,
+      exploredAt: exploredAt,
       checkInsLive: checkIns.live,
     );
   }
@@ -117,6 +120,9 @@ class BadgeCollection {
 
   /// When the first stamp was earned; null when unknown.
   final DateTime? firstStampAt;
+
+  /// When each explored county was confirmed, by county code.
+  final Map<int, DateTime> exploredAt;
 
   /// Whether the server has check-ins switched on.
   final bool checkInsLive;

@@ -57,12 +57,12 @@ final class PlanPlacesRepositoryProvider
 String _$planPlacesRepositoryHash() =>
     r'338432097e12443b4918a2f2f6da8dcca0631d02';
 
-/// Places matching [query]; nothing until the query is ready.
+/// Places matching [query]; every place when it asks for nothing.
 
 @ProviderFor(planPlaceSearch)
 const planPlaceSearchProvider = PlanPlaceSearchFamily._();
 
-/// Places matching [query]; nothing until the query is ready.
+/// Places matching [query]; every place when it asks for nothing.
 
 final class PlanPlaceSearchProvider
     extends
@@ -72,7 +72,7 @@ final class PlanPlaceSearchProvider
           FutureOr<List<PlanPlace>>
         >
     with $FutureModifier<List<PlanPlace>>, $FutureProvider<List<PlanPlace>> {
-  /// Places matching [query]; nothing until the query is ready.
+  /// Places matching [query]; every place when it asks for nothing.
   const PlanPlaceSearchProvider._({
     required PlanPlaceSearchFamily super.from,
     required PlanPlaceQuery super.argument,
@@ -117,9 +117,9 @@ final class PlanPlaceSearchProvider
   }
 }
 
-String _$planPlaceSearchHash() => r'671c0c4a8ec030d3a3e31bee36f4feea91df8cc4';
+String _$planPlaceSearchHash() => r'b2e792ec978485170298ab929ecc72c17a22a671';
 
-/// Places matching [query]; nothing until the query is ready.
+/// Places matching [query]; every place when it asks for nothing.
 
 final class PlanPlaceSearchFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<PlanPlace>>, PlanPlaceQuery> {
@@ -132,7 +132,7 @@ final class PlanPlaceSearchFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Places matching [query]; nothing until the query is ready.
+  /// Places matching [query]; every place when it asks for nothing.
 
   PlanPlaceSearchProvider call(PlanPlaceQuery query) =>
       PlanPlaceSearchProvider._(argument: query, from: this);
@@ -140,6 +140,50 @@ final class PlanPlaceSearchFamily extends $Family
   @override
   String toString() => r'planPlaceSearchProvider';
 }
+
+/// Which types and counties have places, for the filter chips.
+
+@ProviderFor(planPlaceFacets)
+const planPlaceFacetsProvider = PlanPlaceFacetsProvider._();
+
+/// Which types and counties have places, for the filter chips.
+
+final class PlanPlaceFacetsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<PlanPlaceFacets>,
+          PlanPlaceFacets,
+          FutureOr<PlanPlaceFacets>
+        >
+    with $FutureModifier<PlanPlaceFacets>, $FutureProvider<PlanPlaceFacets> {
+  /// Which types and counties have places, for the filter chips.
+  const PlanPlaceFacetsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'planPlaceFacetsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$planPlaceFacetsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<PlanPlaceFacets> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<PlanPlaceFacets> create(Ref ref) {
+    return planPlaceFacets(ref);
+  }
+}
+
+String _$planPlaceFacetsHash() => r'1455fc6e6e0c91ab97288a51ab91c23371d1c185';
 
 /// The plans that already hold [placeId], for "In 2 trips". Empty when it
 /// can't be read, so the button simply says "Add to trip".
@@ -229,47 +273,3 @@ final class PlaceTripsFamily extends $Family
   @override
   String toString() => r'placeTripsProvider';
 }
-
-/// Which types and counties have places, for the filter chips.
-
-@ProviderFor(planPlaceFacets)
-const planPlaceFacetsProvider = PlanPlaceFacetsProvider._();
-
-/// Which types and counties have places, for the filter chips.
-
-final class PlanPlaceFacetsProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<PlanPlaceFacets>,
-          PlanPlaceFacets,
-          FutureOr<PlanPlaceFacets>
-        >
-    with $FutureModifier<PlanPlaceFacets>, $FutureProvider<PlanPlaceFacets> {
-  /// Which types and counties have places, for the filter chips.
-  const PlanPlaceFacetsProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'planPlaceFacetsProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$planPlaceFacetsHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<PlanPlaceFacets> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<PlanPlaceFacets> create(Ref ref) {
-    return planPlaceFacets(ref);
-  }
-}
-
-String _$planPlaceFacetsHash() => r'0000000000000000000000000000000000000000';

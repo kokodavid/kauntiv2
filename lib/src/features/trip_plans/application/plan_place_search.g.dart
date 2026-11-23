@@ -8,12 +8,16 @@ part of 'plan_place_search.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The start-point search. Null in a build without a Mapbox token.
+/// The place search: Geoapify (OpenStreetMap data, results may be stored).
+/// Without its key there is no search. There is deliberately no fallback to
+/// Mapbox, whose permanent geocoding is billed per request.
 
 @ProviderFor(planPlaceSearchClient)
 const planPlaceSearchClientProvider = PlanPlaceSearchClientProvider._();
 
-/// The start-point search. Null in a build without a Mapbox token.
+/// The place search: Geoapify (OpenStreetMap data, results may be stored).
+/// Without its key there is no search. There is deliberately no fallback to
+/// Mapbox, whose permanent geocoding is billed per request.
 
 final class PlanPlaceSearchClientProvider
     extends
@@ -23,7 +27,9 @@ final class PlanPlaceSearchClientProvider
           PlanPlaceSearchClient?
         >
     with $Provider<PlanPlaceSearchClient?> {
-  /// The start-point search. Null in a build without a Mapbox token.
+  /// The place search: Geoapify (OpenStreetMap data, results may be stored).
+  /// Without its key there is no search. There is deliberately no fallback to
+  /// Mapbox, whose permanent geocoding is billed per request.
   const PlanPlaceSearchClientProvider._()
     : super(
         from: null,
@@ -59,7 +65,7 @@ final class PlanPlaceSearchClientProvider
 }
 
 String _$planPlaceSearchClientHash() =>
-    r'f85139afeec55cda1fe11ec12db1ab4bd3ae9cef';
+    r'47d68a79b96a538274821167185ebdc9b34cff57';
 
 /// Suggestions for what has been typed. Waits a moment first so a burst of
 /// typing asks once, and favours spots near the user. A failure is thrown,

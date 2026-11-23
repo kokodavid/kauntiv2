@@ -18,6 +18,7 @@ class JourneyQuality {
     this.streamRecoveries = 0,
     this.lostMillis = 0,
     this.settings,
+    this.settingsAtPause,
   });
 
   /// Pauses by [JourneyPauseReason.storageValue].
@@ -42,6 +43,13 @@ class JourneyQuality {
 
   /// The phone's power settings when the Trip started; null when unknown.
   final JourneyDeviceSettings? settings;
+
+  /// The phone's power settings read again right before the most recent
+  /// system pause (for now, only [JourneyPauseReason.locationLost] reads
+  /// them) -- [settings] alone can miss a cause that only showed up partway
+  /// through, like battery saver switching on after [settings] was read at
+  /// the start.
+  final JourneyDeviceSettings? settingsAtPause;
 
   int get userPauses =>
       pausesByReason[JourneyPauseReason.user.storageValue] ?? 0;
@@ -73,6 +81,7 @@ class JourneyQuality {
     int? streamRecoveries,
     int? lostMillis,
     JourneyDeviceSettings? settings,
+    JourneyDeviceSettings? settingsAtPause,
   }) => JourneyQuality(
     pausesByReason: pausesByReason ?? this.pausesByReason,
     gaps: gaps ?? this.gaps,
@@ -84,6 +93,7 @@ class JourneyQuality {
     streamRecoveries: streamRecoveries ?? this.streamRecoveries,
     lostMillis: lostMillis ?? this.lostMillis,
     settings: settings ?? this.settings,
+    settingsAtPause: settingsAtPause ?? this.settingsAtPause,
   );
 
   Map<String, Object> toJson() => {
@@ -97,6 +107,7 @@ class JourneyQuality {
     'stream_recoveries': streamRecoveries,
     'lost_ms': lostMillis,
     if (settings != null) 'settings': settings!.toJson(),
+    if (settingsAtPause != null) 'settings_at_pause': settingsAtPause!.toJson(),
   };
 
   String encode() => jsonEncode(toJson());
@@ -131,6 +142,9 @@ class JourneyQuality {
         streamRecoveries: count('stream_recoveries'),
         lostMillis: count('lost_ms'),
         settings: JourneyDeviceSettings.fromJson(data['settings']),
+        settingsAtPause: JourneyDeviceSettings.fromJson(
+          data['settings_at_pause'],
+        ),
       );
     } on FormatException {
       return null;

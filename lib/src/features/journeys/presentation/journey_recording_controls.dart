@@ -9,8 +9,10 @@ import '../../../core/services/app_media_picker.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../application/journey_providers.dart';
 import '../application/journey_recorder.dart';
 import '../application/journey_views.dart';
+import '../domain/journey_device_settings.dart';
 import '../domain/journey_pause_reason.dart';
 import '../domain/journey_preview.dart';
 import '../domain/journey_recording.dart';
@@ -54,10 +56,17 @@ class JourneyRecordingControls extends ConsumerStatefulWidget {
 
 /// What the paused note says. A pause the person made keeps the original
 /// wording; one the app made says why, so it never looks like a mistake.
-String _pausedNote(JourneyPauseReason? reason) => switch (reason) {
+/// [pauseSettings] is the phone's power settings read again right before a
+/// [JourneyPauseReason.locationLost] pause -- when it points to a likely
+/// cause, the note names it instead of leaving the person to guess.
+String _pausedNote(
+  JourneyPauseReason? reason, {
+  JourneyDeviceSettings? pauseSettings,
+}) => switch (reason) {
   JourneyPauseReason.locationLost =>
-    'We lost your location, so the Trip paused. Tap Resume once it is '
-        "back. The gap isn't drawn.",
+    'We lost your location, so the Trip paused.'
+        '${_batteryCauseClause(pauseSettings)}'
+        " Tap Resume once it is back. The gap isn't drawn.",
   JourneyPauseReason.appRestarted =>
     'The app was closed, so the Trip paused. Tap Resume to carry on. '
         "The time it was closed isn't drawn.",
@@ -70,6 +79,30 @@ String _pausedNote(JourneyPauseReason? reason) => switch (reason) {
     "Anything between now and Resume isn't drawn, "
         'including time the app was closed.',
 };
+
+/// A short clause naming the most likely reason location dropped, from the
+/// phone's own power settings read right before the pause -- empty when
+/// nothing points to a cause, so the sentence above reads the same as
+/// before. Picks one cause, in the same priority as the pre-Trip warning
+/// ([JourneyDeviceSettings.warnings]): battery saver first, since it is
+/// the most direct cause, then low battery, then this phone's own
+/// background-app restrictions.
+String _batteryCauseClause(JourneyDeviceSettings? pauseSettings) {
+  final warnings = pauseSettings?.warnings ?? const [];
+  if (warnings.isEmpty) return '';
+  return switch (warnings.first) {
+    JourneySettingsWarning.batterySaver =>
+      ' Battery saver turned on can cut off location in the background --'
+          ' worth checking it is off before you resume.',
+    JourneySettingsWarning.lowBattery =>
+      ' Your battery ran low, which can trigger power saving that cuts'
+          ' off location.',
+    JourneySettingsWarning.batteryOptimisation =>
+      " This phone's battery settings can pause location in the"
+          ' background -- check that battery optimisation for Kaunti47'
+          ' is turned off.',
+  };
+}
 
 class _JourneyRecordingControlsState
     extends ConsumerState<JourneyRecordingControls> {
@@ -250,7 +283,13 @@ class _JourneyRecordingControlsState
                   if (!isRecording && !widget.compact) ...[
                     const SizedBox(height: 8),
                     Text(
-                      _pausedNote(session.pauseReason),
+                      _pausedNote(
+                        session.pauseReason,
+                        pauseSettings: ref
+                            .read(journeyCaptureProvider)
+                            .quality
+                            .settingsAtPause,
+                      ),
                       style: AppTypeScale.small,
                     ),
                   ],

@@ -65,16 +65,33 @@ void main() {
     expect(disableCalls, 3);
   });
 
-  test('uses less frequent sampling for slower travel modes', () {
+  test('uses less frequent, lighter sampling for slower travel modes', () {
     final drive = DeviceJourneyLocationSource.samplingForMode(
       JourneyTransportMode.drive,
+    );
+    final cycle = DeviceJourneyLocationSource.samplingForMode(
+      JourneyTransportMode.cycle,
     );
     final walk = DeviceJourneyLocationSource.samplingForMode(
       JourneyTransportMode.walk,
     );
 
-    expect(walk.intervalMs, greaterThan(drive.intervalMs));
-    expect(walk.backgroundIntervalMs, greaterThan(drive.backgroundIntervalMs));
-    expect(walk.distanceMeters, lessThan(drive.distanceMeters));
+    // Walking and cycling cover ground slowly enough that a less frequent,
+    // lower-accuracy fix barely changes the recorded route but meaningfully
+    // cuts how long the GPS chip stays active -- so unlike before, their
+    // distance filter is now looser too, not just their time interval.
+    expect(cycle.intervalMs, greaterThan(drive.intervalMs));
+    expect(cycle.backgroundIntervalMs, greaterThan(drive.backgroundIntervalMs));
+    expect(cycle.distanceMeters, greaterThan(drive.distanceMeters));
+    expect(cycle.accuracy, LocationAccuracy.balanced);
+
+    expect(walk.intervalMs, greaterThan(cycle.intervalMs));
+    expect(walk.backgroundIntervalMs, greaterThan(cycle.backgroundIntervalMs));
+    expect(walk.distanceMeters, greaterThan(cycle.distanceMeters));
+    expect(walk.accuracy, LocationAccuracy.balanced);
+
+    // Driving still needs a frequent, high-accuracy fix to track a fast
+    // route faithfully.
+    expect(drive.accuracy, LocationAccuracy.high);
   });
 }

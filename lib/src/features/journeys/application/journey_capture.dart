@@ -289,6 +289,16 @@ class JourneyCapture {
             }
           }
           shouldNotifyPause = true;
+          // One more read right before giving up: battery saver, low
+          // battery or background restrictions often switch on partway
+          // through a Trip, well after the settings read at start. Without
+          // this, the saved quality record -- and the note shown to the
+          // person -- would keep pointing at how things looked at the
+          // start, even when that is not what actually caused this pause.
+          final pauseSettings = await readDeviceSettings();
+          if (pauseSettings != null) {
+            _quality = _quality.copyWith(settingsAtPause: pauseSettings);
+          }
           try {
             await pause(reason: JourneyPauseReason.locationLost);
           } catch (error) {

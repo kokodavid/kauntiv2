@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaunti47_v2/src/features/journeys/domain/journey_device_settings.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_pause_reason.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_quality.dart';
 
@@ -25,12 +26,21 @@ void main() {
       streamLosses: 4,
       streamRecoveries: 3,
       lostMillis: 90000,
+      settings: const JourneyDeviceSettings(batteryPercent: 80),
+      // Read again right before the pause, so this can differ from
+      // [settings] above -- here, battery saver switched on partway
+      // through the Trip.
+      settingsAtPause: const JourneyDeviceSettings(
+        batterySaver: true,
+        batteryPercent: 14,
+      ),
     ).withPause(JourneyPauseReason.locationLost);
 
     final decoded = JourneyQuality.decode(quality.encode());
 
     expect(decoded, isNotNull);
     expect(decoded!.toJson(), quality.toJson());
+    expect(decoded.settingsAtPause?.batterySaver, true);
   });
 
   test('missing or unreadable text decodes to null', () {

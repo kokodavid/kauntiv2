@@ -45,7 +45,7 @@ class PlanHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final dates = plan.startDate == null
         ? 'No date yet'
-        : PlanLabels.range(plan.startDate, plan.endDate);
+        : PlanLabels.longRange(plan.startDate, plan.endDate);
     final joined = plan.members.where((m) => m.joined).toList();
     final notes = [
       if (offline)

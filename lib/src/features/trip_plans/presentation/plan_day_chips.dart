@@ -72,9 +72,8 @@ class PlanDayChipsDelegate extends SliverPersistentHeaderDelegate {
     ),
   );
 
-  static String _label(int number, DateTime? date) => date == null
-      ? 'Day $number'
-      : 'Day $number · ${PlanLabels.day(date).split(' ').first}';
+  static String _label(int number, DateTime? date) =>
+      date == null ? 'Day $number' : 'Day $number · ${PlanLabels.day(date)}';
 }
 
 class _Chip extends StatelessWidget {

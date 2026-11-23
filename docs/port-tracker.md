@@ -1,5 +1,13 @@
 # V1 → V2 port tracker
 
+## 2026-11-07 Dashboard Growth Statistics
+
+Dashboard-only reporting adds period filters, distinct county coverage ranking,
+activation, observed activity, travel-retention cohorts and invitation conversion.
+Backend migration: `20261107140000_dashboard_growth_stats.sql`. Definitions,
+privacy rules, rollout and SQL regression checks: [dashboard-growth-stats.md](dashboard-growth-stats.md).
+No mobile code changes or Flutter/Dart commands. Existing achievements are untouched.
+
 One row per feature. Source: `kokodavid/kaunti47`, branch `redesign/figma-v2`
 (about 40k lines). Update this file in the same commit/PR that moves a feature: the table row,
 the feature's section below (if it has one) and the progress log.

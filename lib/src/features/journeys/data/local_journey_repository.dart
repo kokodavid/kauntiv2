@@ -8,28 +8,13 @@ import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_transport_mode.dart';
 import 'journey_database.dart';
+import 'local_journey_types.dart';
+
+export 'local_journey_types.dart';
 
 part 'local_journey_repository_mappers.dart';
 part 'local_journey_repository_trip_metadata.dart';
 part 'local_journey_repository_reads.dart';
-
-class LocalJourneySession {
-  const LocalJourneySession({
-    required this.id,
-    required this.recording,
-    this.pauseReason,
-  });
-
-  final String id;
-  final JourneyRecording recording;
-
-  /// Why the Trip is paused; null while it is not paused.
-  final JourneyPauseReason? pauseReason;
-}
-
-class JourneyPointRejected implements Exception {
-  const JourneyPointRejected();
-}
 
 class LocalJourneyRepository {
   const LocalJourneyRepository(this._db);

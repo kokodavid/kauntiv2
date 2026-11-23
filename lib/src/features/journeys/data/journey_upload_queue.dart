@@ -11,29 +11,9 @@ import '../domain/journey_quality.dart';
 import '../domain/journey_summary.dart';
 import '../domain/journey_transport_mode.dart';
 import 'journey_database.dart';
+import 'journey_upload_types.dart';
 import 'local_journey_repository.dart';
 import 'supabase_journey_repository.dart';
-
-/// Uploads one completed Journey; resolves once the server has stored it.
-typedef UploadJourney =
-    Future<void> Function({
-      required String userId,
-      required String id,
-      required String title,
-      required DateTime startedAt,
-      required DateTime endedAt,
-      required Duration pausedDuration,
-      required List<JourneyPoint> points,
-      JourneyDestination? destination,
-      JourneyTransportMode? transportMode,
-    });
-
-/// Sends how well a Trip recorded, after the Trip itself has uploaded.
-typedef SaveJourneyQuality =
-    Future<void> Function({
-      required String id,
-      required JourneyQuality quality,
-    });
 
 /// Uploads completed local Journeys for the signed-in account, oldest
 /// first, then deletes the local copy so precise points don't linger on

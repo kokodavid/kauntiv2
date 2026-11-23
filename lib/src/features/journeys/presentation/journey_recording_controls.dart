@@ -12,18 +12,16 @@ import '../../../design/app_colors.dart';
 import '../application/journey_providers.dart';
 import '../application/journey_recorder.dart';
 import '../application/journey_views.dart';
-import '../domain/journey_device_settings.dart';
-import '../domain/journey_pause_reason.dart';
 import '../domain/journey_preview.dart';
 import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart' show JourneyTitles;
 import 'journey_messages.dart';
+import 'journey_recording_paused_note.dart';
 import 'journey_start_card.dart';
 import 'journey_stop_dialog.dart';
 
 part 'journey_recording_control_parts.dart';
-
 /// The Journey in progress, collapsed to a glanceable bottom sheet over
 /// the map: status, the live clock, distance and county so far, with
 /// Photo / Pause-Resume / Stop as small round buttons - no text labels
@@ -52,56 +50,6 @@ class JourneyRecordingControls extends ConsumerStatefulWidget {
   @override
   ConsumerState<JourneyRecordingControls> createState() =>
       _JourneyRecordingControlsState();
-}
-
-/// What the paused note says. A pause the person made keeps the original
-/// wording; one the app made says why, so it never looks like a mistake.
-/// [pauseSettings] is the phone's power settings read again right before a
-/// [JourneyPauseReason.locationLost] pause -- when it points to a likely
-/// cause, the note names it instead of leaving the person to guess.
-String _pausedNote(
-  JourneyPauseReason? reason, {
-  JourneyDeviceSettings? pauseSettings,
-}) => switch (reason) {
-  JourneyPauseReason.locationLost =>
-    'We lost your location, so the Trip paused.'
-        '${_batteryCauseClause(pauseSettings)}'
-        " Tap Resume once it is back. The gap isn't drawn.",
-  JourneyPauseReason.appRestarted =>
-    'The app was closed, so the Trip paused. Tap Resume to carry on. '
-        "The time it was closed isn't drawn.",
-  JourneyPauseReason.startFailed =>
-    "We couldn't get your location, so the Trip paused. Check that "
-        'location is on, then tap Resume.',
-  JourneyPauseReason.accountChanged =>
-    'The account changed, so this Trip paused. Sign back in to resume it.',
-  JourneyPauseReason.user || JourneyPauseReason.unknown || null =>
-    "Anything between now and Resume isn't drawn, "
-        'including time the app was closed.',
-};
-
-/// A short clause naming the most likely reason location dropped, from the
-/// phone's own power settings read right before the pause -- empty when
-/// nothing points to a cause, so the sentence above reads the same as
-/// before. Picks one cause, in the same priority as the pre-Trip warning
-/// ([JourneyDeviceSettings.warnings]): battery saver first, since it is
-/// the most direct cause, then low battery, then this phone's own
-/// background-app restrictions.
-String _batteryCauseClause(JourneyDeviceSettings? pauseSettings) {
-  final warnings = pauseSettings?.warnings ?? const [];
-  if (warnings.isEmpty) return '';
-  return switch (warnings.first) {
-    JourneySettingsWarning.batterySaver =>
-      ' Battery saver turned on can cut off location in the background --'
-          ' worth checking it is off before you resume.',
-    JourneySettingsWarning.lowBattery =>
-      ' Your battery ran low, which can trigger power saving that cuts'
-          ' off location.',
-    JourneySettingsWarning.batteryOptimisation =>
-      " This phone's battery settings can pause location in the"
-          ' background -- check that battery optimisation for Kaunti47'
-          ' is turned off.',
-  };
 }
 
 class _JourneyRecordingControlsState
@@ -283,7 +231,7 @@ class _JourneyRecordingControlsState
                   if (!isRecording && !widget.compact) ...[
                     const SizedBox(height: 8),
                     Text(
-                      _pausedNote(
+                      journeyPausedNote(
                         session.pauseReason,
                         pauseSettings: ref
                             .read(journeyCaptureProvider)

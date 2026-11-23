@@ -12,6 +12,7 @@ class BadgesSnapshot {
     required this.visitStates,
     required this.ranks,
     this.firstStampAt,
+    this.exploredAt = const {},
     this.checkIns = CheckInsOverview.none,
   });
 
@@ -19,6 +20,9 @@ class BadgesSnapshot {
   final Map<int, String> visitStates;
   final Map<int, String> ranks;
   final DateTime? firstStampAt;
+
+  /// When each explored county was confirmed, by county code.
+  final Map<int, DateTime> exploredAt;
   final CheckInsOverview checkIns;
 }
 
@@ -41,6 +45,7 @@ class BadgesSnapshotStore {
         visitStates: _ints(json['visits']),
         ranks: _ints(json['ranks']),
         firstStampAt: DateTime.tryParse('${json['first_stamp_at']}'),
+        exploredAt: _dates(json['explored_at']),
         checkIns: CheckInsOverview.fromJson(json['check_ins']),
       );
     } on Object {
@@ -54,6 +59,7 @@ class BadgesSnapshotStore {
     required Map<int, String> ranks,
     required DateTime now,
     DateTime? firstStampAt,
+    Map<int, DateTime> exploredAt = const {},
     CheckInsOverview checkIns = CheckInsOverview.none,
   }) async {
     try {
@@ -66,6 +72,10 @@ class BadgesSnapshotStore {
           'ranks': {for (final e in ranks.entries) '${e.key}': e.value},
           if (firstStampAt != null)
             'first_stamp_at': firstStampAt.toUtc().toIso8601String(),
+          'explored_at': {
+            for (final e in exploredAt.entries)
+              '${e.key}': e.value.toUtc().toIso8601String(),
+          },
           'check_ins': checkIns.toJson(),
         }),
       );
@@ -73,6 +83,14 @@ class BadgesSnapshotStore {
       // A saved copy is a convenience; never fail the live load over it.
     }
   }
+
+  static Map<int, DateTime> _dates(Object? raw) => {
+    if (raw is Map)
+      for (final e in raw.entries)
+        if (int.tryParse('${e.key}') case final int code)
+          if (DateTime.tryParse('${e.value}') case final DateTime date)
+            code: date,
+  };
 
   static Map<int, String> _ints(Object? raw) => {
     if (raw is Map)

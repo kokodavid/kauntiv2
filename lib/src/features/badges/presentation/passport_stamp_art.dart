@@ -84,6 +84,11 @@ class PassportStampArt extends StatelessWidget {
   static bool has(PassportCounty county) =>
       _available.contains(_slug(county.name));
 
+  /// The stamp's asset path (only meaningful when [has] is true), so a
+  /// caller can precache it before rendering an image off-screen.
+  static String assetFor(PassportCounty county) =>
+      'assets/stamps/${_slug(county.name)}.webp';
+
   /// Greys the ink out, for a county not stamped yet.
   static const _grey = ColorFilter.matrix([
     0.33, 0.33, 0.33, 0, 0, //
@@ -97,7 +102,7 @@ class PassportStampArt extends StatelessWidget {
     final level = county.level;
     final stamped = level.index >= PassportLevel.explored.index;
     Widget art = Image.asset(
-      'assets/stamps/${_slug(county.name)}.webp',
+      assetFor(county),
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
       semanticLabel: '${county.name} stamp',

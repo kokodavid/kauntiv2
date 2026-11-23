@@ -275,4 +275,40 @@ void main() {
       expect(back.of(5).places, 0);
     });
   });
+
+  group('latest stamp', () {
+    PassportBook bookWith(Map<int, DateTime> exploredAt) =>
+        PassportBook.fromCollection(
+          BadgeCollection.from(
+            visitStates: {
+              47: 'explored',
+              22: 'explored',
+              30: 'passed_through',
+            },
+            ranks: {22: 'regular'},
+            exploredAt: exploredAt,
+          ),
+        );
+
+    test('is the most recently explored county, at its current level', () {
+      final latest = bookWith({
+        47: DateTime.utc(2026, 9, 5),
+        22: DateTime.utc(2026, 11, 2),
+      }).latestStamp;
+      expect(latest!.code, 22);
+      expect(latest.level, PassportLevel.bronze);
+    });
+
+    test('ignores passed-through counties and undated ones', () {
+      final latest = bookWith({
+        47: DateTime.utc(2026, 9, 5),
+        30: DateTime.utc(2026, 12, 1),
+      }).latestStamp;
+      expect(latest!.code, 47);
+    });
+
+    test('is null when nothing explored is dated', () {
+      expect(bookWith(const {}).latestStamp, isNull);
+    });
+  });
 }

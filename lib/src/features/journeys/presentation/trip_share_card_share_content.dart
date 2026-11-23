@@ -33,7 +33,7 @@ class _ShareContent extends StatelessWidget {
     children: [
       Row(
         children: [
-          _Watermark(
+          AppShareWatermark(
             textStyle: _Styles.shareWatermarkText,
             inverted: watermarkInverted,
           ),

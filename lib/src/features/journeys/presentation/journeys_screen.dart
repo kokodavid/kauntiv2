@@ -20,6 +20,7 @@ class JourneysScreen extends ConsumerWidget {
     this.onOpenJourney,
     this.onOpenSettings,
     this.onOpenRecording,
+    this.header,
   });
 
   final OpenJourney? onOpenJourney;
@@ -27,6 +28,10 @@ class JourneysScreen extends ConsumerWidget {
 
   /// The full-screen map for the Journey in progress.
   final OpenJourneyRecording? onOpenRecording;
+
+  /// Drawn at the right of the title: the Trips tab's Planned / Recorded
+  /// switch.
+  final Widget? header;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,9 +50,9 @@ class JourneysScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Text('Trips', style: AppTextStyles.headingForeground),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: _TitleRow(trailing: header),
               ),
               Expanded(
                 child: OfflineScreen(
@@ -77,7 +82,7 @@ class JourneysScreen extends ConsumerWidget {
             // Room for the floating tab bar.
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             children: [
-              const Text('Trips', style: AppTextStyles.headingForeground),
+              _TitleRow(trailing: header),
               const SizedBox(height: 16),
               const JourneyHeroStats(),
               const SizedBox(height: 16),
@@ -96,4 +101,22 @@ class JourneysScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The page title, with the Planned / Recorded switch at its right when
+/// the planner is on.
+class _TitleRow extends StatelessWidget {
+  const _TitleRow({this.trailing});
+
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      const Expanded(
+        child: Text('Trips', style: AppTextStyles.headingForeground),
+      ),
+      ?trailing,
+    ],
+  );
 }

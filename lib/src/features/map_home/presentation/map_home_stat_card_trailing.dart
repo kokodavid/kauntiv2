@@ -89,6 +89,7 @@ class _ProfileAvatar extends ConsumerWidget {
                   ? DecorationImage(
                       image: appNetworkImage(avatarUrl, cacheWidth: 96),
                       fit: BoxFit.cover,
+                      onError: (_, _) {},
                     )
                   : null,
             ),

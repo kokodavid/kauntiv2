@@ -3,17 +3,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
+import '../../../core/widgets/app_floating_toast.dart';
+import '../../../core/widgets/place_detail_bar_button.dart';
 import '../../../design/app_colors.dart';
-import '../../../design/app_text_styles.dart';
-import '../../../widgets/app_progress_indicator.dart';
 import '../application/discover_detail_actions.dart';
 import '../domain/place_detail.dart';
 import 'detail_async_body.dart';
 import 'explore_ad_slot.dart';
-import 'place_detail_about_tile.dart';
-import 'place_detail_bar.dart';
+import 'place_detail_about_section.dart';
+import 'place_detail_action_bar.dart';
 import 'place_detail_header.dart';
-import 'place_detail_tabs.dart';
+import 'place_detail_header_actions.dart';
 
 typedef PlaceDetailSectionBuilder =
     Widget Function(BuildContext context, PlaceDetailData place);
@@ -21,40 +22,44 @@ typedef PlaceDetailSectionBuilder =
 typedef OpenPlaceRoute =
     Future<void> Function(BuildContext context, PlaceDetailData place);
 
-/// Place Detail: the photos, an expandable About tile and, for a place with
-/// coordinates, the trip plan, scrolling together above a fixed bottom bar
-/// with Start trip. A place without coordinates has a Get Route button.
+/// Place Detail: header, then one floating action bar for the whole
+/// page's primary actions, then Photos and an always-open About -- no
+/// docked bottom bar, no tap-to-expand tile. The old layout stacked
+/// "Add to trip" and the check-in card full width above a collapsible
+/// About tile, with Photos last and a docked Get Route bar; this reads
+/// top to bottom with the bar floating over the content, the way
+/// `AppBottomNav` floats over the tabs.
 class PlaceDetailScreen extends StatelessWidget {
   const PlaceDetailScreen({
     super.key,
     required this.placeId,
     required this.actions,
     this.onGetRoute,
-    this.gettingThere,
-    this.startButton,
     this.photos,
     this.checkIn,
+    this.addToTrip,
+    this.addPhoto,
   });
 
   final String placeId;
   final DiscoverDetailActions actions;
   final OpenPlaceRoute? onGetRoute;
 
-  /// The trip plan, supplied by app/ (features compose there, not
-  /// here). Only built for places with coordinates.
-  final PlaceDetailSectionBuilder? gettingThere;
-
-  /// The bottom bar's main button while [gettingThere] is shown: the trip
-  /// builder's own "Start trip".
-  final PlaceDetailSectionBuilder? startButton;
-
-  /// The Photos section (strip, add tile, status chip), supplied by app/
-  /// (features compose there). Shown on the About tab.
+  /// The Photos section (strip, "See all"), supplied by app/ (features
+  /// compose there). Shown above About.
   final PlaceDetailSectionBuilder? photos;
 
-  /// The check-in card ("I'm here"), supplied by app/. Shown on the About
-  /// tab of a place with coordinates, above the photos.
+  /// The check-in bar item ("I'm here"), supplied by app/. Shown in the
+  /// floating action bar for a place with coordinates.
   final PlaceDetailSectionBuilder? checkIn;
+
+  /// The "Add to trip" bar item, supplied by app/. Shown in the floating
+  /// action bar for every place.
+  final PlaceDetailSectionBuilder? addToTrip;
+
+  /// The "Add photo" bar item, supplied by app/. Shown in the floating
+  /// action bar for a place that takes photos.
+  final PlaceDetailSectionBuilder? addPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -68,10 +73,10 @@ class PlaceDetailScreen extends StatelessWidget {
             data: data,
             actions: actions,
             onGetRoute: onGetRoute,
-            gettingThere: gettingThere,
-            startButton: startButton,
             photos: photos,
             checkIn: checkIn,
+            addToTrip: addToTrip,
+            addPhoto: addPhoto,
           ),
         ),
       ),
@@ -84,19 +89,19 @@ class _PlaceDetailBody extends StatefulWidget {
     required this.data,
     required this.actions,
     this.onGetRoute,
-    this.gettingThere,
-    this.startButton,
     this.photos,
     this.checkIn,
+    this.addToTrip,
+    this.addPhoto,
   });
 
   final PlaceDetailData data;
   final DiscoverDetailActions actions;
   final OpenPlaceRoute? onGetRoute;
-  final PlaceDetailSectionBuilder? gettingThere;
-  final PlaceDetailSectionBuilder? startButton;
   final PlaceDetailSectionBuilder? photos;
   final PlaceDetailSectionBuilder? checkIn;
+  final PlaceDetailSectionBuilder? addToTrip;
+  final PlaceDetailSectionBuilder? addPhoto;
 
   @override
   State<_PlaceDetailBody> createState() => _PlaceDetailBodyState();
@@ -104,12 +109,6 @@ class _PlaceDetailBody extends StatefulWidget {
 
 class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
   bool _openingRoute = false;
-  PlaceDetailTab _tab = PlaceDetailTab.about;
-
-  bool get _planned =>
-      widget.gettingThere != null &&
-      widget.startButton != null &&
-      widget.data.hasCoordinates;
 
   Future<void> _getRoute(BuildContext context) async {
     if (_openingRoute) return;
@@ -121,141 +120,98 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
       } else {
         final opened = await widget.actions.openDirections(widget.data);
         if (!opened && context.mounted) {
-          _say(context, "Couldn't open directions.");
+          _toastError(context, "Couldn't open directions.");
         }
       }
     } on Object {
-      if (context.mounted) _say(context, "Couldn't open directions.");
+      if (context.mounted) _toastError(context, "Couldn't open directions.");
     } finally {
       if (mounted) setState(() => _openingRoute = false);
     }
   }
 
-  /// The place's story: description, every photo, and a way into the planner.
-  Widget _about(BuildContext context, PlaceDetailData data) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      PlaceDetailAboutTile(description: data.description),
-      // One ad under the description, clear of the check-in card and the
-      // Start trip bar. Renders nothing unless ads are on for this user.
-      const SizedBox(height: 12),
-      const ExploreAdSlot(),
-      if (widget.photos != null) ...[
-        const SizedBox(height: 8),
-        widget.photos!(context, data),
-      ],
-    ],
-  );
-
-  void _say(BuildContext context, String message) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(message)));
+  void _toastError(BuildContext context, String message) =>
+      showAppToast(context, variant: AppToastVariant.error, title: message);
 
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-    return Column(
+    return Stack(
       children: [
-        Expanded(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 8, bottom: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      PlaceDetailHeader(
-                        images: data.images,
-                        title: data.title,
-                        countyName: '${data.county.name} County',
-                        category: data.category,
-                        credits: data.imageCredits,
-                      ),
-                      if (widget.checkIn != null && data.hasCoordinates)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                          child: widget.checkIn!(context, data),
-                        ),
-                      if (_planned)
-                        PlaceDetailTabs(
-                          selected: _tab,
-                          onChanged: (tab) => setState(() => _tab = tab),
-                        ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          16,
-                          _planned ? 14 : 12,
-                          16,
-                          0,
-                        ),
-                        child: _planned && _tab == PlaceDetailTab.plan
-                            ? widget.gettingThere!(context, data)
-                            : _about(context, data),
-                      ),
-                    ],
+        Positioned.fill(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              top: 8,
+              bottom: AppBottomNav.clearance(context) + 16,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PlaceDetailHeader(
+                  images: data.images,
+                  title: data.title,
+                  countyName: '${data.county.name} County',
+                  credits: data.imageCredits,
+                ),
+                if (widget.photos != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+                    child: widget.photos!(context, data),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
+                  child: PlaceDetailAboutSection(
+                    description: data.description,
+                    category: data.category,
+                    countyName: '${data.county.name} County',
                   ),
                 ),
-              ),
-              // Stays put while the page scrolls under it.
-              Positioned(
-                left: 24,
-                top: 20,
-                child: AppBackButton(
-                  size: 44,
-                  onPressed: () => Navigator.of(context).maybePop(),
+                const SizedBox(height: 12),
+                // Renders nothing unless ads are on for this user.
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: ExploreAdSlot(),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        PlaceDetailBar(
-          primary: _planned
-              ? widget.startButton!(context, data)
-              : _GetRouteButton(
-                  busy: _openingRoute,
-                  onPressed: () => unawaited(_getRoute(context)),
-                ),
-          saved: data.saved,
-          onSavedChanged: (saved) => widget.actions.setPlaceSaved(
-            countyCode: data.county.code,
-            placeId: data.id,
-            saved: saved,
+        Positioned(
+          left: 24,
+          top: 20,
+          child: AppBackButton(
+            size: 44,
+            onPressed: () => Navigator.of(context).maybePop(),
           ),
-          onShare: () => _say(context, 'Sharing is coming soon.'),
+        ),
+        Positioned(
+          right: 24,
+          top: 20,
+          child: PlaceDetailHeaderActions(
+            saved: data.saved,
+            onSavedChanged: (saved) => widget.actions.setPlaceSaved(
+              countyCode: data.county.code,
+              placeId: data.id,
+              saved: saved,
+            ),
+          ),
+        ),
+        PlaceDetailActionBar(
+          addToTrip:
+              widget.addToTrip?.call(context, data) ?? const SizedBox.shrink(),
+          checkIn: widget.checkIn != null && data.hasCoordinates
+              ? widget.checkIn!(context, data)
+              : null,
+          addPhoto: widget.addPhoto?.call(context, data),
+          route: PlaceDetailBarButton(
+            icon: Icons.directions,
+            label: 'Route',
+            busy: _openingRoute,
+            highlighted: true,
+            onPressed: () => unawaited(_getRoute(context)),
+          ),
         ),
       ],
-    );
-  }
-}
-
-class _GetRouteButton extends StatelessWidget {
-  const _GetRouteButton({required this.busy, required this.onPressed});
-
-  final bool busy;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: ElevatedButton(
-        onPressed: busy ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.accent,
-          foregroundColor: AppColors.accentForeground,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-        ),
-        child: busy
-            ? const AppProgressIndicator(
-                color: AppColors.accentForeground,
-                radius: 9,
-              )
-            : const Text('Get Route', style: AppTextStyles.buttonLabel),
-      ),
     );
   }
 }

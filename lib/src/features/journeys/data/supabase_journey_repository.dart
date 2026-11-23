@@ -9,15 +9,18 @@ import '../domain/journey_destination.dart';
 import '../domain/journey_media_capture.dart';
 import '../domain/journey_media_quota.dart';
 import '../domain/journey_point.dart';
+import '../domain/journey_quality.dart';
 import '../domain/journey_summary.dart';
 import '../domain/journey_transport_mode.dart';
 import '../domain/pro_status.dart';
 import 'journey_county_split_resolver.dart';
+import 'journey_device_context_source.dart';
 import 'journey_place_thumbnail.dart';
 
 part 'supabase_journey_repository_places.dart';
 part 'supabase_journey_repository_media.dart';
 part 'supabase_journey_repository_county_order.dart';
+part 'supabase_journey_repository_quality.dart';
 
 /// Journeys in the cloud: the Pro check, the one upload RPC, and private
 /// history reads and deletion (RLS keeps every read to the owner).

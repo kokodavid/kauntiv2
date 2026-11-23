@@ -84,7 +84,7 @@ class JourneyDestination {
   });
 
   /// More than this and the planner and the server both refuse.
-  static const maxViaStops = 6;
+  static const maxViaStops = 19;
 
   final String placeId;
   final String name;

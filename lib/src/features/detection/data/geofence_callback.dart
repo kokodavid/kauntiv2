@@ -1,4 +1,5 @@
 import 'package:native_geofence/native_geofence.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/services/location_diagnostics.dart';
@@ -8,11 +9,15 @@ import '../domain/visit_rules.dart';
 import 'arrival_notifier.dart';
 import 'detection_repository.dart';
 import 'local/detection_database.dart';
+import 'visit_sync_queue.dart';
 
 /// Runs in a fresh background isolate when the OS reports a geofence
-/// crossing, even with the app closed. No providers, no network: it opens
-/// the local database, records the crossing and closes it. The foreground
-/// cycle uploads and re-registers later.
+/// crossing or dwell, even with the app closed. No providers: it opens
+/// the local database, records the crossing (or re-checks dwell
+/// candidates, Android only) and closes it. It also makes one
+/// best-effort attempt to upload what's queued -- see [_bestEffortSync]
+/// -- but never depends on that succeeding; the foreground cycle still
+/// uploads and re-registers geofences regardless.
 ///
 /// With a location in the event, the polygon lookup decides the county
 /// (circles overlap near borders); the fix is used only for that and is
@@ -22,12 +27,8 @@ import 'local/detection_database.dart';
 @pragma('vm:entry-point')
 Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
   const logger = AppLogger.detection();
-  if (params.event == GeofenceEvent.dwell) return;
-  final kind = params.event == GeofenceEvent.exit
-      ? CrossingKind.exit
-      : CrossingKind.enter;
   await LocationDiagnostics.record('geofence_transition', {
-    'kind': kind.name,
+    'kind': params.event.name,
     'geofence_count': params.geofences.length,
   });
 
@@ -39,10 +40,22 @@ Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
   try {
     if (await db.select(db.detectionOwner).getSingleOrNull() == null) return;
 
-    await _record(params, repository, kind);
-    if (kind == CrossingKind.enter) {
-      await _notifyArrival(repository);
+    if (params.event == GeofenceEvent.dwell) {
+      // Android only (see geofence_service.dart): the OS itself timed the
+      // stay, so just re-check every running candidate the normal way --
+      // it may not even be this geofence's county (a neighbour's
+      // candidate can also be due by now).
+      await _resolveDwelling(repository);
+    } else {
+      final kind = params.event == GeofenceEvent.exit
+          ? CrossingKind.exit
+          : CrossingKind.enter;
+      await _record(params, repository, kind);
+      if (kind == CrossingKind.enter) {
+        await _notifyArrival(repository);
+      }
     }
+    await _bestEffortSync(db);
   } on Object catch (error, stackTrace) {
     logger.warning(
       'Geofence callback failed.',
@@ -51,6 +64,44 @@ Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
     );
   } finally {
     await db.close();
+  }
+}
+
+/// The OS reported the phone has been inside a geofence long enough:
+/// resolve any candidate that has actually passed the dwell threshold.
+Future<void> _resolveDwelling(DetectionRepository repository) async {
+  const logger = AppLogger.detection();
+  final resolved = await repository.checkStillActiveCandidates();
+  for (final visit in resolved) {
+    logger.info('Resolved $visit from a geofence dwell.');
+  }
+}
+
+/// Uploads whatever is queued, right from this background isolate, so a
+/// visit resolved here doesn't just sit waiting for the app to be
+/// reopened. A fresh isolate has no Supabase session of its own, so this
+/// restores it from the same persisted session the foreground app uses.
+/// Any failure here -- no network, no stored session yet, Supabase not
+/// configured for this build -- just leaves the queue for the next
+/// foreground cycle; nothing here is required for correctness.
+Future<void> _bestEffortSync(DetectionDatabase db) async {
+  const logger = AppLogger.detection();
+  try {
+    const url = String.fromEnvironment('SUPABASE_URL');
+    const key = String.fromEnvironment(
+      'SUPABASE_PUBLISHABLE_KEY',
+      defaultValue: String.fromEnvironment('SUPABASE_ANON_KEY'),
+    );
+    if (url.isEmpty || key.isEmpty) return;
+    final supabase = await Supabase.initialize(url: url, publishableKey: key);
+    final queue = VisitSyncQueue.supabase(db, supabase.client);
+    await queue.drain();
+  } on Object catch (error, stackTrace) {
+    logger.warning(
+      'Background visit sync skipped.',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 }
 

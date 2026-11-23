@@ -56,4 +56,31 @@ void main() {
       AppRoutes.updateRequired,
     );
   });
+
+  test('an invite link is read from its location', () {
+    expect(AppRoutes.inviteCode('/p/abc123'), 'abc123');
+    expect(AppRoutes.inviteCode('/p/abc123?x=1'), 'abc123');
+    expect(AppRoutes.inviteCode('/plan/abc123'), isNull);
+    expect(AppRoutes.inviteCode('/map'), isNull);
+  });
+
+  test('a remembered invite opens once start-up is done', () {
+    expect(
+      AppRoutes.redirect(
+        StartupStep.ready,
+        '/sign-in',
+        pendingInvite: 'abc123',
+      ),
+      AppRoutes.join('abc123'),
+    );
+    expect(AppRoutes.redirect(StartupStep.ready, '/sign-in'), AppRoutes.map);
+    expect(
+      AppRoutes.redirect(
+        StartupStep.signIn,
+        '/p/abc123',
+        pendingInvite: 'abc123',
+      ),
+      AppRoutes.signIn,
+    );
+  });
 }

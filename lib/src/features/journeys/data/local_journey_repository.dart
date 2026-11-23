@@ -1,26 +1,20 @@
 import 'package:drift/drift.dart';
 
 import '../domain/journey_destination.dart';
+import '../domain/journey_pause_reason.dart';
 import '../domain/journey_point.dart';
+import '../domain/journey_quality.dart';
 import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_transport_mode.dart';
 import 'journey_database.dart';
+import 'local_journey_types.dart';
+
+export 'local_journey_types.dart';
 
 part 'local_journey_repository_mappers.dart';
 part 'local_journey_repository_trip_metadata.dart';
 part 'local_journey_repository_reads.dart';
-
-class LocalJourneySession {
-  const LocalJourneySession({required this.id, required this.recording});
-
-  final String id;
-  final JourneyRecording recording;
-}
-
-class JourneyPointRejected implements Exception {
-  const JourneyPointRejected();
-}
 
 class LocalJourneyRepository {
   const LocalJourneyRepository(this._db);
@@ -144,17 +138,43 @@ class LocalJourneyRepository {
     return LocalJourneySession(id: id, recording: recording);
   });
 
+  /// How well this Trip has recorded so far; null for a Trip recorded
+  /// before quality was kept.
+  Future<JourneyQuality?> quality(String id, String userId) =>
+      _quality(_db, id, userId);
+
+  Future<void> saveQuality(String id, String userId, JourneyQuality quality) =>
+      _saveQuality(_db, id, userId, quality);
+
+  /// Why this Trip is paused, or null when it is not paused or was paused
+  /// before reasons were saved.
+  Future<JourneyPauseReason?> pauseReason(String id, String userId) =>
+      _pauseReason(_db, id, userId);
+
   Future<LocalJourneySession> pause({
     required String id,
     required String userId,
     required DateTime at,
-  }) => _transition(id, userId, (state) => state.pause(at));
+    JourneyPauseReason reason = JourneyPauseReason.user,
+  }) => _db.transaction(() async {
+    final paused = await _transition(id, userId, (state) => state.pause(at));
+    await _setPauseReason(_db, id, userId, reason);
+    return LocalJourneySession(
+      id: paused.id,
+      recording: paused.recording,
+      pauseReason: reason,
+    );
+  });
 
   Future<LocalJourneySession> resume({
     required String id,
     required String userId,
     required DateTime at,
-  }) => _transition(id, userId, (state) => state.resume(at));
+  }) => _db.transaction(() async {
+    final resumed = await _transition(id, userId, (state) => state.resume(at));
+    await _setPauseReason(_db, id, userId, null);
+    return resumed;
+  });
 
   Future<LocalJourneySession> splitSegment({
     required String id,
@@ -166,7 +186,11 @@ class LocalJourneyRepository {
     required String id,
     required String userId,
     required DateTime at,
-  }) => _transition(id, userId, (state) => state.finish(at));
+  }) => _db.transaction(() async {
+    final finished = await _transition(id, userId, (state) => state.finish(at));
+    await _setPauseReason(_db, id, userId, null);
+    return finished;
+  });
 
   Future<LocalJourneySession> _transition(
     String id,

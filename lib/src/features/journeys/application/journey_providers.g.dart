@@ -235,4 +235,4 @@ final class JourneyCaptureProvider
   }
 }
 
-String _$journeyCaptureHash() => r'f54a49ef06a380cfd65ee266f89579806308139f';
+String _$journeyCaptureHash() => r'd68f5a749346187c439d08bb94d71e815b051c3b';

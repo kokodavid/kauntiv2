@@ -9,6 +9,7 @@ import '../../../core/services/app_media_picker.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../application/journey_providers.dart';
 import '../application/journey_recorder.dart';
 import '../application/journey_views.dart';
 import '../domain/journey_preview.dart';
@@ -16,6 +17,7 @@ import '../domain/journey_recording.dart';
 import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart' show JourneyTitles;
 import 'journey_messages.dart';
+import 'journey_recording_paused_note.dart';
 import 'journey_start_card.dart';
 import 'journey_stop_dialog.dart';
 
@@ -196,7 +198,6 @@ class _JourneyRecordingControlsState
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    // Recorded time: stands still while paused.
                     JourneyFormat.clock(recording.recordedTime(DateTime.now())),
                     style: const TextStyle(
                       fontFamily: AppTypeScale.family,
@@ -229,9 +230,14 @@ class _JourneyRecordingControlsState
                   ),
                   if (!isRecording && !widget.compact) ...[
                     const SizedBox(height: 8),
-                    const Text(
-                      "Anything between now and Resume isn't drawn, "
-                      'including time the app was closed.',
+                    Text(
+                      journeyPausedNote(
+                        session.pauseReason,
+                        pauseSettings: ref
+                            .read(journeyCaptureProvider)
+                            .quality
+                            .settingsAtPause,
+                      ),
                       style: AppTypeScale.small,
                     ),
                   ],

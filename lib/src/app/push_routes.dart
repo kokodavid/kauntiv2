@@ -1,9 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/domain/app_feature_flags.dart';
 import '../features/notifications/domain/push_destination.dart';
+import '../features/trip_plans/application/trips_segment.dart';
+import '../features/trip_plans/domain/planned_trips.dart';
 import 'app_routes.dart';
 
 /// Where a tapped push notification goes. The server sends one of a fixed
@@ -29,6 +33,22 @@ abstract final class PushRoutes {
           router.go(AppRoutes.map);
         } else {
           unawaited(router.push<void>(AppRoutes.county(code)));
+        }
+      case PushDestinationKind.plan:
+        if (id == null) {
+          router.go(AppRoutes.map);
+        } else {
+          unawaited(router.push<void>(AppRoutes.plan(id)));
+        }
+      case PushDestinationKind.trips:
+        if (AppFeatureFlags.journeys) {
+          // An invitation waits on the Planned side.
+          ProviderScope.containerOf(context)
+              .read(tripsSegmentChoiceProvider.notifier)
+              .select(TripsSegment.planned);
+          router.go(AppRoutes.journeys);
+        } else {
+          router.go(AppRoutes.map);
         }
       case PushDestinationKind.place:
         if (id == null) {

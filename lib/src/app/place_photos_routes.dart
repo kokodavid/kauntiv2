@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../features/discover/domain/place_detail.dart';
 import '../features/place_photos/application/place_photos_providers.dart';
 import '../features/place_photos/domain/place_photo_item.dart';
+import '../features/place_photos/presentation/add_photo_bar_item.dart';
 import '../features/place_photos/presentation/my_photos_profile_entry.dart';
 import '../features/place_photos/presentation/my_photos_screen.dart';
 import '../features/place_photos/presentation/place_photos_section.dart';
@@ -37,6 +38,15 @@ abstract final class PlacePhotosRoutes {
           ),
       ],
       onOpenMyPhotos: () => context.push(AppRoutes.myPhotos),
+      onChooseUsername: () => unawaited(_chooseUsername(context)),
+    );
+  }
+
+  /// Place Detail's floating action bar: the "Add photo" item.
+  static Widget addPhotoBarItem(BuildContext context, PlaceDetailData place) {
+    return AddPhotoBarItem(
+      placeId: place.id,
+      canAdd: place.acceptsPhotos,
       onChooseUsername: () => unawaited(_chooseUsername(context)),
     );
   }

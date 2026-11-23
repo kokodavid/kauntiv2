@@ -29,4 +29,11 @@ abstract final class AppShare {
       ShareParams(files: [XFile(path)], text: text),
     );
   }
+
+  /// Shares plain text (a link with a line of context).
+  static Future<void> text(String text, {Rect? origin}) async {
+    await SharePlus.instance.share(
+      ShareParams(text: text, sharePositionOrigin: origin),
+    );
+  }
 }

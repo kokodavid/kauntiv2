@@ -13,7 +13,8 @@ part of 'supabase_client_provider.dart';
 ///
 /// Overridden once at start-up by `buildAppRoot` in
 /// `app/app_bootstrap.dart`, so nothing reads `Supabase.instance`
-/// directly. Tests override this or the repositories that read it.
+/// directly. The null default keeps offline and test widget trees usable
+/// before startup wiring has supplied a client.
 
 @ProviderFor(supabaseClient)
 const supabaseClientProvider = SupabaseClientProvider._();
@@ -23,7 +24,8 @@ const supabaseClientProvider = SupabaseClientProvider._();
 ///
 /// Overridden once at start-up by `buildAppRoot` in
 /// `app/app_bootstrap.dart`, so nothing reads `Supabase.instance`
-/// directly. Tests override this or the repositories that read it.
+/// directly. The null default keeps offline and test widget trees usable
+/// before startup wiring has supplied a client.
 
 final class SupabaseClientProvider
     extends
@@ -34,7 +36,8 @@ final class SupabaseClientProvider
   ///
   /// Overridden once at start-up by `buildAppRoot` in
   /// `app/app_bootstrap.dart`, so nothing reads `Supabase.instance`
-  /// directly. Tests override this or the repositories that read it.
+  /// directly. The null default keeps offline and test widget trees usable
+  /// before startup wiring has supplied a client.
   const SupabaseClientProvider._()
     : super(
         from: null,
@@ -68,4 +71,4 @@ final class SupabaseClientProvider
   }
 }
 
-String _$supabaseClientHash() => r'42487e366482419ee7eaef899f1a21ee75cbe780';
+String _$supabaseClientHash() => r'e034314418ad8d758342b69de8cf5438dfb7b7e1';

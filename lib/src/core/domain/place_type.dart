@@ -179,6 +179,12 @@ final class PlaceType {
     'Stays',
     PlaceTypeFamily.stay,
   );
+  static const countryClub = PlaceType._(
+    'country_club',
+    'Country club',
+    'Country clubs',
+    PlaceTypeFamily.other,
+  );
 
   /// Used when a place has no type at all.
   static const unknown = PlaceType._(
@@ -214,6 +220,7 @@ final class PlaceType {
     market,
     food,
     stay,
+    countryClub,
   ];
 
   static final Map<String, PlaceType> _byKey = {

@@ -12,6 +12,8 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     final saved = await _repository.activeSession(userId);
     if (saved == null) return null;
     _userId = userId;
+    _quality =
+        await _repository.quality(saved.id, userId) ?? const JourneyQuality();
     if (saved.recording.phase == JourneyRecordingPhase.recording) {
       final lastPoint = await _repository.lastPointAt(saved.id, userId);
       final lastChange = saved.recording.lastChangedAt!;
@@ -22,9 +24,18 @@ extension JourneyCaptureLifecycle on JourneyCapture {
         id: saved.id,
         userId: userId,
         at: stoppedAt,
+        reason: JourneyPauseReason.appRestarted,
       );
+      _quality = _quality.withPause(JourneyPauseReason.appRestarted);
+      await _flushQuality();
     } else {
-      _session = saved;
+      _session = LocalJourneySession(
+        id: saved.id,
+        recording: saved.recording,
+        pauseReason: saved.recording.phase == JourneyRecordingPhase.paused
+            ? await _repository.pauseReason(saved.id, userId)
+            : null,
+      );
     }
     return _session;
   }
@@ -41,8 +52,11 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     }
     _userId = userId;
     _session = session;
+    _quality = const JourneyQuality();
     try {
       await _startStream();
+      final settings = await _readDeviceSettings();
+      if (settings != null) _quality = _quality.copyWith(settings: settings);
       final firstFix = _firstFix = Completer<void>();
       try {
         await firstFix.future.timeout(firstFixTimeout);
@@ -63,7 +77,10 @@ extension JourneyCaptureLifecycle on JourneyCapture {
           id: session.id,
           userId: userId,
           at: _notBefore(session.recording.lastChangedAt!),
+          reason: JourneyPauseReason.startFailed,
         );
+        _quality = _quality.withPause(JourneyPauseReason.startFailed);
+        await _flushQuality();
       }
       rethrow;
     }
@@ -93,6 +110,7 @@ extension JourneyCaptureLifecycle on JourneyCapture {
             id: resumed!.id,
             userId: _userId!,
             at: _notBefore(resumed.recording.lastChangedAt!),
+            reason: JourneyPauseReason.startFailed,
           );
         }
       }
@@ -100,16 +118,22 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     }
   }
 
-  Future<LocalJourneySession> pause() async {
+  Future<LocalJourneySession> pause({
+    JourneyPauseReason reason = JourneyPauseReason.user,
+    Duration? teardownTimeoutOverride,
+  }) async {
     final current = _requireSession(JourneyRecordingPhase.recording);
     try {
-      await _endStream();
+      await _endStream(timeout: teardownTimeoutOverride);
     } finally {
       _session = await _repository.pause(
         id: current.id,
         userId: _userId!,
         at: _notBefore(current.recording.lastChangedAt!),
+        reason: reason,
       );
+      _quality = _quality.withPause(reason);
+      await _flushQuality();
     }
     return _session!;
   }
@@ -130,6 +154,7 @@ extension JourneyCaptureLifecycle on JourneyCapture {
       }
     }
     if (_teardownPending) await _endStream();
+    await _flushQuality();
     final finished = await _repository.finish(
       id: current.id,
       userId: _userId!,
@@ -146,10 +171,11 @@ extension JourneyCaptureLifecycle on JourneyCapture {
     final current = _session;
     if (current == null) return;
     if (current.recording.phase == JourneyRecordingPhase.recording) {
-      await pause();
+      await pause(reason: JourneyPauseReason.accountChanged);
     }
     if (_teardownPending) await _endStream();
     _session = null;
     _userId = null;
+    _quality = const JourneyQuality();
   }
 }

@@ -40,9 +40,9 @@ class JourneyDeviceSettings {
   ];
 
   Map<String, Object> toJson() => {
-    if (batterySaver != null) 'battery_saver': batterySaver!,
-    if (batteryOptimised != null) 'battery_optimised': batteryOptimised!,
-    if (batteryPercent != null) 'battery_percent': batteryPercent!,
+    'battery_saver': ?batterySaver,
+    'battery_optimised': ?batteryOptimised,
+    'battery_percent': ?batteryPercent,
     'strict_maker': strictMaker,
   };
 

@@ -24,8 +24,9 @@ class PlanEditor {
     Future<void> Function() change,
   ) async {
     final repository = _ref.read(tripPlansRepositoryProvider);
-    if (repository == null)
+    if (repository == null) {
       return const PlanFailure(PlanFailureKind.unavailable);
+    }
     try {
       await change();
     } on PlanFailure catch (failure) {

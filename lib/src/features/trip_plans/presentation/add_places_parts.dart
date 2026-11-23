@@ -9,6 +9,7 @@ import 'plan_stop_row.dart';
 
 class AddPlacesRow extends StatelessWidget {
   const AddPlacesRow({
+    super.key,
     required this.place,
     required this.added,
     required this.adding,

@@ -5,11 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../services/app_logger.dart';
-import '../domain/journey_destination.dart';
-import '../domain/journey_point.dart';
-import '../domain/journey_quality.dart';
 import '../domain/journey_summary.dart';
-import '../domain/journey_transport_mode.dart';
 import 'journey_database.dart';
 import 'journey_upload_types.dart';
 import 'local_journey_repository.dart';

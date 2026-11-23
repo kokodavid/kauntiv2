@@ -1,5 +1,7 @@
 import 'dart:async';
 
+// ignore_for_file: experimental_member_use
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -108,7 +110,6 @@ class _DropPinPageState extends ConsumerState<DropPinPage> {
                         key: ValueKey('drop-pin-$lat-$lng'),
                         styleUri: MapboxStyles.OUTDOORS,
                         textureView: true,
-                        // ignore: experimental_member_use
                         androidHostingMode:
                             AndroidPlatformViewHostingMode.TLHC_HC,
                         viewport: CameraViewportState(

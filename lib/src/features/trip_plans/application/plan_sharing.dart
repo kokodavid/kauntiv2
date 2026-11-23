@@ -63,8 +63,9 @@ class PlanSharing {
     bool leaving = false,
   }) async {
     final repository = _ref.read(planCollaborationRepositoryProvider);
-    if (repository == null)
+    if (repository == null) {
       return const PlanFailure(PlanFailureKind.unavailable);
+    }
     try {
       await change(repository);
     } on PlanFailure catch (failure) {
@@ -129,8 +130,9 @@ class PlanSharing {
 
   Future<PlanFailure?> setMuted(String planId, {required bool muted}) async {
     final repository = _ref.read(planCollaborationRepositoryProvider);
-    if (repository == null)
+    if (repository == null) {
       return const PlanFailure(PlanFailureKind.unavailable);
+    }
     try {
       await repository.setMuted(planId, muted: muted);
     } on PlanFailure catch (failure) {
@@ -149,8 +151,9 @@ class PlanSharing {
       (r) => r.respondInvitation(planId, accept: accept),
       leaving: true,
     );
-    if (failure == null && _ref.mounted)
+    if (failure == null && _ref.mounted) {
       _ref.invalidate(myPlanInvitationsProvider);
+    }
     return failure;
   }
 }

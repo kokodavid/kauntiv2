@@ -26,11 +26,11 @@ void main() {
       streamLosses: 4,
       streamRecoveries: 3,
       lostMillis: 90000,
-      settings: const JourneyDeviceSettings(batteryPercent: 80),
+      settings: JourneyDeviceSettings(batteryPercent: 80),
       // Read again right before the pause, so this can differ from
       // [settings] above -- here, battery saver switched on partway
       // through the Trip.
-      settingsAtPause: const JourneyDeviceSettings(
+      settingsAtPause: JourneyDeviceSettings(
         batterySaver: true,
         batteryPercent: 14,
       ),

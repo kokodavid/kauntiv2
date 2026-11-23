@@ -7,6 +7,7 @@ import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
+import '../application/journey_capture_device_settings.dart';
 import '../application/journey_entitlement.dart';
 import '../application/journey_providers.dart';
 import '../application/journey_recorder.dart';

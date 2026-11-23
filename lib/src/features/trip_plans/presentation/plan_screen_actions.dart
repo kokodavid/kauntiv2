@@ -14,15 +14,15 @@ import 'add_places_page.dart';
 import 'plan_archive_actions.dart';
 import 'plan_best_order_actions.dart';
 import 'plan_date_picker_sheet.dart';
+import 'plan_day_colors.dart';
 import 'plan_day_parts.dart';
 import 'plan_edit_sheets.dart';
-import 'plan_day_colors.dart';
 import 'plan_menu.dart';
+import 'plan_note_sheet.dart';
+import 'plan_overnight_actions.dart';
 import 'plan_pick_day_sheet.dart';
 import 'plan_pick_idea_sheet.dart';
 import 'plan_remove_confirms.dart';
-import 'plan_note_sheet.dart';
-import 'plan_overnight_actions.dart';
 import 'plan_start_actions.dart';
 import 'plan_stop_menu.dart';
 
@@ -149,6 +149,7 @@ class PlanScreenActions {
         title: 'Add ${idea.place.name} to',
       );
       if (choice == null) return;
+      if (!context.mounted) return;
       day = choice.day ?? await addPlanDay(context, ref, plan);
     }
     if (day != null) {
@@ -165,6 +166,7 @@ class PlanScreenActions {
       exceptDayId: from.id,
     );
     if (choice == null) return null;
+    if (!context.mounted) return null;
     return choice.day ?? await addPlanDay(context, ref, plan);
   }
 

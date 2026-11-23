@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/journeys/application/journey_capture.dart';
+import 'package:kaunti47_v2/src/features/journeys/application/journey_capture_device_settings.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/journey_database.dart';
 import 'package:kaunti47_v2/src/features/journeys/data/local_journey_repository.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_device_settings.dart';

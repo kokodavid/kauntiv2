@@ -70,7 +70,7 @@ class PlanPeopleSheet extends ConsumerWidget {
         context,
         title: member.joined ? 'Remove $name?' : 'Cancel the invitation?',
         message: member.joined
-            ? "$name loses access to this plan. Someone can invite them again."
+            ? '$name loses access to this plan. Someone can invite them again.'
             : 'The invitation to $name stops working.',
         action: member.joined ? 'Remove' : 'Cancel invitation',
         icon: Icons.person_remove_outlined,

@@ -80,7 +80,7 @@ class _PlacePhotosAddNudgeBannerState
                 onTap: widget.onAdd,
                 child: Text.rich(
                   TextSpan(
-                    text: "Been here? ",
+                    text: 'Been here? ',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.foreground,
                     ),

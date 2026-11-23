@@ -16,8 +16,8 @@ import '../domain/plan_member.dart';
 import '../domain/trip_plan.dart';
 import 'plan_edit_sheets.dart';
 import 'plan_invite_user_section.dart';
-import 'plan_share_parts.dart';
 import 'plan_pro_sheet.dart';
+import 'plan_share_parts.dart';
 import 'plan_sheet_frame.dart';
 
 /// "Invite people" (design 8): a link to send, and people found by

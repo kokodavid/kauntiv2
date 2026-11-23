@@ -196,7 +196,7 @@ class CreatePlanNote extends StatelessWidget {
 
 /// The small "See Pro" button inside the day-limit note.
 class CreatePlanSeeProButton extends StatelessWidget {
-  const CreatePlanSeeProButton({required this.onPressed});
+  const CreatePlanSeeProButton({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 

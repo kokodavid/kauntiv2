@@ -37,7 +37,7 @@ class PlaceDetailAboutSection extends StatelessWidget {
         if (!_hideTitle) ...[
           Semantics(
             header: true,
-            child: Text('About', style: AppTypeScale.sectionTitle),
+            child: const Text('About', style: AppTypeScale.sectionTitle),
           ),
           const SizedBox(height: 10),
         ],

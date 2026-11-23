@@ -1,6 +1,6 @@
 part of 'journey_capture.dart';
 
-extension _JourneyCaptureRecovery on JourneyCapture {
+extension JourneyCaptureRecovery on JourneyCapture {
   void _streamFailed(Object error, StackTrace stack) {
     lastError = error;
     _recoverStream();
@@ -70,7 +70,7 @@ extension _JourneyCaptureRecovery on JourneyCapture {
             }
           }
           shouldNotifyPause = true;
-          final pauseSettings = await readDeviceSettings();
+          final pauseSettings = await _readDeviceSettings();
           if (pauseSettings != null) {
             _quality = _quality.copyWith(settingsAtPause: pauseSettings);
           }
@@ -107,8 +107,7 @@ extension _JourneyCaptureRecovery on JourneyCapture {
     }
   }
 
-  /// The phone's power settings now, or null when they cannot be read.
-  Future<JourneyDeviceSettings?> readDeviceSettings() async {
+  Future<JourneyDeviceSettings?> _readDeviceSettings() async {
     final source = deviceSettings;
     if (source == null) return null;
     try {

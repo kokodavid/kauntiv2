@@ -47,7 +47,8 @@ class _PlannedExampleLoopState extends State<PlannedExampleLoop>
     _timer?.cancel();
     _timer = null;
     final still =
-        MediaQuery.of(context).disableAnimations || !TickerMode.of(context);
+        MediaQuery.of(context).disableAnimations ||
+        !TickerMode.valuesOf(context).enabled;
     if (still) return;
     _timer = Timer.periodic(widget.hold, (_) => _advance());
   }
@@ -55,13 +56,15 @@ class _PlannedExampleLoopState extends State<PlannedExampleLoop>
   void _advance() {
     if (_paused || _swapping || !mounted) return;
     setState(() => _swapping = true);
-    _swap.forward(from: 0).whenComplete(() {
-      if (!mounted) return;
-      setState(() {
-        _index = _next;
-        _swapping = false;
-      });
-    });
+    unawaited(
+      _swap.forward(from: 0).whenComplete(() {
+        if (!mounted) return;
+        setState(() {
+          _index = _next;
+          _swapping = false;
+        });
+      }),
+    );
   }
 
   @override

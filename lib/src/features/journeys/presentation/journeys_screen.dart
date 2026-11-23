@@ -116,7 +116,7 @@ class _TitleRow extends StatelessWidget {
       const Expanded(
         child: Text('Trips', style: AppTextStyles.headingForeground),
       ),
-      if (trailing != null) trailing!,
+      ?trailing,
     ],
   );
 }

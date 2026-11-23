@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/app_type_scale.dart';
 import '../../../design/app_colors.dart';
+import '../application/plan_directions.dart';
 import '../domain/plan_counties.dart';
 import '../domain/plan_day.dart';
 import '../domain/plan_day_legs.dart';
@@ -13,7 +14,6 @@ import '../domain/plan_day_recording.dart';
 import '../domain/plan_labels.dart';
 import '../domain/plan_route.dart';
 import '../domain/trip_plan.dart';
-import '../application/plan_directions.dart';
 import 'plan_day_colors.dart';
 import 'plan_day_footer.dart';
 import 'plan_day_header.dart';

@@ -14,7 +14,8 @@ alter table public.app_feature_flags
 alter table public.app_feature_flags add constraint app_feature_flags_feature_key_check
   check (feature_key in (
     'county_news', 'public_trips_read', 'public_trips_publish',
-    'place_photos', 'push_broadcasts', 'place_check_ins', 'ads', 'billing'
+    'place_photos', 'push_broadcasts', 'place_check_ins', 'ads', 'billing',
+    'trip_plans', 'trip_plan_invites', 'trip_plan_links', 'passport_share'
   ));
 insert into public.app_feature_flags (feature_key, enabled)
 values ('billing', false)

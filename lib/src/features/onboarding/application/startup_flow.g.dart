@@ -112,7 +112,7 @@ final class StartupFlowProvider
   }
 }
 
-String _$startupFlowHash() => r'dd23c6401bca123b10209636706229b9984e60c8';
+String _$startupFlowHash() => r'c732543c364305123493163fbc10d2b6fce485fc';
 
 /// Start-up and onboarding: splash (session restore) → sign in → then, for
 /// a new user only, four setup steps (home county → place interests →

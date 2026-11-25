@@ -168,6 +168,15 @@ class StartupFlow extends _$StartupFlow
     homeCountyError: () => null,
   );
 
+  /// Changing home from Edit Profile, after setup: saves and updates the
+  /// county everything else reads. Throws when the save fails, so the
+  /// caller can say so; the old county stays in that case.
+  Future<void> changeHomeCounty(CountyPath county) async {
+    if (county == state.homeCounty) return;
+    await ref.read(profileSetupRepositoryProvider).saveHomeCounty(county);
+    if (ref.mounted) state = state.copyWith(homeCounty: () => county);
+  }
+
   Future<void> saveHomeCounty() async {
     final county = state.homeCounty;
     if (county == null || state.isSavingCounty) return;

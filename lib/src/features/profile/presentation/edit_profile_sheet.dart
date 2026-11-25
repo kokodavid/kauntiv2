@@ -5,12 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/app_media_picker.dart';
 import '../../../core/widgets/app_network_image.dart';
+import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../../onboarding/application/startup_flow.dart';
 import '../application/public_profile_providers.dart';
 import '../application/username_providers.dart';
 import '../domain/public_profile.dart';
 import 'avatar_crop_screen.dart';
 import 'avatar_viewer.dart';
+import 'edit_profile_home_county.dart';
 import 'profile_text_field.dart';
 import 'username_chooser_section.dart';
 
@@ -36,11 +39,13 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
   String? _avatarUrl;
   bool _savingPhoto = false;
   bool _saving = false;
+  CountyPath? _homeCounty;
 
   @override
   void initState() {
     super.initState();
     _avatarUrl = widget.profile.avatarUrl;
+    _homeCounty = ref.read(startupFlowProvider).homeCounty;
   }
 
   @override
@@ -98,6 +103,10 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
       }
       if (name.isNotEmpty && name != widget.profile.displayName) {
         await repository.update(displayName: name);
+      }
+      final home = _homeCounty;
+      if (home != null) {
+        await ref.read(startupFlowProvider.notifier).changeHomeCounty(home);
       }
       ref.invalidate(myPublicProfileProvider);
       if (mounted) Navigator.of(context).pop();
@@ -185,6 +194,13 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
               showHeader: true,
               inputFirst: true,
               initialText: widget.profile.handle,
+            ),
+            const SizedBox(height: 14),
+            const Divider(height: 1, color: AppColors.listDivider),
+            const SizedBox(height: 8),
+            EditProfileHomeCounty(
+              county: _homeCounty,
+              onChanged: (c) => setState(() => _homeCounty = c),
             ),
           ],
         ),

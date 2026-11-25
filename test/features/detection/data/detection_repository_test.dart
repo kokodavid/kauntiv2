@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -146,6 +148,25 @@ void main() {
       expect(await db.select(db.candidates).get(), isEmpty);
       expect(await db.select(db.detectionOwner).get(), isEmpty);
     });
+  });
+
+  test('a running stay survives the database being closed and reopened', () async {
+    // An app update or the OS killing the app mid-drive: the stay must
+    // still be there afterwards.
+    final dir = Directory.systemTemp.createTempSync('detection_db_');
+    final file = File('${dir.path}/detection.sqlite');
+    addTearDown(() => dir.deleteSync(recursive: true));
+
+    final first = DetectionDatabase.forTesting(NativeDatabase(file));
+    final repo = DetectionRepository(first, userId: 'alice');
+    await repo.handleEvent(_event(34, CrossingKind.enter, t0));
+    await first.close();
+
+    final second = DetectionDatabase.forTesting(NativeDatabase(file));
+    addTearDown(second.close);
+    final reopened = DetectionRepository(second, userId: 'alice');
+    expect(await reopened.activeCandidateCountyCodes(), {34});
+    expect(await reopened.currentCountyCode(), 34);
   });
 
   test(

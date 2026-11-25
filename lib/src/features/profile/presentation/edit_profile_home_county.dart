@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../../../counties/county_paths.dart';
 import '../../../design/app_colors.dart';
+import '../../../widgets/app_county_map.dart';
 import '../../../widgets/county_picker_sheet.dart';
 
-/// The "Home county" row in Edit Profile: shows the current home and opens
+/// The "Home county" row in Edit Profile: a small map of Kenya with the
+/// home county highlighted, its name, and opens
 /// the county search to pick another. The pick is only held by the sheet;
 /// it is saved with the rest when Save is tapped.
 class EditProfileHomeCounty extends StatelessWidget {
@@ -41,12 +43,15 @@ class EditProfileHomeCounty extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           children: [
-            const Icon(
-              Icons.home_outlined,
-              size: 20,
-              color: AppColors.mutedForeground,
+            // Kenya with the home county lit up (same aspect as the map).
+            SizedBox(
+              width: 40,
+              height: 40 * CountyPaths.viewBoxHeight / CountyPaths.viewBoxWidth,
+              child: ExcludeSemantics(
+                child: AppCountyMap(selectedCounty: county),
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

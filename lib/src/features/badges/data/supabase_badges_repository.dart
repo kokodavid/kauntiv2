@@ -4,6 +4,7 @@ import '../../../services/app_logger.dart';
 import '../domain/badge_collection.dart';
 import '../domain/county_badge_detail.dart';
 import '../domain/county_check_ins.dart';
+import 'county_stay_history.dart';
 
 /// The signed-in user's badges: visit state per county (`county_visits`)
 /// and depth per explored county (`county_depth_ranks()`, computed from
@@ -180,6 +181,7 @@ class SupabaseBadgesRepository {
         )
         .timeout(_timeout);
     final checkInsRow = await _countyCheckIns(countyCode);
+    final stays = await fetchCountyStayHistory(_client, countyCode);
     int count(String key) => (row[key] as num?)?.toInt() ?? 0;
     DateTime? at(String key) => switch (row[key]) {
       final String value => DateTime.parse(value),
@@ -202,6 +204,10 @@ class SupabaseBadgesRepository {
       categoriesTotal: checkInsRow.categoriesTotal,
       checkedInPlaces: checkInsRow.places,
       checkInDays: checkInsRow.days,
+      timedVisits: stays.timedVisits,
+      longVisits: stays.longVisits,
+      totalStay: stays.total,
+      recentStays: stays.recent,
       suggestedPlaces: [
         for (final place
             in (row['suggested_places'] as List<dynamic>? ?? const [])

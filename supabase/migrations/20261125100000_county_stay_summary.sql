@@ -1,7 +1,10 @@
 -- A user's stays in one county: how many were timed, the total time and the
 -- recent ones. Stays never add up towards the 2 h explored rule; this only
 -- reports them. Visits recorded before 11 Oct 2026, and visits from older
--- app builds, have no stay_seconds and are counted separately.
+-- app builds, have no stay_seconds and are counted separately. A stay over
+-- 24 hours is almost always a late exit (the phone only noticed it had left
+-- when the app next ran), so those are counted as long_visits and left out
+-- of the total.
 --
 -- Additive: a new function only. Nothing existing changes, so older app
 -- builds keep working.
@@ -26,8 +29,15 @@ as $$
   )
   select jsonb_build_object(
     'visits', (select count(*) from stays),
-    'timed_visits', (select count(stay_seconds) from stays),
-    'total_stay_seconds', coalesce((select sum(stay_seconds) from stays), 0),
+    'timed_visits', (
+      select count(stay_seconds) from stays where stay_seconds <= 86400
+    ),
+    'long_visits', (
+      select count(*) from stays where stay_seconds > 86400
+    ),
+    'total_stay_seconds', coalesce(
+      (select sum(stay_seconds) from stays where stay_seconds <= 86400), 0
+    ),
     'recent', coalesce(
       (select jsonb_agg(
          jsonb_build_object(

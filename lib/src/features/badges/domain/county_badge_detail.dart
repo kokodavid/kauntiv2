@@ -73,6 +73,23 @@ class CheckedInPlace {
   final String? thumbnailUrl;
 }
 
+/// One timed stay in a county (`county_stay_summary`). [stay] is null for
+/// visits recorded before stay times were kept.
+class CountyStay {
+  const CountyStay({
+    required this.enteredAt,
+    required this.explored,
+    this.stay,
+  });
+
+  final DateTime enteredAt;
+  final bool explored;
+  final Duration? stay;
+
+  /// Over a day is almost always a late exit, not a real stay.
+  bool get isLong => (stay?.inHours ?? 0) >= 24;
+}
+
 /// One county's badge, in detail (`county_badge_detail`).
 class CountyBadgeDetail {
   const CountyBadgeDetail({
@@ -90,6 +107,10 @@ class CountyBadgeDetail {
     this.checkedInPlaces = const [],
     this.checkInDays = 0,
     this.suggestedPlaces = const [],
+    this.timedVisits = 0,
+    this.longVisits = 0,
+    this.totalStay = Duration.zero,
+    this.recentStays = const [],
   });
 
   /// When the county was first explored (the badge earned).
@@ -135,6 +156,15 @@ class CountyBadgeDetail {
   final int checkInDays;
 
   final List<BadgeSuggestedPlace> suggestedPlaces;
+
+  /// Stays with a recorded length (a day or less), how many ran over a day
+  /// (left out of the total), the total time, and the latest stays first.
+  /// Adding stays up is only for display: the 2 hours that earns a county
+  /// is still one stay.
+  final int timedVisits;
+  final int longVisits;
+  final Duration totalStay;
+  final List<CountyStay> recentStays;
 }
 
 /// What the next depth level needs.

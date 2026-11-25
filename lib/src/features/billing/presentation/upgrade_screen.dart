@@ -69,6 +69,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
     final status = ref.watch(billingControllerProvider);
     final plansAsync = ref.watch(proPlansProvider);
     final working = status == BillingStatus.working;
+    final activating = status == BillingStatus.activating;
     final message = _message(status);
 
     return Scaffold(
@@ -148,7 +149,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
                           savingPercent: plan.period == ProPlanPeriod.annual
                               ? saving
                               : null,
-                          onTap: working
+                          onTap: working || activating
                               ? () {}
                               : () => setState(() => _selectedId = plan.id),
                         ),
@@ -157,11 +158,17 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
                     FilledButton(
                       onPressed: working || selected == null
                           ? null
-                          : () => unawaited(
-                              ref
-                                  .read(billingControllerProvider.notifier)
-                                  .buy(selected.id),
-                            ),
+                          : () {
+                              final controller = ref.read(
+                                billingControllerProvider.notifier,
+                              );
+                              // Paid already: only re-check, never buy again.
+                              unawaited(
+                                activating
+                                    ? controller.recheck()
+                                    : controller.buy(selected.id),
+                              );
+                            },
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.accent,
                         foregroundColor: AppColors.accentForeground,
@@ -171,7 +178,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
                           ? const AppProgressIndicator(
                               color: AppColors.accentForeground,
                             )
-                          : const Text('Continue'),
+                          : Text(activating ? 'Check again' : 'Continue'),
                     ),
                   ],
                 );

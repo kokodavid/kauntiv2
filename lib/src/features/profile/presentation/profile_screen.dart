@@ -16,6 +16,7 @@ import '../application/public_profile_providers.dart';
 import '../application/trip_stats_providers.dart';
 import 'confirm_dialog.dart';
 import 'edit_profile_sheet.dart';
+import 'membership_sheet.dart';
 import 'profile_app_version.dart';
 import 'profile_county_badges.dart';
 import 'profile_feedback_tile.dart';
@@ -33,6 +34,7 @@ class ProfileScreen extends ConsumerWidget {
     this.onOpenJourneys,
     required this.onOpenSettings,
     required this.onOpenFeedback,
+    this.onOpenUpgrade,
     this.photosEntry,
   });
 
@@ -41,6 +43,9 @@ class ProfileScreen extends ConsumerWidget {
 
   /// Opens the beta feedback form (the entry is only shown to testers).
   final VoidCallback onOpenFeedback;
+
+  /// Opens the Pro purchase screen from the Membership sheet.
+  final VoidCallback? onOpenUpgrade;
 
   /// The "My photos" entry, built in app/ (features do not import each
   /// other). Null, or building nothing, while photo submissions are off.
@@ -75,6 +80,7 @@ class ProfileScreen extends ConsumerWidget {
       onOpenJourneys: onOpenJourneys,
       onOpenSettings: onOpenSettings,
       onOpenFeedback: onOpenFeedback,
+      onOpenUpgrade: onOpenUpgrade,
       photosEntry: photosEntry,
     );
   }
@@ -87,6 +93,7 @@ class _ProfileContent extends ConsumerStatefulWidget {
     this.onOpenJourneys,
     required this.onOpenSettings,
     required this.onOpenFeedback,
+    this.onOpenUpgrade,
     this.photosEntry,
   });
 
@@ -94,6 +101,7 @@ class _ProfileContent extends ConsumerStatefulWidget {
   final VoidCallback? onOpenJourneys;
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenFeedback;
+  final VoidCallback? onOpenUpgrade;
   final WidgetBuilder? photosEntry;
 
   @override
@@ -254,7 +262,18 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                     style: ProfileTileStyle.dark,
                     onTap: _proUnavailable
                         ? () => unawaited(_refreshPro())
-                        : null,
+                        : pro == null
+                        ? null
+                        : () => unawaited(
+                            showModalBottomSheet<void>(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (_) => MembershipSheet(
+                                status: pro,
+                                onUpgrade: widget.onOpenUpgrade,
+                              ),
+                            ),
+                          ),
                   ),
                   if (widget.onOpenJourneys != null)
                     Padding(

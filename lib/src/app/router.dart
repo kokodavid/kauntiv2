@@ -156,6 +156,7 @@ GoRouter appRouter(Ref ref) {
                 : null,
             onOpenSettings: () => context.push(AppRoutes.settings),
             onOpenFeedback: () => context.push(AppRoutes.feedback),
+            onOpenUpgrade: () => context.push(AppRoutes.upgrade),
             photosEntry: PlacePhotosRoutes.profileEntry,
           ),
         ),

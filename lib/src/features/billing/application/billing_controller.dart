@@ -19,11 +19,31 @@ class BillingController extends _$BillingController {
   static const _checks = 10;
   static const _gap = Duration(seconds: 2);
 
+  /// After "activating", keep checking quietly for about another minute,
+  /// even if the person leaves the screen.
+  static const _backgroundChecks = 12;
+  static const _backgroundGap = Duration(seconds: 5);
+
   @override
   BillingStatus build() => BillingStatus.idle;
 
-  Future<void> buy(String planId) =>
-      _run((repository) => repository.purchase(planId));
+  /// Never starts a second purchase: while a payment is still being switched
+  /// on, or the store already shows Pro, it only waits for the server.
+  Future<void> buy(String planId) {
+    if (state == BillingStatus.activating) return recheck();
+    return _run((repository) async {
+      if (await repository.hasActivePro()) return BillingOutcome.success;
+      return repository.purchase(planId);
+    });
+  }
+
+  /// Asks the server again whether Pro is on. Never buys anything.
+  Future<void> recheck() async {
+    if (state != BillingStatus.activating) return;
+    state = BillingStatus.working;
+    final next = await _waitForPro();
+    if (ref.mounted) state = next;
+  }
 
   Future<void> restore() => _run((repository) => repository.restore());
 
@@ -46,6 +66,7 @@ class BillingController extends _$BillingController {
           state = BillingStatus.nothingFound;
         case BillingOutcome.success:
           state = await _waitForPro();
+          if (state == BillingStatus.activating) unawaited(_keepChecking());
       }
     } on BillingException {
       if (ref.mounted) state = BillingStatus.failed;
@@ -54,8 +75,28 @@ class BillingController extends _$BillingController {
     }
   }
 
-  Future<BillingStatus> _waitForPro() async {
-    for (var i = 0; i < _checks; i++) {
+  Future<void> _keepChecking() async {
+    final link = ref.keepAlive();
+    try {
+      final next = await _waitForPro(
+        checks: _backgroundChecks,
+        gap: _backgroundGap,
+      );
+      if (ref.mounted &&
+          state == BillingStatus.activating &&
+          next == BillingStatus.unlocked) {
+        state = BillingStatus.unlocked;
+      }
+    } finally {
+      link.close();
+    }
+  }
+
+  Future<BillingStatus> _waitForPro({
+    int checks = _checks,
+    Duration gap = _gap,
+  }) async {
+    for (var i = 0; i < checks; i++) {
       try {
         await ref.read(journeyEntitlementProvider.notifier).refreshStatus();
       } on Object {
@@ -65,7 +106,7 @@ class BillingController extends _$BillingController {
       if (ref.read(journeyEntitlementProvider)?.active == true) {
         return BillingStatus.unlocked;
       }
-      await Future<void>.delayed(_gap);
+      await Future<void>.delayed(gap);
       if (!ref.mounted) return BillingStatus.idle;
     }
     return BillingStatus.activating;

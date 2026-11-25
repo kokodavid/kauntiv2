@@ -16,6 +16,11 @@ abstract interface class BillingRepository {
   Future<BillingOutcome> purchase(String planId);
 
   Future<BillingOutcome> restore();
+
+  /// Whether the store layer already shows Pro for this account, for example
+  /// a purchase that went through but is still being switched on. False when
+  /// it cannot tell.
+  Future<bool> hasActivePro();
 }
 
 class RevenueCatBillingRepository implements BillingRepository {
@@ -97,6 +102,15 @@ class RevenueCatBillingRepository implements BillingRepository {
       throw BillingException(
         error.message ?? 'Could not restore your purchases.',
       );
+    }
+  }
+
+  @override
+  Future<bool> hasActivePro() async {
+    try {
+      return _hasPro(await Purchases.getCustomerInfo());
+    } on PlatformException {
+      return false;
     }
   }
 

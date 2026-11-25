@@ -45,10 +45,14 @@ class EditProfileHomeCounty extends StatelessWidget {
           children: [
             // Kenya with the home county lit up (same aspect as the map).
             SizedBox(
-              width: 40,
-              height: 40 * CountyPaths.viewBoxHeight / CountyPaths.viewBoxWidth,
+              width: 48,
+              height: 48 * CountyPaths.viewBoxHeight / CountyPaths.viewBoxWidth,
               child: ExcludeSemantics(
-                child: AppCountyMap(selectedCounty: county),
+                child: AppCountyMap(
+                  selectedCounty: county,
+                  otherFill: AppColors.trackInactive,
+                  borderColor: Colors.white,
+                ),
               ),
             ),
             const SizedBox(width: 14),

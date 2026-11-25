@@ -18,8 +18,15 @@ class AppCountyMap extends StatelessWidget {
     super.key,
     required this.selectedCounty,
     this.onCountySelected,
+    this.otherFill = Colors.white,
+    this.borderColor = AppColors.trackInactive,
   });
 
+  /// Fill of every county but the selected one. A solid colour (with a
+  /// contrasting [borderColor]) makes the whole country read as a shape on
+  /// a white page, e.g. in a small thumbnail.
+  final Color otherFill;
+  final Color borderColor;
   final CountyPath? selectedCounty;
   final ValueChanged<CountyPath>? onCountySelected;
 
@@ -40,7 +47,11 @@ class AppCountyMap extends StatelessWidget {
                     if (county != null) onCountySelected!(county);
                   },
             child: CustomPaint(
-              painter: _CountyMapPainter(selectedCounty: selectedCounty),
+              painter: _CountyMapPainter(
+                selectedCounty: selectedCounty,
+                otherFill: otherFill,
+                borderColor: borderColor,
+              ),
               size: size,
             ),
           );
@@ -79,9 +90,15 @@ class AppCountyMap extends StatelessWidget {
 }
 
 class _CountyMapPainter extends CustomPainter {
-  const _CountyMapPainter({required this.selectedCounty});
+  const _CountyMapPainter({
+    required this.selectedCounty,
+    required this.otherFill,
+    required this.borderColor,
+  });
 
   final CountyPath? selectedCounty;
+  final Color otherFill;
+  final Color borderColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -117,13 +134,13 @@ class _CountyMapPainter extends CustomPainter {
       final selected = county == selectedCounty;
       canvas.drawPath(
         path,
-        Paint()..color = selected ? AppColors.legendHome : Colors.white,
+        Paint()..color = selected ? AppColors.legendHome : otherFill,
       );
       if (!selected) {
         canvas.drawPath(
           path,
           Paint()
-            ..color = AppColors.trackInactive
+            ..color = borderColor
             ..style = PaintingStyle.stroke
             ..strokeWidth = 0.7,
         );
@@ -135,6 +152,8 @@ class _CountyMapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CountyMapPainter oldDelegate) {
-    return oldDelegate.selectedCounty != selectedCounty;
+    return oldDelegate.selectedCounty != selectedCounty ||
+        oldDelegate.otherFill != otherFill ||
+        oldDelegate.borderColor != borderColor;
   }
 }

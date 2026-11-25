@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/county_stamp_image.dart';
+
 import '../domain/passport_county.dart';
 import '../domain/passport_level.dart';
 import 'passport_palette.dart';
 
 /// The ink stamp for a county, where one has been drawn. Counties without
 /// artwork yet keep their medallion; add a file to `assets/stamps/` and its
-/// slug here to switch one over.
+/// slug to [CountyStampImage] to switch one over.
 class PassportStampArt extends StatelessWidget {
   const PassportStampArt({
     super.key,
@@ -19,103 +21,26 @@ class PassportStampArt extends StatelessWidget {
   /// The square the stamp fits inside (it keeps its own proportions).
   final double extent;
 
-  /// Counties with a finished stamp, by slug (lower case, letters only).
-  static const _available = {
-    // Central
-    'kiambu',
-    'kirinyaga',
-    'muranga',
-    'nyandarua',
-    'nyeri',
-    // Coast
-    'kilifi',
-    'kwale',
-    'lamu',
-    'mombasa',
-    'tanariver',
-    'taitataveta',
-    // Eastern
-    'embu',
-    'kitui',
-    'machakos',
-    'makueni',
-    'isiolo',
-    'marsabit',
-    'meru',
-    'tharakanithi',
-    // Nairobi
-    'nairobi',
-    // North Eastern
-    'garissa',
-    'wajir',
-    'mandera',
-    // Nyanza
-    'homabay',
-    'kisii',
-    'kisumu',
-    'migori',
-    'nyamira',
-    'siaya',
-    // Rift Valley
-    'baringo',
-    'bomet',
-    'elgeyomarakwet',
-    'kajiado',
-    'nandi',
-    'nakuru',
-    'laikipia',
-    'kericho',
-    'turkana',
-    'transnzoia',
-    'samburu',
-    'narok',
-    'uasingishu',
-    'westpokot',
-    // Western
-    'busia',
-    'kakamega',
-    'vihiga',
-    'bungoma',
-  };
-
-  static String _slug(String name) =>
-      name.toLowerCase().replaceAll(RegExp('[^a-z]'), '');
-
-  static bool has(PassportCounty county) =>
-      _available.contains(_slug(county.name));
+  static bool has(PassportCounty county) => CountyStampImage.has(county.name);
 
   /// The stamp's asset path (only meaningful when [has] is true), so a
   /// caller can precache it before rendering an image off-screen.
   static String assetFor(PassportCounty county) =>
-      'assets/stamps/${_slug(county.name)}.webp';
-
-  /// Greys the ink out, for a county not stamped yet.
-  static const _grey = ColorFilter.matrix([
-    0.33, 0.33, 0.33, 0, 0, //
-    0.33, 0.33, 0.33, 0, 0,
-    0.33, 0.33, 0.33, 0, 0,
-    0, 0, 0, 1, 0,
-  ]);
+      CountyStampImage.assetFor(county.name);
 
   @override
   Widget build(BuildContext context) {
     final level = county.level;
     final stamped = level.index >= PassportLevel.explored.index;
-    Widget art = Image.asset(
-      assetFor(county),
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.medium,
-      semanticLabel: '${county.name} stamp',
-    );
-    if (!stamped) {
-      art = Opacity(
-        opacity: level == PassportLevel.none ? 0.22 : 0.45,
-        child: ColorFiltered(colorFilter: _grey, child: art),
-      );
-    }
-    return SizedBox.square(
-      dimension: extent,
-      child: Center(child: art),
+    return CountyStampImage(
+      countyName: county.name,
+      extent: extent,
+      // Greys the ink out, for a county not stamped yet.
+      greyOpacity: stamped
+          ? null
+          : level == PassportLevel.none
+          ? 0.22
+          : 0.45,
     );
   }
 }

@@ -83,6 +83,17 @@ void main() {
       expect(await repo.currentCountyCode(), 1);
     });
 
+    test('crossing into a neighbouring county is not held back', () async {
+      // Machakos (16) then Kajiado (34) share a border: a minute apart is
+      // fine, even though their centres are far apart.
+      await repo.handleEvent(_event(16, CrossingKind.enter, t0));
+      await repo.handleEvent(
+        _event(34, CrossingKind.enter, t0.add(const Duration(minutes: 1))),
+      );
+      expect(await repo.activeCandidateCountyCodes(), {16, 34});
+      expect(await repo.currentCountyCode(), 34);
+    });
+
     test('a location fix crosses from Kiambu into Nairobi', () async {
       await repo.seedCurrentCounty(22);
       final entered = await repo.reconcileCurrentLocation(
@@ -125,6 +136,16 @@ void main() {
       expect(queued.single.countyCode, 16);
       expect(queued.single.outcome, 'passed_through');
       expect(queued.single.resolvedAt, at);
+    });
+
+    test('a fix older than a timer does not cancel it', () async {
+      await repo.handleEvent(_event(16, CrossingKind.enter, t0));
+      await repo.reconcileCurrentLocation(
+        latitude: -1.8524,
+        longitude: 36.7768,
+        now: t0.subtract(const Duration(minutes: 10)),
+      );
+      expect(await repo.activeCandidateCountyCodes(), contains(16));
     });
 
     test('a timer under the flap guard is dropped, not left running', () async {

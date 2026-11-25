@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/counties/county_distance.dart';
+import '../../../counties/county_paths.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
 import 'local/detection_database.dart';
@@ -138,40 +139,6 @@ class DetectionRepository {
     final entered =
         await currentCountyCode() == sampled && beforeEnter != sampled;
     return entered ? sampled : null;
-  }
-
-  /// Ends every running timer except [except]'s, at [at]. A timer that
-  /// ran under the flap guard is dropped (it was a border blip, and left
-  /// alone it would later resolve as explored); the rest resolve the normal
-  /// way: explored after the dwell threshold, otherwise passed through.
-  Future<void> _closeOtherCandidates({
-    required int except,
-    required DateTime at,
-  }) async {
-    await _ownerId();
-    final others = await (_db.select(
-      _db.candidates,
-    )..where((c) => c.countyCode.equals(except).not())).get();
-    for (final candidate in others) {
-      final decision = rules.onExit(
-        candidateEnteredAt: candidate.enteredAt,
-        now: at,
-      );
-      if (decision.action == VisitAction.ignore) {
-        await (_db.delete(
-          _db.candidates,
-        )..where((c) => c.countyCode.equals(candidate.countyCode))).go();
-        continue;
-      }
-      await _resolve(
-        countyCode: candidate.countyCode,
-        outcome: decision.action == VisitAction.resolveExplored
-            ? VisitOutcome.explored
-            : VisitOutcome.passedThrough,
-        enteredAt: candidate.enteredAt,
-        resolvedAt: at,
-      );
-    }
   }
 
   /// Applies one crossing. Returns the visit it resolved, if any.

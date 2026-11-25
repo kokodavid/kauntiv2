@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/app_colors.dart';
 import '../../profile/application/public_profile_providers.dart';
 import '../domain/passport_book.dart';
-import '../domain/passport_level.dart';
 import 'passport_card_side_panel.dart';
 import 'passport_dates.dart';
+import 'passport_level_bar.dart';
 import 'passport_palette.dart';
 import 'passport_text.dart';
 
@@ -118,7 +118,7 @@ class _PassportTravellerCardState extends ConsumerState<PassportTravellerCard> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    _Bar(levels: levels),
+                    PassportLevelBar(levels: levels),
                   ],
                 ),
               ),
@@ -206,40 +206,6 @@ class _Holder extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _Bar extends StatelessWidget {
-  const _Bar({required this.levels});
-
-  final List<PassportLevel> levels;
-
-  @override
-  Widget build(BuildContext context) {
-    // Stamped counties stand tall in their level's colour, the rest sit low
-    // and pale, bottom-aligned.
-    return SizedBox(
-      height: 20,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          for (var i = 0; i < levels.length; i++) ...[
-            if (i > 0) const SizedBox(width: 2),
-            Expanded(
-              child: Container(
-                height: levels[i] == PassportLevel.none ? 13 : 20,
-                decoration: BoxDecoration(
-                  color: levels[i] == PassportLevel.none
-                      ? AppColors.trackInactive
-                      : levels[i].ring,
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }

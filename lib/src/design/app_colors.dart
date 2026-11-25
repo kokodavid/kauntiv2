@@ -47,6 +47,10 @@ class AppColors {
   static const placeShore = Color(0xFF0891B2);
   static const placeOther = Color(0xFF475569);
   static const tabBarShell = Color(0xCCFFFFFF);
+
+  /// Place Detail's floating action bar: solid, so text scrolling under it
+  /// can't show through the labels.
+  static const detailActionBarShell = Color(0xFFFFFFFF);
   static const tabPillBackground = Colors.white;
 
   /// The active tab's pill: white at the top washing into a light accent

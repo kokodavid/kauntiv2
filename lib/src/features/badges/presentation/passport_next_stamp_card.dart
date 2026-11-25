@@ -89,7 +89,7 @@ class PassportNextStampCard extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Longest visit',
+              'Last stay',
               style: passportText(12, color: PassportInk.secondary),
             ),
           ),

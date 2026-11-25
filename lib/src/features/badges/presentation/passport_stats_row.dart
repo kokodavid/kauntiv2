@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../domain/county_badge_detail.dart';
 import 'passport_dates.dart';
 import 'passport_palette.dart';
+import 'passport_stay_times.dart';
 import 'passport_text.dart';
 
 /// "Your time in {county}": three tiles of what the user has done there.
@@ -75,6 +76,7 @@ class PassportStatsRow extends StatelessWidget {
             ],
           ],
         ),
+        PassportStayTimes(detail: detail),
       ],
     );
   }

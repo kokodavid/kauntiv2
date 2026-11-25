@@ -160,7 +160,7 @@ final class DetectionControllerProvider
 }
 
 String _$detectionControllerHash() =>
-    r'ef6f5185f28fef2cc6424a1b221b5b9bbc4ba5b7';
+    r'bdac7a5cc655db5d2569cd9669187ca18d909c8d';
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
 /// of the widget): run on start, on resume and every 15 s while the app is

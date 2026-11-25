@@ -194,7 +194,7 @@ final class JourneyLocationSourceProvider
 }
 
 String _$journeyLocationSourceHash() =>
-    r'1479e1752c4d019b2d6a931a71e32255877d3f39';
+    r'0df1c1177a61aae92d92236a5aa2481e8055ca7a';
 
 @ProviderFor(journeyCapture)
 const journeyCaptureProvider = JourneyCaptureProvider._();

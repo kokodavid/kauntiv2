@@ -45,7 +45,7 @@ class OnboardingHomeCountyPage extends StatelessWidget {
       ),
       primaryLabel: 'Continue',
       onPrimary: selectedCounty == null ? null : onContinue,
-      footerCaption: 'Change it later in Settings',
+      footerCaption: 'Change it later in Edit profile',
       isBusy: isSaving,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

@@ -54,7 +54,8 @@ class PlaceDetailScreen extends StatelessWidget {
   final PlaceDetailSectionBuilder? checkIn;
 
   /// The "Add to trip" bar item, supplied by app/. Shown in the floating
-  /// action bar for every place.
+  /// action bar for every place; app/ passes null while the trip planner
+  /// is off, and the bar then leaves it out.
   final PlaceDetailSectionBuilder? addToTrip;
 
   /// The "Add photo" bar item, supplied by app/. Shown in the floating
@@ -197,8 +198,7 @@ class _PlaceDetailBodyState extends State<_PlaceDetailBody> {
           ),
         ),
         PlaceDetailActionBar(
-          addToTrip:
-              widget.addToTrip?.call(context, data) ?? const SizedBox.shrink(),
+          addToTrip: widget.addToTrip?.call(context, data),
           checkIn: widget.checkIn != null && data.hasCoordinates
               ? widget.checkIn!(context, data)
               : null,

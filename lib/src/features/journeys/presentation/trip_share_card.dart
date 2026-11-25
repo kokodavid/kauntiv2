@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../core/design/app_type_scale.dart';
+import '../../../core/widgets/app_share_watermark.dart';
 import '../../../core/widgets/app_shimmer.dart';
 import '../../../design/app_colors.dart';
-import '../../../widgets/app_county_shape.dart';
 import '../domain/journey_transport_mode.dart';
 import '../domain/trip_share_stat_visibility.dart';
 import 'journey_transport_mode_ui.dart';
@@ -17,7 +17,6 @@ part 'trip_share_card_county_names_line.dart';
 part 'trip_share_card_stat_cell.dart';
 part 'trip_share_card_stat_grid.dart';
 part 'trip_share_card_date_chip.dart';
-part 'trip_share_card_watermark.dart';
 part 'trip_share_card_bottom_scrim.dart';
 part 'trip_share_card_top_scrim.dart';
 part 'trip_share_card_no_photo_background.dart';

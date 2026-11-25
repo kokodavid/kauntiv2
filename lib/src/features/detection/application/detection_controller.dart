@@ -33,6 +33,7 @@ class DetectionSnapshot {
     this.resolved = const [],
     this.lastRunAt,
     this.backgroundLocationOff = false,
+    this.locationServicesOff = false,
   });
 
   final int? currentCounty;
@@ -48,6 +49,11 @@ class DetectionSnapshot {
   /// Background location was taken away: geofences are removed and
   /// automatic detection is paused until it's granted again.
   final bool backgroundLocationOff;
+
+  /// Location is switched off for the whole phone: nothing can be detected
+  /// until it's back on (Home says so). Geofences stay registered; the next
+  /// full cycle after it's back re-registers them anyway.
+  final bool locationServicesOff;
 }
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
@@ -128,6 +134,15 @@ class DetectionController extends _$DetectionController {
       if (!await ref.read(detectionPermissionProvider).backgroundGranted()) {
         permissionGranted = false;
         await _pause(geofences);
+        return;
+      }
+      if (!await ref.read(detectionPermissionProvider).servicesEnabled()) {
+        state = DetectionSnapshot(
+          currentCounty: state.currentCounty,
+          lastRunAt: DateTime.now(),
+          locationServicesOff: true,
+        );
+        await ref.read(visitSyncProvider.notifier).drain();
         return;
       }
       final fix = refreshLocation
@@ -217,6 +232,13 @@ class DetectionController extends _$DetectionController {
   /// resume re-checks it.
   Future<void> openLocationSettings() =>
       ref.read(detectionPermissionProvider).openSettings();
+
+  /// Asks the phone to switch location back on, then checks again (on
+  /// Android the dialog doesn't leave the app, so no resume follows).
+  Future<void> turnOnLocation() async {
+    await ref.read(detectionPermissionProvider).turnOnServices();
+    await runCycle();
+  }
 
   /// First run after onboarding: the phone's county comes from the fix
   /// (the home county is a preference, not where the phone is), falling

@@ -1,19 +1,20 @@
-part of 'trip_share_card.dart';
+import 'package:flutter/material.dart';
 
-/// The app watermark: an icon badge plus the wordmark (Claude-Design
-/// reference note: "The route mark and wordmark are placeholders; swap
-/// in the real Kaunti47 logo at the same size" - [Icons.alt_route_rounded]
-/// here is exactly that placeholder). [inverted] matches the reference's
-/// no-photo note ("the watermark tile inverts to white").
-/// The brand mark: a small version of the app's own icon ([AppIconBadge]
-/// on the splash screen and Onboarding 02) - the gradient rounded-square
-/// holding the white Kenya country outline ([AppCountryShape]), not a
-/// generic icon. [inverted] swaps it to a white chip with the gradient's
-/// own mid-blue shape instead, for the no-photo fallback, whose
-/// background is already that same brand gradient - a white chip reads
-/// there where a second copy of the gradient wouldn't.
-class _Watermark extends StatelessWidget {
-  const _Watermark({required this.textStyle, this.inverted = false});
+import '../../design/app_colors.dart';
+import '../../widgets/app_county_shape.dart';
+
+/// The brand mark on share images (Trip and Passport): a small version of
+/// the app's own icon - the gradient rounded-square holding the white Kenya
+/// country outline ([AppCountryShape]) - plus the "Kaunti47" wordmark.
+/// [inverted] swaps it to a white chip with the gradient's mid-blue shape,
+/// for backgrounds that are already that brand gradient, where a white chip
+/// reads and a second copy of the gradient wouldn't.
+class AppShareWatermark extends StatelessWidget {
+  const AppShareWatermark({
+    super.key,
+    required this.textStyle,
+    this.inverted = false,
+  });
 
   final TextStyle textStyle;
   final bool inverted;

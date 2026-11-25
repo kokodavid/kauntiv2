@@ -4,14 +4,14 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-/// Rasterizes a [TripShareCard] (or any widget) to a PNG without ever
-/// putting it on screen, by mounting it far outside the viewport through
-/// an [OverlayEntry] rather than actually showing it to the user.
+/// Rasterizes a share card (any widget) to a PNG without ever putting it on
+/// screen, by mounting it far outside the viewport through an
+/// [OverlayEntry] rather than actually showing it to the user.
 ///
-/// Used both to produce the history-card thumbnail PNG (Phase 5) and the
-/// full-resolution image handed to the share sheet (Phase 6) - same
-/// mechanism, different [card] size and [pixelRatio].
-Future<Uint8List> captureTripShareCard({
+/// Used for the Trip history-card thumbnail, the Trip share image and the
+/// Passport share image - same mechanism, different [card] size and
+/// [pixelRatio].
+Future<Uint8List> captureShareCard({
   required BuildContext context,
   required Widget card,
   double pixelRatio = 3,
@@ -68,15 +68,13 @@ Future<Uint8List> captureTripShareCard({
       }
     }
     if (boundary == null) {
-      throw StateError(
-        'Trip share card never finished a paint pass to capture.',
-      );
+      throw StateError('Share card never finished a paint pass to capture.');
     }
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     try {
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
       if (bytes == null) {
-        throw StateError('Could not encode the Trip share card to PNG.');
+        throw StateError('Could not encode the share card to PNG.');
       }
       return bytes.buffer.asUint8List();
     } finally {

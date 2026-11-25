@@ -1,7 +1,17 @@
-part of 'trip_share_sheet.dart';
+import 'package:flutter/material.dart';
 
-class _TripShareActionRow extends StatelessWidget {
-  const _TripShareActionRow({
+import '../../design/app_colors.dart';
+import '../../design/app_text_styles.dart';
+import 'app_glyph_icon.dart';
+
+/// The bottom row of a share sheet (Trip and Passport): Save to Photos,
+/// Instagram Stories (only when [instagramAvailable]) and the main Share
+/// button. [buttonKey] goes on the Share button so the caller can anchor
+/// the iPad share popover to it. Every button is disabled while any of the
+/// three is busy.
+class AppShareActionRow extends StatelessWidget {
+  const AppShareActionRow({
+    super.key,
     required this.buttonKey,
     required this.saving,
     required this.sharing,

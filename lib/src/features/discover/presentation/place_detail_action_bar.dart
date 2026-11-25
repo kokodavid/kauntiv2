@@ -50,7 +50,7 @@ class PlaceDetailActionBar extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppColors.tabBarShell,
+              color: AppColors.detailActionBarShell,
               borderRadius: BorderRadius.circular(999),
               boxShadow: const [
                 BoxShadow(

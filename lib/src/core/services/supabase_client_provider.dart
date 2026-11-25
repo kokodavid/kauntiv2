@@ -8,8 +8,7 @@ part 'supabase_client_provider.g.dart';
 ///
 /// Overridden once at start-up by `buildAppRoot` in
 /// `app/app_bootstrap.dart`, so nothing reads `Supabase.instance`
-/// directly. Tests override this or the repositories that read it.
+/// directly. The null default keeps offline and test widget trees usable
+/// before startup wiring has supplied a client.
 @Riverpod(keepAlive: true)
-SupabaseClient? supabaseClient(Ref ref) => throw UnimplementedError(
-  'supabaseClientProvider is overridden at start-up (buildAppRoot).',
-);
+SupabaseClient? supabaseClient(Ref ref) => null;

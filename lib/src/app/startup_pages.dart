@@ -16,8 +16,12 @@ import '../features/onboarding/presentation/onboarding_auth_page.dart';
 import '../features/onboarding/presentation/onboarding_home_county_page.dart';
 import '../features/onboarding/presentation/onboarding_interests_page.dart';
 import '../features/onboarding/presentation/onboarding_permission_page.dart';
+import '../features/onboarding/presentation/onboarding_username_page.dart';
 import '../features/profile/application/interests_providers.dart';
+import '../features/profile/application/public_profile_providers.dart';
+import '../features/profile/application/username_providers.dart';
 import '../features/profile/domain/place_interest.dart';
+import '../features/profile/presentation/username_chooser_section.dart';
 import '../screens/splash_screen.dart';
 
 /// The start-up pages, each bound to [StartupFlow] (or sign-in). Which
@@ -110,7 +114,7 @@ class StartupPreferencesPage extends ConsumerWidget {
   }
 }
 
-/// Setup step 3: location permission. Coming back from the OS settings
+/// Setup step 4: location permission. Coming back from the OS settings
 /// re-checks it, and the "Skipped" toast from step 2 clears itself after
 /// four seconds.
 class StartupPermissionPage extends ConsumerStatefulWidget {
@@ -170,6 +174,43 @@ class _StartupPermissionPageState extends ConsumerState<StartupPermissionPage>
       onNotNow: () => unawaited(flow.skipLocation()),
       onBack: flow.back,
       onUndoSkip: () => unawaited(flow.undoInterestsSkip()),
+    );
+  }
+}
+
+/// Setup step 3: the name other explorers see. Same layout as Edit Profile:
+/// the field first, holding the generated name, then four suggestions. The
+/// chooser lives in [usernameChooserProvider], drawn by
+/// [UsernameChooserSection]. Continue with the field untouched keeps the
+/// generated name and marks it as chosen.
+class StartupUsernamePage extends ConsumerWidget {
+  const StartupUsernamePage({super.key});
+
+  Future<void> _continue(WidgetRef ref) async {
+    final chooser = ref.read(usernameChooserProvider.notifier);
+    if (!ref.read(usernameChooserProvider).userPicked) {
+      final current = ref.read(myPublicProfileProvider).value?.handle;
+      if (current == null) return;
+      chooser.select(current);
+    }
+    final saved = await chooser.save();
+    if (saved) {
+      unawaited(ref.read(startupFlowProvider.notifier).usernameChosen());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(usernameChooserProvider);
+    final hasCurrent = ref.watch(myPublicProfileProvider).value != null;
+    final flow = ref.read(startupFlowProvider.notifier);
+    return OnboardingUsernamePage(
+      picker: const UsernameChooserSection(requirePick: true, inputFirst: true),
+      canContinue: state.userPicked ? state.canSave : hasCurrent,
+      isSaving: state.isSaving,
+      onContinue: () => unawaited(_continue(ref)),
+      onSkip: () => unawaited(flow.skipUsername()),
+      onBack: flow.back,
     );
   }
 }

@@ -94,7 +94,7 @@ Future<void> _startAndPickMode(
   await tester.tap(find.text('Start'));
   await tester.pumpAndSettle();
   await tester.tap(find.text(mode));
-  await tester.pump();
+  await tester.pump(const Duration(seconds: 2, milliseconds: 100));
 }
 
 void main() {
@@ -137,7 +137,7 @@ void main() {
     expect(find.text('Cycle'), findsOneWidget);
 
     await tester.tap(find.text('Cycle'));
-    await tester.pump();
+    await tester.pump(const Duration(seconds: 2, milliseconds: 100));
     expect(recorder.lastMode, JourneyTransportMode.cycle);
   });
 

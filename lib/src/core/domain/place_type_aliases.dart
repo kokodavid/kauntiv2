@@ -55,4 +55,5 @@ const placeTypeAliases = <String, List<String>>{
   'marine_park': ['marine park', 'marine national park', 'marine reserve'],
   'desert': ['deserts', 'dunes', 'sand dunes'],
   'landmark': ['landmarks', 'wind farm'],
+  'country_club': ['country clubs'],
 };

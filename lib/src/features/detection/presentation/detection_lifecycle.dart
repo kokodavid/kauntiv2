@@ -13,6 +13,7 @@ import '../../profile/application/profile_settings_providers.dart';
 import '../application/arrival_notification_bridge.dart';
 import '../application/arrival_nudge.dart';
 import '../application/detection_controller.dart';
+import '../domain/trip_start_reminder_rules.dart';
 import '../domain/visit_models.dart';
 import 'county_arrival_sheet.dart';
 
@@ -36,6 +37,7 @@ class DetectionLifecycle extends ConsumerStatefulWidget {
     this.onOpenCounty,
     this.onOpenPlace,
     this.onOpenTrip,
+    this.onOpenTripStart,
   });
 
   final Widget child;
@@ -49,6 +51,10 @@ class DetectionLifecycle extends ConsumerStatefulWidget {
 
   /// The recording screen, for a tapped "your trip is paused" reminder.
   final void Function(BuildContext context)? onOpenTrip;
+
+  /// Where to start a Trip, for a tapped "Looks like you're on a trip"
+  /// reminder.
+  final void Function(BuildContext context)? onOpenTripStart;
 
   @override
   ConsumerState<DetectionLifecycle> createState() => _DetectionLifecycleState();
@@ -152,12 +158,18 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
     });
   }
 
-  /// A tapped notification that is not an arrival: today only the paused
-  /// trip reminder. Deferred a frame so a cold start has a navigator.
+  /// A tapped notification that is not an arrival: the paused-trip reminder
+  /// (back to the recording) or the start-a-trip reminder (to where a Trip
+  /// starts). Deferred a frame so a cold start has a navigator.
   void _openOtherPayload(String payload) {
-    if (payload != tripPausedPayload) return;
+    final open = switch (payload) {
+      tripPausedPayload => widget.onOpenTrip,
+      tripStartPayload => widget.onOpenTripStart,
+      _ => null,
+    };
+    if (open == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.onOpenTrip?.call(context);
+      if (mounted) open(context);
     });
   }
 

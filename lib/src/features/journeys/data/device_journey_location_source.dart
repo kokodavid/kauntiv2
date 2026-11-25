@@ -47,11 +47,13 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
     // and starting this session's stream.
     await _location.enableBackgroundMode(enable: false);
     if (!await _location.changeSettings(
-      accuracy: LocationAccuracy.high,
+      accuracy: sampling.accuracy,
       interval: sampling.intervalMs,
       backgroundInterval: sampling.backgroundIntervalMs,
       distanceFilter: sampling.distanceMeters,
-      pausesLocationUpdatesAutomatically: true,
+      // iOS must not stop updates on its own when it thinks the person has
+      // stopped; the recorder handles gaps and pauses itself.
+      pausesLocationUpdatesAutomatically: false,
     )) {
       throw const JourneyLocationException(
         JourneyLocationFailure.settingsUnavailable,
@@ -81,24 +83,45 @@ class DeviceJourneyLocationSource implements JourneyLocationSource {
     _started = false;
   }
 
-  static ({int intervalMs, int backgroundIntervalMs, double distanceMeters})
+  static ({
+    int intervalMs,
+    int backgroundIntervalMs,
+    double distanceMeters,
+    LocationAccuracy accuracy,
+  })
   samplingForMode(JourneyTransportMode? mode) => switch (mode) {
+    // Driving covers ground fast enough that route fidelity still needs a
+    // frequent, high-accuracy fix -- left as it was.
     JourneyTransportMode.drive => (
       intervalMs: 5000,
       backgroundIntervalMs: 8000,
       distanceMeters: 25,
+      accuracy: LocationAccuracy.high,
     ),
+    // Cycling and walking cover ground slowly enough that a less frequent,
+    // less demanding fix barely changes the recorded route but meaningfully
+    // cuts how long the GPS chip stays active -- the main driver of battery
+    // use and device heat during a long Trip.
     JourneyTransportMode.cycle => (
-      intervalMs: 7500,
-      backgroundIntervalMs: 10000,
-      distanceMeters: 12,
+      intervalMs: 12000,
+      backgroundIntervalMs: 18000,
+      distanceMeters: 35,
+      accuracy: LocationAccuracy.balanced,
     ),
     JourneyTransportMode.walk => (
-      intervalMs: 10000,
-      backgroundIntervalMs: 15000,
-      distanceMeters: 8,
+      intervalMs: 20000,
+      backgroundIntervalMs: 25000,
+      distanceMeters: 50,
+      accuracy: LocationAccuracy.balanced,
     ),
-    null => (intervalMs: 5000, backgroundIntervalMs: 8000, distanceMeters: 10),
+    // No mode chosen: unknown means it could be driving, so stay on the
+    // more frequent, higher-accuracy side rather than risk a coarse route.
+    null => (
+      intervalMs: 5000,
+      backgroundIntervalMs: 8000,
+      distanceMeters: 10,
+      accuracy: LocationAccuracy.high,
+    ),
   };
 
   static JourneyFix? usableFix(LocationData data) {

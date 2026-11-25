@@ -8,7 +8,13 @@ enum PushDestinationKind {
   place,
   badges,
   myPhotos,
-  profile;
+  profile,
+
+  /// A trip plan by id.
+  plan,
+
+  /// The Trips tab, Planned side (for an invitation to a plan).
+  trips;
 
   static PushDestinationKind parse(String? value) => switch (value) {
     'explore' => explore,
@@ -17,6 +23,8 @@ enum PushDestinationKind {
     'badges' => badges,
     'my_photos' => myPhotos,
     'profile' => profile,
+    'plan' => plan,
+    'trips' => trips,
     _ => home,
   };
 }

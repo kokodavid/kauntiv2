@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:photo_manager/photo_manager.dart';
 
 /// One camera-roll photo whose timestamp falls inside a Trip's recorded
@@ -41,6 +43,11 @@ class CameraRollMatch {
 /// the OS already decided; a caller wanting to actually ask the user
 /// calls [requestPermission] itself, from an explicit tap.
 abstract final class CameraRollMatcher {
+  /// Android must use the system photo picker rather than broad camera-roll
+  /// access. The timestamp scan remains available on iOS, where this package
+  /// is still needed for Replay's automatic suggestions.
+  static bool get isSupported => !Platform.isAndroid;
+
   /// A little slack either side of the Trip's recorded span: GPS start/
   /// end can lag the phone's clock by a few seconds, and a photo taken
   /// right as the Trip starts or ends shouldn't be missed over that.

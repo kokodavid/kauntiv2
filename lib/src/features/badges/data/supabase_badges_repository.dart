@@ -4,6 +4,7 @@ import '../../../services/app_logger.dart';
 import '../domain/badge_collection.dart';
 import '../domain/county_badge_detail.dart';
 import '../domain/county_check_ins.dart';
+import 'county_stay_history.dart';
 
 /// The signed-in user's badges: visit state per county (`county_visits`)
 /// and depth per explored county (`county_depth_ranks()`, computed from
@@ -22,6 +23,7 @@ class SupabaseBadgesRepository {
       Map<int, String> visitStates,
       Map<int, String> ranks,
       DateTime? firstStampAt,
+      Map<int, DateTime> exploredAt,
       CheckInsOverview checkIns,
     })
   >
@@ -42,6 +44,7 @@ class SupabaseBadgesRepository {
     ]);
     return (
       firstStampAt: firstStampAt,
+      exploredAt: _exploredAt(visits),
       checkIns: overview,
       visitStates: {
         for (final row in visits)
@@ -90,6 +93,18 @@ class SupabaseBadgesRepository {
     }
   }
 
+  /// When each explored county was confirmed (`county_visits.confirmed_at`),
+  /// by county code. Counties without a date are left out.
+  static Map<int, DateTime> _exploredAt(List<Map<String, dynamic>> visits) => {
+    for (final row in visits)
+      if (row case {
+        'county_id': final num code,
+        'state': 'explored',
+        'confirmed_at': final String at,
+      })
+        if (DateTime.tryParse(at) case final DateTime date) code.toInt(): date,
+  };
+
   static DateTime? _earliest(Iterable<DateTime?> dates) {
     DateTime? best;
     for (final date in dates) {
@@ -104,6 +119,7 @@ class SupabaseBadgesRepository {
       visitStates: data.visitStates,
       ranks: data.ranks,
       firstStampAt: data.firstStampAt,
+      exploredAt: data.exploredAt,
     );
   }
 
@@ -165,6 +181,7 @@ class SupabaseBadgesRepository {
         )
         .timeout(_timeout);
     final checkInsRow = await _countyCheckIns(countyCode);
+    final stays = await fetchCountyStayHistory(_client, countyCode);
     int count(String key) => (row[key] as num?)?.toInt() ?? 0;
     DateTime? at(String key) => switch (row[key]) {
       final String value => DateTime.parse(value),
@@ -187,6 +204,10 @@ class SupabaseBadgesRepository {
       categoriesTotal: checkInsRow.categoriesTotal,
       checkedInPlaces: checkInsRow.places,
       checkInDays: checkInsRow.days,
+      timedVisits: stays.timedVisits,
+      longVisits: stays.longVisits,
+      totalStay: stays.total,
+      recentStays: stays.recent,
       suggestedPlaces: [
         for (final place
             in (row['suggested_places'] as List<dynamic>? ?? const [])

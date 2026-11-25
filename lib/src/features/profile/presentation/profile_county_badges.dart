@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_shimmer.dart';
 import '../../../core/widgets/county_badge_medallion.dart';
+import '../../../core/widgets/county_stamp_image.dart';
 import '../../../design/app_colors.dart';
 import '../../badges/domain/badge_collection.dart';
+import '../../map_home/domain/county_badge_state.dart';
 
 class ProfileCountyBadges extends StatelessWidget {
   const ProfileCountyBadges({
@@ -31,7 +33,7 @@ class ProfileCountyBadges extends StatelessWidget {
           children: [
             const Expanded(
               child: Text(
-                'County badges',
+                'County stamps',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
             ),
@@ -78,7 +80,7 @@ class ProfileCountyBadges extends StatelessWidget {
             error: (error, stackTrace) => const Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Badges are unavailable. Open the collection to retry.',
+                'Stamps are unavailable. Open your Passport to retry.',
               ),
             ),
             // `value.badges` is already earned-first (BadgeCollection's
@@ -94,7 +96,7 @@ class ProfileCountyBadges extends StatelessWidget {
                 return const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'County badges will show up here once counties load.',
+                    'County stamps will show up here once counties load.',
                     style: TextStyle(color: AppColors.mutedForeground),
                   ),
                 );
@@ -109,11 +111,25 @@ class ProfileCountyBadges extends StatelessWidget {
                     width: 58,
                     child: Column(
                       children: [
-                        CountyBadgeMedallion(
-                          county: badge.county,
-                          earned: badge.isEarned,
-                          size: 54,
-                        ),
+                        // The county's Passport stamp, greyed until it's
+                        // explored; the medallion only where no stamp is
+                        // drawn yet.
+                        if (CountyStampImage.has(badge.county.name))
+                          CountyStampImage(
+                            countyName: badge.county.name,
+                            extent: 54,
+                            greyOpacity: badge.isEarned
+                                ? null
+                                : badge.state == CountyBadgeState.passedThrough
+                                ? 0.45
+                                : 0.22,
+                          )
+                        else
+                          CountyBadgeMedallion(
+                            county: badge.county,
+                            earned: badge.isEarned,
+                            size: 54,
+                          ),
                         const SizedBox(height: 3),
                         Text(
                           badge.county.name,

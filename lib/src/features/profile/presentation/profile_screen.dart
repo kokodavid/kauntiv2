@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/connectivity_provider.dart';
-import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
 import '../../app_version/application/app_update_providers.dart';
 import '../../auth/application/auth_providers.dart';
@@ -231,12 +230,9 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
             ),
             Expanded(
               child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  14,
-                  16,
-                  AppBottomNav.clearance(context) + 8,
-                ),
+                // No bottom bar on this page (SafeArea covers the home
+                // indicator), so only a small gap under the version.
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
                 children: [
                   ProfileProgressCard(
                     collection: badges,

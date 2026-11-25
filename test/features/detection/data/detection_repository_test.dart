@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,6 +83,17 @@ void main() {
       expect(await repo.currentCountyCode(), 1);
     });
 
+    test('crossing into a neighbouring county is not held back', () async {
+      // Machakos (16) then Kajiado (34) share a border: a minute apart is
+      // fine, even though their centres are far apart.
+      await repo.handleEvent(_event(16, CrossingKind.enter, t0));
+      await repo.handleEvent(
+        _event(34, CrossingKind.enter, t0.add(const Duration(minutes: 1))),
+      );
+      expect(await repo.activeCandidateCountyCodes(), {16, 34});
+      expect(await repo.currentCountyCode(), 34);
+    });
+
     test('a location fix crosses from Kiambu into Nairobi', () async {
       await repo.seedCurrentCounty(22);
       final entered = await repo.reconcileCurrentLocation(
@@ -100,6 +113,52 @@ void main() {
       );
     });
 
+    test('a fix inside another county closes the left-behind timer', () async {
+      // Machakos (16) starts a timer, then Kajiado (34) is entered through
+      // a plain geofence event, which leaves Machakos' timer running.
+      await repo.handleEvent(_event(16, CrossingKind.enter, t0));
+      await repo.handleEvent(
+        _event(34, CrossingKind.enter, t0.add(const Duration(minutes: 30))),
+      );
+      expect(await repo.activeCandidateCountyCodes(), {16, 34});
+
+      // A fix well inside Kajiado 90 minutes in: Machakos stops there.
+      final at = t0.add(const Duration(minutes: 90));
+      await repo.reconcileCurrentLocation(
+        latitude: -1.8524,
+        longitude: 36.7768,
+        now: at,
+      );
+
+      expect(await repo.activeCandidateCountyCodes(), {34});
+      final queued = await db.select(db.pendingSyncOps).get();
+      expect(queued, hasLength(1));
+      expect(queued.single.countyCode, 16);
+      expect(queued.single.outcome, 'passed_through');
+      expect(queued.single.resolvedAt.toUtc(), at);
+    });
+
+    test('a fix older than a timer does not cancel it', () async {
+      await repo.handleEvent(_event(16, CrossingKind.enter, t0));
+      await repo.reconcileCurrentLocation(
+        latitude: -1.8524,
+        longitude: 36.7768,
+        now: t0.subtract(const Duration(minutes: 10)),
+      );
+      expect(await repo.activeCandidateCountyCodes(), contains(16));
+    });
+
+    test('a timer under the flap guard is dropped, not left running', () async {
+      await repo.handleEvent(_event(16, CrossingKind.enter, t0));
+      await repo.reconcileCurrentLocation(
+        latitude: -1.8524,
+        longitude: 36.7768,
+        now: t0.add(const Duration(seconds: 30)),
+      );
+      expect(await repo.activeCandidateCountyCodes(), {34});
+      expect(await db.select(db.pendingSyncOps).get(), isEmpty);
+    });
+
     test('sign-out clears this owner\'s state', () async {
       await repo.handleEvent(_event(1, CrossingKind.enter, t0));
       await repo.handleEvent(
@@ -111,6 +170,28 @@ void main() {
       expect(await db.select(db.detectionOwner).get(), isEmpty);
     });
   });
+
+  test(
+    'a running stay survives the database being closed and reopened',
+    () async {
+      // An app update or the OS killing the app mid-drive: the stay must
+      // still be there afterwards.
+      final dir = Directory.systemTemp.createTempSync('detection_db_');
+      final file = File('${dir.path}/detection.sqlite');
+      addTearDown(() => dir.deleteSync(recursive: true));
+
+      final first = DetectionDatabase.forTesting(NativeDatabase(file));
+      final repo = DetectionRepository(first, userId: 'alice');
+      await repo.handleEvent(_event(34, CrossingKind.enter, t0));
+      await first.close();
+
+      final second = DetectionDatabase.forTesting(NativeDatabase(file));
+      addTearDown(second.close);
+      final reopened = DetectionRepository(second, userId: 'alice');
+      expect(await reopened.activeCandidateCountyCodes(), {34});
+      expect(await reopened.currentCountyCode(), 34);
+    },
+  );
 
   test(
     'switching accounts clears dwell state but keeps owned queued visits',

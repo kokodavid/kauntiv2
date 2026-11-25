@@ -8,9 +8,17 @@ import '../../design/app_colors.dart';
 /// back affordance -- Detail, Profile, Settings -- uses the same shape
 /// and colors instead of a one-off per screen.
 class AppBackButton extends StatelessWidget {
-  const AppBackButton({super.key, required this.onPressed, this.size = 40});
+  const AppBackButton({
+    super.key,
+    required this.onPressed,
+    this.size = 40,
+    this.tooltip = 'Back',
+  });
 
   final VoidCallback onPressed;
+
+  /// Read out by screen readers and shown on long press.
+  final String tooltip;
 
   /// Overall square side. Every call site uses the default 40 so the
   /// button is identical wherever it appears (Detail's floated photo
@@ -21,31 +29,34 @@ class AppBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: const BorderSide(color: AppColors.backButtonBorder),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(size * 0.35),
+    return Tooltip(
+      message: tooltip,
+      child: SizedBox.square(
+        dimension: size,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: Colors.white,
+            side: const BorderSide(color: AppColors.backButtonBorder),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(size * 0.35),
+            ),
+            padding: EdgeInsets.zero,
+            minimumSize: Size.square(size),
+            // Material's default tap-target padding pads the button's hit
+            // area (and, inside some ambient themes, its visible box) out
+            // to 48dp regardless of the requested size -- shrinkWrap turns
+            // that off so this renders at exactly [size] everywhere it's
+            // used (a bare Row, an AppBar's leading slot, a floated photo
+            // control), instead of looking bigger in one context than
+            // another.
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          padding: EdgeInsets.zero,
-          minimumSize: Size.square(size),
-          // Material's default tap-target padding pads the button's hit
-          // area (and, inside some ambient themes, its visible box) out
-          // to 48dp regardless of the requested size -- shrinkWrap turns
-          // that off so this renders at exactly [size] everywhere it's
-          // used (a bare Row, an AppBar's leading slot, a floated photo
-          // control), instead of looking bigger in one context than
-          // another.
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        child: Icon(
-          Icons.arrow_back,
-          size: size * 0.5,
-          color: AppColors.foreground,
+          child: Icon(
+            Icons.arrow_back,
+            size: size * 0.5,
+            color: AppColors.foreground,
+          ),
         ),
       ),
     );

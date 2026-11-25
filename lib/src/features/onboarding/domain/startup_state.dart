@@ -7,13 +7,17 @@ enum StartupStep {
   splash,
   signIn,
 
-  /// New-user setup step 1 of 3.
+  /// New-user setup step 1 of 4.
   homeCounty,
 
-  /// New-user setup step 2 of 3: what kinds of places the user likes.
+  /// New-user setup step 2 of 4: what kinds of places the user likes.
   preferences,
 
-  /// New-user setup step 3 of 3. Also shown once, without the step
+  /// New-user setup step 3 of 4: the name other explorers see. Only asked
+  /// of an account that has not picked one.
+  username,
+
+  /// New-user setup step 4 of 4. Also shown once, without the step
   /// numbering, to a returning user on a phone that has never been asked
   /// (see [StartupState.isDeviceLocationAsk]).
   permission,
@@ -21,11 +25,12 @@ enum StartupStep {
   /// Signed in and past setup (or never needed it).
   ready;
 
-  /// "n of 3" for the three setup steps; null for every other step.
+  /// "n of 4" for the four setup steps; null for every other step.
   int? get setupNumber => switch (this) {
     homeCounty => 1,
     preferences => 2,
-    permission => 3,
+    username => 3,
+    permission => 4,
     _ => null,
   };
 }
@@ -46,11 +51,12 @@ class StartupState {
     this.isLocationPermanentlyDenied = false,
     this.isDeviceLocationAsk = false,
     this.permissionError,
+    this.usernameStepApplies = false,
   });
 
   final bool splashComplete;
 
-  /// Where onboarding stands once the splash is gone: sign-in, the three
+  /// Where onboarding stands once the splash is gone: sign-in, the four
   /// setup steps, or ready. [step] is what's on screen.
   final StartupStep phase;
 
@@ -70,9 +76,13 @@ class StartupState {
   final bool isLocationPermanentlyDenied;
 
   /// The permission page is showing for a returning user on a new phone
-  /// (not as setup step 3): no "3 of 3", no back button.
+  /// (not as setup step 4): no "4 of 4", no back button.
   final bool isDeviceLocationAsk;
   final String? permissionError;
+
+  /// Setup went through the username step, so Back from the permission step
+  /// returns to it.
+  final bool usernameStepApplies;
 
   StartupStep get step => splashComplete ? phase : StartupStep.splash;
 
@@ -89,6 +99,7 @@ class StartupState {
     bool? isLocationPermanentlyDenied,
     bool? isDeviceLocationAsk,
     String? Function()? permissionError,
+    bool? usernameStepApplies,
   }) => StartupState(
     splashComplete: splashComplete ?? this.splashComplete,
     phase: phase ?? this.phase,
@@ -107,5 +118,6 @@ class StartupState {
     permissionError: permissionError == null
         ? this.permissionError
         : permissionError(),
+    usernameStepApplies: usernameStepApplies ?? this.usernameStepApplies,
   );
 }

@@ -4,13 +4,13 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../design/app_text_styles.dart';
 
 /// The top of every setup step, drawn on the blue header: an optional
-/// back button, "n of 3" and three segmented bars. [step] is 1 to 3, or
+/// back button, "n of 4" and four segmented bars. [step] is 1 to 4, or
 /// null to draw only the back button (no numbering).
 class OnboardingProgressHeader extends StatelessWidget {
   const OnboardingProgressHeader({
     super.key,
     required this.step,
-    this.total = 3,
+    this.total = 4,
     this.onBack,
   });
 

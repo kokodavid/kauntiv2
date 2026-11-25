@@ -21,10 +21,10 @@ import '../features/map_home/presentation/map_home_board_sheet.dart'
 import '../features/map_home/presentation/map_home_screen.dart';
 import '../features/onboarding/application/startup_flow.dart';
 import '../features/profile/presentation/interests_prompt_card.dart';
-import '../features/trip_planner/presentation/saved_plans_home_section.dart';
 import '../services/app_supabase.dart';
 import 'app_routes.dart';
 import 'detail_routes.dart';
+import 'home_plans_section.dart';
 import 'journey_place_routes.dart';
 
 /// Home tab wiring belongs beside the router, while its UI stays in Map Home.
@@ -65,10 +65,7 @@ class MapTab extends ConsumerWidget {
       isTripRecording: isTripRecording,
       savedPlans: DetailRoutes.openPlace == null
           ? null
-          : SavedPlansHomeSection(
-              onOpenPlace: DetailRoutes.openPlace!,
-              onSeeAll: () => context.push(AppRoutes.savedPlans),
-            ),
+          : const HomePlansSection(),
       recordTripCardHeight: hasTrip ? 84 : defaultRecordTripCardHeight,
       recordTripCard: hasTrip
           ? GestureDetector(

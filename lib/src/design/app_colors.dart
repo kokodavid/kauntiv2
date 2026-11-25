@@ -47,6 +47,10 @@ class AppColors {
   static const placeShore = Color(0xFF0891B2);
   static const placeOther = Color(0xFF475569);
   static const tabBarShell = Color(0xCCFFFFFF);
+
+  /// Place Detail's floating action bar: solid, so text scrolling under it
+  /// can't show through the labels.
+  static const detailActionBarShell = Color(0xFFFFFFFF);
   static const tabPillBackground = Colors.white;
 
   /// The active tab's pill: white at the top washing into a light accent
@@ -75,6 +79,7 @@ class AppColors {
   static const backButtonBorder = Color(0xFFDADEEC);
   static const detailStatLabel = Color(0xFF94A3B8);
   static const detailStatValue = Color(0xFF475569);
+  static const detailBodyText = Color(0xFF3F3F46);
   static const categoryHeritageDot = Color(0xFF7E22CE);
   static const categoryDotFallback = mutedForeground;
   static const detailGlassShadow = Color(0x1A000000);
@@ -175,4 +180,15 @@ class AppColors {
   static const warningIcon = Color(0xFFD97706);
   static const updateScrim = Color(0x6609090B);
   static const sheetGrabber = Color(0xFFE2E8F0);
+
+  // Trip planner day routes (Claude Design trip planner handoff): seven dark
+  // line colours, each at least 4.5:1 on white, clear of the county legend's
+  // blue, yellow, green and red. Day 8 loops back to planDay1.
+  static const planDay1 = Color(0xFF4338CA);
+  static const planDay2 = Color(0xFFDB2777);
+  static const planDay3 = Color(0xFF0F766E);
+  static const planDay4 = Color(0xFFC2410C);
+  static const planDay5 = Color(0xFF9333EA);
+  static const planDay6 = Color(0xFF334155);
+  static const planDay7 = Color(0xFFA16207);
 }

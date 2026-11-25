@@ -202,7 +202,7 @@ mixin _TripShareSheetContent
                 ),
               ],
               const SizedBox(height: 18),
-              _TripShareActionRow(
+              AppShareActionRow(
                 buttonKey: _shareButtonKey,
                 saving: _saving,
                 sharing: _sharing,

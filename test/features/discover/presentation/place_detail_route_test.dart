@@ -72,13 +72,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Get Route'));
+    await tester.tap(find.text('Route'));
     await tester.pump();
     expect(calls, 1);
-    expect(find.text('Get Route'), findsNothing);
+    expect(find.text('Route'), findsOneWidget);
     complete.complete();
     await tester.pumpAndSettle();
-    expect(find.text('Get Route'), findsOneWidget);
+    expect(find.text('Route'), findsOneWidget);
   });
 }
 

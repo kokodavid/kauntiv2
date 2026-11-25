@@ -48,9 +48,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Kaunti47 uses location at county boundaries to unlock badges. When you start a Journey, it also records your route while your phone is locked.</string>
+	<string>Kaunti47 uses location at county boundaries to unlock badges and, if you turn on Accurate county times, to time your stay in each county. When you start a Trip, it also records your route while your phone is locked.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Kaunti47 uses location at county boundaries to unlock badges. When you start a Journey, it also records your route while your phone is locked.</string>
+	<string>Kaunti47 uses location at county boundaries to unlock badges and, if you turn on Accurate county times, to time your stay in each county. When you start a Trip, it also records your route while your phone is locked.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Kaunti47 uses your location to detect county entries for badges and, when you start a Journey, to record your route.</string>
 	<key>NSCameraUsageDescription</key>

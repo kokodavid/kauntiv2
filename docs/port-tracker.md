@@ -1,5 +1,13 @@
 # V1 → V2 port tracker
 
+## 2026-11-07 Dashboard Growth Statistics
+
+Dashboard-only reporting adds period filters, distinct county coverage ranking,
+activation, observed activity, travel-retention cohorts and invitation conversion.
+Backend migration: `20261107140000_dashboard_growth_stats.sql`. Definitions,
+privacy rules, rollout and SQL regression checks: [dashboard-growth-stats.md](dashboard-growth-stats.md).
+No mobile code changes or Flutter/Dart commands. Existing achievements are untouched.
+
 One row per feature. Source: `kokodavid/kaunti47`, branch `redesign/figma-v2`
 (about 40k lines). Update this file in the same commit/PR that moves a feature: the table row,
 the feature's section below (if it has one) and the progress log.
@@ -25,8 +33,30 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 14 | Production place candidate intake | New in v2 | In progress | codex/candidate-research-intake | Explicit Dev place copies route only publicly ready records into `places`; incomplete or non-portable records remain in an app-inaccessible candidate queue, where an editor can revise, reject, or publish only when all publication checks pass. Dashboard editors can import page-derived names or ask AI to discover a county-specific shortlist from multiple web sources, then select which leads reach the private queue. AI research fills the candidate only; discovery pages remain provenance, researched sources are stored separately, and image review still blocks publication. Scraped data now has a Dev-only, manual Wikidata collector that can create review-only candidates but cannot import images or publish places. See [place-candidate-intake.md](place-candidate-intake.md) and [scraper-ingest.md](scraper-ingest.md). |
 | 15 | Push notifications (arrival, server push, announcements) | New in v2 | In progress | feature/push-notifications-slice-2-server | Plan: project doc `claude/notifications-plan.md`. Slice 1: local county-arrival notification (device validation pending). Slice 2 (this branch): `features/notifications` (Firebase from dart-defines, device registration RPCs, tap router in `app/push_routes.dart`, foreground banner, sign-out unregister), Settings switches for Photo reviews and Announcements (default on), migration `20261022100000_push_notifications.sql` (devices, queue, campaigns with approval, audience filters, email fallback, photo-review producer), `send-push` edge function, dashboard Notifications console. Slice 4: paused-trip reminder (OS-scheduled local notification, `TripAlertLifecycle`, tap opens the recording screen). Slice 5: weekly Thursday weekend-idea push (`enqueue_weekend_plans`, migration `20261022110000`): saved plans and wishlist places first, else interest-matched places within a chosen radius (default 200 km) of the home county centre; configurable under Settings > Notifications. Needs Firebase dev project, APNs key and device validation before prod. |
 | 16 | App version management | New in v2 | In progress | codex/app-versioning | Semantic release policy checked in the app at startup/resume and controlled from owner/admin dashboard tools. SQL deployment and rollout guide: [app-version-management.md](app-version-management.md). Riverpod code generated; pending Flutter analyze/tests, SQL application, and device verification. Update prompts redesigned per the Claude Design handoff (forced screen, soft sheet, Settings row, Profile dot); see notes below. |
+| 17 | Trip planner v2 (shared plans in the Trips tab) | New in v2 | In progress | feature/trip-planner-v2 | Plan: project doc `claude/trip-planner-build-plan.md`; progress and open setups: `claude/trip-planner-open-setups.md`. Feature `features/trip_plans` (old `features/trip_planner` stays as the flag-off fallback until `trip_plans` is on everywhere). Slices S0 to S11 built: plans, days and stops, editing, Add to trip, Start trip per day, invites and join links, live co-editing, Mute plan, plan push (invites, joins, batched changes), Best order (Edge Function `plan-best-order`), Offline copy (Mapbox tile region). Server switches `trip_plans` and `trip_plan_invites`. Migrations `20261101100000` to `20261101107000`. Nothing compiled or run yet; migrations not applied to dev; deep-link association files need real fingerprints. |
 
 ## Baseline burn-down
+
+### Place Detail release consolidation (2026-11-23)
+
+Prepared the active Place Detail route for the 1.6.3 release: an always-visible
+About section, refreshed photo gallery, a shared floating action bar for Add to
+trip, check-in, Add photo and Route, plus a per-account dismissible photo nudge.
+Removed the superseded full-width action widgets after confirming that app
+routing now composes their compact replacements. Split header actions out of
+the screen and placed local banner persistence behind the application boundary
+so the architecture guard remains clean. Device transition and screen-flash
+verification remains required before release.
+
+### Country club category (2026-11-08)
+
+Added `country_club` to the mobile category list, aliases and synchronous golf
+icon mapping; additive migration applied to production only. Dashboard category
+options are database-driven, so no frontend changes are needed. Prepared the
+39-row draft-import CSV and coordinate audit; no places imported or published.
+See [country-club-place-type.md](country-club-place-type.md) for deployment,
+county-review cases and verification limits. Regression tests added but not run;
+Flutter/Dart and device visual checks were not run per standing instructions.
 
 | Date | Baselined violations | Note |
 |---|---|---|
@@ -494,6 +524,7 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | Date | Commit | Rows | Change |
 |---|---|---|---|
+| 2026-10-29 | codex/android-photo-picker-policy | 13 | Android release compliance: removed broad photo/video permissions from the merged manifest, kept user-selected media on the system picker, and disabled whole-camera-roll auto-matching on Android; version bumped to `1.6.0+38`. iOS camera-roll matching remains available. Flutter/device verification pending. |
 | 2026-10-18 | codex/app-versioning | 16 | Added SemVer-based app release policy, owner/admin dashboard release drafts and publishing, optional minor control, store-update gates and DB migration/deployment guide. Riverpod generation, dashboard build and architecture checks pass; Flutter tests/analyze, DB application and device verification pending. |
 | 2026-10-18 | codex/ui-conventions | 16 | `get_app_update_policy` now falls back to the tester invite link (`android_opt_in_url` / `ios_testflight_url`) when a live release has no store URL; migration `20261024100000_app_version_store_url_fallback.sql`. A release's own URL still wins. |
 | 2026-10-18 | codex/ui-conventions | 16 | Rebuilt the update prompts from the Claude Design handoff: blocking forced screen (offline, store-failed and no-store-link states, collapsible notes, resume re-check), soft update as a bottom sheet over Home (7-day snooze, never during a Trip), Settings "Update available" row and Profile dot. Removed the `/update-available` route and the Material update screen. Splash-to-forced-screen icon morph built (`update_entrance.dart`): icon glides from the splash position, halo grows, content fades in at 450 ms; 200 ms fade for reduced motion or when not arriving from the splash. Uses the in-app `AppIconBadge` instead of a launcher PNG. Flutter format/analyze/tests and device verification pending. |
@@ -581,4 +612,5 @@ Newest first. One line per commit that moves a feature or changes tracking.
 
 | 2026-10-19 | feature/county-passport | 7 | Replaced the Badges tab with the County Passport (design handoff): tab renamed Passport; cover with book-open animation (once per app session); landing with summary bar, next-stamp card, search, filters and the 8 regions; 47 swipeable county pages (hero, five stamps, next stamp, stats, Explore link) with a floating pager. Levels: Passed Through and Explored from real data; legacy Regular/Local expert shown as Bronze/Silver (never lowered). Bronze/Silver/Gold show as "Later" until place verification exists; rules live in `PassportRules` (versioned) and verified places come only through `PassportEvidence`. Old Collection screens and sheet removed. Flutter format/analyze/tests and device check pending. |
 | 2026-10-20 | feature/county-passport | — | Place check-ins (Bronze, Silver, Gold evidence), in progress. Migration `20261027100000_place_check_ins.sql` (place_check_ins, radius per place type, `check_in_to_place`, `my_county_check_ins`, `my_check_in_summary`, flag `place_check_ins` off by default); app `features/place_check_ins` ("I'm here" card on Place Detail), badges read check-ins to lift Explored to Bronze/Silver/Gold by `PassportRules`. Needs: apply migration, `build_runner`, switch on in Feature settings (SQL until the dashboard card exists). Photo as optional extra not built. |
-
+| 2026-10-29 | feature/trip-planner-v2 | 17 | Trip planner v2 slices S0 to S11 plus invite-link deep linking (remembered through onboarding, Android autoVerify filter, iOS associated domain) and 360 pt / large-text / full 14-day plan layout tests. Flutter checks, SQL tests and device checks pending. |
+| 2026-10-29 | `e6acf93` | 13 | Android photo selection uses the system picker without broad media permissions in the merged release manifest; camera-roll matching remains limited to the supported app flow. |

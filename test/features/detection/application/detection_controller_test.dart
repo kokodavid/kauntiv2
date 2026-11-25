@@ -39,6 +39,18 @@ class _FakePermission implements DetectionPermission {
 
   @override
   Future<void> openSettings() async => settingsOpened++;
+
+  var servicesOn = true;
+  var turnOnAsked = 0;
+
+  @override
+  Future<bool> servicesEnabled() async => servicesOn;
+
+  @override
+  Future<void> turnOnServices() async {
+    turnOnAsked++;
+    servicesOn = true;
+  }
 }
 
 const AppLocationFix _nairobi = (latitude: -1.292629, longitude: 36.864399);
@@ -110,6 +122,34 @@ void main() {
     await c.read(detectionControllerProvider.notifier).runCycle();
     expect(await repo.currentCountyCode(), isNull);
     expect(geofences.registered, isEmpty);
+  });
+
+  test('location switched off on the phone is flagged for Home', () async {
+    await repo.seedCurrentCounty(22);
+    permission.servicesOn = false;
+    final c = container(_nairobi);
+    await c.read(detectionControllerProvider.notifier).runCycle();
+
+    final snapshot = c.read(detectionControllerProvider);
+    expect(snapshot.locationServicesOff, isTrue);
+    expect(snapshot.backgroundLocationOff, isFalse);
+    // Nothing was read or recorded while it was off.
+    expect(await repo.currentCountyCode(), 22);
+    expect(geofences.registered, isEmpty);
+  });
+
+  test('turning location back on clears the flag', () async {
+    await repo.seedCurrentCounty(22);
+    permission.servicesOn = false;
+    final c = container(_nairobi);
+    final controller = c.read(detectionControllerProvider.notifier);
+    await controller.runCycle();
+    expect(c.read(detectionControllerProvider).locationServicesOff, isTrue);
+
+    await controller.turnOnLocation();
+    expect(permission.turnOnAsked, 1);
+    expect(c.read(detectionControllerProvider).locationServicesOff, isFalse);
+    expect(await repo.currentCountyCode(), 47);
   });
 
   test('local detection cycle can skip a hardware location read', () async {

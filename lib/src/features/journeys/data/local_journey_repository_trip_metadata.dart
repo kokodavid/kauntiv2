@@ -131,3 +131,71 @@ Future<LocalJourneySession> _owned(
   if (row == null) throw StateError('Journey not found for this account.');
   return _session(row);
 }
+
+Future<JourneyPauseReason?> _pauseReason(
+  JourneyDatabase db,
+  String id,
+  String userId,
+) async {
+  final rows = await db
+      .customSelect(
+        'SELECT pause_reason FROM journey_sessions '
+        'WHERE id = ? AND user_id = ?',
+        variables: [Variable.withString(id), Variable.withString(userId)],
+        readsFrom: {db.journeySessions},
+      )
+      .get();
+  if (rows.isEmpty) return null;
+  return JourneyPauseReason.fromStorage(
+    rows.single.data['pause_reason'] as String?,
+  );
+}
+
+Future<void> _setPauseReason(
+  JourneyDatabase db,
+  String id,
+  String userId,
+  JourneyPauseReason? reason,
+) => db.customUpdate(
+  'UPDATE journey_sessions SET pause_reason = ? '
+  'WHERE id = ? AND user_id = ?',
+  variables: [
+    Variable<String>(reason?.storageValue),
+    Variable.withString(id),
+    Variable.withString(userId),
+  ],
+  updates: {db.journeySessions},
+);
+
+Future<JourneyQuality?> _quality(
+  JourneyDatabase db,
+  String id,
+  String userId,
+) async {
+  final rows = await db
+      .customSelect(
+        'SELECT quality_json FROM journey_sessions '
+        'WHERE id = ? AND user_id = ?',
+        variables: [Variable.withString(id), Variable.withString(userId)],
+        readsFrom: {db.journeySessions},
+      )
+      .get();
+  if (rows.isEmpty) return null;
+  return JourneyQuality.decode(rows.single.data['quality_json'] as String?);
+}
+
+Future<void> _saveQuality(
+  JourneyDatabase db,
+  String id,
+  String userId,
+  JourneyQuality quality,
+) => db.customUpdate(
+  'UPDATE journey_sessions SET quality_json = ? '
+  'WHERE id = ? AND user_id = ?',
+  variables: [
+    Variable.withString(quality.encode()),
+    Variable.withString(id),
+    Variable.withString(userId),
+  ],
+  updates: {db.journeySessions},
+);

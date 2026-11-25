@@ -10,6 +10,7 @@ class AppConfig {
     required this.googleWebClientId,
     required this.googleIosClientId,
     this.mapboxAccessToken = '',
+    this.geoapifyApiKey = '',
     this.firebaseProjectId = '',
     this.firebaseApiKey = '',
     this.firebaseMessagingSenderId = '',
@@ -32,6 +33,7 @@ class AppConfig {
       googleWebClientId = const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
       googleIosClientId = const String.fromEnvironment('GOOGLE_IOS_CLIENT_ID'),
       mapboxAccessToken = const String.fromEnvironment('MAPBOX_ACCESS_TOKEN'),
+      geoapifyApiKey = const String.fromEnvironment('GEOAPIFY_API_KEY'),
       firebaseProjectId = const String.fromEnvironment('FIREBASE_PROJECT_ID'),
       firebaseApiKey = const String.fromEnvironment('FIREBASE_API_KEY'),
       firebaseMessagingSenderId = const String.fromEnvironment(
@@ -59,6 +61,7 @@ class AppConfig {
       googleWebClientId = const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
       googleIosClientId = const String.fromEnvironment('GOOGLE_IOS_CLIENT_ID'),
       mapboxAccessToken = const String.fromEnvironment('MAPBOX_ACCESS_TOKEN'),
+      geoapifyApiKey = const String.fromEnvironment('GEOAPIFY_API_KEY'),
       firebaseProjectId = const String.fromEnvironment('FIREBASE_PROJECT_ID'),
       firebaseApiKey = const String.fromEnvironment('FIREBASE_API_KEY'),
       firebaseMessagingSenderId = const String.fromEnvironment(
@@ -85,6 +88,10 @@ class AppConfig {
   /// Public Mapbox token for Home's real map. Empty means Home uses the
   /// drawn county map.
   final String mapboxAccessToken;
+
+  /// Geoapify key for the plan start-point search. Empty falls back to
+  /// Mapbox's address search.
+  final String geoapifyApiKey;
 
   /// The Firebase project for this environment, used only for push
   /// notifications. All empty means push is off in this build.

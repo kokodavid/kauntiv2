@@ -2,6 +2,7 @@ import 'package:native_geofence/native_geofence.dart';
 
 import '../../../counties/county_paths.dart';
 import '../../../services/app_logger.dart';
+import '../domain/visit_rules.dart';
 import 'geofence_callback.dart';
 
 /// OS-level county geofences (ported from v1). One circle per county
@@ -67,7 +68,15 @@ class GeofenceService {
           id: '$code',
           location: Location(latitude: centroid.$1, longitude: centroid.$2),
           radiusMeters: radius.toDouble(),
-          triggers: const {GeofenceEvent.enter, GeofenceEvent.exit},
+          // Android only: GeofenceEvent.dwell lets the OS itself resolve a
+          // 2 h+ stay as explored without the app ever opening. iOS has no
+          // native dwell transition (see geofence_callback.dart), so it
+          // keeps relying on the foreground cycle for that case.
+          triggers: const {
+            GeofenceEvent.enter,
+            GeofenceEvent.exit,
+            GeofenceEvent.dwell,
+          },
           iosSettings: IosGeofenceSettings(
             initialTrigger: triggerEnterImmediately,
           ),
@@ -75,6 +84,9 @@ class GeofenceService {
             initialTriggers: triggerEnterImmediately
                 ? const {GeofenceEvent.enter}
                 : const {},
+            // Matches VisitRules' own dwell threshold, so "explored" means
+            // the same thing whether the OS or the app resolves it.
+            loiteringDelay: VisitTimings.current.dwellThreshold,
           ),
         ),
         geofenceCallbackDispatcher,

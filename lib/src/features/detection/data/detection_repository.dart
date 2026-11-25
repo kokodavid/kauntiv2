@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/counties/county_distance.dart';
+import '../../../counties/county_paths.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
 import 'local/detection_database.dart';
@@ -28,6 +29,9 @@ class DetectionRepository {
   final VisitRules rules;
   late final Future<void> _ready;
   String? _expectedOwner;
+
+  /// Completes after the local account-scoped state is ready for use.
+  Future<void> get ready => _ready;
 
   static const _currentCountyRowId = 0;
 
@@ -110,10 +114,14 @@ class DetectionRepository {
       minimumInsideDistanceMeters: minimumInsideDistanceMeters,
     );
     if (sampled == null) return null;
+    final at = now ?? DateTime.now();
+    // The fix is clearly inside `sampled`, so no other county's timer can
+    // still be running: close them now, at the fix, not when the app next
+    // wakes up (that is how a left-behind county kept collecting time).
+    await _closeOtherCandidates(except: sampled, at: at);
     final previous = await currentCountyCode();
     if (previous == sampled) return null;
 
-    final at = now ?? DateTime.now();
     if (previous != null) {
       await handleEvent(
         CountyCrossingEvent(
@@ -222,6 +230,8 @@ class DetectionRepository {
     required DateTime resolvedAt,
   }) async {
     await _ready;
+    final enteredAtUtc = enteredAt.toUtc();
+    final resolvedAtUtc = resolvedAt.toUtc();
     final queued = await _db.transaction(() async {
       final owner = await _ownerId();
       final candidate = await (_db.select(
@@ -238,8 +248,8 @@ class DetectionRepository {
               userId: Value(owner),
               countyCode: countyCode,
               outcome: outcome.wireName,
-              enteredAt: enteredAt,
-              resolvedAt: resolvedAt,
+              enteredAt: enteredAtUtc,
+              resolvedAt: resolvedAtUtc,
             ),
           );
       return true;
@@ -248,8 +258,8 @@ class DetectionRepository {
     return ResolvedVisit(
       countyCode: countyCode,
       outcome: outcome,
-      enteredAt: enteredAt,
-      resolvedAt: resolvedAt,
+      enteredAt: enteredAtUtc,
+      resolvedAt: resolvedAtUtc,
     );
   }
 

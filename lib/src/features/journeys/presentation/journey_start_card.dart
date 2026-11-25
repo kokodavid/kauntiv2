@@ -7,10 +7,14 @@ import '../../../core/design/app_type_scale.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
+import '../application/journey_capture_device_settings.dart';
 import '../application/journey_entitlement.dart';
+import '../application/journey_providers.dart';
 import '../application/journey_recorder.dart';
+import '../domain/journey_device_settings.dart';
 import '../domain/pro_status.dart';
 import 'journey_messages.dart';
+import 'journey_settings_check_sheet.dart';
 import 'journey_transport_mode_ui.dart';
 
 /// Opens the OS settings (location permission); supplied by `app/`.
@@ -50,6 +54,7 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
     // untouched rather than falling back to some assumed mode.
     final mode = await JourneyTransportModePicker.choose(context);
     if (mode == null || !mounted) return;
+    if (!await _settingsAllowStart() || !mounted) return;
     setState(() => _starting = true);
     try {
       await ref.read(journeyRecorderProvider.notifier).start(mode: mode);
@@ -64,6 +69,36 @@ class _JourneyStartCardState extends ConsumerState<JourneyStartCard> {
     } finally {
       if (mounted) setState(() => _starting = false);
     }
+  }
+
+  /// Warns about power settings that can cut the Trip short. Returns true
+  /// to carry on and start; false when the person dismissed the warning or
+  /// went to settings first. Never blocks when the settings can't be read.
+  Future<bool> _settingsAllowStart() async {
+    JourneyDeviceSettings? settings;
+    try {
+      settings = await ref
+          .read(journeyCaptureProvider)
+          .readDeviceSettings()
+          .timeout(const Duration(milliseconds: 500));
+    } on Object {
+      // Device settings are advisory. A database or platform read failure
+      // must not prevent a person from starting a Trip.
+      return true;
+    }
+    final warnings = settings?.warnings ?? const <JourneySettingsWarning>[];
+    if (warnings.isEmpty || !mounted) return true;
+    final openSettings = widget.onOpenSettings;
+    final choice = await showJourneySettingsCheck(
+      context,
+      warnings: warnings,
+      canOpenSettings: openSettings != null,
+    );
+    if (choice == JourneySettingsChoice.openSettings) {
+      await openSettings?.call();
+      return false;
+    }
+    return choice == JourneySettingsChoice.startAnyway;
   }
 
   Future<void> _showTrialExhausted() {

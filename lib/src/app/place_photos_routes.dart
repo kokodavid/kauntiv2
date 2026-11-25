@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/discover/domain/place_detail.dart';
+import '../features/place_photos/application/place_photos_providers.dart';
 import '../features/place_photos/domain/place_photo_item.dart';
+import '../features/place_photos/presentation/add_photo_bar_item.dart';
 import '../features/place_photos/presentation/my_photos_profile_entry.dart';
 import '../features/place_photos/presentation/my_photos_screen.dart';
 import '../features/place_photos/presentation/place_photos_section.dart';
 import '../features/profile/presentation/profile_tiles.dart';
+import '../features/profile/presentation/username_change_sheet.dart';
 import 'app_routes.dart';
 
 /// Where user place photos meet the rest of the app. Features don't import
@@ -32,8 +38,24 @@ abstract final class PlacePhotosRoutes {
           ),
       ],
       onOpenMyPhotos: () => context.push(AppRoutes.myPhotos),
-      onChooseUsername: () => context.go(AppRoutes.profile),
+      onChooseUsername: () => unawaited(_chooseUsername(context)),
     );
+  }
+
+  /// Place Detail's floating action bar: the "Add photo" item.
+  static Widget addPhotoBarItem(BuildContext context, PlaceDetailData place) {
+    return AddPhotoBarItem(
+      placeId: place.id,
+      canAdd: place.acceptsPhotos,
+      onChooseUsername: () => unawaited(_chooseUsername(context)),
+    );
+  }
+
+  /// The username picker, then a fresh look at whether one is chosen.
+  static Future<void> _chooseUsername(BuildContext context) async {
+    final container = ProviderScope.containerOf(context);
+    final saved = await UsernameChangeSheet.show(context, isFirstChoice: true);
+    if (saved) container.invalidate(hasChosenUsernameProvider);
   }
 
   /// Profile's "My photos" row (nothing while the feature is off).

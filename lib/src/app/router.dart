@@ -20,18 +20,17 @@ import '../features/feedback/presentation/feedback_reports_screen.dart';
 import '../features/journeys/application/journey_recorder.dart';
 import '../features/journeys/presentation/journey_recording_screen.dart';
 import '../features/journeys/presentation/journey_replay_screen.dart';
-import '../features/journeys/presentation/journeys_screen.dart';
 import '../features/location_diagnostics/presentation/location_diagnostics_screen.dart';
 import '../features/notifications/presentation/push_lifecycle.dart';
 import '../features/notifications/presentation/trip_alert_lifecycle.dart';
 import '../features/onboarding/application/startup_flow.dart';
-import '../features/place_check_ins/presentation/place_check_in_card.dart';
+import '../features/place_check_ins/presentation/place_check_in_bar_item.dart';
 import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../features/trip_planner/presentation/saved_plans_screen.dart';
-import '../features/trip_planner/presentation/trip_plan_section.dart';
-import '../features/trip_planner/presentation/trip_start_button.dart';
+import '../features/trip_plans/application/trip_plans_providers.dart';
+import '../features/trip_plans/presentation/add_to_trip_bar_item.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
 import 'app_update_routes.dart';
@@ -40,9 +39,13 @@ import 'dev_tool_routes.dart';
 import 'billing_routes.dart';
 import 'journey_place_routes.dart';
 import 'place_photos_routes.dart';
+import 'plan_routes.dart';
 import 'push_routes.dart';
 import 'router_map_tab.dart';
+import 'router_redirect.dart';
 import 'startup_pages.dart';
+import 'trip_start_reminder_lifecycle.dart';
+import 'trips_tab.dart';
 
 part 'router.g.dart';
 
@@ -54,21 +57,13 @@ GoRouter appRouter(Ref ref) {
   final isDev = ref.read(appConfigProvider).isDev;
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
-    redirect: (context, state) {
-      final journeyActive =
-          AppFeatureFlags.journeys && ref.read(journeyRecorderProvider) != null;
-      final update = ref.read(appUpdateControllerProvider);
-      return AppRoutes.redirect(
-        ref.read(startupFlowProvider).step,
-        state.matchedLocation,
-        updateRequired: update?.required == true && !journeyActive,
-      );
-    },
+    redirect: (context, state) => routerRedirect(ref, state.matchedLocation),
     routes: [
       _gate(AppRoutes.splash, const StartupSplashPage()),
       _gate(AppRoutes.signIn, const StartupSignInPage()),
       _gate(AppRoutes.homeCounty, const StartupHomeCountyPage()),
       _gate(AppRoutes.preferences, const StartupPreferencesPage()),
+      _gate(AppRoutes.username, const StartupUsernamePage()),
       _gate(AppRoutes.permission, const StartupPermissionPage()),
       ...appUpdateRoutes(),
       StatefulShellRoute.indexedStack(
@@ -78,7 +73,11 @@ GoRouter appRouter(Ref ref) {
           // until start-up is done.
           child: PushLifecycle(
             onOpen: PushRoutes.open,
-            child: TripAlertLifecycle(child: AppShell(navigationShell: shell)),
+            child: TripStartReminderLifecycle(
+              child: TripAlertLifecycle(
+                child: AppShell(navigationShell: shell),
+              ),
+            ),
           ),
         ),
         branches: [
@@ -116,13 +115,7 @@ GoRouter appRouter(Ref ref) {
               routes: [
                 GoRoute(
                   path: AppRoutes.journeys,
-                  builder: (context, state) => JourneysScreen(
-                    onOpenJourney: (context, id) =>
-                        context.push(AppRoutes.journey(id)),
-                    onOpenSettings: DetailRoutes.openAppSettings,
-                    onOpenRecording: (context) =>
-                        context.push(AppRoutes.journeyRecording),
-                  ),
+                  builder: (context, state) => const TripsTab(),
                 ),
               ],
             ),
@@ -215,6 +208,7 @@ GoRouter appRouter(Ref ref) {
         ),
       if (isDev) ...devToolRoutes,
       ...billingRoutes,
+      ...planRoutes,
       GoRoute(
         path: AppRoutes.savedPlans,
         builder: (context, state) => SavedPlansScreen(
@@ -232,35 +226,25 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: '/place/:id',
-        builder: (context, state) => PlaceDetailScreen(
-          placeId: state.pathParameters['id']!,
-          actions: DetailRoutes.actions!,
-          onGetRoute: JourneyPlaceRoutes.open,
-          gettingThere: (context, place) => TripPlanSection(
-            placeId: place.id,
-            placeName: place.title,
-            latitude: place.latitude!,
-            longitude: place.longitude!,
-            onStart: (context, stops) =>
-                JourneyPlaceRoutes.startPlanned(context, place, stops),
-            onOpenPlace: DetailRoutes.openPlace,
-            onDirections: (stops) async {
-              await DetailRoutes.actions!.openDirections(
-                place,
-                waypoints: [for (final s in stops) '${s.lat},${s.lng}'],
-              );
-            },
+        builder: (context, state) => Consumer(
+          // Add to trip leaves the floating bar while the planner is off.
+          builder: (context, ref, _) => PlaceDetailScreen(
+            placeId: state.pathParameters['id']!,
+            actions: DetailRoutes.actions!,
+            onGetRoute: JourneyPlaceRoutes.open,
+            photos: PlacePhotosRoutes.placeSection,
+            addToTrip: (ref.watch(tripPlansEnabledProvider).value ?? false)
+                ? (context, place) => AddToTripBarItem(
+                    placeId: place.id,
+                    placeName: place.title,
+                    onOpenPlan: (context, id) =>
+                        context.push(AppRoutes.plan(id)),
+                  )
+                : null,
+            checkIn: (context, place) =>
+                PlaceCheckInBarItem(placeId: place.id, placeName: place.title),
+            addPhoto: PlacePhotosRoutes.addPhotoBarItem,
           ),
-          startButton: (context, place) => TripStartButton(
-            placeId: place.id,
-            latitude: place.latitude!,
-            longitude: place.longitude!,
-            onStart: (context, stops) =>
-                JourneyPlaceRoutes.startPlanned(context, place, stops),
-          ),
-          photos: PlacePhotosRoutes.placeSection,
-          checkIn: (context, place) =>
-              PlaceCheckInCard(placeId: place.id, placeName: place.title),
         ),
       ),
     ],

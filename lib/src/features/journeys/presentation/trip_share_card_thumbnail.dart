@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_network_image.dart';
+import '../../../core/widgets/share_card_renderer.dart';
 import '../../../services/app_logger.dart';
 import '../application/journey_views.dart';
 import '../application/trip_share_card_cache_provider.dart';
@@ -14,7 +15,6 @@ import '../domain/journey_route.dart';
 import '../domain/journey_summary.dart';
 import 'journey_card.dart' show JourneyRoutePreview;
 import 'trip_share_card.dart';
-import 'trip_share_card_renderer.dart';
 
 /// Drop-in replacement for [JourneyRoutePreview] in the Trip history
 /// card: generates and caches a [TripShareCard] PNG from the Trip's
@@ -145,7 +145,7 @@ class _TripShareCardThumbnailState
           ? TripShareCard.normalizeRoute(cache.mainRoutePoints(route))
           : const <Offset>[];
 
-      final bytes = await captureTripShareCard(
+      final bytes = await captureShareCard(
         context: context,
         card: TripShareCard(
           variant: TripShareCardVariant.thumbnail,

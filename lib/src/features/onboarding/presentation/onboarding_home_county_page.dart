@@ -8,7 +8,7 @@ import '../../../widgets/app_county_map.dart';
 import '../../../widgets/county_picker_sheet.dart';
 import 'onboarding_shell.dart';
 
-/// Setup step 1 of 3: pick your home county (setup design v2), inside the
+/// Setup step 1 of 4: pick your home county (setup design v2), inside the
 /// shared [OnboardingShell]. The header gives the one-line pitch, so a new
 /// user knows the game before picking. Tapping a county's shape on the map
 /// selects it; a search bar over the map opens [CountyPickerSheet]; and
@@ -45,7 +45,7 @@ class OnboardingHomeCountyPage extends StatelessWidget {
       ),
       primaryLabel: 'Continue',
       onPrimary: selectedCounty == null ? null : onContinue,
-      footerCaption: 'Change it later in Settings',
+      footerCaption: 'Change it later in Edit profile',
       isBusy: isSaving,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

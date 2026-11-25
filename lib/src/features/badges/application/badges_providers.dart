@@ -46,6 +46,7 @@ Stream<BadgeCollection> badgeCollection(Ref ref) async* {
       ranks: saved.ranks,
       savedAt: saved.savedAt,
       firstStampAt: saved.firstStampAt,
+      exploredAt: saved.exploredAt,
       checkIns: saved.checkIns,
     );
   }
@@ -57,12 +58,14 @@ Stream<BadgeCollection> badgeCollection(Ref ref) async* {
       ranks: data.ranks,
       now: DateTime.now(),
       firstStampAt: data.firstStampAt,
+      exploredAt: data.exploredAt,
       checkIns: data.checkIns,
     );
     yield BadgeCollection.from(
       visitStates: data.visitStates,
       ranks: data.ranks,
       firstStampAt: data.firstStampAt,
+      exploredAt: data.exploredAt,
       checkIns: data.checkIns,
     );
   } on Object {

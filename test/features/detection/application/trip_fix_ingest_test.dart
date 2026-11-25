@@ -42,11 +42,9 @@ void main() {
   test('a Trip fix in another county closes the left-behind timer', () async {
     await startMachakos();
     final at = t0.add(const Duration(minutes: 90));
-    await ingest(now: at).offer(
-      latitude: _kajiado.lat,
-      longitude: _kajiado.lng,
-      at: at,
-    );
+    await ingest(
+      now: at,
+    ).offer(latitude: _kajiado.lat, longitude: _kajiado.lng, at: at);
     final queued = await db.select(db.pendingSyncOps).get();
     expect(queued.single.countyCode, 16);
     expect(queued.single.outcome, 'passed_through');
@@ -69,11 +67,10 @@ void main() {
   test('nothing happens when signed out', () async {
     await startMachakos();
     final at = t0.add(const Duration(minutes: 90));
-    await ingest(now: at, signedIn: false).offer(
-      latitude: _kajiado.lat,
-      longitude: _kajiado.lng,
-      at: at,
-    );
+    await ingest(
+      now: at,
+      signedIn: false,
+    ).offer(latitude: _kajiado.lat, longitude: _kajiado.lng, at: at);
     expect(await db.select(db.pendingSyncOps).get(), isEmpty);
   });
 

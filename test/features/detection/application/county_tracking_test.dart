@@ -89,18 +89,21 @@ void main() {
     expect(await c.read(countyTrackingProvider.future), isFalse);
   });
 
-  test('steps aside for a recording Trip without stopping its location', () async {
-    final source = _Source();
-    final c = container(source);
-    final tracking = c.read(countyTrackingProvider.notifier);
-    await tracking.setEnabled(true);
+  test(
+    'steps aside for a recording Trip without stopping its location',
+    () async {
+      final source = _Source();
+      final c = container(source);
+      final tracking = c.read(countyTrackingProvider.notifier);
+      await tracking.setEnabled(true);
 
-    await tracking.sync(tripRecording: true);
-    expect(source.stops, 0, reason: 'the Trip owns background location');
+      await tracking.sync(tripRecording: true);
+      expect(source.stops, 0, reason: 'the Trip owns background location');
 
-    await tracking.sync(tripRecording: false);
-    expect(source.starts, 2);
-  });
+      await tracking.sync(tripRecording: false);
+      expect(source.starts, 2);
+    },
+  );
 
   test('a fix inside a county reaches detection', () async {
     final source = _Source();

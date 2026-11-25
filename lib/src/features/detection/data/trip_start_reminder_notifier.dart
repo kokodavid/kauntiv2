@@ -51,7 +51,8 @@ class TripStartReminderNotifier {
         android: AndroidNotificationDetails(
           _channelId,
           'Trip start reminders',
-          channelDescription: 'When you seem to be travelling between counties.',
+          channelDescription:
+              'When you seem to be travelling between counties.',
         ),
         iOS: DarwinNotificationDetails(),
       ),
@@ -69,7 +70,8 @@ class TripStartReminderNotifier {
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    if (android != null) return await android.areNotificationsEnabled() ?? false;
+    if (android != null)
+      return await android.areNotificationsEnabled() ?? false;
     final ios = _plugin
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin

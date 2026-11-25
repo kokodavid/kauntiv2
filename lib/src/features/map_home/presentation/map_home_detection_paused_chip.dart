@@ -53,7 +53,9 @@ class MapHomeDetectionPausedChip extends ConsumerWidget {
                 ),
                 const SizedBox(width: 5),
                 Text(
-                  servicesOff ? 'LOCATION IS OFF' : 'AUTOMATIC DETECTION PAUSED',
+                  servicesOff
+                      ? 'LOCATION IS OFF'
+                      : 'AUTOMATIC DETECTION PAUSED',
                   style: AppTextStyles.mapOverlayChip,
                 ),
                 const SizedBox(width: 8),

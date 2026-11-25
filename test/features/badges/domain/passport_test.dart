@@ -280,11 +280,7 @@ void main() {
     PassportBook bookWith(Map<int, DateTime> exploredAt) =>
         PassportBook.fromCollection(
           BadgeCollection.from(
-            visitStates: {
-              47: 'explored',
-              22: 'explored',
-              30: 'passed_through',
-            },
+            visitStates: {47: 'explored', 22: 'explored', 30: 'passed_through'},
             ranks: {22: 'regular'},
             exploredAt: exploredAt,
           ),

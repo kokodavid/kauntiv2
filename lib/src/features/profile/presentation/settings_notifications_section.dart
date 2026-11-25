@@ -72,7 +72,8 @@ class SettingsNotificationsSection extends ConsumerWidget {
             ),
             SettingsToggleRow(
               title: 'Trip reminders',
-              subtitle: 'When a trip stays paused, or you look to be on the move',
+              subtitle:
+                  'When a trip stays paused, or you look to be on the move',
               value: settings.notifyTripAlerts,
               onChanged: (v) => unawaited(notifier.setNotifyTripAlerts(v)),
               divider: true,

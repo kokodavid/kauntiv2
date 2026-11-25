@@ -105,10 +105,7 @@ class _TripStartReminderLifecycleState
     try {
       await _state.setEnabled(enabled);
       await _state.setEligible(eligible);
-      await _state.setRecording(
-        active,
-        at: endedNow ? DateTime.now() : null,
-      );
+      await _state.setRecording(active, at: endedNow ? DateTime.now() : null);
     } on Object catch (error, stackTrace) {
       const AppLogger.detection().warning(
         'Could not save the trip reminder settings.',

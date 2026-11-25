@@ -238,10 +238,8 @@ GoRouter appRouter(Ref ref) {
                         context.push(AppRoutes.plan(id)),
                   )
                 : null,
-            checkIn: (context, place) => PlaceCheckInBarItem(
-              placeId: place.id,
-              placeName: place.title,
-            ),
+            checkIn: (context, place) =>
+                PlaceCheckInBarItem(placeId: place.id, placeName: place.title),
             addPhoto: PlacePhotosRoutes.addPhotoBarItem,
           ),
         ),

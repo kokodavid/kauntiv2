@@ -49,7 +49,10 @@ void main() {
 
   test('a failing tap never breaks the recording', () async {
     final inner = _Source();
-    final source = FixTappingLocationSource(inner, (_) => throw StateError('x'));
+    final source = FixTappingLocationSource(
+      inner,
+      (_) => throw StateError('x'),
+    );
     final received = <JourneyFix>[];
     final sub = source.fixes.listen(received.add);
 

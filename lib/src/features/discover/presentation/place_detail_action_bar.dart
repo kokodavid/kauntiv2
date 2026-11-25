@@ -39,7 +39,11 @@ class PlaceDetailActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final count = 1 + (addToTrip == null ? 0 : 1) + (checkIn == null ? 0 : 1) + (addPhoto == null ? 0 : 1);
+    final count =
+        1 +
+        (addToTrip == null ? 0 : 1) +
+        (checkIn == null ? 0 : 1) +
+        (addPhoto == null ? 0 : 1);
     return Positioned(
       left: 24,
       right: 24,

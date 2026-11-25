@@ -68,9 +68,7 @@ Future<Uint8List> captureShareCard({
       }
     }
     if (boundary == null) {
-      throw StateError(
-        'Share card never finished a paint pass to capture.',
-      );
+      throw StateError('Share card never finished a paint pass to capture.');
     }
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     try {

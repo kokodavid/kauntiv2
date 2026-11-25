@@ -22,7 +22,11 @@ class _PhotoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final white = passportText(15, weight: FontWeight.w700, color: Colors.white);
+    final white = passportText(
+      15,
+      weight: FontWeight.w700,
+      color: Colors.white,
+    );
     return Stack(
       fit: StackFit.expand,
       children: [

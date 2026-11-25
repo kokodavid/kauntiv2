@@ -21,20 +21,20 @@ void main() {
 
   Widget app(Stream<BadgeCollection> stream, {bool shareOn = false}) =>
       ProviderScope(
-    overrides: [
-      badgeCollectionProvider.overrideWith((ref) => stream),
-      passportShareFlagProvider.overrideWith((ref) async => shareOn),
-      myPublicProfileProvider.overrideWith(
-        (ref) async =>
-            const PublicProfile(displayName: 'David', handle: 'mochoge'),
-      ),
-      for (final code in [1, 2, 3, 22])
-        countyBadgeDetailProvider(
-          code,
-        ).overrideWith((ref) async => const CountyBadgeDetail()),
-    ],
-    child: const MaterialApp(home: PassportScreen()),
-  );
+        overrides: [
+          badgeCollectionProvider.overrideWith((ref) => stream),
+          passportShareFlagProvider.overrideWith((ref) async => shareOn),
+          myPublicProfileProvider.overrideWith(
+            (ref) async =>
+                const PublicProfile(displayName: 'David', handle: 'mochoge'),
+          ),
+          for (final code in [1, 2, 3, 22])
+            countyBadgeDetailProvider(
+              code,
+            ).overrideWith((ref) async => const CountyBadgeDetail()),
+        ],
+        child: const MaterialApp(home: PassportScreen()),
+      );
 
   testWidgets('opens straight on the landing while the cover is off', (
     tester,
@@ -66,14 +66,16 @@ void main() {
     expect(find.text('COUNTY PASSPORT'), findsNothing);
   });
 
-  testWidgets('no Share button while the dashboard switch is off', (
-    tester,
-  ) async {
-    await tester.pumpWidget(app(Stream.value(collection)));
-    await tester.pump();
-    await tester.pump();
-    expect(find.byTooltip('Share your Passport'), findsNothing);
-  }, skip: passportShareAlwaysOn);
+  testWidgets(
+    'no Share button while the dashboard switch is off',
+    (tester) async {
+      await tester.pumpWidget(app(Stream.value(collection)));
+      await tester.pump();
+      await tester.pump();
+      expect(find.byTooltip('Share your Passport'), findsNothing);
+    },
+    skip: passportShareAlwaysOn,
+  );
 
   testWidgets('the switch on shows Share, which opens the sheet', (
     tester,

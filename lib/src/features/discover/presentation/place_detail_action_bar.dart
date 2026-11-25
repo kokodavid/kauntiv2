@@ -7,24 +7,27 @@ import '../../../design/app_colors.dart';
 /// pill, floating `AppBottomNav.bottomGap` above the bottom edge in the
 /// same shape, shadow and 24pt side margin as the app's own tab bar --
 /// a compact pill centered on the screen, not a bar stretched edge to
-/// edge. Route is the one item that is always highlighted; Add to trip,
+/// edge. Route is the one item that is always highlighted; Add to trip
+/// (while the trip planner is on),
 /// the check-in button (when the place has coordinates) and Add photo
 /// (when the place takes photos) sit beside it with equal weight.
 /// Replaces the old full-width docked bottom bar (`PlaceDetailBar`).
 class PlaceDetailActionBar extends StatelessWidget {
   const PlaceDetailActionBar({
     super.key,
-    required this.addToTrip,
+    this.addToTrip,
     required this.route,
     this.checkIn,
     this.addPhoto,
   });
 
-  final Widget addToTrip;
+  /// Null while the trip planner is switched off: the bar then drops the
+  /// item instead of leaving an empty slot.
+  final Widget? addToTrip;
   final Widget route;
 
   /// Null for a place with no coordinates: the bar then shows just
-  /// Add to trip, (Add photo) and Route.
+  /// (Add to trip,) (Add photo) and Route.
   final Widget? checkIn;
 
   /// Null while the place doesn't take photos or the feature is off.
@@ -36,7 +39,7 @@ class PlaceDetailActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final count = 2 + (checkIn == null ? 0 : 1) + (addPhoto == null ? 0 : 1);
+    final count = 1 + (addToTrip == null ? 0 : 1) + (checkIn == null ? 0 : 1) + (addPhoto == null ? 0 : 1);
     return Positioned(
       left: 24,
       right: 24,
@@ -59,7 +62,7 @@ class PlaceDetailActionBar extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Expanded(child: addToTrip),
+                if (addToTrip != null) Expanded(child: addToTrip!),
                 if (checkIn != null) Expanded(child: checkIn!),
                 if (addPhoto != null) Expanded(child: addPhoto!),
                 Expanded(child: route),

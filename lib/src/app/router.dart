@@ -29,6 +29,7 @@ import '../features/profile/presentation/interests_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../features/trip_planner/presentation/saved_plans_screen.dart';
+import '../features/trip_plans/application/trip_plans_providers.dart';
 import '../features/trip_plans/presentation/add_to_trip_bar_item.dart';
 import 'app_routes.dart';
 import 'app_shell.dart';
@@ -217,19 +218,27 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: '/place/:id',
-        builder: (context, state) => PlaceDetailScreen(
-          placeId: state.pathParameters['id']!,
-          actions: DetailRoutes.actions!,
-          onGetRoute: JourneyPlaceRoutes.open,
-          photos: PlacePhotosRoutes.placeSection,
-          addToTrip: (context, place) => AddToTripBarItem(
-            placeId: place.id,
-            placeName: place.title,
-            onOpenPlan: (context, id) => context.push(AppRoutes.plan(id)),
+        builder: (context, state) => Consumer(
+          // Add to trip leaves the floating bar while the planner is off.
+          builder: (context, ref, _) => PlaceDetailScreen(
+            placeId: state.pathParameters['id']!,
+            actions: DetailRoutes.actions!,
+            onGetRoute: JourneyPlaceRoutes.open,
+            photos: PlacePhotosRoutes.placeSection,
+            addToTrip: (ref.watch(tripPlansEnabledProvider).value ?? false)
+                ? (context, place) => AddToTripBarItem(
+                    placeId: place.id,
+                    placeName: place.title,
+                    onOpenPlan: (context, id) =>
+                        context.push(AppRoutes.plan(id)),
+                  )
+                : null,
+            checkIn: (context, place) => PlaceCheckInBarItem(
+              placeId: place.id,
+              placeName: place.title,
+            ),
+            addPhoto: PlacePhotosRoutes.addPhotoBarItem,
           ),
-          checkIn: (context, place) =>
-              PlaceCheckInBarItem(placeId: place.id, placeName: place.title),
-          addPhoto: PlacePhotosRoutes.addPhotoBarItem,
         ),
       ),
     ],

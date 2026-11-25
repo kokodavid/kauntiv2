@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../services/app_logger.dart';
 import '../data/detection_repository.dart';
 
@@ -39,10 +40,16 @@ class TripFixIngest {
   /// One fix from the Trip. Dropped when signed out, still being handled,
   /// too soon after the last one, or older than [_maxAge] (a cached fix from
   /// before the Trip started says nothing about where the phone is now).
+  ///
+  /// [minimumInsideDistanceMeters]: how far inside a county the fix must be
+  /// to count. A coarse fix passes its accuracy, so the whole area it could
+  /// be in sits inside one county.
   Future<void> offer({
     required double latitude,
     required double longitude,
     required DateTime at,
+    double minimumInsideDistanceMeters =
+        CountyBoundaryResolver.boundaryHysteresisMeters,
   }) async {
     if (_busy || !_isSignedIn()) return;
     if (_clock().difference(at) > _maxAge) return;
@@ -54,6 +61,7 @@ class TripFixIngest {
       await _repository().reconcileCurrentLocation(
         latitude: latitude,
         longitude: longitude,
+        minimumInsideDistanceMeters: minimumInsideDistanceMeters,
         now: at,
       );
     } on Object catch (error, stackTrace) {

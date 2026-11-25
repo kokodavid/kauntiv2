@@ -23,6 +23,7 @@ import '../features/onboarding/application/startup_flow.dart';
 import '../features/profile/application/public_profile_providers.dart';
 import 'ads_lifecycle.dart';
 import 'app_routes.dart';
+import 'county_tracking_lifecycle.dart';
 import 'detail_routes.dart';
 
 /// The root tab shell once onboarding is done (v1 `AppShell` parity): one
@@ -92,7 +93,8 @@ class AppShell extends ConsumerWidget {
           ? 600
           : 220,
     );
-    return AdsLifecycle(
+    return CountyTrackingLifecycle(
+      child: AdsLifecycle(
       child: ConnectivityLifecycle(
         child: DetectionLifecycle(
           homeCountyCode: homeCounty?.code,
@@ -177,6 +179,7 @@ class AppShell extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

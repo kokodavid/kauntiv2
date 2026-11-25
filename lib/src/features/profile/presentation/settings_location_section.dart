@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../domain/profile_settings.dart';
+import 'settings_county_tracking_row.dart';
 import 'settings_privacy_section.dart' show ProfileSettingsControllerRef;
 import 'settings_widgets.dart';
 
@@ -50,6 +51,9 @@ class SettingsLocationSection extends StatelessWidget {
               ],
             ),
           ),
+          // Only means anything while detection runs on its own.
+          if (settings.locationMode == LocationMode.automatic)
+            const SettingsCountyTrackingRow(),
           SettingsActionRow(
             title: 'Location permission',
             subtitle: 'Opens device settings',

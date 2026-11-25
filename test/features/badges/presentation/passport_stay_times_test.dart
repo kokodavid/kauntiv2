@@ -15,7 +15,7 @@ void main() {
     expect(find.textContaining('timed visit'), findsNothing);
   });
 
-  testWidgets('adds the stays up and lists the latest', (tester) async {
+  testWidgets('adds the stays up without listing each visit', (tester) async {
     await tester.pumpWidget(
       _wrap(
         CountyBadgeDetail(
@@ -37,11 +37,11 @@ void main() {
       ),
     );
     expect(find.text('About 1 h 30 across 2 timed visits'), findsOneWidget);
-    expect(find.text('50 min'), findsOneWidget);
-    expect(find.text('40 min'), findsOneWidget);
+    expect(find.text('50 min'), findsNothing);
+    expect(find.textContaining('single stay of 2 hours'), findsOneWidget);
   });
 
-  testWidgets('a stay over a day shows as "Over a day", not as hours', (
+  testWidgets('notes that stays over a day are left out of the total', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -60,7 +60,6 @@ void main() {
         ),
       ),
     );
-    expect(find.text('Over a day'), findsOneWidget);
     expect(find.textContaining('left out of the total'), findsOneWidget);
   });
 }

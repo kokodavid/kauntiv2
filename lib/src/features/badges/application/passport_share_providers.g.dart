@@ -60,7 +60,7 @@ final class PassportShareFlagRepositoryProvider
 }
 
 String _$passportShareFlagRepositoryHash() =>
-    r'0000000000000000000000000000000000000000';
+    r'0fac2da8427d7a21797c8b64781ddd0bcf4c5b75';
 
 /// Whether the dashboard has Passport sharing switched on. A failed read
 /// falls back to the last value seen, then to off, so the button never shows
@@ -107,4 +107,4 @@ final class PassportShareFlagProvider
   }
 }
 
-String _$passportShareFlagHash() => r'0000000000000000000000000000000000000000';
+String _$passportShareFlagHash() => r'd800bdc19a0ad4886be5d1f62ba98c39530cc285';

@@ -110,10 +110,14 @@ class DetectionRepository {
       minimumInsideDistanceMeters: minimumInsideDistanceMeters,
     );
     if (sampled == null) return null;
+    final at = now ?? DateTime.now();
+    // The fix is clearly inside `sampled`, so no other county's timer can
+    // still be running: close them now, at the fix, not when the app next
+    // wakes up (that is how a left-behind county kept collecting time).
+    await _closeOtherCandidates(except: sampled, at: at);
     final previous = await currentCountyCode();
     if (previous == sampled) return null;
 
-    final at = now ?? DateTime.now();
     if (previous != null) {
       await handleEvent(
         CountyCrossingEvent(
@@ -134,6 +138,40 @@ class DetectionRepository {
     final entered =
         await currentCountyCode() == sampled && beforeEnter != sampled;
     return entered ? sampled : null;
+  }
+
+  /// Ends every running timer except [except]'s, at [at]. A timer that
+  /// ran under the flap guard is dropped (it was a border blip, and left
+  /// alone it would later resolve as explored); the rest resolve the normal
+  /// way: explored after the dwell threshold, otherwise passed through.
+  Future<void> _closeOtherCandidates({
+    required int except,
+    required DateTime at,
+  }) async {
+    await _ownerId();
+    final others = await (_db.select(
+      _db.candidates,
+    )..where((c) => c.countyCode.equals(except).not())).get();
+    for (final candidate in others) {
+      final decision = rules.onExit(
+        candidateEnteredAt: candidate.enteredAt,
+        now: at,
+      );
+      if (decision.action == VisitAction.ignore) {
+        await (_db.delete(
+          _db.candidates,
+        )..where((c) => c.countyCode.equals(candidate.countyCode))).go();
+        continue;
+      }
+      await _resolve(
+        countyCode: candidate.countyCode,
+        outcome: decision.action == VisitAction.resolveExplored
+            ? VisitOutcome.explored
+            : VisitOutcome.passedThrough,
+        enteredAt: candidate.enteredAt,
+        resolvedAt: at,
+      );
+    }
   }
 
   /// Applies one crossing. Returns the visit it resolved, if any.

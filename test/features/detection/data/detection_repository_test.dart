@@ -100,6 +100,42 @@ void main() {
       );
     });
 
+    test('a fix inside another county closes the left-behind timer', () async {
+      // Machakos (16) starts a timer, then Kajiado (34) is entered through
+      // a plain geofence event, which leaves Machakos' timer running.
+      await repo.handleEvent(_event(16, CrossingKind.enter, t0));
+      await repo.handleEvent(
+        _event(34, CrossingKind.enter, t0.add(const Duration(minutes: 30))),
+      );
+      expect(await repo.activeCandidateCountyCodes(), {16, 34});
+
+      // A fix well inside Kajiado 90 minutes in: Machakos stops there.
+      final at = t0.add(const Duration(minutes: 90));
+      await repo.reconcileCurrentLocation(
+        latitude: -1.8524,
+        longitude: 36.7768,
+        now: at,
+      );
+
+      expect(await repo.activeCandidateCountyCodes(), {34});
+      final queued = await db.select(db.pendingSyncOps).get();
+      expect(queued, hasLength(1));
+      expect(queued.single.countyCode, 16);
+      expect(queued.single.outcome, 'passed_through');
+      expect(queued.single.resolvedAt, at);
+    });
+
+    test('a timer under the flap guard is dropped, not left running', () async {
+      await repo.handleEvent(_event(16, CrossingKind.enter, t0));
+      await repo.reconcileCurrentLocation(
+        latitude: -1.8524,
+        longitude: 36.7768,
+        now: t0.add(const Duration(seconds: 30)),
+      );
+      expect(await repo.activeCandidateCountyCodes(), {34});
+      expect(await db.select(db.pendingSyncOps).get(), isEmpty);
+    });
+
     test('sign-out clears this owner\'s state', () async {
       await repo.handleEvent(_event(1, CrossingKind.enter, t0));
       await repo.handleEvent(

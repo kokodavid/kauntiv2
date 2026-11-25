@@ -15,6 +15,8 @@ class _Source implements CountyTrackingSource {
   _Source({this.allowed = true});
 
   final bool allowed;
+  // Closed by the ProviderContainer test teardown.
+  // ignore: close_sinks
   final fixes = StreamController<CountyTrackingFix>.broadcast();
   var starts = 0;
   var stops = 0;
@@ -55,6 +57,7 @@ void main() {
       ],
     );
     addTearDown(c.dispose);
+    addTearDown(source.fixes.close);
     return c;
   }
 

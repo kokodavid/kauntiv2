@@ -93,9 +93,7 @@ class DeviceCountyTrackingSource implements CountyTrackingSource {
     final longitude = data.longitude;
     final accuracy = data.accuracy;
     final milliseconds = data.time;
-    if (latitude == null ||
-        longitude == null ||
-        accuracy == null ||
+    if (accuracy == null ||
         milliseconds == null ||
         !milliseconds.isFinite ||
         accuracy > maxAccuracyMeters ||

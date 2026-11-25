@@ -6,6 +6,8 @@ import 'package:kaunti47_v2/src/features/journeys/domain/journey_fix.dart';
 import 'package:kaunti47_v2/src/features/journeys/domain/journey_transport_mode.dart';
 
 class _Source implements JourneyLocationSource {
+  // Closed by each test's teardown (or explicitly before the test completes).
+  // ignore: close_sinks
   final controller = StreamController<JourneyFix>();
   var started = 0;
 
@@ -32,6 +34,9 @@ JourneyFix _fix() => JourneyFix(
 void main() {
   test('every fix reaches the tap and still passes through', () async {
     final inner = _Source();
+    addTearDown(() async {
+      if (!inner.controller.isClosed) await inner.controller.close();
+    });
     final tapped = <JourneyFix>[];
     final source = FixTappingLocationSource(inner, tapped.add);
     final received = <JourneyFix>[];
@@ -49,6 +54,9 @@ void main() {
 
   test('a failing tap never breaks the recording', () async {
     final inner = _Source();
+    addTearDown(() async {
+      if (!inner.controller.isClosed) await inner.controller.close();
+    });
     final source = FixTappingLocationSource(
       inner,
       (_) => throw StateError('x'),
@@ -66,6 +74,9 @@ void main() {
 
   test('start is passed to the wrapped source', () async {
     final inner = _Source();
+    addTearDown(() async {
+      if (!inner.controller.isClosed) await inner.controller.close();
+    });
     await FixTappingLocationSource(inner, (_) {}).start();
     expect(inner.started, 1);
     await inner.controller.close();

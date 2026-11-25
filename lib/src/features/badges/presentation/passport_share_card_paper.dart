@@ -102,7 +102,7 @@ class _PaperCard extends StatelessWidget {
                   const SizedBox(width: 10),
                   SizedBox(
                     width: 167,
-                    height: 212,
+                    height: 190,
                     child: PassportKenyaMap(levels: _levels(book)),
                   ),
                 ],

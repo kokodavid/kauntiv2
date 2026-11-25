@@ -135,7 +135,7 @@ void main() {
       expect(queued, hasLength(1));
       expect(queued.single.countyCode, 16);
       expect(queued.single.outcome, 'passed_through');
-      expect(queued.single.resolvedAt, at);
+      expect(queued.single.resolvedAt.toUtc(), at);
     });
 
     test('a fix older than a timer does not cancel it', () async {

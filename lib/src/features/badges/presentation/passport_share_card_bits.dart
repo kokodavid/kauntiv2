@@ -38,7 +38,7 @@ class _Legend extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 3.5),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize: MainAxisSize.max,
                 children: [
                   Container(
                     width: 10,
@@ -58,11 +58,14 @@ class _Legend extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    _label(level),
-                    maxLines: 1,
-                    softWrap: false,
-                    style: passportText(13, color: label),
+                  Flexible(
+                    child: Text(
+                      _label(level),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
+                      style: passportText(13, color: label),
+                    ),
                   ),
                 ],
               ),

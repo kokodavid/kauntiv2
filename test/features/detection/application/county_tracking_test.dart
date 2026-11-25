@@ -46,24 +46,23 @@ void main() {
   });
   tearDown(() => db.close());
 
-  ProviderContainer container(_Source source) {
+  Future<ProviderContainer> container(_Source source) async {
+    final repository = DetectionRepository(db, userId: 'alice');
+    await repository.ready;
     final c = ProviderContainer(
       overrides: [
         countyTrackingSourceProvider.overrideWithValue(source),
         currentUserIdProvider.overrideWithValue(() => 'alice'),
-        detectionRepositoryProvider.overrideWithValue(
-          DetectionRepository(db, userId: 'alice'),
-        ),
+        detectionRepositoryProvider.overrideWithValue(repository),
       ],
     );
     addTearDown(c.dispose);
-    addTearDown(source.fixes.close);
     return c;
   }
 
   test('off by default: nothing starts', () async {
     final source = _Source();
-    final c = container(source);
+    final c = await container(source);
     expect(await c.read(countyTrackingProvider.future), isFalse);
     await c.read(countyTrackingProvider.notifier).sync(tripRecording: false);
     expect(source.starts, 0);
@@ -71,7 +70,7 @@ void main() {
 
   test('turning it on starts updates; off stops them', () async {
     final source = _Source();
-    final c = container(source);
+    final c = await container(source);
     final tracking = c.read(countyTrackingProvider.notifier);
     expect(await tracking.setEnabled(true), isTrue);
     expect(source.starts, 1);
@@ -83,7 +82,7 @@ void main() {
 
   test('stays off when location is not allowed all the time', () async {
     final source = _Source(allowed: false);
-    final c = container(source);
+    final c = await container(source);
     expect(
       await c.read(countyTrackingProvider.notifier).setEnabled(true),
       isFalse,
@@ -96,7 +95,7 @@ void main() {
     'steps aside for a recording Trip without stopping its location',
     () async {
       final source = _Source();
-      final c = container(source);
+      final c = await container(source);
       final tracking = c.read(countyTrackingProvider.notifier);
       await tracking.setEnabled(true);
 
@@ -110,7 +109,7 @@ void main() {
 
   test('a fix inside a county reaches detection', () async {
     final source = _Source();
-    final c = container(source);
+    final c = await container(source);
     await c.read(countyTrackingProvider.notifier).setEnabled(true);
 
     source.fixes.add((

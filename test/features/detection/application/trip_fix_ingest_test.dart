@@ -48,7 +48,7 @@ void main() {
     final queued = await db.select(db.pendingSyncOps).get();
     expect(queued.single.countyCode, 16);
     expect(queued.single.outcome, 'passed_through');
-    expect(queued.single.resolvedAt, at);
+    expect(queued.single.resolvedAt.toUtc(), at);
     expect(await repo.currentCountyCode(), 34);
   });
 

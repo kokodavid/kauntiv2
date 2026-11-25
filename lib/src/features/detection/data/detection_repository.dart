@@ -30,6 +30,9 @@ class DetectionRepository {
   late final Future<void> _ready;
   String? _expectedOwner;
 
+  /// Completes after the local account-scoped state is ready for use.
+  Future<void> get ready => _ready;
+
   static const _currentCountyRowId = 0;
 
   /// How far back other counties count for the speed sanity check.
@@ -227,6 +230,8 @@ class DetectionRepository {
     required DateTime resolvedAt,
   }) async {
     await _ready;
+    final enteredAtUtc = enteredAt.toUtc();
+    final resolvedAtUtc = resolvedAt.toUtc();
     final queued = await _db.transaction(() async {
       final owner = await _ownerId();
       final candidate = await (_db.select(
@@ -243,8 +248,8 @@ class DetectionRepository {
               userId: Value(owner),
               countyCode: countyCode,
               outcome: outcome.wireName,
-              enteredAt: enteredAt,
-              resolvedAt: resolvedAt,
+              enteredAt: enteredAtUtc,
+              resolvedAt: resolvedAtUtc,
             ),
           );
       return true;
@@ -253,8 +258,8 @@ class DetectionRepository {
     return ResolvedVisit(
       countyCode: countyCode,
       outcome: outcome,
-      enteredAt: enteredAt,
-      resolvedAt: resolvedAt,
+      enteredAt: enteredAtUtc,
+      resolvedAt: resolvedAtUtc,
     );
   }
 

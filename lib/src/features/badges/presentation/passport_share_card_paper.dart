@@ -10,7 +10,9 @@ class _PaperCard extends StatelessWidget {
   });
 
   final PassportBook book;
-  final String username;
+
+  /// Null when the traveller turned it off.
+  final String? username;
   final String? name;
   final bool showArt;
 
@@ -75,16 +77,12 @@ class _PaperCard extends StatelessWidget {
                     textStyle: passportText(15, weight: FontWeight.w700),
                   ),
                   const Spacer(),
-                  const _Pill(label: 'MY PASSPORT', onPhoto: false),
+                  const _Pill(onPhoto: false),
                 ],
               ),
-              const SizedBox(height: 26),
-              _Holder(
-                username: username,
-                name: name,
-                firstStampAt: book.firstStampAt,
-              ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 22),
+              _Holder(name: name, firstStampAt: book.firstStampAt),
+              const SizedBox(height: 14),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -109,26 +107,14 @@ class _PaperCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               PassportLevelBar(levels: book.barLevels),
               const Spacer(),
-              Row(
-                children: [
-                  if (latest != null)
-                    Flexible(child: _LatestStamp(county: latest))
-                  else
-                    const Spacer(),
-                  const SizedBox(width: 10),
-                  Text(
-                    'kaunti47.com',
-                    style: passportText(
-                      12,
-                      weight: FontWeight.w600,
-                      color: PassportInk.blueDeep,
-                    ),
-                  ),
-                ],
-              ),
+              if (latest != null) ...[
+                _LatestStamp(county: latest),
+                const SizedBox(height: 8),
+              ],
+              _Footer(username: username, onPhoto: false),
             ],
           ),
         ),
@@ -141,16 +127,10 @@ Map<int, PassportLevel> _levels(PassportBook book) => {
   for (final county in book.counties) county.code: county.level,
 };
 
-/// TRAVELLER, then the name and @username. With the name hidden the
-/// @username takes its place, smaller than the name would be.
+/// TRAVELLER, the name (when shown) and the first stamp date.
 class _Holder extends StatelessWidget {
-  const _Holder({
-    required this.username,
-    required this.name,
-    required this.firstStampAt,
-  });
+  const _Holder({required this.name, required this.firstStampAt});
 
-  final String username;
   final String? name;
   final DateTime? firstStampAt;
 
@@ -159,13 +139,6 @@ class _Holder extends StatelessWidget {
     final first = firstStampAt == null
         ? null
         : 'First stamp ${passportDate(firstStampAt!)}';
-    final secondary = passportText(13, color: PassportInk.secondary);
-    final handle = passportText(
-      name == null ? 18 : 13,
-      weight: FontWeight.w700,
-      color: PassportInk.blueDeep,
-      height: name == null ? 1.2 : null,
-    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -178,8 +151,8 @@ class _Holder extends StatelessWidget {
             letterSpacing: 1.4,
           ),
         ),
-        const SizedBox(height: 5),
         if (name != null) ...[
+          const SizedBox(height: 5),
           Text(
             name!,
             maxLines: 1,
@@ -191,29 +164,10 @@ class _Holder extends StatelessWidget {
               letterSpacing: -0.3,
             ),
           ),
+        ],
+        if (first != null) ...[
           const SizedBox(height: 5),
-          Text.rich(
-            TextSpan(
-              text: '@$username',
-              style: handle,
-              children: [
-                if (first != null) TextSpan(text: ' · $first', style: secondary),
-              ],
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ] else ...[
-          Text(
-            '@$username',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: handle,
-          ),
-          if (first != null) ...[
-            const SizedBox(height: 5),
-            Text(first, style: secondary),
-          ],
+          Text(first, style: passportText(13, color: PassportInk.secondary)),
         ],
       ],
     );

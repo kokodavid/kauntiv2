@@ -19,17 +19,6 @@ abstract final class _Styles {
     height: 1.35,
     color: AppColors.mutedForeground,
   );
-  static const switchTitle = TextStyle(
-    fontFamily: AppTypeScale.family,
-    fontSize: 15,
-    fontWeight: FontWeight.w500,
-    color: AppColors.buttonForeground,
-  );
-  static const note = TextStyle(
-    fontFamily: AppTypeScale.family,
-    fontSize: 13,
-    color: AppColors.mutedForeground,
-  );
 }
 
 /// A share card drawn at its full logical size and scaled down to
@@ -126,48 +115,6 @@ class _StyleTile extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    ),
-  );
-}
-
-class _SwitchRow extends StatelessWidget {
-  const _SwitchRow({
-    required this.title,
-    required this.value,
-    required this.onChanged,
-    this.subtitle,
-  });
-
-  final String title;
-  final String? subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) => MergeSemantics(
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 52),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: _Styles.switchTitle),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(subtitle!, style: _Styles.note),
-                ],
-              ],
-            ),
-          ),
-          Switch.adaptive(
-            value: value,
-            onChanged: onChanged,
-            activeTrackColor: AppColors.accent,
-          ),
-        ],
       ),
     ),
   );

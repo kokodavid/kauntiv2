@@ -8,6 +8,7 @@ import '../../../core/design/app_type_scale.dart';
 import '../../../core/services/app_instagram_stories.dart';
 import '../../../core/services/app_media_picker.dart';
 import '../../../core/services/app_share.dart';
+import '../../../core/widgets/app_choice_pill.dart';
 import '../../../core/widgets/app_floating_toast.dart';
 import '../../../core/widgets/app_share_action_row.dart';
 import '../../../core/widgets/share_card_renderer.dart';
@@ -24,9 +25,8 @@ part 'passport_share_sheet_content.dart';
 part 'passport_share_sheet_parts.dart';
 
 /// "Share your Passport" (Claude-Design "Passport Share Card", share
-/// sheet): a live preview, the two styles, the name and background-art
-/// switches, and Save / Stories / Share. The @username is always on the
-/// image; only the display name can be hidden.
+/// sheet): a live preview, the two styles, the name, username and
+/// background-art switches, and Save / Stories / Share.
 void showPassportShareSheet(
   BuildContext context, {
   required PassportBook book,
@@ -75,6 +75,7 @@ abstract class _PassportShareSheetStateBase extends State<_PassportShareSheet> {
 
   var _style = PassportShareStyle.passport;
   late var _showName = _hasName;
+  var _showUsername = true;
   var _showArt = true;
 
   /// The photo picked from the phone, for the Photo style.
@@ -98,6 +99,7 @@ abstract class _PassportShareSheetStateBase extends State<_PassportShareSheet> {
     username: widget.username,
     holderName: widget.holderName,
     showName: _showName,
+    showUsername: _showUsername,
     showArt: _showArt,
     photo: _photo,
   );

@@ -86,28 +86,35 @@ mixin _PassportShareSheetContent
                   ),
                 ),
               ],
+              const SizedBox(height: 14),
+              const Text('Show on image', style: _Styles.heading),
               const SizedBox(height: 8),
-              if (_hasName)
-                _SwitchRow(
-                  title: 'Show my name',
-                  subtitle: 'Your @${widget.username} always shows',
-                  value: _showName,
-                  onChanged: (value) => setState(() => _showName = value),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    'Your @${widget.username} always shows on the image.',
-                    style: _Styles.note,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (_hasName)
+                    AppChoicePill(
+                      label: 'Name',
+                      icon: Icons.person_outline_rounded,
+                      selected: _showName,
+                      onTap: () => setState(() => _showName = !_showName),
+                    ),
+                  AppChoicePill(
+                    label: '@${widget.username}',
+                    icon: Icons.alternate_email_rounded,
+                    selected: _showUsername,
+                    onTap: () => setState(() => _showUsername = !_showUsername),
                   ),
-                ),
-              if (paper)
-                _SwitchRow(
-                  title: 'Background art',
-                  value: _showArt,
-                  onChanged: (value) => setState(() => _showArt = value),
-                ),
+                  if (paper)
+                    AppChoicePill(
+                      label: 'Background art',
+                      icon: Icons.landscape_outlined,
+                      selected: _showArt,
+                      onTap: () => setState(() => _showArt = !_showArt),
+                    ),
+                ],
+              ),
               const SizedBox(height: 18),
               AppShareActionRow(
                 buttonKey: _shareButtonKey,

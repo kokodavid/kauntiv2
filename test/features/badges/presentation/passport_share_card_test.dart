@@ -23,6 +23,7 @@ void main() {
     PassportShareStyle style = PassportShareStyle.passport,
     String? name = 'David Mochoge',
     bool showName = true,
+    bool showUsername = true,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -33,6 +34,7 @@ void main() {
             username: 'mochoge',
             holderName: name,
             showName: showName,
+            showUsername: showUsername,
           ),
         ),
       ),
@@ -57,6 +59,17 @@ void main() {
     expect(text('LATEST STAMP'), findsOneWidget);
     expect(text('Kiambu'), findsOneWidget);
     expect(tester.takeException(), isNull); // nothing overflows
+  });
+
+  testWidgets('the @username can be turned off, kaunti47.com stays', (
+    tester,
+  ) async {
+    await pump(tester, showUsername: false);
+    expect(text('@mochoge'), findsNothing);
+    expect(text('kaunti47.com'), findsOneWidget);
+    await pump(tester, style: PassportShareStyle.photo, showUsername: false);
+    expect(text('@mochoge'), findsNothing);
+    expect(text('kaunti47.com'), findsOneWidget);
   });
 
   testWidgets('with the name off the @username still shows', (tester) async {

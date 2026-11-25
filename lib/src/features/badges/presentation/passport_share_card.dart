@@ -31,9 +31,9 @@ enum PassportShareStyle {
 /// the traveller, the count, a legend, the Kenya map, the 47-segment bar
 /// and the latest stamp. Story size (9:16).
 ///
-/// The @username is always drawn, whatever [showName] says: it ties a
-/// shared Passport to its owner, so nobody can pass someone else's off as
-/// their own. [showName] only hides the display name.
+/// The @username sits small in the bottom corner, beside kaunti47.com, so
+/// a shared Passport points back to its owner without taking room;
+/// [showUsername] turns it off. [showName] hides the display name.
 ///
 /// Pure layout from resolved data; rasterizing it is `captureShareCard`'s
 /// job. Lays out at its logical [width] x [height] only.
@@ -45,6 +45,7 @@ class PassportShareCard extends StatelessWidget {
     required this.username,
     this.holderName,
     this.showName = true,
+    this.showUsername = true,
     this.showArt = true,
     this.photo,
     this.width = 360,
@@ -58,6 +59,7 @@ class PassportShareCard extends StatelessWidget {
   final String username;
   final String? holderName;
   final bool showName;
+  final bool showUsername;
 
   /// Passport style only: the mountain line art along the bottom.
   final bool showArt;
@@ -77,6 +79,9 @@ class PassportShareCard extends StatelessWidget {
     return showName && name != null && name.isNotEmpty ? name : null;
   }
 
+  /// The handle to draw in the corner, or null when it's turned off.
+  String? get _username => showUsername ? username : null;
+
   @override
   Widget build(BuildContext context) => SizedBox(
     width: width,
@@ -85,13 +90,13 @@ class PassportShareCard extends StatelessWidget {
       child: switch (style) {
         PassportShareStyle.passport => _PaperCard(
           book: book,
-          username: username,
+          username: _username,
           name: _name,
           showArt: showArt,
         ),
         PassportShareStyle.photo => _PhotoCard(
           book: book,
-          username: username,
+          username: _username,
           name: _name,
           photo: photo,
         ),

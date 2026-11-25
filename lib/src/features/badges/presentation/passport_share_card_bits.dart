@@ -144,17 +144,56 @@ class _LatestStamp extends StatelessWidget {
   );
 }
 
-/// The rounded label at the top right ("MY PASSPORT" / "My Kenya
-/// Passport").
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label, required this.onPhoto});
+/// The bottom line: the @username small and quiet on the left (left out
+/// when it's turned off), kaunti47.com in the right-hand corner.
+class _Footer extends StatelessWidget {
+  const _Footer({required this.username, required this.onPhoto});
 
-  final String label;
+  final String? username;
+  final bool onPhoto;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Expanded(
+        child: username == null
+            ? const SizedBox.shrink()
+            : Text(
+                '@$username',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: passportText(
+                  11,
+                  weight: FontWeight.w500,
+                  color: onPhoto
+                      ? const Color(0xB3FFFFFF)
+                      : PassportInk.tertiary,
+                ),
+              ),
+      ),
+      const SizedBox(width: 12),
+      Text(
+        'kaunti47.com',
+        style: passportText(
+          12,
+          weight: FontWeight.w600,
+          color: onPhoto ? Colors.white : PassportInk.blueDeep,
+        ),
+      ),
+    ],
+  );
+}
+
+/// The "MY PASSPORT" label at the top right, the same words on both
+/// styles; only its colours change over a photo.
+class _Pill extends StatelessWidget {
+  const _Pill({required this.onPhoto});
+
   final bool onPhoto;
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.symmetric(horizontal: onPhoto ? 11 : 10, vertical: 5),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
       color: onPhoto
           ? Colors.black.withValues(alpha: 0.3)
@@ -167,15 +206,13 @@ class _Pill extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
     ),
     child: Text(
-      label,
-      style: onPhoto
-          ? passportText(13, weight: FontWeight.w600, color: Colors.white)
-          : passportText(
-              10.5,
-              weight: FontWeight.w600,
-              color: PassportInk.blueDeep,
-              letterSpacing: 1.3,
-            ),
+      'MY PASSPORT',
+      style: passportText(
+        10.5,
+        weight: FontWeight.w600,
+        color: onPhoto ? Colors.white : PassportInk.blueDeep,
+        letterSpacing: 1.3,
+      ),
     ),
   );
 }

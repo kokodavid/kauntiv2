@@ -12,7 +12,9 @@ class _PhotoCard extends StatelessWidget {
   });
 
   final PassportBook book;
-  final String username;
+
+  /// Null when the traveller turned it off.
+  final String? username;
   final String? name;
   final ImageProvider? photo;
 
@@ -65,7 +67,7 @@ class _PhotoCard extends StatelessWidget {
                 children: [
                   AppShareWatermark(textStyle: white),
                   const Spacer(),
-                  const _Pill(label: 'My Kenya Passport', onPhoto: true),
+                  const _Pill(onPhoto: true),
                 ],
               ),
               const Spacer(),
@@ -89,26 +91,21 @@ class _PhotoCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    if (name != null)
-                      TextSpan(
-                        text: '$name · ',
-                        style: passportText(
-                          15,
-                          weight: FontWeight.w600,
-                          color: _white80,
-                        ),
-                      ),
-                    TextSpan(text: '@$username', style: white),
-                  ],
+              if (name != null) ...[
+                const SizedBox(height: 18),
+                Text(
+                  name!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: passportText(
+                    15,
+                    weight: FontWeight.w600,
+                    color: _white80,
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 6),
+                const SizedBox(height: 6),
+              ] else
+                const SizedBox(height: 18),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
@@ -145,6 +142,8 @@ class _PhotoCard extends StatelessWidget {
                 offHeight: 11,
                 onPhoto: true,
               ),
+              const SizedBox(height: 14),
+              _Footer(username: username, onPhoto: true),
             ],
           ),
         ),

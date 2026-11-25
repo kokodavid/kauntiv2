@@ -86,7 +86,7 @@ void main() {
     await tester.tap(find.byTooltip('Share your Passport'));
     await tester.pumpAndSettle();
     expect(find.text('Share your Passport'), findsOneWidget);
-    expect(find.text('Your @mochoge always shows'), findsOneWidget);
+    expect(find.text('Show on image'), findsOneWidget);
     expect(find.text('Background art'), findsOneWidget);
   });
 }

@@ -101,6 +101,7 @@ class AppShell extends ConsumerWidget {
           onOpenCounty: DetailRoutes.openCounty,
           onOpenPlace: DetailRoutes.openPlace,
           onOpenTrip: (context) => context.push(AppRoutes.journeyRecording),
+          onOpenTripStart: (context) => context.go(AppRoutes.journeys),
           child: SoftUpdateHost(
             child: JourneySyncLifecycle(
               onRecovered: () =>

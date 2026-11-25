@@ -9,6 +9,7 @@ import '../domain/visit_rules.dart';
 import 'arrival_notifier.dart';
 import 'detection_repository.dart';
 import 'local/detection_database.dart';
+import 'trip_start_reminder_notifier.dart';
 import 'visit_sync_queue.dart';
 
 /// Runs in a fresh background isolate when the OS reports a geofence
@@ -53,6 +54,7 @@ Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
       await _record(params, repository, kind);
       if (kind == CrossingKind.enter) {
         await _notifyArrival(repository);
+        await _remindToRecordTrip();
       }
     }
     await _bestEffortSync(db);
@@ -175,6 +177,22 @@ Future<void> _notifyArrival(DetectionRepository repository) async {
     });
     const AppLogger.detection().warning(
       'Arrival notification failed.',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+}
+
+/// A county crossing means the person is moving: suggests recording a Trip
+/// when none is. The notifier's rules decide (switch, eligibility, daily
+/// cap); the plugin was initialised by the arrival notification above.
+/// A failure here must never undo the recording above.
+Future<void> _remindToRecordTrip() async {
+  try {
+    await TripStartReminderNotifier().postIfDue();
+  } on Object catch (error, stackTrace) {
+    const AppLogger.detection().warning(
+      'Trip start reminder failed.',
       error: error,
       stackTrace: stackTrace,
     );

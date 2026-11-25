@@ -43,6 +43,7 @@ import 'push_routes.dart';
 import 'router_map_tab.dart';
 import 'router_redirect.dart';
 import 'startup_pages.dart';
+import 'trip_start_reminder_lifecycle.dart';
 import 'trips_tab.dart';
 
 part 'router.g.dart';
@@ -71,7 +72,11 @@ GoRouter appRouter(Ref ref) {
           // until start-up is done.
           child: PushLifecycle(
             onOpen: PushRoutes.open,
-            child: TripAlertLifecycle(child: AppShell(navigationShell: shell)),
+            child: TripStartReminderLifecycle(
+              child: TripAlertLifecycle(
+                child: AppShell(navigationShell: shell),
+              ),
+            ),
           ),
         ),
         branches: [

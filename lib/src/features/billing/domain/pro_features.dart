@@ -12,7 +12,7 @@ abstract final class ProFeatures {
   static const summary = 'More Trips, bigger plans, more room for photos.';
 
   static const list = [
-    'Unlimited Trips each month, instead of 3',
+    'Record unlimited Trips each month, instead of 3',
     '50 photos a Trip, up from 25',
     'Bigger plans: 14 days, 20 stops a day',
     'Up to 6 travel buddies on a plan',

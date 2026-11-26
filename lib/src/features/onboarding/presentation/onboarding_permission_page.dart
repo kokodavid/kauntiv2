@@ -14,9 +14,13 @@ import 'onboarding_shell.dart';
 /// - **Denied:** one retry, and "Continue without location" to Home.
 /// - **Permanently denied:** three taps to turn it on in Settings.
 ///
-/// "Not now" is always available and always reaches Home. While the OS
-/// prompt is up ([isRequesting]) the footer locks, so a double tap can't
-/// skip the step.
+/// There is no way off this page until the OS prompt has been answered:
+/// App Store guideline 5.1.1(iv) requires that a custom message shown
+/// before a permission request always leads to the request itself. The way
+/// out ("Continue without location", or "Not now" once the phone won't ask
+/// again) only appears after the phone has had its say. While the OS prompt
+/// is up ([isRequesting]) the footer locks, so a double tap can't skip the
+/// step.
 class OnboardingPermissionPage extends StatelessWidget {
   const OnboardingPermissionPage({
     super.key,
@@ -87,8 +91,11 @@ class OnboardingPermissionPage extends StatelessWidget {
       footerNote: isPermanentlyDenied || _denied
           ? null
           : const PermissionPromptNote(),
-      secondaryLabel: _denied ? 'Continue without location' : 'Not now',
-      onSecondary: onNotNow,
+      // No way past the ask until the phone has been asked (5.1.1(iv)).
+      secondaryLabel: isPermanentlyDenied
+          ? 'Not now'
+          : (_denied ? 'Continue without location' : null),
+      onSecondary: isPermanentlyDenied || _denied ? onNotNow : null,
       isBusy: isRequesting,
       overlay: showSkipToast
           ? Positioned(

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/app_external_links.dart';
 import '../../../design/app_colors.dart';
 import '../../billing/application/billing_providers.dart';
+import '../../billing/domain/pro_features.dart';
 import '../../journeys/domain/pro_status.dart';
 
 /// Pro details, reached from Profile's Pro tile and Settings' Membership
@@ -19,13 +20,6 @@ class MembershipSheet extends ConsumerWidget {
 
   /// Opens the purchase screen; null hides the Upgrade button.
   final VoidCallback? onUpgrade;
-
-  static const _features = [
-    'No ads',
-    'Offline county maps',
-    'Full journey replay & share cards',
-    'Unlimited Trip history',
-  ];
 
   Future<void> _manageSubscription() async {
     try {
@@ -88,7 +82,7 @@ class MembershipSheet extends ConsumerWidget {
               style: const TextStyle(color: AppColors.mutedForeground),
             ),
             const SizedBox(height: 16),
-            for (final feature in _features)
+            for (final feature in ProFeatures.list)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Row(

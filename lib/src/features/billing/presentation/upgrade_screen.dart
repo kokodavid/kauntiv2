@@ -10,6 +10,7 @@ import '../../../widgets/app_progress_indicator.dart';
 import '../application/billing_controller.dart';
 import '../application/billing_providers.dart';
 import '../domain/billing_status.dart';
+import '../domain/pro_features.dart';
 import '../domain/pro_plan.dart';
 import 'upgrade_footer.dart';
 import 'upgrade_plan_card.dart';
@@ -24,13 +25,6 @@ class UpgradeScreen extends ConsumerStatefulWidget {
 }
 
 class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
-  static const _features = [
-    'No ads',
-    'Offline county maps',
-    'Full journey replay & share cards',
-    'Unlimited Trip history',
-  ];
-
   String? _selectedId;
 
   ProPlan? _selected(List<ProPlan> plans) {
@@ -95,11 +89,11 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Everything in the app, with no ads.',
+              ProFeatures.summary,
               style: TextStyle(color: AppColors.mutedForeground),
             ),
             const SizedBox(height: 20),
-            for (final feature in _features)
+            for (final feature in ProFeatures.list)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Row(

@@ -1,5 +1,15 @@
 # V1 → V2 port tracker
 
+## 2026-11-26 County detection reliability (planning)
+
+Docs only: an architecture decision and a PRD for making automatic county
+detection production-ready (three-tier contract, heartbeat and staleness,
+a single status model, claim moment, real-device release gate). No code,
+migration or Flutter/Dart changes yet. Decision:
+[adr/0001-county-detection-reliability.md](adr/0001-county-detection-reliability.md).
+Requirements: [prd/county-detection.md](prd/county-detection.md). Row #5 below
+points at both.
+
 ## 2026-11-07 Dashboard Growth Statistics
 
 Dashboard-only reporting adds period filters, distinct county coverage ranking,
@@ -21,7 +31,7 @@ Status: `Not started` · `In progress` · `In review` · `Done`
 | 2 | Auth + onboarding on Riverpod + go_router | `lib/src/features/auth`, `lib/src/screens/onboarding` | In progress | codex/go-router | go_router (`app/router.dart`, `appRouterProvider`); start-up gating is one redirect on `StartupFlow` (`features/onboarding`), the old `app.dart` state machine ported rule for rule; sign-in on a Riverpod notifier with error mapping in the data layer. Left: move the onboarding pages from `screens/` into `features/onboarding/presentation`, sign-out (with detection's local-state clearing), v1's 3 how-it-works intro screens |
 | 3 | App shell / bottom nav | v1 `AppShell` | In progress | codex/go-router | `app/app_shell.dart` on a go_router `StatefulShellRoute.indexedStack`: tab branches keep their own stacks and state, built lazily (v1 parity). County / Place Detail are routes (`/county/:code`, `/place/:id`). Map + Explore live; Badges / Ranks show "coming next" |
 | 4 | Map Home (+ variants 1a–1e) | `features/map_home` | In review | codex/home-sheet-v2 | Board, compact sheet, nearby-place layout, v1 map interactions and Supabase data ported. See [Map Home](#map-home-4) below |
-| 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 coded. Foreground local detection/dwell/sync checks run every 15 s, while hardware location is read on start/resume and at most every 2 min; background crossing relies on OS geofences. Dev-only opt-in diagnostics can log cycle/GPS-read counts and geofence transitions. Physical-device validation still needed. |
+| 5 | Detection (geofence, visit state machine, offline drift queue) | `features/detection`, `features/offline` | In progress | main (#3) | Plan: [detection-port-plan.md](detection-port-plan.md). Slices 1-7 coded. Foreground local detection/dwell/sync checks run every 15 s, while hardware location is read on start/resume and at most every 2 min; background crossing relies on OS geofences. Dev-only opt-in diagnostics can log cycle/GPS-read counts and geofence transitions. Physical-device validation still needed. Reliability rework (planned): [ADR 0001](adr/0001-county-detection-reliability.md), [PRD](prd/county-detection.md). |
 | 6 | Discover + Wishlist, County/Place Detail | `features/discover` | In progress | main (#3) | County + Place Detail ported. Explore tab (MINE, UNCLAIMED, SAVED/Wishlist) ported on Riverpod; Explore Field Guide v2 Places landing is in progress; offline cache deferred. See [Discover](#discover-6) |
 | 7 | Badges + tiers | `features/badges` | In progress | codex/badges | [Plan](badges-port-plan.md). Step 1: Badges tab on the new design (Figma 491:1394, star-less badge 277:19839): title + tier pill, claimed hero with 47-segment bar, collection grid with depth rings (county_visits + county_depth_ranks). "Since reset", the activity card, avatar and saved-data time wait on product rules. |
 | 8 | Profile, Settings, Data & Privacy | `features/profile` | In progress | codex/journey-place-handoff | First-release account overview from Home avatar: auth identity, home county, badges, live Pro status, Journeys link, OS location settings, privacy summary and sign-out (removes native county geofences first). Full settings, published policy/support links and account deletion remain. |

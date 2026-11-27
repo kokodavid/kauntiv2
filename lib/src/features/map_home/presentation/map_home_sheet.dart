@@ -22,6 +22,7 @@ class MapHomeSheet extends StatefulWidget {
     this.collapsedHeight = 0,
     this.collapsedUnderNav = false,
     this.startsExpanded = false,
+    this.aboveSheet,
   });
 
   final List<Widget> children;
@@ -35,6 +36,11 @@ class MapHomeSheet extends StatefulWidget {
   /// then already includes the bar's room.
   final bool collapsedUnderNav;
   final bool startsExpanded;
+
+  /// A small widget that rides just above the sheet's top edge while the
+  /// sheet is collapsed (for example a status pill) and hides once it is
+  /// dragged open.
+  final Widget? aboveSheet;
 
   @override
   State<MapHomeSheet> createState() => _MapHomeSheetState();
@@ -53,6 +59,10 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
       10.0 + 4.0 + 14.0 + AppBottomNav.clearance(context);
 
   final _controller = DraggableScrollableController();
+
+  /// The sheet's current extent as a fraction of its space, for
+  /// [MapHomeSheet.aboveSheet]; null until the sheet is attached.
+  final _extent = ValueNotifier<double?>(null);
   double? _contentHeight;
   bool _showCollapsed = true;
 
@@ -68,13 +78,29 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
     _controller
       ..removeListener(_onExtentChanged)
       ..dispose();
+    _extent.dispose();
     super.dispose();
   }
 
   double _expandedSize = _maxSize;
   double _collapsedSize = _peekSize;
 
+  /// Mirrors the controller's extent into [_extent] once layout is done (the
+  /// controller also notifies mid-layout, when listeners must not rebuild).
+  void _syncExtent() {
+    if (widget.aboveSheet == null || !_controller.isAttached || !mounted) {
+      return;
+    }
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => _syncExtent());
+      return;
+    }
+    _extent.value = _controller.size;
+  }
+
   void _onExtentChanged() {
+    _syncExtent();
     if (widget.collapsed == null || !_controller.isAttached) return;
     final midpoint = (_collapsedSize + _expandedSize) / 2;
     final showCollapsed = _controller.size < midpoint;
@@ -112,7 +138,7 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
         _expandedSize = expandedSize;
         _collapsedSize = collapsedSize;
 
-        return DraggableScrollableSheet(
+        final sheet = DraggableScrollableSheet(
           controller: _controller,
           initialChildSize: widget.startsExpanded
               ? expandedSize
@@ -194,6 +220,28 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
               ),
             );
           },
+        );
+        final above = widget.aboveSheet;
+        if (above == null) return sheet;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            sheet,
+            ValueListenableBuilder<double?>(
+              valueListenable: _extent,
+              builder: (context, extent, _) {
+                final size =
+                    extent ??
+                    (widget.startsExpanded ? expandedSize : collapsedSize);
+                final open = size > (collapsedSize + expandedSize) / 2;
+                return Positioned(
+                  left: 12,
+                  bottom: size * constraints.maxHeight + 10,
+                  child: open ? const SizedBox.shrink() : above,
+                );
+              },
+            ),
+          ],
         );
       },
     );

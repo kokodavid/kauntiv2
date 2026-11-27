@@ -41,11 +41,15 @@ class MapHomeBoardSheet extends StatelessWidget {
     this.onRoute,
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
+    this.aboveSheet,
   });
 
   final MapHomeBoardData? data;
   final MapHomeLayout? layout;
   final Duration fade;
+
+  /// Rides just above the collapsed sheet (the location status pill).
+  final Widget? aboveSheet;
 
   /// The public trips row, supplied by another feature; hides itself.
   final Widget? tripsNear;
@@ -80,6 +84,7 @@ class MapHomeBoardSheet extends StatelessWidget {
     final picked = layout;
     if (board == null || picked == null) {
       return MapHomeSheet(
+        aboveSheet: aboveSheet,
         children: [
           AnimatedSwitcher(
             duration: fade,
@@ -91,6 +96,7 @@ class MapHomeBoardSheet extends StatelessWidget {
     if (board.isOffline) return _offlineSheet(board);
     final compact = MapHomeCompact.forLayout(picked, board);
     return MapHomeSheet(
+      aboveSheet: aboveSheet,
       startsExpanded: MapHomeLayoutRules.startsExpanded(picked),
       collapsedHeight: recordTripCard != null
           ? recordTripCardHeight
@@ -117,6 +123,7 @@ class MapHomeBoardSheet extends StatelessWidget {
   /// No connection: the collapsed card and the body say what still works
   /// (the banner carries the offline line). Trips still record offline, so that card stays.
   Widget _offlineSheet(MapHomeBoardData board) => MapHomeSheet(
+    aboveSheet: aboveSheet,
     collapsedHeight: recordTripCard != null
         ? recordTripCardHeight
         : defaultRecordTripCardHeight,

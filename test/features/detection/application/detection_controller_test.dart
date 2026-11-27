@@ -57,7 +57,12 @@ class _FakePermission implements DetectionPermission {
   }
 }
 
-const AppLocationFix _nairobi = (latitude: -1.292629, longitude: 36.864399);
+const AppLocationReading _nairobi = (
+  latitude: -1.292629,
+  longitude: 36.864399,
+  accuracyMeters: 10,
+  takenAt: null,
+);
 
 void main() {
   late DetectionDatabase db;
@@ -65,7 +70,7 @@ void main() {
   late _FakeGeofences geofences;
   late _FakePermission permission;
 
-  ProviderContainer container(AppLocationFix? fix) {
+  ProviderContainer container(AppLocationReading? fix) {
     final c = ProviderContainer(
       overrides: [
         detectionRepositoryProvider.overrideWithValue(repo),

@@ -22,8 +22,8 @@ part 'detection_controller.g.dart';
 /// One foreground location read for detection; null when unavailable.
 /// Tests override it.
 @Riverpod(keepAlive: true)
-Future<AppLocationFix?> Function() detectionLocationReader(Ref ref) =>
-    () => AppCurrentLocation.read(timeout: const Duration(seconds: 5));
+Future<AppLocationReading?> Function() detectionLocationReader(Ref ref) =>
+    () => AppCurrentLocation.readDetailed(timeout: const Duration(seconds: 5));
 
 /// What the last foreground cycle saw.
 class DetectionSnapshot {
@@ -172,6 +172,7 @@ class DetectionController extends _$DetectionController {
           : await repository.reconcileCurrentLocation(
               latitude: fix.latitude,
               longitude: fix.longitude,
+              accuracyMeters: fix.accuracyMeters,
             );
       enteredCounty = entered != null;
       final candidates = await repository.activeArrivalCandidates();
@@ -266,7 +267,7 @@ class DetectionController extends _$DetectionController {
   /// county the phone is already in, unless the fix shows it's elsewhere.
   Future<bool> _bootstrapIfNeeded(
     DetectionRepository repository,
-    AppLocationFix? fix,
+    AppLocationReading? fix,
     int? homeCountyCode, {
     required bool registerGeofences,
   }) async {

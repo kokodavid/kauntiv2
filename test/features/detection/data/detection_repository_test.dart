@@ -113,6 +113,19 @@ void main() {
       );
     });
 
+    test('a loose fix is never credited', () async {
+      await repo.seedCurrentCounty(22);
+      final entered = await repo.reconcileCurrentLocation(
+        latitude: -1.292629,
+        longitude: 36.864399,
+        accuracyMeters: 400,
+        now: t0,
+      );
+      expect(entered, isNull);
+      expect(await repo.currentCountyCode(), 22);
+      expect(await repo.activeCandidateCountyCodes(), isEmpty);
+    });
+
     test('a fix inside another county closes the left-behind timer', () async {
       // Machakos (16) starts a timer, then Kajiado (34) is entered through
       // a plain geofence event, which leaves Machakos' timer running.

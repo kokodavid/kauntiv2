@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/counties/county_distance.dart';
 import '../../../counties/county_paths.dart';
+import '../domain/confidence_gate.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
 import 'local/detection_database.dart';
@@ -21,12 +22,19 @@ class DetectionRepository {
     this._db, {
     String? userId,
     this.rules = const VisitRules(VisitTimings.production),
+    this.gate = const ConfidenceGate(),
   }) : _expectedOwner = userId {
     _ready = userId == null ? _restoreOwner() : _bindOwner(userId);
   }
 
   final DetectionDatabase _db;
   final VisitRules rules;
+  final ConfidenceGate gate;
+
+  /// The first near-border fix of a possible crossing, waiting for a second
+  /// one in the same county. In memory only: a background isolate that sees
+  /// one fix near a border credits nothing until the app confirms it.
+  ({int county, DateTime at})? _pendingBorder;
   late final Future<void> _ready;
   String? _expectedOwner;
 
@@ -106,6 +114,7 @@ class DetectionRepository {
     required double longitude,
     double minimumInsideDistanceMeters =
         CountyBoundaryResolver.boundaryHysteresisMeters,
+    double? accuracyMeters,
     DateTime? now,
   }) async {
     final sampled = CountyBoundaryResolver.countyCodeFor(
@@ -115,11 +124,49 @@ class DetectionRepository {
     );
     if (sampled == null) return null;
     final at = now ?? DateTime.now();
+    final previous = await currentCountyCode();
+    // The confidence gate guards crossings only: a fix in the county we are
+    // already in changes nothing, and the very first fix just seeds it.
+    if (previous != null && previous != sampled) {
+      final inside =
+          CountyBoundaryResolver.insideDistanceMeters(
+            latitude: latitude,
+            longitude: longitude,
+            code: sampled,
+          ) ??
+          0;
+      final pending = _pendingBorder;
+      final fresh =
+          pending != null &&
+          pending.county == sampled &&
+          at.difference(pending.at) >= gate.config.confirmGap &&
+          at.difference(pending.at) <= gate.config.confirmWindow;
+      switch (gate.judge(
+        accuracyMeters: accuracyMeters,
+        insideMeters: inside,
+        alreadyPending: fresh,
+      )) {
+        case GateVerdict.reject:
+          return null;
+        case GateVerdict.needConfirmation:
+          // Keep the older fix if it is still fresh enough to confirm on the
+          // next one; otherwise start over from this fix.
+          if (pending == null ||
+              pending.county != sampled ||
+              at.difference(pending.at) > gate.config.confirmWindow) {
+            _pendingBorder = (county: sampled, at: at);
+          }
+          return null;
+        case GateVerdict.accept:
+          _pendingBorder = null;
+      }
+    } else {
+      _pendingBorder = null;
+    }
     // The fix is clearly inside `sampled`, so no other county's timer can
     // still be running: close them now, at the fix, not when the app next
     // wakes up (that is how a left-behind county kept collecting time).
     await _closeOtherCandidates(except: sampled, at: at);
-    final previous = await currentCountyCode();
     if (previous == sampled) return null;
 
     if (previous != null) {

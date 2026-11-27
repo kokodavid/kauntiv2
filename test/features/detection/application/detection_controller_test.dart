@@ -46,6 +46,11 @@ class _FakePermission implements DetectionPermission {
   @override
   Future<void> openSettings() async => settingsOpened++;
 
+  var alwaysAsked = 0;
+
+  @override
+  Future<void> askForAlways() async => alwaysAsked++;
+
   var servicesOn = true;
   var turnOnAsked = 0;
 

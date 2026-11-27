@@ -44,14 +44,14 @@ void main() {
   });
 
   test('RPC params carry state and device, nothing about places', () {
-    final params = DetectionHealthReport(
+    final params = const DetectionHealthReport(
       platform: 'android',
       manufacturer: 'TECNO',
       model: 'CK8n',
       tier: DetectionTier.catchUp,
       reason: DetectionReason.backgroundMissing,
       lastCycleGapSeconds: 12,
-      counts: const {'claimed': 2},
+      counts: {'claimed': 2},
     ).toRpcParams();
     expect(params['p_tier'], 'catch_up');
     expect(params['p_reason'], 'background_missing');

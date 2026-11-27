@@ -14,6 +14,7 @@ import '../../discover/application/explore_providers.dart';
 import '../data/claim_notifier.dart';
 import '../data/detection_health_reporter.dart';
 import '../data/detection_outcome_counts.dart';
+import '../data/reduced_detection_notifier.dart';
 import '../domain/detection_health_report.dart';
 import '../data/detection_heartbeat.dart';
 import '../data/detection_repository.dart';
@@ -268,9 +269,11 @@ class DetectionController extends _$DetectionController {
     }
   }
 
-  /// Sends this cycle's status to the team's health table when one is due
-  /// (first time, tier change, daily). Only for a signed-in user.
+  /// Keeps the one "detection is reduced" notice in step with the tier, and
+  /// sends this cycle's status to the team's health table when one is due
+  /// (first time, tier change, daily; signed-in users only).
   void _reportHealth() {
+    unawaited(ReducedDetectionNotifier().sync(state.status));
     final client = ref.read(supabaseClientProvider);
     if (client == null || client.auth.currentUser == null) return;
     unawaited(DetectionHealthReporter.supabase(client).maybeReport(state.status));

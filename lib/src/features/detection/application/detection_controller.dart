@@ -10,6 +10,7 @@ import '../../../core/services/location_diagnostics.dart';
 import '../../../services/app_logger.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../discover/application/explore_providers.dart';
+import '../data/claim_notifier.dart';
 import '../data/detection_heartbeat.dart';
 import '../data/detection_repository.dart';
 import '../data/geofence_service.dart';
@@ -195,6 +196,12 @@ class DetectionController extends _$DetectionController {
 
       await ref.read(visitSyncProvider.notifier).drain();
       if (_suspended) return;
+
+      // iOS: keep the "county claimed" notifications matching what is
+      // still pending (a no-op on Android).
+      await ClaimNotifier(
+        dwell: ref.read(visitTimingsProvider).dwellThreshold,
+      ).sync(await repository.activeArrivalCandidates());
 
       final current = await repository.currentCountyCode();
       if (current != null &&

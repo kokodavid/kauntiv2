@@ -7,6 +7,7 @@ import '../../../services/app_logger.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
 import 'arrival_notifier.dart';
+import 'claim_notifier.dart';
 import 'detection_heartbeat.dart';
 import 'detection_repository.dart';
 import 'local/detection_database.dart';
@@ -54,6 +55,7 @@ Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
           ? CrossingKind.exit
           : CrossingKind.enter;
       await _record(params, repository, kind);
+      await _syncClaimNotifications(repository);
       if (kind == CrossingKind.enter) {
         await _notifyArrival(repository);
         await _remindToRecordTrip();
@@ -179,6 +181,22 @@ Future<void> _notifyArrival(DetectionRepository repository) async {
     });
     const AppLogger.detection().warning(
       'Arrival notification failed.',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+}
+
+/// iOS only: keeps the "county claimed" notifications in step with the
+/// candidates after a crossing. Needs the plugin initialised, so it
+/// initialises it here (safe to repeat). Never undoes the recording.
+Future<void> _syncClaimNotifications(DetectionRepository repository) async {
+  try {
+    await ArrivalNotifier().initialize();
+    await ClaimNotifier().sync(await repository.activeArrivalCandidates());
+  } on Object catch (error, stackTrace) {
+    const AppLogger.detection().warning(
+      'Claim notification sync failed.',
       error: error,
       stackTrace: stackTrace,
     );

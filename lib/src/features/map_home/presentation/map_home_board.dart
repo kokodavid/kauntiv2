@@ -12,6 +12,7 @@ import '../domain/map_home_models.dart';
 import 'map_home_board_sheet.dart';
 import 'map_home_board_top.dart';
 import 'map_home_location_pill.dart';
+import 'map_home_pending_claim_pill.dart';
 import 'map_home_drawn_map.dart';
 import 'map_home_links.dart';
 import 'map_home_map_focus.dart';
@@ -276,7 +277,10 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
         MapHomeFocusFade(
           focus: _focus,
           child: MapHomeBoardSheet(
-            aboveSheet: const MapHomeLocationPill(),
+            aboveSheet: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [MapHomePendingClaimPill(), MapHomeLocationPill()],
+            ),
             data: data,
             layout: _layout,
             fade: _fade,

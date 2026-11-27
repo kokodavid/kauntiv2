@@ -4,9 +4,11 @@ import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/counties/county_distance.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/confidence_gate.dart';
+import '../domain/detection_health_report.dart';
 import '../domain/transit_rules.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
+import 'detection_outcome_counts.dart';
 import 'local/detection_database.dart';
 import 'transit_flag.dart';
 
@@ -27,6 +29,7 @@ class DetectionRepository {
     this.gate = const ConfidenceGate(),
     this.transitRules = const TransitRules(),
     this.transitFlag = const TransitFlag(),
+    this.outcomes = const DetectionOutcomeCounts(),
   }) : _expectedOwner = userId {
     _ready = userId == null ? _restoreOwner() : _bindOwner(userId);
   }
@@ -36,6 +39,7 @@ class DetectionRepository {
   final ConfidenceGate gate;
   final TransitRules transitRules;
   final TransitFlag transitFlag;
+  final DetectionOutcomeCounts outcomes;
 
   /// The previous accepted fix, kept in memory only (a fix is never stored,
   /// doc 05) to tell whether the phone is moving faster than a road allows.
@@ -161,8 +165,10 @@ class DetectionRepository {
         alreadyPending: fresh,
       )) {
         case GateVerdict.reject:
+          await outcomes.add(DetectionOutcome.rejectedAccuracy);
           return null;
         case GateVerdict.needConfirmation:
+          await outcomes.add(DetectionOutcome.heldBorder);
           // Keep the older fix if it is still fresh enough to confirm on the
           // next one; otherwise start over from this fix.
           if (pending == null ||
@@ -233,6 +239,7 @@ class DetectionRepository {
         );
     if (fast) {
       _pendingBorder = null;
+      await outcomes.add(DetectionOutcome.transit);
       await transitFlag.markUntil(at.add(transitRules.config.hold));
       return true;
     }

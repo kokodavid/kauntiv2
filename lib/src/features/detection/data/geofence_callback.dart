@@ -4,11 +4,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/services/location_diagnostics.dart';
 import '../../../services/app_logger.dart';
+import '../domain/detection_health_report.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
 import 'arrival_notifier.dart';
 import 'claim_notifier.dart';
 import 'detection_heartbeat.dart';
+import 'detection_outcome_counts.dart';
 import 'detection_repository.dart';
 import 'local/detection_database.dart';
 import 'trip_start_reminder_notifier.dart';
@@ -80,6 +82,12 @@ Future<void> _resolveDwelling(DetectionRepository repository) async {
   final resolved = await repository.checkStillActiveCandidates();
   for (final visit in resolved) {
     logger.info('Resolved $visit from a geofence dwell.');
+  }
+  final claimed = resolved
+      .where((v) => v.outcome == VisitOutcome.explored)
+      .length;
+  if (claimed > 0) {
+    await const DetectionOutcomeCounts().add(DetectionOutcome.claimed, claimed);
   }
 }
 

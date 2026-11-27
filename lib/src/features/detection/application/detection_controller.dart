@@ -7,10 +7,14 @@ import '../../../core/domain/app_feature_flags.dart';
 import '../../../core/services/app_config_provider.dart';
 import '../../../core/services/app_current_location.dart';
 import '../../../core/services/location_diagnostics.dart';
+import '../../../core/services/supabase_client_provider.dart';
 import '../../../services/app_logger.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../discover/application/explore_providers.dart';
 import '../data/claim_notifier.dart';
+import '../data/detection_health_reporter.dart';
+import '../data/detection_outcome_counts.dart';
+import '../domain/detection_health_report.dart';
 import '../data/detection_heartbeat.dart';
 import '../data/detection_repository.dart';
 import '../data/geofence_service.dart';
@@ -193,6 +197,15 @@ class DetectionController extends _$DetectionController {
       final candidates = await repository.activeArrivalCandidates();
       final resolved = await repository.checkStillActiveCandidates();
       resolvedCount = resolved.length;
+      final claimed = resolved
+          .where((v) => v.outcome == VisitOutcome.explored)
+          .length;
+      if (claimed > 0) {
+        await const DetectionOutcomeCounts().add(
+          DetectionOutcome.claimed,
+          claimed,
+        );
+      }
 
       await ref.read(visitSyncProvider.notifier).drain();
       if (_suspended) return;
@@ -248,10 +261,19 @@ class DetectionController extends _$DetectionController {
           }),
         );
       }
+      _reportHealth();
       _running = false;
       _cycleDone = null;
       cycleDone.complete();
     }
+  }
+
+  /// Sends this cycle's status to the team's health table when one is due
+  /// (first time, tier change, daily). Only for a signed-in user.
+  void _reportHealth() {
+    final client = ref.read(supabaseClientProvider);
+    if (client == null || client.auth.currentUser == null) return;
+    unawaited(DetectionHealthReporter.supabase(client).maybeReport(state.status));
   }
 
   /// The status for this cycle, with the heartbeat: this cycle counts as a

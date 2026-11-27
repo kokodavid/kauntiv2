@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -61,4 +62,21 @@ class DetectionPermission {
   /// The OS app settings screen, the only way back once "Always" was
   /// taken away there.
   Future<void> openSettings() => _service.openSettings();
+
+  /// Moves toward "All the time". iOS offers the upgrade itself once; if it
+  /// doesn't (already asked) or the user declines, Settings opens. Android
+  /// 11+ only grants it from Settings.
+  Future<void> askForAlways() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      try {
+        if (await _service.requestLocationAccess() ==
+            AppLocationPermissionResult.granted) {
+          return;
+        }
+      } on Object {
+        // Fall through to Settings.
+      }
+    }
+    await _service.openSettings();
+  }
 }

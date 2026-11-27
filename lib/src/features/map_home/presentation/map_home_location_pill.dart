@@ -10,11 +10,15 @@ import '../application/location_banner_visibility.dart';
 import 'map_home_location_copy.dart';
 
 /// What stays on Home once the launch banner has gone: a small pill that
-/// says detection is limited and has a "Fix" button. It rides just above the
+/// says detection is limited; tapping it opens the tiers sheet that explains
+/// the options and how to reach "All the time". It rides just above the
 /// collapsed bottom sheet (see [MapHomeSheet.aboveSheet]) so it never sits
 /// over the map's own controls. Nothing shows when detection is live.
 class MapHomeLocationPill extends ConsumerWidget {
-  const MapHomeLocationPill({super.key});
+  const MapHomeLocationPill({super.key, this.onOpen});
+
+  /// Opens the tiers explainer; null falls back to fixing it directly.
+  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,11 +32,14 @@ class MapHomeLocationPill extends ConsumerWidget {
     }
     final controller = ref.read(detectionControllerProvider.notifier);
     final copy = LocationStatusCopy.of(reason);
-    void fix() => unawaited(
-      reason == DetectionReason.servicesOff
-          ? controller.turnOnLocation()
-          : controller.openLocationSettings(),
-    );
+    void fix() =>
+        onOpen != null
+        ? onOpen!()
+        : unawaited(
+            reason == DetectionReason.servicesOff
+                ? controller.turnOnLocation()
+                : controller.openLocationSettings(),
+          );
     return Semantics(
       button: true,
       label: '${copy.title}. ${copy.action}.',

@@ -13,10 +13,12 @@ import '../../profile/application/profile_settings_providers.dart';
 import '../application/arrival_notification_bridge.dart';
 import '../application/arrival_nudge.dart';
 import '../application/detection_controller.dart';
+import '../domain/detection_status.dart';
 import '../domain/foreground_fix_policy.dart';
 import '../domain/trip_start_reminder_rules.dart';
 import '../domain/visit_models.dart';
 import 'county_arrival_sheet.dart';
+import 'detection_tiers_sheet.dart';
 
 /// Drives [DetectionController] from the app lifecycle: a cycle on start,
 /// on every resume, and every 15 s while the app is in front. It reads
@@ -203,6 +205,16 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
     }
   }
 
+  /// The second permission ask: once, after the first claimed county, for a
+  /// user who only allowed "While using".
+  Future<void> _askForAlwaysOnce(DetectionTier tier, int claimed) async {
+    final ask = await ref
+        .read(detectionControllerProvider.notifier)
+        .takeAlwaysAsk(tier: tier, claimed: claimed);
+    if (!ask || !mounted) return;
+    await showDetectionTiersSheet(context, afterFirstCounty: true);
+  }
+
   Future<void> _present(CountyDetailData data) async {
     final openCounty = widget.onOpenCounty;
     final openPlace = widget.onOpenPlace;
@@ -220,6 +232,14 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
   Widget build(BuildContext context) {
     ref.listen(pendingArrivalNudgeProvider, (previous, next) {
       if (next != null) _showArrival();
+    });
+    ref.listen(detectionControllerProvider, (previous, next) {
+      final claimed = next.resolved
+          .where((v) => v.outcome == VisitOutcome.explored)
+          .length;
+      if (claimed > 0 && !identical(previous?.resolved, next.resolved)) {
+        unawaited(_askForAlwaysOnce(next.status.tier, claimed));
+      }
     });
     ref.listen(profileSettingsControllerProvider, (previous, next) {
       final settings = next.value;

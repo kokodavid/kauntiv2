@@ -40,6 +40,7 @@ class MapHomeBoard extends ConsumerStatefulWidget {
     this.recordTripCard,
     this.recordTripCardHeight = defaultRecordTripCardHeight,
     this.topCard,
+    this.onOpenLocationTiers,
   });
 
   /// A Trip is recording; starting or stopping one re-picks the layout.
@@ -50,6 +51,7 @@ class MapHomeBoard extends ConsumerStatefulWidget {
   final Widget? recordTripCard; // while moving or a Trip is in progress
   final double recordTripCardHeight;
   final Widget? topCard;
+  final VoidCallback? onOpenLocationTiers;
 
   /// Null while the board is loading: every slot shows a same-sized
   /// placeholder, then crossfades to the real content in place.
@@ -277,9 +279,12 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
         MapHomeFocusFade(
           focus: _focus,
           child: MapHomeBoardSheet(
-            aboveSheet: const Column(
+            aboveSheet: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [MapHomePendingClaimPill(), MapHomeLocationPill()],
+              children: [
+                const MapHomePendingClaimPill(),
+                MapHomeLocationPill(onOpen: widget.onOpenLocationTiers),
+              ],
             ),
             data: data,
             layout: _layout,

@@ -11,10 +11,12 @@ import '../../../core/services/supabase_client_provider.dart';
 import '../../../services/app_logger.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../discover/application/explore_providers.dart';
+import '../data/always_ask_state.dart';
 import '../data/claim_notifier.dart';
 import '../data/detection_health_reporter.dart';
 import '../data/detection_outcome_counts.dart';
 import '../data/reduced_detection_notifier.dart';
+import '../domain/always_ask_rules.dart';
 import '../domain/detection_health_report.dart';
 import '../data/detection_heartbeat.dart';
 import '../data/detection_repository.dart';
@@ -322,6 +324,31 @@ class DetectionController extends _$DetectionController {
   /// resume re-checks it.
   Future<void> openLocationSettings() =>
       ref.read(detectionPermissionProvider).openSettings();
+
+  /// True once, for the second permission ask after a first claimed county;
+  /// marks it shown so it never repeats.
+  Future<bool> takeAlwaysAsk({
+    required DetectionTier tier,
+    required int claimed,
+  }) async {
+    const state = AlwaysAskState();
+    if (!AlwaysAskRules.shouldAsk(
+      tier: tier,
+      claimedThisCycle: claimed,
+      alreadyAsked: await state.shown(),
+    )) {
+      return false;
+    }
+    await state.markShown();
+    return true;
+  }
+
+  /// Asks for "All the time" (iOS prompt or Settings); the next resume
+  /// re-checks it.
+  Future<void> askForAlways() async {
+    await ref.read(detectionPermissionProvider).askForAlways();
+    await runCycle();
+  }
 
   /// Asks the phone to switch location back on, then checks again (on
   /// Android the dialog doesn't leave the app, so no resume follows).

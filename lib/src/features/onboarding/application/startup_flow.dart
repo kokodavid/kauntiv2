@@ -10,6 +10,7 @@ import '../../profile/application/interests_providers.dart';
 import '../../profile/application/profile_setup_providers.dart';
 import '../../profile/application/username_providers.dart';
 import '../../profile/domain/place_interest.dart';
+import '../domain/location_choice.dart';
 import '../domain/startup_state.dart';
 import 'setup_progress_providers.dart';
 

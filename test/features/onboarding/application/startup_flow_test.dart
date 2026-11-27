@@ -5,6 +5,7 @@ import 'package:kaunti47_v2/src/features/auth/application/auth_providers.dart';
 import 'package:kaunti47_v2/src/features/onboarding/application/setup_progress_providers.dart';
 import 'package:kaunti47_v2/src/features/onboarding/application/startup_flow.dart';
 import 'package:kaunti47_v2/src/features/onboarding/data/setup_progress_store.dart';
+import 'package:kaunti47_v2/src/features/onboarding/domain/location_choice.dart';
 import 'package:kaunti47_v2/src/features/onboarding/domain/startup_state.dart';
 import 'package:kaunti47_v2/src/features/profile/application/interests_providers.dart';
 import 'package:kaunti47_v2/src/features/profile/application/profile_settings_providers.dart';
@@ -94,12 +95,22 @@ class _FakePermissions implements AppLocationPermissionService {
   var status = AppLocationPermissionResult.granted;
   var requestResult = AppLocationPermissionResult.granted;
   var settingsOpened = 0;
+  var foregroundOnly = false;
+  var requestedForeground = 0;
+  var requestedAlways = 0;
+
+  @override
+  Future<AppLocationPermissionResult> requestForegroundAccess() async {
+    requestedForeground++;
+    return requestResult;
+  }
 
   @override
   Future<AppLocationPermissionResult> checkStatus() async => status;
 
   @override
   Future<AppLocationPermissionResult> requestLocationAccess() async {
+    requestedAlways++;
     status = requestResult;
     return requestResult;
   }
@@ -111,7 +122,7 @@ class _FakePermissions implements AppLocationPermissionService {
   }
 
   @override
-  Future<bool> hasForegroundLocation() async => true;
+  Future<bool> hasForegroundLocation() async => foregroundOnly;
 }
 
 void main() {
@@ -443,6 +454,40 @@ void main() {
     await flow.enableLocation();
     expect(c.read(startupFlowProvider).step, StartupStep.ready);
     expect(progress.inProgress['alice'], isFalse);
+  });
+
+  test('"Only while using" asks for foreground access only', () async {
+    permissions
+      ..status = AppLocationPermissionResult.denied
+      ..requestResult = AppLocationPermissionResult.granted;
+    final c = container();
+    final flow = startAfterSplash(c);
+    await flow.onSignedIn();
+    flow.selectCounty(kiambu);
+    await flow.saveHomeCounty();
+    await flow.skipInterests();
+
+    await flow.enableLocation(LocationChoice.whileUsing);
+    expect(permissions.requestedForeground, 1);
+    expect(permissions.requestedAlways, 0);
+    expect(c.read(startupFlowProvider).step, StartupStep.ready);
+  });
+
+  test('choosing Always but allowing only While using carries on', () async {
+    permissions
+      ..status = AppLocationPermissionResult.denied
+      ..requestResult = AppLocationPermissionResult.permanentlyDenied
+      ..foregroundOnly = true;
+    final c = container();
+    final flow = startAfterSplash(c);
+    await flow.onSignedIn();
+    flow.selectCounty(kiambu);
+    await flow.saveHomeCounty();
+    await flow.skipInterests();
+
+    await flow.enableLocation();
+    expect(permissions.requestedAlways, 1);
+    expect(c.read(startupFlowProvider).step, StartupStep.ready);
   });
 
   test('"Not now" opens Home without saving anything and ends setup', () async {

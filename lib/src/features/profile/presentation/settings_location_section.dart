@@ -1,22 +1,14 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
-import '../domain/profile_settings.dart';
 import 'settings_county_tracking_row.dart';
-import 'settings_privacy_section.dart' show ProfileSettingsControllerRef;
 import 'settings_widgets.dart';
 
 class SettingsLocationSection extends StatelessWidget {
   const SettingsLocationSection({
     super.key,
-    required this.settings,
-    required this.notifier,
     required this.onOpenLocationSettings,
   });
 
-  final ProfileSettings settings;
-  final ProfileSettingsControllerRef notifier;
   final VoidCallback onOpenLocationSettings;
 
   @override
@@ -40,20 +32,10 @@ class SettingsLocationSection extends StatelessWidget {
                   'Counties are claimed in the background as you travel.',
                   style: TextStyle(fontSize: 12.5, color: Color(0xFF71717A)),
                 ),
-                const SizedBox(height: 10),
-                SettingsSegmented<LocationMode>(
-                  options: LocationMode.values,
-                  labelOf: (v) =>
-                      v == LocationMode.automatic ? 'Automatic' : 'Manual',
-                  value: settings.locationMode,
-                  onChanged: (v) => unawaited(notifier.setLocationMode(v)),
-                ),
               ],
             ),
           ),
-          // Only means anything while detection runs on its own.
-          if (settings.locationMode == LocationMode.automatic)
-            const SettingsCountyTrackingRow(),
+          const SettingsCountyTrackingRow(),
           SettingsActionRow(
             title: 'Location permission',
             subtitle: 'Opens device settings',

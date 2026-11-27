@@ -158,7 +158,7 @@ class _AskBody extends StatelessWidget {
     (
       Icons.tune_outlined,
       "You're in control",
-      'Manual mode or delete history in Profile.',
+      'Delete your history any time in Profile.',
     ),
   ];
 

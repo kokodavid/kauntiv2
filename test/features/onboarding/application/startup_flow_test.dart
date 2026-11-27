@@ -445,7 +445,7 @@ void main() {
     expect(progress.inProgress['alice'], isFalse);
   });
 
-  test('"Not now" opens Home in manual mode and ends setup', () async {
+  test('"Not now" opens Home without saving anything and ends setup', () async {
     permissions.status = AppLocationPermissionResult.denied;
     final c = container();
     final flow = startAfterSplash(c);
@@ -457,9 +457,7 @@ void main() {
     await flow.skipLocation();
     expect(c.read(startupFlowProvider).step, StartupStep.ready);
     expect(progress.inProgress['alice'], isFalse);
-    expect(settings.updates, [
-      {'location_mode': 'manual'},
-    ]);
+    expect(settings.updates, isEmpty);
   });
 
   test('granting location ends setup at Home', () async {

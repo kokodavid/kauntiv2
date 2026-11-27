@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
 import '../../detection/application/detection_controller.dart';
+import '../../detection/domain/detection_status.dart';
 
 /// Shown on Home's map while detection can't run (copy from v1's
 /// manual-mode board): either location is switched off for the whole phone,
@@ -17,18 +18,21 @@ class MapHomeDetectionPausedChip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final (servicesOff, permissionOff) = ref.watch(
-      detectionControllerProvider.select(
-        (s) => (s.locationServicesOff, s.backgroundLocationOff),
-      ),
+    final reason = ref.watch(
+      detectionControllerProvider.select((s) => s.status.reason),
     );
-    if (!servicesOff && !permissionOff) return const SizedBox.shrink();
+    if (reason == DetectionReason.none) return const SizedBox.shrink();
+    final servicesOff = reason == DetectionReason.servicesOff;
+    final noPermission = reason == DetectionReason.noPermission;
     final controller = ref.read(detectionControllerProvider.notifier);
     return Semantics(
       button: true,
       label: servicesOff
           ? "Location is off. Counties won't update until it's back on. "
                 'Tap to turn it on.'
+          : noPermission
+          ? "Location is off for Kaunti47. Counties won't update until it's "
+                'allowed. Tap to open Settings.'
           : 'Counties update only while Kaunti47 is open. Tap to allow '
                 'location all the time in Settings.',
       child: Material(
@@ -55,6 +59,8 @@ class MapHomeDetectionPausedChip extends ConsumerWidget {
                 Text(
                   servicesOff
                       ? 'LOCATION IS OFF'
+                      : noPermission
+                      ? 'LOCATION NOT ALLOWED'
                       : 'BACKGROUND DETECTION OFF',
                   style: AppTextStyles.mapOverlayChip,
                 ),

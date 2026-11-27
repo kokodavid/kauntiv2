@@ -5,10 +5,12 @@ import 'package:kaunti47_v2/src/core/services/app_current_location.dart';
 import 'package:kaunti47_v2/src/features/detection/application/detection_controller.dart';
 import 'package:kaunti47_v2/src/features/detection/application/detection_providers.dart';
 import 'package:kaunti47_v2/src/features/detection/application/visit_sync.dart';
+import 'package:kaunti47_v2/src/features/detection/data/detection_heartbeat.dart';
 import 'package:kaunti47_v2/src/features/detection/data/detection_permission.dart';
 import 'package:kaunti47_v2/src/features/detection/data/detection_repository.dart';
 import 'package:kaunti47_v2/src/features/detection/data/geofence_service.dart';
 import 'package:kaunti47_v2/src/features/detection/data/local/detection_database.dart';
+import 'package:kaunti47_v2/src/features/detection/domain/detection_status.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeGeofences implements GeofenceService {
@@ -204,6 +206,7 @@ void main() {
     expect(await repo.activeCandidateCountyCodes(), {47});
     final snapshot = c.read(detectionControllerProvider);
     expect(snapshot.backgroundLocationOff, isTrue);
+    expect(snapshot.status.tier, DetectionTier.catchUp);
     expect(snapshot.currentCounty, 47);
 
     await controller.openLocationSettings();
@@ -234,6 +237,20 @@ void main() {
     expect(await repo.currentCountyCode(), 22);
     expect(await repo.activeCandidateCountyCodes(), isEmpty);
     expect(c.read(detectionControllerProvider).backgroundLocationOff, isTrue);
+    expect(
+      c.read(detectionControllerProvider).status.reason,
+      DetectionReason.noPermission,
+    );
+  });
+
+  test('a cycle records the heartbeat and Live status', () async {
+    await repo.seedCurrentCounty(22);
+    final c = container(_nairobi);
+    await c.read(detectionControllerProvider.notifier).runCycle();
+    final status = c.read(detectionControllerProvider).status;
+    expect(status.tier, DetectionTier.live);
+    expect(status.lastCycleAt, isNotNull);
+    expect(await const DetectionHeartbeat().lastCycle(), isNotNull);
   });
 
   test('getting it back resumes detection', () async {

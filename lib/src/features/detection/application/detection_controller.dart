@@ -10,8 +10,10 @@ import '../../../core/services/location_diagnostics.dart';
 import '../../../services/app_logger.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../discover/application/explore_providers.dart';
+import '../data/detection_heartbeat.dart';
 import '../data/detection_repository.dart';
 import '../data/geofence_service.dart';
+import '../domain/detection_status.dart';
 import '../domain/visit_models.dart';
 import 'arrival_nudge.dart';
 import 'detection_providers.dart';
@@ -32,8 +34,7 @@ class DetectionSnapshot {
     this.activeCandidates = const [],
     this.resolved = const [],
     this.lastRunAt,
-    this.backgroundLocationOff = false,
-    this.locationServicesOff = false,
+    this.status = DetectionStatus.initial,
   });
 
   final int? currentCounty;
@@ -46,15 +47,19 @@ class DetectionSnapshot {
   final List<ResolvedVisit> resolved;
   final DateTime? lastRunAt;
 
-  /// Background location ("Always") isn't granted: geofences are removed, so
-  /// counties are only recorded while the app is open (catch-up), or not at
-  /// all when there is no location permission either.
-  final bool backgroundLocationOff;
+  /// How well detection can work right now (Live, Catch-up or Off, and the
+  /// heartbeat). Home reads this, not the individual permission flags.
+  final DetectionStatus status;
+
+  /// "Always" isn't granted: geofences are removed, so counties are only
+  /// recorded while the app is open (catch-up), or not at all.
+  bool get backgroundLocationOff =>
+      status.reason == DetectionReason.backgroundMissing ||
+      status.reason == DetectionReason.noPermission;
 
   /// Location is switched off for the whole phone: nothing can be detected
-  /// until it's back on (Home says so). Geofences stay registered; the next
-  /// full cycle after it's back re-registers them anyway.
-  final bool locationServicesOff;
+  /// until it's back on (Home says so).
+  bool get locationServicesOff => status.reason == DetectionReason.servicesOff;
 }
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
@@ -124,6 +129,7 @@ class DetectionController extends _$DetectionController {
     final cycleStartedAt = DateTime.now();
     var permissionGranted = true;
     var backgroundOff = false;
+    var foregroundOk = true;
     var enteredCounty = false;
     var resolvedCount = 0;
     final diagnosticsEnabled =
@@ -142,16 +148,24 @@ class DetectionController extends _$DetectionController {
         await _dropGeofences(geofences);
         if (!await permission.foregroundGranted()) {
           permissionGranted = false;
-          await _pause();
+          foregroundOk = false;
+          await _pause(await _statusFor(
+            backgroundGranted: false,
+            foregroundGranted: false,
+            servicesEnabled: true,
+          ));
           return;
         }
       }
-      if (!await ref.read(detectionPermissionProvider).servicesEnabled()) {
+      if (!await permission.servicesEnabled()) {
         state = DetectionSnapshot(
           currentCounty: state.currentCounty,
           lastRunAt: DateTime.now(),
-          locationServicesOff: true,
-          backgroundLocationOff: backgroundOff,
+          status: await _statusFor(
+            backgroundGranted: !backgroundOff,
+            foregroundGranted: foregroundOk,
+            servicesEnabled: false,
+          ),
         );
         await ref.read(visitSyncProvider.notifier).drain();
         return;
@@ -201,7 +215,11 @@ class DetectionController extends _$DetectionController {
         activeCandidates: candidates,
         resolved: resolved,
         lastRunAt: DateTime.now(),
-        backgroundLocationOff: backgroundOff,
+        status: await _statusFor(
+          backgroundGranted: !backgroundOff,
+          foregroundGranted: foregroundOk,
+          servicesEnabled: true,
+        ),
       );
     } on Object catch (error, stackTrace) {
       _logger.warning(
@@ -229,6 +247,25 @@ class DetectionController extends _$DetectionController {
     }
   }
 
+  /// The status for this cycle, with the heartbeat: this cycle counts as a
+  /// run now, and the geofence time is whatever the background isolate last
+  /// wrote.
+  Future<DetectionStatus> _statusFor({
+    required bool backgroundGranted,
+    required bool foregroundGranted,
+    required bool servicesEnabled,
+  }) async {
+    const heartbeat = DetectionHeartbeat();
+    await heartbeat.markCycle();
+    return DetectionStatus.derive(
+      backgroundGranted: backgroundGranted,
+      foregroundGranted: foregroundGranted,
+      servicesEnabled: servicesEnabled,
+      lastCycleAt: DateTime.now(),
+      lastGeofenceAt: await heartbeat.lastGeofence(),
+    );
+  }
+
   /// Background location is off: stop OS monitoring, once. The foreground
   /// cycle carries on without it.
   Future<void> _dropGeofences(GeofenceService geofences) async {
@@ -240,11 +277,11 @@ class DetectionController extends _$DetectionController {
 
   /// No location permission at all: read nothing, keep uploading what's
   /// already queued, and flag it for Home.
-  Future<void> _pause() async {
+  Future<void> _pause(DetectionStatus status) async {
     state = DetectionSnapshot(
       currentCounty: state.currentCounty,
       lastRunAt: DateTime.now(),
-      backgroundLocationOff: true,
+      status: status,
     );
     await ref.read(visitSyncProvider.notifier).drain();
   }

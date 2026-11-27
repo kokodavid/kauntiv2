@@ -7,6 +7,7 @@ import '../../../services/app_logger.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
 import 'arrival_notifier.dart';
+import 'detection_heartbeat.dart';
 import 'detection_repository.dart';
 import 'local/detection_database.dart';
 import 'trip_start_reminder_notifier.dart';
@@ -33,6 +34,7 @@ Future<void> geofenceCallbackDispatcher(GeofenceCallbackParams params) async {
     'geofence_count': params.geofences.length,
   });
 
+  await const DetectionHeartbeat().markGeofence();
   final db = DetectionDatabase();
   final repository = DetectionRepository(
     db,

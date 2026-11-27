@@ -4,9 +4,11 @@ import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/counties/county_distance.dart';
 import '../../../counties/county_paths.dart';
 import '../domain/confidence_gate.dart';
+import '../domain/transit_rules.dart';
 import '../domain/visit_models.dart';
 import '../domain/visit_rules.dart';
 import 'local/detection_database.dart';
+import 'transit_flag.dart';
 
 part 'detection_repository_reads.dart';
 
@@ -23,6 +25,8 @@ class DetectionRepository {
     String? userId,
     this.rules = const VisitRules(VisitTimings.production),
     this.gate = const ConfidenceGate(),
+    this.transitRules = const TransitRules(),
+    this.transitFlag = const TransitFlag(),
   }) : _expectedOwner = userId {
     _ready = userId == null ? _restoreOwner() : _bindOwner(userId);
   }
@@ -30,6 +34,12 @@ class DetectionRepository {
   final DetectionDatabase _db;
   final VisitRules rules;
   final ConfidenceGate gate;
+  final TransitRules transitRules;
+  final TransitFlag transitFlag;
+
+  /// The previous accepted fix, kept in memory only (a fix is never stored,
+  /// doc 05) to tell whether the phone is moving faster than a road allows.
+  ({double latitude, double longitude, DateTime at})? _lastFix;
 
   /// The first near-border fix of a possible crossing, waiting for a second
   /// one in the same county. In memory only: a background isolate that sees
@@ -117,6 +127,10 @@ class DetectionRepository {
     double? accuracyMeters,
     DateTime? now,
   }) async {
+    final fixAt = now ?? DateTime.now();
+    if (await _inTransit(latitude, longitude, fixAt, accuracyMeters)) {
+      return null;
+    }
     final sampled = CountyBoundaryResolver.countyCodeFor(
       latitude: latitude,
       longitude: longitude,
@@ -191,9 +205,53 @@ class DetectionRepository {
     return entered ? sampled : null;
   }
 
+  /// Whether this fix shows the phone moving faster than road speed since the
+  /// last one. In transit nothing is credited and entries are held back; the
+  /// first fix that is no longer fast clears it, so the visit starts there
+  /// and its dwell clock starts fresh. A loose fix is not used for speed.
+  Future<bool> _inTransit(
+    double latitude,
+    double longitude,
+    DateTime at,
+    double? accuracyMeters,
+  ) async {
+    if (accuracyMeters != null &&
+        accuracyMeters > gate.config.maxAccuracyMeters) {
+      return false;
+    }
+    final last = _lastFix;
+    _lastFix = (latitude: latitude, longitude: longitude, at: at);
+    final fast =
+        last != null &&
+        transitRules.isTransit(
+          fromLatitude: last.latitude,
+          fromLongitude: last.longitude,
+          fromAt: last.at,
+          toLatitude: latitude,
+          toLongitude: longitude,
+          toAt: at,
+        );
+    if (fast) {
+      _pendingBorder = null;
+      await transitFlag.markUntil(at.add(transitRules.config.hold));
+      return true;
+    }
+    if (last != null &&
+        at.difference(last.at) >= transitRules.config.minElapsed) {
+      await transitFlag.clear();
+    }
+    return false;
+  }
+
   /// Applies one crossing. Returns the visit it resolved, if any.
   Future<ResolvedVisit?> handleEvent(CountyCrossingEvent event) async {
     await _ready;
+    // A location-less geofence entry under a flight path says nothing about
+    // where the phone is: ignore it while transit is in force.
+    if (event.kind == CrossingKind.enter &&
+        await transitFlag.activeAt(event.occurredAt)) {
+      return null;
+    }
     return _db.transaction(() async {
       await _ownerId();
       final existing = await (_db.select(

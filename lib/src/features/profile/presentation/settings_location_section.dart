@@ -18,17 +18,17 @@ class SettingsLocationSection extends StatelessWidget {
       const SettingsSectionLabel('Location'),
       SettingsCard(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 14, 16, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'County detection',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 2),
-                const Text(
+                SizedBox(height: 2),
+                Text(
                   'Counties are claimed in the background as you travel.',
                   style: TextStyle(fontSize: 12.5, color: Color(0xFF71717A)),
                 ),

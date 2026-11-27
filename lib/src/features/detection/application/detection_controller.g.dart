@@ -20,11 +20,11 @@ const detectionLocationReaderProvider = DetectionLocationReaderProvider._();
 final class DetectionLocationReaderProvider
     extends
         $FunctionalProvider<
-          Future<AppLocationFix?> Function(),
-          Future<AppLocationFix?> Function(),
-          Future<AppLocationFix?> Function()
+          Future<AppLocationReading?> Function(),
+          Future<AppLocationReading?> Function(),
+          Future<AppLocationReading?> Function()
         >
-    with $Provider<Future<AppLocationFix?> Function()> {
+    with $Provider<Future<AppLocationReading?> Function()> {
   /// One foreground location read for detection; null when unavailable.
   /// Tests override it.
   const DetectionLocationReaderProvider._()
@@ -43,20 +43,20 @@ final class DetectionLocationReaderProvider
 
   @$internal
   @override
-  $ProviderElement<Future<AppLocationFix?> Function()> $createElement(
+  $ProviderElement<Future<AppLocationReading?> Function()> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  Future<AppLocationFix?> Function() create(Ref ref) {
+  Future<AppLocationReading?> Function() create(Ref ref) {
     return detectionLocationReader(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Future<AppLocationFix?> Function() value) {
+  Override overrideWithValue(Future<AppLocationReading?> Function() value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<Future<AppLocationFix?> Function()>(
+      providerOverride: $SyncValueProvider<Future<AppLocationReading?> Function()>(
         value,
       ),
     );

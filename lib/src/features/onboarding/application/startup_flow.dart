@@ -7,7 +7,6 @@ import '../../../services/app_location_permission_service.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../notifications/application/push_providers.dart';
 import '../../profile/application/interests_providers.dart';
-import '../../profile/application/profile_settings_providers.dart';
 import '../../profile/application/profile_setup_providers.dart';
 import '../../profile/application/username_providers.dart';
 import '../../profile/domain/place_interest.dart';

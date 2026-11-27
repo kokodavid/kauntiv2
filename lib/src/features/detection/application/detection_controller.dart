@@ -46,8 +46,9 @@ class DetectionSnapshot {
   final List<ResolvedVisit> resolved;
   final DateTime? lastRunAt;
 
-  /// Background location was taken away: geofences are removed and
-  /// automatic detection is paused until it's granted again.
+  /// Background location ("Always") isn't granted: geofences are removed, so
+  /// counties are only recorded while the app is open (catch-up), or not at
+  /// all when there is no location permission either.
   final bool backgroundLocationOff;
 
   /// Location is switched off for the whole phone: nothing can be detected
@@ -70,9 +71,12 @@ class DetectionSnapshot {
 /// 5. refreshes the geofence window when a hardware fix was reconciled;
 /// 6. offers the newest unseen crossing to the arrival sheet.
 ///
-/// Before any of that it checks background location. Without it the
-/// geofences are removed once, the queue still uploads, and the snapshot
-/// says detection is paused (Home shows it) until access comes back.
+/// Before any of that it checks permission. Without background location
+/// the geofences are removed once but the cycle carries on: a fix is read,
+/// the county reconciled and dwell checked, so a visit is still recorded
+/// when the app is open. The snapshot flags it so Home can offer "Always".
+/// With no location permission at all nothing is read; the queue still
+/// uploads and Home says detection is off.
 ///
 /// The fix only decides the county and is never stored (doc 05). A
 /// failure is logged and the next run retries.
@@ -119,6 +123,7 @@ class DetectionController extends _$DetectionController {
     _running = true;
     final cycleStartedAt = DateTime.now();
     var permissionGranted = true;
+    var backgroundOff = false;
     var enteredCounty = false;
     var resolvedCount = 0;
     final diagnosticsEnabled =
@@ -131,16 +136,22 @@ class DetectionController extends _$DetectionController {
     try {
       final repository = ref.read(detectionRepositoryProvider);
       final geofences = ref.read(geofenceServiceProvider);
-      if (!await ref.read(detectionPermissionProvider).backgroundGranted()) {
-        permissionGranted = false;
-        await _pause(geofences);
-        return;
+      final permission = ref.read(detectionPermissionProvider);
+      if (!await permission.backgroundGranted()) {
+        backgroundOff = true;
+        await _dropGeofences(geofences);
+        if (!await permission.foregroundGranted()) {
+          permissionGranted = false;
+          await _pause();
+          return;
+        }
       }
       if (!await ref.read(detectionPermissionProvider).servicesEnabled()) {
         state = DetectionSnapshot(
           currentCounty: state.currentCounty,
           lastRunAt: DateTime.now(),
           locationServicesOff: true,
+          backgroundLocationOff: backgroundOff,
         );
         await ref.read(visitSyncProvider.notifier).drain();
         return;
@@ -154,6 +165,7 @@ class DetectionController extends _$DetectionController {
         repository,
         fix,
         homeCountyCode,
+        registerGeofences: !backgroundOff,
       );
       final entered = fix == null || bootstrapped
           ? null
@@ -170,7 +182,10 @@ class DetectionController extends _$DetectionController {
       if (_suspended) return;
 
       final current = await repository.currentCountyCode();
-      if (current != null && refreshLocation && !bootstrapped) {
+      if (current != null &&
+          refreshLocation &&
+          !bootstrapped &&
+          !backgroundOff) {
         await geofences.initialize();
         await geofences.registerWindowFor(current);
       }
@@ -185,6 +200,7 @@ class DetectionController extends _$DetectionController {
         activeCandidates: candidates,
         resolved: resolved,
         lastRunAt: DateTime.now(),
+        backgroundLocationOff: backgroundOff,
       );
     } on Object catch (error, stackTrace) {
       _logger.warning(
@@ -212,14 +228,18 @@ class DetectionController extends _$DetectionController {
     }
   }
 
-  /// Background location is off: stop monitoring (once), keep uploading
-  /// what's already queued, and flag it for Home.
-  Future<void> _pause(GeofenceService geofences) async {
-    if (!state.backgroundLocationOff) {
-      await geofences.initialize();
-      await geofences.removeAll();
-      _logger.info('Background location off: detection paused.');
-    }
+  /// Background location is off: stop OS monitoring, once. The foreground
+  /// cycle carries on without it.
+  Future<void> _dropGeofences(GeofenceService geofences) async {
+    if (state.backgroundLocationOff) return;
+    await geofences.initialize();
+    await geofences.removeAll();
+    _logger.info('Background location off: geofences removed, catch-up only.');
+  }
+
+  /// No location permission at all: read nothing, keep uploading what's
+  /// already queued, and flag it for Home.
+  Future<void> _pause() async {
     state = DetectionSnapshot(
       currentCounty: state.currentCounty,
       lastRunAt: DateTime.now(),
@@ -247,8 +267,9 @@ class DetectionController extends _$DetectionController {
   Future<bool> _bootstrapIfNeeded(
     DetectionRepository repository,
     AppLocationFix? fix,
-    int? homeCountyCode,
-  ) async {
+    int? homeCountyCode, {
+    required bool registerGeofences,
+  }) async {
     if (await repository.currentCountyCode() != null) return false;
     final gpsCounty = fix == null
         ? null
@@ -261,6 +282,7 @@ class DetectionController extends _$DetectionController {
     final county = gpsCounty ?? homeCountyCode;
     if (county == null) return false;
     await repository.seedCurrentCounty(county);
+    if (!registerGeofences) return true;
     final geofences = ref.read(geofenceServiceProvider);
     await geofences.initialize();
     await geofences.registerWindowFor(

@@ -5,8 +5,8 @@ import '../../../services/app_location_permission_service.dart';
 
 /// The OS permission automatic detection needs: background location
 /// ("Allow all the time" on Android, "Always" on iOS). Without it the OS
-/// geofences can't wake the app, so detection pauses (v1 showed Home's
-/// manual mode for the same case).
+/// geofences can't wake the app, so detection falls back to catch-up: the
+/// app still records the county whenever it is opened (ADR 0001, decision 4).
 class DetectionPermission {
   const DetectionPermission([
     this._service = const AppLocationPermissionService(),
@@ -21,6 +21,17 @@ class DetectionPermission {
     } on Object {
       // Can't tell: keep detection running rather than pausing on a
       // platform hiccup. A real loss shows on the next check.
+      return true;
+    }
+  }
+
+  /// The app may read location while it is open ("While using" or
+  /// "Always"). Catch-up detection needs only this. Can't tell: assume yes,
+  /// so a platform hiccup doesn't switch detection off.
+  Future<bool> foregroundGranted() async {
+    try {
+      return await _service.hasForegroundLocation();
+    } on Object {
       return true;
     }
   }

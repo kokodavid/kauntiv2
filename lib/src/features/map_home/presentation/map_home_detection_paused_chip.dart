@@ -29,8 +29,8 @@ class MapHomeDetectionPausedChip extends ConsumerWidget {
       label: servicesOff
           ? "Location is off. Counties won't update until it's back on. "
                 'Tap to turn it on.'
-          : "Automatic detection paused. Badges won't unlock automatically "
-                'while detection is off. Tap to turn it back on in Settings.',
+          : 'Counties update only while Kaunti47 is open. Tap to allow '
+                'location all the time in Settings.',
       child: Material(
         color: AppColors.mapOverlayBackground,
         borderRadius: BorderRadius.circular(999),
@@ -55,7 +55,7 @@ class MapHomeDetectionPausedChip extends ConsumerWidget {
                 Text(
                   servicesOff
                       ? 'LOCATION IS OFF'
-                      : 'AUTOMATIC DETECTION PAUSED',
+                      : 'BACKGROUND DETECTION OFF',
                   style: AppTextStyles.mapOverlayChip,
                 ),
                 const SizedBox(width: 8),

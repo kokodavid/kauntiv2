@@ -18,6 +18,19 @@ void main() {
     expect(claim?.claimsAt, t0.add(dwell));
   });
 
+  test('an already claimed county never counts down', () {
+    final t0 = DateTime(2026, 11, 1, 10);
+    final nudges = [
+      CountyArrivalNudge(countyCode: 1, enteredAt: t0),
+      CountyArrivalNudge(
+        countyCode: 2,
+        enteredAt: t0.add(const Duration(minutes: 30)),
+      ),
+    ];
+    expect(PendingClaim.soonest(nudges, dwell, claimed: {1})?.countyCode, 2);
+    expect(PendingClaim.soonest(nudges, dwell, claimed: {1, 2}), isNull);
+  });
+
   test('none pending gives null', () {
     expect(PendingClaim.soonest(const [], dwell), isNull);
   });

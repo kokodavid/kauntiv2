@@ -261,6 +261,11 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
           child: MapHomeBoardSheet(
             aboveSheet: MapHomeStatusPills(
               onOpenLocationTiers: widget.onOpenLocationTiers,
+              claimedCountyCodes: {
+                for (final badge in data.countyBadges)
+                  if (badge.state == MapHomeCountyBadgeState.earned)
+                    badge.county.code,
+              },
             ),
             data: data,
             layout: _layout,

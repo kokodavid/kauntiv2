@@ -9,12 +9,16 @@ class PendingClaim {
   final DateTime claimsAt;
 
   /// The soonest claim among [candidates]; null when none is pending.
+  /// Counties in [claimed] are skipped: a county already earned has
+  /// nothing left to count down to.
   static PendingClaim? soonest(
     List<CountyArrivalNudge> candidates,
-    Duration dwellThreshold,
-  ) {
+    Duration dwellThreshold, {
+    Set<int> claimed = const {},
+  }) {
     PendingClaim? best;
     for (final candidate in candidates) {
+      if (claimed.contains(candidate.countyCode)) continue;
       final claim = PendingClaim(
         countyCode: candidate.countyCode,
         claimsAt: candidate.enteredAt.add(dwellThreshold),

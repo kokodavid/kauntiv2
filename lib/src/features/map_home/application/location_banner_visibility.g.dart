@@ -57,7 +57,7 @@ final class LocationBannerVisibleProvider
 }
 
 String _$locationBannerVisibleHash() =>
-    r'0000000000000000000000000000000000000000';
+    r'd7dff194c507b4a42ca41d7dd8a0d7bd9454c04f';
 
 /// Whether Home may still show the location banner in the stat card's place.
 /// It starts visible and is switched off for the rest of the app launch once

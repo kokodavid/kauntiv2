@@ -63,7 +63,7 @@ final class DetectionLocationReaderProvider
 }
 
 String _$detectionLocationReaderHash() =>
-    r'4e115d1015019c71a14961e2bc18bd2365568171';
+    r'501dbed01193796f09a1fd3a2001f4aea1f327c2';
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
 /// of the widget): run on start, on resume and every 15 s while the app is
@@ -79,9 +79,12 @@ String _$detectionLocationReaderHash() =>
 /// 5. refreshes the geofence window when a hardware fix was reconciled;
 /// 6. offers the newest unseen crossing to the arrival sheet.
 ///
-/// Before any of that it checks background location. Without it the
-/// geofences are removed once, the queue still uploads, and the snapshot
-/// says detection is paused (Home shows it) until access comes back.
+/// Before any of that it checks permission. Without background location
+/// the geofences are removed once but the cycle carries on: a fix is read,
+/// the county reconciled and dwell checked, so a visit is still recorded
+/// when the app is open. The snapshot flags it so Home can offer "Always".
+/// With no location permission at all nothing is read; the queue still
+/// uploads and Home says detection is off.
 ///
 /// The fix only decides the county and is never stored (doc 05). A
 /// failure is logged and the next run retries.
@@ -103,9 +106,12 @@ const detectionControllerProvider = DetectionControllerProvider._();
 /// 5. refreshes the geofence window when a hardware fix was reconciled;
 /// 6. offers the newest unseen crossing to the arrival sheet.
 ///
-/// Before any of that it checks background location. Without it the
-/// geofences are removed once, the queue still uploads, and the snapshot
-/// says detection is paused (Home shows it) until access comes back.
+/// Before any of that it checks permission. Without background location
+/// the geofences are removed once but the cycle carries on: a fix is read,
+/// the county reconciled and dwell checked, so a visit is still recorded
+/// when the app is open. The snapshot flags it so Home can offer "Always".
+/// With no location permission at all nothing is read; the queue still
+/// uploads and Home says detection is off.
 ///
 /// The fix only decides the county and is never stored (doc 05). A
 /// failure is logged and the next run retries.
@@ -125,9 +131,12 @@ final class DetectionControllerProvider
   /// 5. refreshes the geofence window when a hardware fix was reconciled;
   /// 6. offers the newest unseen crossing to the arrival sheet.
   ///
-  /// Before any of that it checks background location. Without it the
-  /// geofences are removed once, the queue still uploads, and the snapshot
-  /// says detection is paused (Home shows it) until access comes back.
+  /// Before any of that it checks permission. Without background location
+  /// the geofences are removed once but the cycle carries on: a fix is read,
+  /// the county reconciled and dwell checked, so a visit is still recorded
+  /// when the app is open. The snapshot flags it so Home can offer "Always".
+  /// With no location permission at all nothing is read; the queue still
+  /// uploads and Home says detection is off.
   ///
   /// The fix only decides the county and is never stored (doc 05). A
   /// failure is logged and the next run retries.
@@ -159,7 +168,7 @@ final class DetectionControllerProvider
 }
 
 String _$detectionControllerHash() =>
-    r'bdac7a5cc655db5d2569cd9669187ca18d909c8d';
+    r'28ea6b33881588dbd70dd024173005b158053971';
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
 /// of the widget): run on start, on resume and every 15 s while the app is
@@ -175,9 +184,12 @@ String _$detectionControllerHash() =>
 /// 5. refreshes the geofence window when a hardware fix was reconciled;
 /// 6. offers the newest unseen crossing to the arrival sheet.
 ///
-/// Before any of that it checks background location. Without it the
-/// geofences are removed once, the queue still uploads, and the snapshot
-/// says detection is paused (Home shows it) until access comes back.
+/// Before any of that it checks permission. Without background location
+/// the geofences are removed once but the cycle carries on: a fix is read,
+/// the county reconciled and dwell checked, so a visit is still recorded
+/// when the app is open. The snapshot flags it so Home can offer "Always".
+/// With no location permission at all nothing is read; the queue still
+/// uploads and Home says detection is off.
 ///
 /// The fix only decides the county and is never stored (doc 05). A
 /// failure is logged and the next run retries.

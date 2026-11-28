@@ -41,14 +41,13 @@ class ProfileScreen extends ConsumerWidget {
   final VoidCallback onOpenBadges;
   final VoidCallback? onOpenJourneys;
 
-  /// Opens the beta feedback form (the entry is only shown to testers).
+  /// Opens the beta feedback form (testers only).
   final VoidCallback onOpenFeedback;
 
   /// Opens the Pro purchase screen from the Membership sheet.
   final VoidCallback? onOpenUpgrade;
 
-  /// The "My photos" entry, built in app/ (features do not import each
-  /// other). Null, or building nothing, while photo submissions are off.
+  /// The "My photos" entry, built in app/; null while submissions are off.
   final WidgetBuilder? photosEntry;
 
   /// Pushes the in-app Settings screen (architecture §2: cross-feature
@@ -238,8 +237,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
             ),
             Expanded(
               child: ListView(
-                // No bottom bar on this page (SafeArea covers the home
-                // indicator), so only a small gap under the version.
+                // No bottom bar here: only a small gap under the version.
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
                 children: [
                   ProfileProgressCard(
@@ -265,13 +263,10 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                         : pro == null
                         ? null
                         : () => unawaited(
-                            showModalBottomSheet<void>(
-                              context: context,
-                              isScrollControlled: true,
-                              builder: (_) => MembershipSheet(
-                                status: pro,
-                                onUpgrade: widget.onOpenUpgrade,
-                              ),
+                            showMembershipSheet(
+                              context,
+                              pro,
+                              onUpgrade: widget.onOpenUpgrade,
                             ),
                           ),
                   ),

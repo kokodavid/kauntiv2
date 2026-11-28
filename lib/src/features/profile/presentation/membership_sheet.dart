@@ -9,6 +9,17 @@ import '../../billing/application/billing_providers.dart';
 import '../../billing/domain/pro_features.dart';
 import '../../journeys/domain/pro_status.dart';
 
+/// Opens the Membership sheet for [status].
+Future<void> showMembershipSheet(
+  BuildContext context,
+  ProStatus status, {
+  VoidCallback? onUpgrade,
+}) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  builder: (_) => MembershipSheet(status: status, onUpgrade: onUpgrade),
+);
+
 /// Pro details, reached from Profile's Pro tile and Settings' Membership
 /// row. Free accounts get an Upgrade button while the dashboard's billing
 /// switch is on; "Manage" opens the OS's own subscription-management

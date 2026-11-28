@@ -136,7 +136,10 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
     final now = DateTime.now();
     final refreshLocation = ForegroundFixPolicy.shouldRead(
       forced: forceLocation,
-      hasPending: ref.read(detectionControllerProvider).activeCandidates.isNotEmpty,
+      hasPending: ref
+          .read(detectionControllerProvider)
+          .activeCandidates
+          .isNotEmpty,
       now: now,
       lastReadAt: _lastLocationReadAt,
     );

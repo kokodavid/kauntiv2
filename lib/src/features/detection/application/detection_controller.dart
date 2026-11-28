@@ -157,11 +157,13 @@ class DetectionController extends _$DetectionController {
         if (!await permission.foregroundGranted()) {
           permissionGranted = false;
           foregroundOk = false;
-          await _pause(await _statusFor(
-            backgroundGranted: false,
-            foregroundGranted: false,
-            servicesEnabled: true,
-          ));
+          await _pause(
+            await _statusFor(
+              backgroundGranted: false,
+              foregroundGranted: false,
+              servicesEnabled: true,
+            ),
+          );
           return;
         }
       }
@@ -278,7 +280,9 @@ class DetectionController extends _$DetectionController {
     unawaited(ReducedDetectionNotifier().sync(state.status));
     final client = ref.read(supabaseClientProvider);
     if (client == null || client.auth.currentUser == null) return;
-    unawaited(DetectionHealthReporter.supabase(client).maybeReport(state.status));
+    unawaited(
+      DetectionHealthReporter.supabase(client).maybeReport(state.status),
+    );
   }
 
   /// The status for this cycle, with the heartbeat: this cycle counts as a

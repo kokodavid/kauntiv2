@@ -33,7 +33,10 @@ void main() {
 
   test('skips the home county and claims already due', () {
     final plan = ClaimNotificationPlan.build(
-      candidates: [nudge(47, t0), nudge(1, t0.subtract(const Duration(hours: 3)))],
+      candidates: [
+        nudge(47, t0),
+        nudge(1, t0.subtract(const Duration(hours: 3))),
+      ],
       scheduled: {1},
       dwell: dwell,
       now: t0.add(const Duration(minutes: 5)),

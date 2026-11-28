@@ -56,9 +56,8 @@ final class DetectionLocationReaderProvider
   Override overrideWithValue(Future<AppLocationReading?> Function() value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<Future<AppLocationReading?> Function()>(
-        value,
-      ),
+      providerOverride:
+          $SyncValueProvider<Future<AppLocationReading?> Function()>(value),
     );
   }
 }

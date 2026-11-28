@@ -43,10 +43,7 @@ void main() {
   });
 
   test('a second episode after recovery gets its own notice', () {
-    final plan = ReducedDetectionPlan.decide(
-      tier: DetectionTier.off,
-      now: now,
-    );
+    final plan = ReducedDetectionPlan.decide(tier: DetectionTier.off, now: now);
     expect(plan.action, ReducedAction.schedule);
   });
 

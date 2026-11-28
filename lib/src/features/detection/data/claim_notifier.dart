@@ -43,7 +43,10 @@ class ClaimNotifier {
 
   /// Makes the scheduled notifications match [candidates]. Safe to call as
   /// often as you like: ids are per county, so a repeat just replaces.
-  Future<void> sync(List<CountyArrivalNudge> candidates, {DateTime? now}) async {
+  Future<void> sync(
+    List<CountyArrivalNudge> candidates, {
+    DateTime? now,
+  }) async {
     if (!_enabled) return;
     try {
       final at = now ?? DateTime.now();

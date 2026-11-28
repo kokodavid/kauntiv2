@@ -54,7 +54,9 @@ class DetectionTiersContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(detectionControllerProvider.select((s) => s.status));
+    final status = ref.watch(
+      detectionControllerProvider.select((s) => s.status),
+    );
     final controller = ref.read(detectionControllerProvider.notifier);
     final ios = defaultTargetPlatform == TargetPlatform.iOS;
     final live = status.tier == DetectionTier.live;
@@ -81,7 +83,8 @@ class DetectionTiersContent extends ConsumerWidget {
         const SizedBox(height: 14),
         _TierRow(
           title: 'Allow all the time',
-          body: 'Counties are recorded as you cross, even with the app '
+          body:
+              'Counties are recorded as you cross, even with the app '
               'closed. Uses a little more battery.',
           current: live,
         ),
@@ -123,7 +126,9 @@ class DetectionTiersContent extends ConsumerWidget {
                       : controller.askForAlways(),
                 );
               },
-              child: Text(servicesOff ? 'Turn on location' : 'Allow all the time'),
+              child: Text(
+                servicesOff ? 'Turn on location' : 'Allow all the time',
+              ),
             ),
           ),
         ],

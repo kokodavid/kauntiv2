@@ -10,6 +10,5 @@ class AlwaysAskRules {
     required DetectionTier tier,
     required int claimedThisCycle,
     required bool alreadyAsked,
-  }) =>
-      !alreadyAsked && tier == DetectionTier.catchUp && claimedThisCycle > 0;
+  }) => !alreadyAsked && tier == DetectionTier.catchUp && claimedThisCycle > 0;
 }

@@ -30,10 +30,7 @@ void main() {
   test('sends once, then waits for a tier change', () async {
     const live = DetectionStatus(tier: DetectionTier.live);
     await reporter.maybeReport(live, now: now);
-    await reporter.maybeReport(
-      live,
-      now: now.add(const Duration(hours: 1)),
-    );
+    await reporter.maybeReport(live, now: now.add(const Duration(hours: 1)));
     expect(sent, hasLength(1));
     await reporter.maybeReport(
       const DetectionStatus(

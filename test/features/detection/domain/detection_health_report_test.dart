@@ -58,7 +58,10 @@ void main() {
     expect(params['p_counts'], {'claimed': 2});
     expect(
       params.keys.where(
-        (k) => k.contains('lat') && !k.contains('last') || k.contains('lng') || k.contains('county'),
+        (k) =>
+            k.contains('lat') && !k.contains('last') ||
+            k.contains('lng') ||
+            k.contains('county'),
       ),
       isEmpty,
     );
@@ -67,7 +70,10 @@ void main() {
   test('gapSeconds is null when unknown and never negative', () {
     expect(DetectionHealthReport.gapSeconds(null, now), isNull);
     expect(
-      DetectionHealthReport.gapSeconds(now.add(const Duration(seconds: 5)), now),
+      DetectionHealthReport.gapSeconds(
+        now.add(const Duration(seconds: 5)),
+        now,
+      ),
       0,
     );
   });

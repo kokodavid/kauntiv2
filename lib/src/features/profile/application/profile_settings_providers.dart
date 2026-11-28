@@ -110,5 +110,4 @@ class ProfileSettingsController extends _$ProfileSettingsController {
     (s) => s.copyWith(weekendRadiusKm: value),
     {'weekend_radius_km': value},
   );
-
 }

@@ -32,8 +32,7 @@ class MapHomeLocationPill extends ConsumerWidget {
     }
     final controller = ref.read(detectionControllerProvider.notifier);
     final copy = LocationStatusCopy.of(reason);
-    void fix() =>
-        onOpen != null
+    void fix() => onOpen != null
         ? onOpen!()
         : unawaited(
             reason == DetectionReason.servicesOff

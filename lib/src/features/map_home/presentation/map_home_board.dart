@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/domain/map_place.dart';
 import '../application/map_home_view_preference_provider.dart';
 import '../domain/map_home_layout.dart';
-import '../domain/county_badge_state.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_board_sheet.dart';
 import 'map_home_board_top.dart';

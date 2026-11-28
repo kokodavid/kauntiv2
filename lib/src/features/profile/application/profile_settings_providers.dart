@@ -29,7 +29,6 @@ class ProfileSettingsController extends _$ProfileSettingsController {
         notifyBadgeUnlocks: true,
         notifyCountyNudges: true,
         sideQuestRadiusKm: 100,
-        locationMode: LocationMode.automatic,
       );
     }
     return repository.fetch();
@@ -110,12 +109,5 @@ class ProfileSettingsController extends _$ProfileSettingsController {
   Future<void> setWeekendRadiusKm(int value) => _apply(
     (s) => s.copyWith(weekendRadiusKm: value),
     {'weekend_radius_km': value},
-  );
-
-  /// Saved as a preference only -- see [LocationMode]'s doc comment: this
-  /// does not yet change what [DetectionController] actually does.
-  Future<void> setLocationMode(LocationMode value) => _apply(
-    (s) => s.copyWith(locationMode: value),
-    {'location_mode': value.column},
   );
 }

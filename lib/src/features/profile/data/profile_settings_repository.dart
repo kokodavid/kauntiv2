@@ -7,9 +7,9 @@ abstract interface class ProfileSettingsRepository {
   Future<void> update(Map<String, Object?> columns);
 }
 
-/// The six settings columns on `profiles` (`map_visibility`,
+/// The settings columns on `profiles` (`map_visibility`,
 /// `show_on_leaderboards`, `notify_badge_unlocks`, `notify_county_nudges`,
-/// `side_quest_radius_km`, `location_mode`) are plain user-owned
+/// `side_quest_radius_km`) are plain user-owned
 /// preference rows -- `profiles` already has owner `select`/`update` RLS
 /// (`create_profiles.sql`), so a bare client update is the right pattern
 /// here (security plan §3: RPCs are for anything beyond simple
@@ -22,7 +22,7 @@ class SupabaseProfileSettingsRepository implements ProfileSettingsRepository {
   static const _timeout = Duration(seconds: 8);
   static const _columns =
       'map_visibility, show_on_leaderboards, notify_badge_unlocks, '
-      'notify_county_nudges, side_quest_radius_km, location_mode, '
+      'notify_county_nudges, side_quest_radius_km, '
       'notify_announcements, notify_photo_reviews, notify_trip_alerts, '
       'notify_weekend_plans, weekend_use_saved, weekend_include_nearby, '
       'weekend_radius_km';
@@ -52,9 +52,6 @@ class SupabaseProfileSettingsRepository implements ProfileSettingsRepository {
       notifyBadgeUnlocks: row?['notify_badge_unlocks'] as bool? ?? true,
       notifyCountyNudges: row?['notify_county_nudges'] as bool? ?? true,
       sideQuestRadiusKm: row?['side_quest_radius_km'] as int? ?? 100,
-      locationMode: LocationMode.fromColumn(
-        row?['location_mode'] as String? ?? 'automatic',
-      ),
       notifyAnnouncements: row?['notify_announcements'] as bool? ?? true,
       notifyPhotoReviews: row?['notify_photo_reviews'] as bool? ?? true,
       notifyTripAlerts: row?['notify_trip_alerts'] as bool? ?? true,

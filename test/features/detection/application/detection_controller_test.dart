@@ -5,10 +5,12 @@ import 'package:kaunti47_v2/src/core/services/app_current_location.dart';
 import 'package:kaunti47_v2/src/features/detection/application/detection_controller.dart';
 import 'package:kaunti47_v2/src/features/detection/application/detection_providers.dart';
 import 'package:kaunti47_v2/src/features/detection/application/visit_sync.dart';
+import 'package:kaunti47_v2/src/features/detection/data/detection_heartbeat.dart';
 import 'package:kaunti47_v2/src/features/detection/data/detection_permission.dart';
 import 'package:kaunti47_v2/src/features/detection/data/detection_repository.dart';
 import 'package:kaunti47_v2/src/features/detection/data/geofence_service.dart';
 import 'package:kaunti47_v2/src/features/detection/data/local/detection_database.dart';
+import 'package:kaunti47_v2/src/features/detection/domain/detection_status.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeGeofences implements GeofenceService {
@@ -32,13 +34,22 @@ class _FakeGeofences implements GeofenceService {
 
 class _FakePermission implements DetectionPermission {
   var granted = true;
+  var foreground = true;
   var settingsOpened = 0;
 
   @override
   Future<bool> backgroundGranted() async => granted;
 
   @override
+  Future<bool> foregroundGranted() async => foreground;
+
+  @override
   Future<void> openSettings() async => settingsOpened++;
+
+  var alwaysAsked = 0;
+
+  @override
+  Future<void> askForAlways() async => alwaysAsked++;
 
   var servicesOn = true;
   var turnOnAsked = 0;
@@ -53,7 +64,12 @@ class _FakePermission implements DetectionPermission {
   }
 }
 
-const AppLocationFix _nairobi = (latitude: -1.292629, longitude: 36.864399);
+const AppLocationReading _nairobi = (
+  latitude: -1.292629,
+  longitude: 36.864399,
+  accuracyMeters: 10,
+  takenAt: null,
+);
 
 void main() {
   late DetectionDatabase db;
@@ -61,7 +77,7 @@ void main() {
   late _FakeGeofences geofences;
   late _FakePermission permission;
 
-  ProviderContainer container(AppLocationFix? fix) {
+  ProviderContainer container(AppLocationReading? fix) {
     final c = ProviderContainer(
       overrides: [
         detectionRepositoryProvider.overrideWithValue(repo),
@@ -179,7 +195,7 @@ void main() {
     expect(geofences.registered, isEmpty);
   });
 
-  test('losing background location pauses detection once', () async {
+  test('While Using only: geofences go, the app still records', () async {
     await repo.seedCurrentCounty(22);
     permission.granted = false;
     final c = container(_nairobi);
@@ -190,13 +206,56 @@ void main() {
 
     expect(geofences.removed, 1);
     expect(geofences.registered, isEmpty);
-    // No reconcile while paused: still in Kiambu, no candidate.
-    expect(await repo.currentCountyCode(), 22);
-    expect(await repo.activeCandidateCountyCodes(), isEmpty);
-    expect(c.read(detectionControllerProvider).backgroundLocationOff, isTrue);
+    // Catch-up: the open app reconciles the fix and times the new county.
+    expect(await repo.currentCountyCode(), 47);
+    expect(await repo.activeCandidateCountyCodes(), {47});
+    final snapshot = c.read(detectionControllerProvider);
+    expect(snapshot.backgroundLocationOff, isTrue);
+    expect(snapshot.status.tier, DetectionTier.catchUp);
+    expect(snapshot.currentCounty, 47);
 
     await controller.openLocationSettings();
     expect(permission.settingsOpened, 1);
+  });
+
+  test('While Using only: first run seeds without geofences', () async {
+    permission.granted = false;
+    final c = container(_nairobi);
+    await c.read(detectionControllerProvider.notifier).runCycle();
+
+    expect(await repo.currentCountyCode(), 47);
+    expect(geofences.registered, isEmpty);
+  });
+
+  test('no location permission at all reads nothing', () async {
+    await repo.seedCurrentCounty(22);
+    permission.granted = false;
+    permission.foreground = false;
+    final c = container(_nairobi);
+    final controller = c.read(detectionControllerProvider.notifier);
+
+    await controller.runCycle();
+    await controller.runCycle();
+
+    expect(geofences.removed, 1);
+    expect(geofences.registered, isEmpty);
+    expect(await repo.currentCountyCode(), 22);
+    expect(await repo.activeCandidateCountyCodes(), isEmpty);
+    expect(c.read(detectionControllerProvider).backgroundLocationOff, isTrue);
+    expect(
+      c.read(detectionControllerProvider).status.reason,
+      DetectionReason.noPermission,
+    );
+  });
+
+  test('a cycle records the heartbeat and Live status', () async {
+    await repo.seedCurrentCounty(22);
+    final c = container(_nairobi);
+    await c.read(detectionControllerProvider.notifier).runCycle();
+    final status = c.read(detectionControllerProvider).status;
+    expect(status.tier, DetectionTier.live);
+    expect(status.lastCycleAt, isNotNull);
+    expect(await const DetectionHeartbeat().lastCycle(), isNotNull);
   });
 
   test('getting it back resumes detection', () async {

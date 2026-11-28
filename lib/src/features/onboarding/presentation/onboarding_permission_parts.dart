@@ -63,31 +63,6 @@ class PermissionFact extends StatelessWidget {
   }
 }
 
-/// "Next your phone asks. Choose Allow all the time." Sits right above
-/// the button it is about.
-class PermissionPromptNote extends StatelessWidget {
-  const PermissionPromptNote({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(text: 'Next your phone asks. Choose '),
-          TextSpan(
-            text: 'Allow all the time',
-            style: TextStyle(
-              color: AppColors.foreground,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          TextSpan(text: '.'),
-        ],
-      ),
-    );
-  }
-}
-
 /// The three taps to turn location on once the phone won't ask again.
 class PermissionSettingsSteps extends StatelessWidget {
   const PermissionSettingsSteps({super.key});

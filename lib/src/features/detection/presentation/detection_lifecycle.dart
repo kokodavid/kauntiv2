@@ -13,14 +13,18 @@ import '../../profile/application/profile_settings_providers.dart';
 import '../application/arrival_notification_bridge.dart';
 import '../application/arrival_nudge.dart';
 import '../application/detection_controller.dart';
+import '../domain/detection_status.dart';
+import '../domain/foreground_fix_policy.dart';
 import '../domain/trip_start_reminder_rules.dart';
 import '../domain/visit_models.dart';
 import 'county_arrival_sheet.dart';
+import 'detection_tiers_sheet.dart';
 
 /// Drives [DetectionController] from the app lifecycle: a cycle on start,
-/// on every resume, and every 15 s while the app is in front. It only reads
-/// hardware location on start/resume and every 2 min; other cycles process
-/// local dwell/sync state without polling GPS. The timer stops in background,
+/// on every resume, and every 15 s while the app is in front. It reads
+/// hardware location on start/resume, and after that only while a visit is
+/// pending (see [ForegroundFixPolicy]); other cycles process local
+/// dwell/sync state without polling GPS. The timer stops in background,
 /// where detection is the OS geofences' job.
 ///
 /// It also hosts the arrival sheet: when a cycle offers a new crossing,
@@ -63,7 +67,6 @@ class DetectionLifecycle extends ConsumerStatefulWidget {
 class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
     with WidgetsBindingObserver {
   static const _interval = Duration(seconds: 15);
-  static const _locationInterval = Duration(minutes: 2);
   Timer? _timer;
   DateTime? _lastLocationReadAt;
   final _notifications = ArrivalNotificationBridge();
@@ -131,10 +134,15 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
 
   void _run({bool forceLocation = false}) {
     final now = DateTime.now();
-    final refreshLocation =
-        forceLocation ||
-        _lastLocationReadAt == null ||
-        now.difference(_lastLocationReadAt!) >= _locationInterval;
+    final refreshLocation = ForegroundFixPolicy.shouldRead(
+      forced: forceLocation,
+      hasPending: ref
+          .read(detectionControllerProvider)
+          .activeCandidates
+          .isNotEmpty,
+      now: now,
+      lastReadAt: _lastLocationReadAt,
+    );
     if (refreshLocation) _lastLocationReadAt = now;
     // The geofence callback stays quiet while the app is in front: the
     // sheet covers an arrival, and a notification would only repeat it.
@@ -200,6 +208,16 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
     }
   }
 
+  /// The second permission ask: once, after the first claimed county, for a
+  /// user who only allowed "While using".
+  Future<void> _askForAlwaysOnce(DetectionTier tier, int claimed) async {
+    final ask = await ref
+        .read(detectionControllerProvider.notifier)
+        .takeAlwaysAsk(tier: tier, claimed: claimed);
+    if (!ask || !mounted) return;
+    await showDetectionTiersSheet(context, afterFirstCounty: true);
+  }
+
   Future<void> _present(CountyDetailData data) async {
     final openCounty = widget.onOpenCounty;
     final openPlace = widget.onOpenPlace;
@@ -217,6 +235,14 @@ class _DetectionLifecycleState extends ConsumerState<DetectionLifecycle>
   Widget build(BuildContext context) {
     ref.listen(pendingArrivalNudgeProvider, (previous, next) {
       if (next != null) _showArrival();
+    });
+    ref.listen(detectionControllerProvider, (previous, next) {
+      final claimed = next.resolved
+          .where((v) => v.outcome == VisitOutcome.explored)
+          .length;
+      if (claimed > 0 && !identical(previous?.resolved, next.resolved)) {
+        unawaited(_askForAlwaysOnce(next.status.tier, claimed));
+      }
     });
     ref.listen(profileSettingsControllerProvider, (previous, next) {
       final settings = next.value;

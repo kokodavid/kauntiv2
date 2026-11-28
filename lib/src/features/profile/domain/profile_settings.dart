@@ -23,27 +23,8 @@ enum MapVisibility {
   };
 }
 
-/// How counties are claimed (Settings > Location > "County detection").
-/// Stored on `profiles.location_mode`; today this is a saved preference
-/// only -- [DetectionController] always runs the automatic background
-/// cycle regardless of this value. Making "Manual" actually suspend
-/// background detection is a separate, deeper change to the detection
-/// feature and isn't wired by this settings screen.
-enum LocationMode {
-  automatic,
-  manual;
-
-  static LocationMode fromColumn(String value) =>
-      value == 'manual' ? manual : automatic;
-
-  String get column => switch (this) {
-    automatic => 'automatic',
-    manual => 'manual',
-  };
-}
-
-/// The five preference columns Settings actually surfaces, plus
-/// `locationMode`, read together from one row of `profiles`.
+/// The preference columns Settings actually surfaces,
+/// read together from one row of `profiles`.
 class ProfileSettings {
   const ProfileSettings({
     required this.mapVisibility,
@@ -51,7 +32,6 @@ class ProfileSettings {
     required this.notifyBadgeUnlocks,
     required this.notifyCountyNudges,
     required this.sideQuestRadiusKm,
-    required this.locationMode,
     this.notifyAnnouncements = true,
     this.notifyPhotoReviews = true,
     this.notifyTripAlerts = true,
@@ -66,7 +46,6 @@ class ProfileSettings {
   final bool notifyBadgeUnlocks;
   final bool notifyCountyNudges;
   final int sideQuestRadiusKm;
-  final LocationMode locationMode;
 
   /// Product announcements from the team (on by default).
   final bool notifyAnnouncements;
@@ -102,7 +81,6 @@ class ProfileSettings {
     bool? notifyBadgeUnlocks,
     bool? notifyCountyNudges,
     int? sideQuestRadiusKm,
-    LocationMode? locationMode,
     bool? notifyAnnouncements,
     bool? notifyPhotoReviews,
     bool? notifyTripAlerts,
@@ -116,7 +94,6 @@ class ProfileSettings {
     notifyBadgeUnlocks: notifyBadgeUnlocks ?? this.notifyBadgeUnlocks,
     notifyCountyNudges: notifyCountyNudges ?? this.notifyCountyNudges,
     sideQuestRadiusKm: sideQuestRadiusKm ?? this.sideQuestRadiusKm,
-    locationMode: locationMode ?? this.locationMode,
     notifyAnnouncements: notifyAnnouncements ?? this.notifyAnnouncements,
     notifyPhotoReviews: notifyPhotoReviews ?? this.notifyPhotoReviews,
     notifyTripAlerts: notifyTripAlerts ?? this.notifyTripAlerts,

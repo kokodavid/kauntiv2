@@ -42,6 +42,21 @@ abstract final class CountyBoundaryResolver {
     return null;
   }
 
+  /// How far inside county [code]'s polygon the point is, in metres; null
+  /// when the point is not inside it.
+  static double? insideDistanceMeters({
+    required double latitude,
+    required double longitude,
+    required int code,
+  }) {
+    final polygons = CountyBoundaries.polygons[code];
+    if (polygons == null ||
+        !_containsMultiPolygon(polygons, longitude, latitude)) {
+      return null;
+    }
+    return _distanceToMultiPolygonBoundaryMeters(polygons, longitude, latitude);
+  }
+
   static bool _containsMultiPolygon(
     List<CountyBoundaryPolygon> polygons,
     double lng,

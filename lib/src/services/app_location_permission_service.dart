@@ -95,6 +95,41 @@ class AppLocationPermissionService {
     return _mapStatus(alwaysStatus);
   }
 
+  /// Asks for location while the app is in use only, with no follow-up for
+  /// "Always". [AppLocationPermissionResult.granted] here means the app may
+  /// read location while open.
+  Future<AppLocationPermissionResult> requestForegroundAccess() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return _iosRequestForegroundAccess();
+    }
+    _logger.info('Requesting foreground location permission only.');
+    final status = await Permission.locationWhenInUse.request();
+    if (status.isGranted || status.isLimited) {
+      return AppLocationPermissionResult.granted;
+    }
+    return _mapStatus(status);
+  }
+
+  Future<AppLocationPermissionResult> _iosRequestForegroundAccess() async {
+    try {
+      final status = await _iosLocationChannel.invokeMethod<String>(
+        'requestWhenInUseLocationAuthorization',
+      );
+      if (status == 'authorizedAlways' || status == 'authorizedWhenInUse') {
+        return AppLocationPermissionResult.granted;
+      }
+      return _mapNativeIosStatus(status);
+    } on PlatformException catch (error) {
+      _logger.warning(
+        'iOS while-using location permission failed: ${error.code}.',
+      );
+      return AppLocationPermissionResult.denied;
+    } on MissingPluginException {
+      _logger.warning('iOS location authorization channel is not registered.');
+      return AppLocationPermissionResult.denied;
+    }
+  }
+
   AppLocationPermissionResult _mapStatus(PermissionStatus status) {
     if (status.isPermanentlyDenied) {
       return AppLocationPermissionResult.permanentlyDenied;

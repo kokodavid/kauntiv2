@@ -39,46 +39,48 @@ mixin _StartupPermissionSteps on _$StartupFlow {
     );
   }
 
-  /// The permission page's "Not now": Home. During setup that also puts the
-  /// account in manual mode (turn location on in Settings); for a returning
-  /// user on a new phone it changes nothing on the account, because another
-  /// phone may still be using automatic detection.
+  /// The permission page's "Not now" (or "Continue without location" after a
+  /// denial): straight to Home. Nothing is saved on the account; detection
+  /// stays paused until location is allowed.
   Future<void> skipLocation() async {
     if (state.isRequestingLocation) return;
-    if (!state.isDeviceLocationAsk) {
-      try {
-        await ref.read(profileSettingsRepositoryProvider)?.update({
-          'location_mode': 'manual',
-        });
-      } on Object {
-        // A preference only; Home opens either way.
-      }
-      if (!ref.mounted) return;
-    }
     await _finishSetup();
   }
 
   /// The permission page's button: the OS prompt, or OS settings if needed.
-  Future<void> enableLocation() async {
+  Future<void> enableLocation([
+    LocationChoice choice = LocationChoice.allTheTime,
+  ]) async {
     if (state.isLocationPermanentlyDenied) {
       await _permissions.openSettings();
       return;
     }
-    await _requestLocation();
+    await _requestLocation(choice);
   }
 
-  Future<void> _requestLocation() async {
+  Future<void> _requestLocation(LocationChoice choice) async {
     state = state.copyWith(
       isRequestingLocation: true,
       permissionError: () => null,
     );
     try {
-      final result = await _permissions.requestLocationAccess();
+      final result = choice == LocationChoice.allTheTime
+          ? await _permissions.requestLocationAccess()
+          : await _permissions.requestForegroundAccess();
       if (!ref.mounted) return;
       if (result == AppLocationPermissionResult.granted) {
         await _finishSetup();
         return;
       }
+      // Picked "Always" but chose "While using" in the phone's own prompt:
+      // that is a working answer (counties are recorded while the app is
+      // open), so carry on. Home offers "Always" again later.
+      if (await _permissions.hasForegroundLocation()) {
+        if (!ref.mounted) return;
+        await _finishSetup();
+        return;
+      }
+      if (!ref.mounted) return;
       state = state.copyWith(
         isLocationPermanentlyDenied:
             result == AppLocationPermissionResult.permanentlyDenied,

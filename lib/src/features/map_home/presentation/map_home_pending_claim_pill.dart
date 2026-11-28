@@ -15,7 +15,10 @@ import '../../detection/domain/visit_rules.dart';
 /// above the bottom sheet beside the location pill; nothing shows when no
 /// visit is pending.
 class MapHomePendingClaimPill extends ConsumerStatefulWidget {
-  const MapHomePendingClaimPill({super.key, this.claimedCountyCodes = const {}});
+  const MapHomePendingClaimPill({
+    super.key,
+    this.claimedCountyCodes = const {},
+  });
 
   /// Counties the user has already earned; they never show a countdown.
   final Set<int> claimedCountyCodes;

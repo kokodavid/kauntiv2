@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../../core/domain/map_place.dart';
@@ -9,6 +7,7 @@ import '../domain/map_home_compact.dart';
 import '../domain/map_home_layout.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_celebration_card.dart';
+import 'map_home_compact_action_card.dart';
 import 'map_home_compact_card.dart';
 import 'map_home_for_you_section.dart';
 import 'map_home_links.dart';
@@ -164,7 +163,14 @@ class MapHomeBoardSheet extends StatelessWidget {
         ),
       );
     }
-    return compact == null ? null : _compactCard(context, compact);
+    return compact == null
+        ? null
+        : MapHomeCompactActionCard(
+            compact: compact,
+            onStartTrip: onStartTrip,
+            onRoute: onRoute,
+            onOpenCounty: onOpenCounty,
+          );
   }
 
   /// The label and a sliver of the cards; the rest sits under the tab bar.
@@ -183,30 +189,6 @@ class MapHomeBoardSheet extends StatelessWidget {
     onOpenCounty: onOpenCounty,
     onOpenPlace: onOpenPlace,
   );
-
-  Widget _compactCard(BuildContext context, MapHomeCompact compact) {
-    final start = compact.isHomeStart ? onStartTrip : null;
-    final route = onRoute;
-    return MapHomeCompactCard(
-      kicker: compact.context,
-      title: compact.title,
-      meta: compact.meta,
-      county: compact.county,
-      imageUrl: compact.imageUrl,
-      buttonLabel: start != null || route == null ? 'Details' : 'Route',
-      onPressed: () {
-        if (start != null) return start();
-        if (route != null) {
-          unawaited(
-            openRoute(context, compact.suggestion.directionsQuery, route),
-          );
-          return;
-        }
-        openCountyOrNote(context, compact.county, onOpenCounty);
-      },
-      onOpen: () => openCountyOrNote(context, compact.county, onOpenCounty),
-    );
-  }
 
   Widget? _section(
     MapHomeSection section,

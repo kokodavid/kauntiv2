@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../domain/detection_status.dart';
+
 /// When detection last ran, from either isolate: the foreground cycle and
 /// the geofence background callback. Kept in shared preferences because the
 /// callback has no providers; every read reloads first, since each isolate
@@ -17,6 +19,23 @@ class DetectionHeartbeat {
   Future<DateTime?> lastCycle() => _read(_cycleKey);
 
   Future<DateTime?> lastGeofence() => _read(_geofenceKey);
+
+  /// The status for this cycle: it counts as a run now, and the geofence time
+  /// is whatever the background isolate last wrote.
+  Future<DetectionStatus> statusNow({
+    required bool backgroundGranted,
+    required bool foregroundGranted,
+    required bool servicesEnabled,
+  }) async {
+    await markCycle();
+    return DetectionStatus.derive(
+      backgroundGranted: backgroundGranted,
+      foregroundGranted: foregroundGranted,
+      servicesEnabled: servicesEnabled,
+      lastCycleAt: DateTime.now(),
+      lastGeofenceAt: await lastGeofence(),
+    );
+  }
 
   Future<void> _write(String key, DateTime? at) async {
     try {

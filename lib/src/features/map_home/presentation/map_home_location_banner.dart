@@ -15,7 +15,7 @@ import 'map_home_location_copy.dart';
 /// open), red when nothing is being tracked (no permission, or location off
 /// for the phone). Nothing shows when detection is live.
 ///
-/// It stays for [LocationBannerVisibility.showFor] after it first appears in
+/// It stays for [LocationBannerVisible.showFor] after it first appears in
 /// a launch, then hides itself and the stat card returns; it appears again on
 /// the next launch while the problem remains.
 class MapHomeLocationBanner extends ConsumerStatefulWidget {
@@ -39,7 +39,7 @@ class _MapHomeLocationBannerState extends ConsumerState<MapHomeLocationBanner> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer(LocationBannerVisibility.showFor, () {
+    _timer = Timer(LocationBannerVisible.showFor, () {
       if (mounted) ref.read(locationBannerVisibleProvider.notifier).dismiss();
     });
   }

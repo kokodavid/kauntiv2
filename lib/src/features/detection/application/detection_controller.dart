@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/counties/county_boundary_resolver.dart';
 import '../../../core/domain/app_feature_flags.dart';
 import '../../../core/services/app_config_provider.dart';
 import '../../../core/services/app_current_location.dart';
@@ -19,13 +18,16 @@ import '../data/detection_outcome_counts.dart';
 import '../data/detection_repository.dart';
 import '../data/geofence_service.dart';
 import '../data/reduced_detection_notifier.dart';
-import '../domain/always_ask_rules.dart';
 import '../domain/detection_health_report.dart';
 import '../domain/detection_status.dart';
 import '../domain/visit_models.dart';
 import 'arrival_nudge.dart';
+import 'detection_bootstrap.dart';
 import 'detection_providers.dart';
+import 'detection_snapshot.dart';
 import 'visit_sync.dart';
+
+export 'detection_snapshot.dart';
 
 part 'detection_controller.g.dart';
 
@@ -34,41 +36,6 @@ part 'detection_controller.g.dart';
 @Riverpod(keepAlive: true)
 Future<AppLocationReading?> Function() detectionLocationReader(Ref ref) =>
     () => AppCurrentLocation.readDetailed(timeout: const Duration(seconds: 5));
-
-/// What the last foreground cycle saw.
-class DetectionSnapshot {
-  const DetectionSnapshot({
-    this.currentCounty,
-    this.activeCandidates = const [],
-    this.resolved = const [],
-    this.lastRunAt,
-    this.status = DetectionStatus.initial,
-  });
-
-  final int? currentCounty;
-
-  /// Counties being timed, captured before dwell resolution (the arrival
-  /// sheet reads these).
-  final List<CountyArrivalNudge> activeCandidates;
-
-  /// Visits resolved by this cycle's dwell check.
-  final List<ResolvedVisit> resolved;
-  final DateTime? lastRunAt;
-
-  /// How well detection can work right now (Live, Catch-up or Off, and the
-  /// heartbeat). Home reads this, not the individual permission flags.
-  final DetectionStatus status;
-
-  /// "Always" isn't granted: geofences are removed, so counties are only
-  /// recorded while the app is open (catch-up), or not at all.
-  bool get backgroundLocationOff =>
-      status.reason == DetectionReason.backgroundMissing ||
-      status.reason == DetectionReason.noPermission;
-
-  /// Location is switched off for the whole phone: nothing can be detected
-  /// until it's back on (Home says so).
-  bool get locationServicesOff => status.reason == DetectionReason.servicesOff;
-}
 
 /// Detection's foreground cycle (v1 `GeofenceLifecycleObserver`, moved out
 /// of the widget): run on start, on resume and every 15 s while the app is
@@ -158,7 +125,7 @@ class DetectionController extends _$DetectionController {
           permissionGranted = false;
           foregroundOk = false;
           await _pause(
-            await _statusFor(
+            await const DetectionHeartbeat().statusNow(
               backgroundGranted: false,
               foregroundGranted: false,
               servicesEnabled: true,
@@ -171,7 +138,7 @@ class DetectionController extends _$DetectionController {
         state = DetectionSnapshot(
           currentCounty: state.currentCounty,
           lastRunAt: DateTime.now(),
-          status: await _statusFor(
+          status: await const DetectionHeartbeat().statusNow(
             backgroundGranted: !backgroundOff,
             foregroundGranted: foregroundOk,
             servicesEnabled: false,
@@ -185,12 +152,10 @@ class DetectionController extends _$DetectionController {
           : null;
       if (_suspended) return;
 
-      final bootstrapped = await _bootstrapIfNeeded(
-        repository,
-        fix,
-        homeCountyCode,
-        registerGeofences: !backgroundOff,
-      );
+      final bootstrapped = await DetectionBootstrap(
+        repository: repository,
+        geofences: geofences,
+      ).run(fix, homeCountyCode, registerGeofences: !backgroundOff);
       final entered = fix == null || bootstrapped
           ? null
           : await repository.reconcileCurrentLocation(
@@ -240,7 +205,7 @@ class DetectionController extends _$DetectionController {
         activeCandidates: candidates,
         resolved: resolved,
         lastRunAt: DateTime.now(),
-        status: await _statusFor(
+        status: await const DetectionHeartbeat().statusNow(
           backgroundGranted: !backgroundOff,
           foregroundGranted: foregroundOk,
           servicesEnabled: true,
@@ -285,25 +250,6 @@ class DetectionController extends _$DetectionController {
     );
   }
 
-  /// The status for this cycle, with the heartbeat: this cycle counts as a
-  /// run now, and the geofence time is whatever the background isolate last
-  /// wrote.
-  Future<DetectionStatus> _statusFor({
-    required bool backgroundGranted,
-    required bool foregroundGranted,
-    required bool servicesEnabled,
-  }) async {
-    const heartbeat = DetectionHeartbeat();
-    await heartbeat.markCycle();
-    return DetectionStatus.derive(
-      backgroundGranted: backgroundGranted,
-      foregroundGranted: foregroundGranted,
-      servicesEnabled: servicesEnabled,
-      lastCycleAt: DateTime.now(),
-      lastGeofenceAt: await heartbeat.lastGeofence(),
-    );
-  }
-
   /// Background location is off: stop OS monitoring, once. The foreground
   /// cycle carries on without it.
   Future<void> _dropGeofences(GeofenceService geofences) async {
@@ -334,18 +280,7 @@ class DetectionController extends _$DetectionController {
   Future<bool> takeAlwaysAsk({
     required DetectionTier tier,
     required int claimed,
-  }) async {
-    const state = AlwaysAskState();
-    if (!AlwaysAskRules.shouldAsk(
-      tier: tier,
-      claimedThisCycle: claimed,
-      alreadyAsked: await state.shown(),
-    )) {
-      return false;
-    }
-    await state.markShown();
-    return true;
-  }
+  }) => const AlwaysAskState().take(tier: tier, claimed: claimed);
 
   /// Asks for "All the time" (iOS prompt or Settings); the next resume
   /// re-checks it.
@@ -359,41 +294,5 @@ class DetectionController extends _$DetectionController {
   Future<void> turnOnLocation() async {
     await ref.read(detectionPermissionProvider).turnOnServices();
     await runCycle();
-  }
-
-  /// First run after onboarding: the phone's county comes from the fix
-  /// (the home county is a preference, not where the phone is), falling
-  /// back to the home county. The OS is asked to report an ENTER for the
-  /// county the phone is already in, unless the fix shows it's elsewhere.
-  Future<bool> _bootstrapIfNeeded(
-    DetectionRepository repository,
-    AppLocationReading? fix,
-    int? homeCountyCode, {
-    required bool registerGeofences,
-  }) async {
-    if (await repository.currentCountyCode() != null) return false;
-    final gpsCounty = fix == null
-        ? null
-        : CountyBoundaryResolver.countyCodeFor(
-            latitude: fix.latitude,
-            longitude: fix.longitude,
-            minimumInsideDistanceMeters:
-                CountyBoundaryResolver.boundaryHysteresisMeters,
-          );
-    final county = gpsCounty ?? homeCountyCode;
-    if (county == null) return false;
-    await repository.seedCurrentCounty(county);
-    if (!registerGeofences) return true;
-    final geofences = ref.read(geofenceServiceProvider);
-    await geofences.initialize();
-    await geofences.registerWindowFor(
-      county,
-      triggerEnterImmediately: gpsCounty == null || gpsCounty == homeCountyCode,
-    );
-    _logger.info(
-      'Detection bootstrapped in county $county (gps $gpsCounty, '
-      'home $homeCountyCode).',
-    );
-    return true;
   }
 }

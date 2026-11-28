@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/map_place.dart';
-import '../../../design/app_colors.dart';
 import '../application/map_home_view_preference_provider.dart';
 import '../domain/map_home_layout.dart';
 import '../domain/map_home_models.dart';
@@ -13,12 +12,11 @@ import 'map_home_board_sheet.dart';
 import 'map_home_board_top.dart';
 import 'map_home_drawn_map.dart';
 import 'map_home_links.dart';
-import 'map_home_location_pill.dart';
 import 'map_home_map_focus.dart';
 import 'map_home_map_status.dart';
 import 'map_home_map_switch_button.dart';
-import 'map_home_pending_claim_pill.dart';
-import 'real_map_view.dart';
+import 'map_home_real_map_layer.dart';
+import 'map_home_status_pills.dart';
 
 class MapHomeBoard extends ConsumerStatefulWidget {
   const MapHomeBoard({
@@ -207,42 +205,25 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
     return Stack(
       children: [
         // The real map runs edge to edge; the header floats on it.
-        if (mountReal) ...[
+        if (mountReal)
           Positioned.fill(
-            child: MapHomeMapTouchSensor(
+            child: MapHomeRealMapLayer(
               focus: _focus,
-              child: RealMapView(
-                key: ValueKey('real-map-$_realMapAttempt'),
-                accessToken: widget.mapboxAccessToken,
-                badges: data.countyBadges,
-                homeCountySlug: data.homeCounty?.slug,
-                loadPlaces: widget.loadMapPlaces,
-                topInset: _headerBottom + 20,
-                onReady: () => setState(() => _realMap = _RealMapStatus.ready),
-                onFailed: () =>
-                    setState(() => _realMap = _RealMapStatus.failed),
-                onOpenCounty: widget.onOpenCounty,
-                onOpenPlace: widget.onOpenPlace,
-                onRoute: widget.onRoute,
-                onPlaceRoute: widget.onPlaceRoute,
-              ),
+              mapKey: ValueKey('real-map-$_realMapAttempt'),
+              accessToken: widget.mapboxAccessToken,
+              data: data,
+              topInset: _headerBottom + 20,
+              showRealMap: showRealMap,
+              fade: _fade,
+              loadPlaces: widget.loadMapPlaces,
+              onReady: () => setState(() => _realMap = _RealMapStatus.ready),
+              onFailed: () => setState(() => _realMap = _RealMapStatus.failed),
+              onOpenCounty: widget.onOpenCounty,
+              onOpenPlace: widget.onOpenPlace,
+              onRoute: widget.onRoute,
+              onPlaceRoute: widget.onPlaceRoute,
             ),
           ),
-          const MapHomeHeaderScrim(),
-          // Opaque page background behind everything until the real map's
-          // style is up (so its blank canvas never flashes) or whenever
-          // it's not the map being shown at all — covering the header
-          // area too, which the drawn map's own layer below can't reach.
-          Positioned.fill(
-            child: IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: showRealMap ? 0 : 1,
-                duration: _fade,
-                child: const ColoredBox(color: AppColors.pageBackground),
-              ),
-            ),
-          ),
-        ],
         MapHomeBoardTop(
           data: data,
           headerKey: _headerKey,
@@ -279,12 +260,8 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
         MapHomeFocusFade(
           focus: _focus,
           child: MapHomeBoardSheet(
-            aboveSheet: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const MapHomePendingClaimPill(),
-                MapHomeLocationPill(onOpen: widget.onOpenLocationTiers),
-              ],
+            aboveSheet: MapHomeStatusPills(
+              onOpenLocationTiers: widget.onOpenLocationTiers,
             ),
             data: data,
             layout: _layout,

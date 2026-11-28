@@ -59,9 +59,11 @@ void main() {
     expect(
       params.keys.where(
         (k) =>
-            k.contains('lat') && !k.contains('last') ||
+            k.contains('latitude') ||
+            k.contains('longitude') ||
             k.contains('lng') ||
-            k.contains('county'),
+            k.contains('county') ||
+            k.contains('place'),
       ),
       isEmpty,
     );

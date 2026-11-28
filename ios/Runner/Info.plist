@@ -106,8 +106,6 @@
 	</array>
 	<key>GADApplicationIdentifier</key>
 	<string>$(ADMOB_APP_ID)</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>Kaunti47 uses this to show ads that are more relevant to you. You can still use the app if you say no.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>

@@ -120,7 +120,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setWeekendIncludeNearby: controller.setWeekendIncludeNearby,
       setWeekendRadiusKm: controller.setWeekendRadiusKm,
       setSideQuestRadiusKm: controller.setSideQuestRadiusKm,
-      setLocationMode: controller.setLocationMode,
     );
 
     return Scaffold(
@@ -190,8 +189,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const SizedBox(height: 18),
               SettingsLocationSection(
-                settings: settings,
-                notifier: notifier,
                 onOpenLocationSettings: () =>
                     unawaited(widget.onOpenLocationSettings()),
               ),

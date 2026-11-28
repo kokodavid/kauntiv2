@@ -35,6 +35,7 @@ class MapHomeScreen extends ConsumerStatefulWidget {
     this.recordTripCard,
     this.recordTripCardHeight = defaultRecordTripCardHeight,
     this.topCard,
+    this.onOpenLocationTiers,
   });
 
   final CountyPath? homeCounty;
@@ -55,6 +56,9 @@ class MapHomeScreen extends ConsumerStatefulWidget {
 
   /// A card shown above Home's sections, supplied by `app/` (null hides).
   final Widget? topCard;
+
+  /// Opens the explainer for the location tiers, supplied by `app/`.
+  final VoidCallback? onOpenLocationTiers;
   final MapHomeBoardLoader loader;
 
   /// Empty: Home shows the drawn county map only.
@@ -183,6 +187,7 @@ class _MapHomeScreenState extends ConsumerState<MapHomeScreen>
             recordTripCard: widget.recordTripCard,
             recordTripCardHeight: widget.recordTripCardHeight,
             topCard: widget.topCard,
+            onOpenLocationTiers: widget.onOpenLocationTiers,
           );
         },
       ),

@@ -1,21 +1,18 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../../core/domain/map_place.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
-import '../../../core/widgets/app_photo_parts.dart';
 import '../domain/map_home_compact.dart';
 import '../domain/map_home_layout.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_celebration_card.dart';
+import 'map_home_compact_action_card.dart';
 import 'map_home_compact_card.dart';
 import 'map_home_for_you_section.dart';
 import 'map_home_links.dart';
 import 'map_home_offline_note.dart';
 import 'map_home_places_carousel.dart';
 import 'map_home_sheet.dart';
-import 'map_home_suggestion_media.dart';
 
 /// Height of the collapsed "Record a Trip" card (16 + 40 + 16).
 const defaultRecordTripCardHeight = 72.0;
@@ -41,11 +38,15 @@ class MapHomeBoardSheet extends StatelessWidget {
     this.onRoute,
     this.onPromotedPlaceRoute,
     this.onSeeAllUnclaimed,
+    this.aboveSheet,
   });
 
   final MapHomeBoardData? data;
   final MapHomeLayout? layout;
   final Duration fade;
+
+  /// Rides just above the collapsed sheet (the location status pill).
+  final Widget? aboveSheet;
 
   /// The public trips row, supplied by another feature; hides itself.
   final Widget? tripsNear;
@@ -80,6 +81,7 @@ class MapHomeBoardSheet extends StatelessWidget {
     final picked = layout;
     if (board == null || picked == null) {
       return MapHomeSheet(
+        aboveSheet: aboveSheet,
         children: [
           AnimatedSwitcher(
             duration: fade,
@@ -91,6 +93,7 @@ class MapHomeBoardSheet extends StatelessWidget {
     if (board.isOffline) return _offlineSheet(board);
     final compact = MapHomeCompact.forLayout(picked, board);
     return MapHomeSheet(
+      aboveSheet: aboveSheet,
       startsExpanded: MapHomeLayoutRules.startsExpanded(picked),
       collapsedHeight: recordTripCard != null
           ? recordTripCardHeight
@@ -117,6 +120,7 @@ class MapHomeBoardSheet extends StatelessWidget {
   /// No connection: the collapsed card and the body say what still works
   /// (the banner carries the offline line). Trips still record offline, so that card stays.
   Widget _offlineSheet(MapHomeBoardData board) => MapHomeSheet(
+    aboveSheet: aboveSheet,
     collapsedHeight: recordTripCard != null
         ? recordTripCardHeight
         : defaultRecordTripCardHeight,
@@ -157,7 +161,14 @@ class MapHomeBoardSheet extends StatelessWidget {
         ),
       );
     }
-    return compact == null ? null : _compactCard(context, compact);
+    return compact == null
+        ? null
+        : MapHomeCompactActionCard(
+            compact: compact,
+            onStartTrip: onStartTrip,
+            onRoute: onRoute,
+            onOpenCounty: onOpenCounty,
+          );
   }
 
   /// The label and a sliver of the cards; the rest sits under the tab bar.
@@ -176,30 +187,6 @@ class MapHomeBoardSheet extends StatelessWidget {
     onOpenCounty: onOpenCounty,
     onOpenPlace: onOpenPlace,
   );
-
-  Widget _compactCard(BuildContext context, MapHomeCompact compact) {
-    final start = compact.isHomeStart ? onStartTrip : null;
-    final route = onRoute;
-    return MapHomeCompactCard(
-      kicker: compact.context,
-      title: compact.title,
-      meta: compact.meta,
-      county: compact.county,
-      imageUrl: compact.imageUrl,
-      buttonLabel: start != null || route == null ? 'Details' : 'Route',
-      onPressed: () {
-        if (start != null) return start();
-        if (route != null) {
-          unawaited(
-            openRoute(context, compact.suggestion.directionsQuery, route),
-          );
-          return;
-        }
-        openCountyOrNote(context, compact.county, onOpenCounty);
-      },
-      onOpen: () => openCountyOrNote(context, compact.county, onOpenCounty),
-    );
-  }
 
   Widget? _section(
     MapHomeSection section,

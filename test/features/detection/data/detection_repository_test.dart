@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kaunti47_v2/src/features/detection/data/detection_repository.dart';
 import 'package:kaunti47_v2/src/features/detection/data/local/detection_database.dart';
 import 'package:kaunti47_v2/src/features/detection/domain/visit_models.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 DetectionDatabase _memoryDb() =>
     DetectionDatabase.forTesting(NativeDatabase.memory());
@@ -112,6 +113,70 @@ void main() {
         isNull,
       );
     });
+
+    test('a loose fix is never credited', () async {
+      await repo.seedCurrentCounty(22);
+      final entered = await repo.reconcileCurrentLocation(
+        latitude: -1.292629,
+        longitude: 36.864399,
+        accuracyMeters: 400,
+        now: t0,
+      );
+      expect(entered, isNull);
+      expect(await repo.currentCountyCode(), 22);
+      expect(await repo.activeCandidateCountyCodes(), isEmpty);
+    });
+
+    test(
+      'a flight credits nothing on the way, then Kisumu after landing',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        await repo.seedCurrentCounty(22);
+        // Nairobi: a normal fix, a real crossing.
+        expect(
+          await repo.reconcileCurrentLocation(
+            latitude: -1.292629,
+            longitude: 36.864399,
+            now: t0,
+          ),
+          47,
+        );
+        // Over Nakuru 30 minutes later: about 280 km/h, so transit.
+        expect(
+          await repo.reconcileCurrentLocation(
+            latitude: -0.3031,
+            longitude: 36.0800,
+            now: t0.add(const Duration(minutes: 30)),
+          ),
+          isNull,
+        );
+        expect(await repo.currentCountyCode(), 47);
+        expect(await repo.activeCandidateCountyCodes(), {47});
+        // Landing at Kisumu airport: still faster than a road allows.
+        expect(
+          await repo.reconcileCurrentLocation(
+            latitude: -0.0861,
+            longitude: 34.7289,
+            now: t0.add(const Duration(hours: 1)),
+          ),
+          isNull,
+        );
+        expect(await repo.currentCountyCode(), 47);
+        // The next fix, on the ground, is the first good one: a normal visit
+        // starts here and the dwell clock starts fresh.
+        final landed = t0.add(const Duration(hours: 1, minutes: 10));
+        final entered = await repo.reconcileCurrentLocation(
+          latitude: -0.0861,
+          longitude: 34.7289,
+          now: landed,
+        );
+        expect(entered, isNotNull);
+        expect(entered, isNot(47));
+        expect(entered, isNot(32));
+        expect(await repo.currentCountyCode(), entered);
+        expect(await repo.activeCandidateCountyCodes(), {entered});
+      },
+    );
 
     test('a fix inside another county closes the left-behind timer', () async {
       // Machakos (16) starts a timer, then Kajiado (34) is entered through

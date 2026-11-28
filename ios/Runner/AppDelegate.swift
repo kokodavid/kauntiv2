@@ -33,6 +33,8 @@ import native_geofence
           self?.locationAuthorizationStatus(result: result)
         case "requestAlwaysLocationAuthorization":
           self?.requestAlwaysLocationAuthorization(result: result)
+        case "requestWhenInUseLocationAuthorization":
+          self?.requestWhenInUseLocationAuthorization(result: result)
         default:
           result(FlutterMethodNotImplemented)
         }
@@ -92,6 +94,18 @@ import native_geofence
     result(manager.authorizationStatus.toResultString())
   }
 
+  private func requestWhenInUseLocationAuthorization(result: @escaping FlutterResult) {
+    let request = IosLocationAuthorizationRequest(
+      always: false,
+      result: result,
+      onFinish: { [weak self] finishedRequest in
+        self?.locationAuthorizationRequests.removeAll { $0 === finishedRequest }
+      }
+    )
+    locationAuthorizationRequests.append(request)
+    request.start()
+  }
+
   private func requestAlwaysLocationAuthorization(result: @escaping FlutterResult) {
     let request = IosLocationAuthorizationRequest(
       result: result,
@@ -108,11 +122,14 @@ private final class IosLocationAuthorizationRequest: NSObject, CLLocationManager
   private let manager = CLLocationManager()
   private var result: FlutterResult?
   private let onFinish: (IosLocationAuthorizationRequest) -> Void
+  private let always: Bool
 
   init(
+    always: Bool = true,
     result: @escaping FlutterResult,
     onFinish: @escaping (IosLocationAuthorizationRequest) -> Void
   ) {
+    self.always = always
     self.result = result
     self.onFinish = onFinish
     super.init()
@@ -128,6 +145,10 @@ private final class IosLocationAuthorizationRequest: NSObject, CLLocationManager
     switch manager.authorizationStatus {
     case .authorizedAlways:
       complete(with: manager.authorizationStatus.toResultString())
+    case .authorizedWhenInUse where !always:
+      complete(with: manager.authorizationStatus.toResultString())
+    case .notDetermined where !always:
+      manager.requestWhenInUseAuthorization()
     case .notDetermined, .authorizedWhenInUse:
       manager.requestAlwaysAuthorization()
     case .denied, .restricted:

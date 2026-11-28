@@ -1,11 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../design/app_colors.dart';
+import 'map_home_sheet_above.dart';
+import 'map_home_sheet_slots.dart';
 
 /// Home's draggable bottom sheet.
 ///
@@ -22,6 +23,7 @@ class MapHomeSheet extends StatefulWidget {
     this.collapsedHeight = 0,
     this.collapsedUnderNav = false,
     this.startsExpanded = false,
+    this.aboveSheet,
   });
 
   final List<Widget> children;
@@ -35,6 +37,11 @@ class MapHomeSheet extends StatefulWidget {
   /// then already includes the bar's room.
   final bool collapsedUnderNav;
   final bool startsExpanded;
+
+  /// A small widget that rides just above the sheet's top edge while the
+  /// sheet is collapsed (for example a status pill) and hides once it is
+  /// dragged open.
+  final Widget? aboveSheet;
 
   @override
   State<MapHomeSheet> createState() => _MapHomeSheetState();
@@ -53,6 +60,7 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
       10.0 + 4.0 + 14.0 + AppBottomNav.clearance(context);
 
   final _controller = DraggableScrollableController();
+
   double? _contentHeight;
   bool _showCollapsed = true;
 
@@ -112,7 +120,7 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
         _expandedSize = expandedSize;
         _collapsedSize = collapsedSize;
 
-        return DraggableScrollableSheet(
+        final sheet = DraggableScrollableSheet(
           controller: _controller,
           initialChildSize: widget.startsExpanded
               ? expandedSize
@@ -125,7 +133,7 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
               : [collapsedSize, expandedSize],
           builder: (context, scrollController) {
             final showCollapsed = hasCollapsed && _showCollapsed;
-            final expanded = _MeasureSize(
+            final expanded = MapHomeMeasureSize(
               onChange: (size) {
                 if (!mounted) return;
                 if (_contentHeight == size.height) return;
@@ -138,7 +146,7 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
                   // something, so a section that hides itself (saved plans,
                   // an empty row) can't leave a double gap behind.
                   for (var i = 0; i < widget.children.length; i++)
-                    _SectionSlot(
+                    MapHomeSectionSlot(
                       gap: i == 0 ? 0 : _sectionGap,
                       child: widget.children[i],
                     ),
@@ -195,97 +203,23 @@ class _MapHomeSheetState extends State<MapHomeSheet> {
             );
           },
         );
+        final above = widget.aboveSheet;
+        if (above == null) return sheet;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            sheet,
+            MapHomeSheetAbove(
+              controller: _controller,
+              height: constraints.maxHeight,
+              expandedSize: expandedSize,
+              collapsedSize: collapsedSize,
+              startsExpanded: widget.startsExpanded,
+              child: above,
+            ),
+          ],
+        );
       },
     );
-  }
-}
-
-class _MeasureSize extends SingleChildRenderObjectWidget {
-  const _MeasureSize({required this.onChange, required Widget child})
-    : super(child: child);
-
-  final ValueChanged<Size> onChange;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) {
-    return _MeasureSizeRenderObject(onChange);
-  }
-
-  @override
-  void updateRenderObject(BuildContext context, RenderObject renderObject) {
-    (renderObject as _MeasureSizeRenderObject).onChange = onChange;
-  }
-}
-
-class _MeasureSizeRenderObject extends RenderProxyBox {
-  _MeasureSizeRenderObject(this.onChange);
-
-  ValueChanged<Size> onChange;
-  Size? _oldSize;
-
-  @override
-  void performLayout() {
-    super.performLayout();
-    final newSize = child?.size;
-    if (newSize != null && newSize != _oldSize) {
-      _oldSize = newSize;
-      WidgetsBinding.instance.addPostFrameCallback((_) => onChange(newSize));
-    }
-  }
-}
-
-/// A section plus the gap above it, collapsing to nothing when the section
-/// itself has no height. Keeps the space between visible sections exactly
-/// one gap however many sections hide.
-class _SectionSlot extends SingleChildRenderObjectWidget {
-  const _SectionSlot({required this.gap, required Widget child})
-    : super(child: child);
-
-  final double gap;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderSectionSlot(gap);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    covariant _RenderSectionSlot renderObject,
-  ) => renderObject.gap = gap;
-}
-
-class _RenderSectionSlot extends RenderShiftedBox {
-  _RenderSectionSlot(this._gap) : super(null);
-
-  double _gap;
-
-  set gap(double value) {
-    if (_gap == value) return;
-    _gap = value;
-    markNeedsLayout();
-  }
-
-  Size _sized(Size child) => child.height == 0
-      ? Size(child.width, 0)
-      : Size(child.width, child.height + _gap);
-
-  @override
-  Size computeDryLayout(BoxConstraints constraints) {
-    final c = child;
-    if (c == null) return constraints.smallest;
-    return constraints.constrain(_sized(c.getDryLayout(constraints)));
-  }
-
-  @override
-  void performLayout() {
-    final c = child;
-    if (c == null) {
-      size = constraints.smallest;
-      return;
-    }
-    c.layout(constraints, parentUsesSize: true);
-    final empty = c.size.height == 0;
-    (c.parentData! as BoxParentData).offset = Offset(0, empty ? 0 : _gap);
-    size = constraints.constrain(_sized(c.size));
   }
 }

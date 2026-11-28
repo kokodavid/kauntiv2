@@ -6,6 +6,7 @@ import '../core/domain/app_feature_flags.dart';
 import '../core/services/app_config_provider.dart';
 import '../features/detection/application/detection_providers.dart';
 import '../features/detection/data/detection_repository.dart';
+import '../features/detection/presentation/detection_tiers_sheet.dart';
 import '../features/detection/presentation/notifications_prompt_card.dart';
 import '../features/journeys/application/device_motion.dart';
 import '../features/journeys/application/journey_recorder.dart';
@@ -62,6 +63,7 @@ class MapTab extends ConsumerWidget {
           InterestsPromptCard(onPick: () => context.push(AppRoutes.interests)),
         ],
       ),
+      onOpenLocationTiers: () => showDetectionTiersSheet(context),
       isTripRecording: isTripRecording,
       savedPlans: DetailRoutes.openPlace == null
           ? null

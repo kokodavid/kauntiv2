@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../../design/app_colors.dart';
 import '../../../design/app_text_styles.dart';
-import '../../profile/domain/place_interest.dart';
+import '../domain/location_choice.dart';
 import 'onboarding_permission_ask.dart';
+import 'onboarding_permission_choice.dart';
 import 'onboarding_permission_parts.dart';
 import 'onboarding_shell.dart';
 
-/// Setup step 4 of 4: background location, inside the shared
+/// Setup step 4 of 4: location, inside the shared
 /// [OnboardingShell]. Three states share the same footer slots:
 ///
-/// - **Default:** why we ask, tied to what the user picked on step 2.
+/// - **Default:** the earned-county strip and the two choices ("All the
+///   time" or "Only while using"), then the phone's own prompt.
 /// - **Denied:** one retry, and "Continue without location" to Home.
 /// - **Permanently denied:** three taps to turn it on in Settings.
 ///
@@ -21,14 +23,13 @@ import 'onboarding_shell.dart';
 /// again) only appears after the phone has had its say. While the OS prompt
 /// is up ([isRequesting]) the footer locks, so a double tap can't skip the
 /// step.
-class OnboardingPermissionPage extends StatelessWidget {
+class OnboardingPermissionPage extends StatefulWidget {
   const OnboardingPermissionPage({
     super.key,
     required this.isRequesting,
     required this.isDeviceAsk,
     required this.isPermanentlyDenied,
     required this.errorMessage,
-    required this.interests,
     required this.showSkipToast,
     required this.onEnableLocation,
     required this.onNotNow,
@@ -45,27 +46,28 @@ class OnboardingPermissionPage extends StatelessWidget {
 
   /// Set after the OS said no without it being permanent.
   final String? errorMessage;
-  final List<PlaceInterest> interests;
 
   /// Right after "Skip for now" on step 2: show the Undo toast.
   final bool showSkipToast;
-  final VoidCallback onEnableLocation;
+  final ValueChanged<LocationChoice> onEnableLocation;
   final VoidCallback onNotNow;
   final VoidCallback onBack;
   final VoidCallback onUndoSkip;
 
-  bool get _denied => errorMessage != null && !isPermanentlyDenied;
+  @override
+  State<OnboardingPermissionPage> createState() =>
+      _OnboardingPermissionPageState();
+}
 
-  /// "waterfalls and coast", from the first two picks; null after a skip.
-  String? get _tieIn {
-    if (interests.isEmpty) return null;
-    final names = [for (final i in interests.take(2)) i.shortName];
-    return names.join(' and ');
-  }
+class _OnboardingPermissionPageState extends State<OnboardingPermissionPage> {
+  LocationChoice _choice = LocationChoice.allTheTime;
+
+  bool get _denied =>
+      widget.errorMessage != null && !widget.isPermanentlyDenied;
 
   @override
   Widget build(BuildContext context) {
-    final (title, subtitle) = isPermanentlyDenied
+    final (title, subtitle) = widget.isPermanentlyDenied
         ? (
             'Turn on location in Settings',
             const Text("Your phone won't ask again. It takes three taps."),
@@ -78,96 +80,67 @@ class OnboardingPermissionPage extends StatelessWidget {
               'You can turn it on later in Settings.',
             ),
           )
-        : ('Let counties unlock on their own', _askLine());
+        : (
+            'Let counties unlock on their own',
+            const Text(
+              'Choose how Kaunti47 notices each county line you cross.',
+            ),
+          );
     return OnboardingShell(
-      step: isDeviceAsk ? null : 4,
+      step: widget.isDeviceAsk ? null : 4,
       title: title,
       subtitle: subtitle,
-      onBack: isDeviceAsk ? null : onBack,
-      primaryLabel: isPermanentlyDenied
+      onBack: widget.isDeviceAsk ? null : widget.onBack,
+      primaryLabel: widget.isPermanentlyDenied
           ? 'Open Settings'
-          : (_denied ? 'Try again' : 'Enable location'),
-      onPrimary: onEnableLocation,
-      footerNote: isPermanentlyDenied || _denied
+          : (_denied
+                ? 'Try again'
+                : (_choice == LocationChoice.allTheTime
+                      ? 'Allow all the time'
+                      : 'Allow while using')),
+      onPrimary: () => widget.onEnableLocation(_choice),
+      footerNote: widget.isPermanentlyDenied || _denied
           ? null
-          : const PermissionPromptNote(),
+          : PermissionPromptNote(choice: _choice),
       // No way past the ask until the phone has been asked (5.1.1(iv)).
-      secondaryLabel: isPermanentlyDenied
+      secondaryLabel: widget.isPermanentlyDenied
           ? 'Not now'
           : (_denied ? 'Continue without location' : null),
-      onSecondary: isPermanentlyDenied || _denied ? onNotNow : null,
-      isBusy: isRequesting,
-      overlay: showSkipToast
+      onSecondary: widget.isPermanentlyDenied || _denied
+          ? widget.onNotNow
+          : null,
+      isBusy: widget.isRequesting,
+      overlay: widget.showSkipToast
           ? Positioned(
               left: 16,
               right: 16,
               bottom: 140,
               child: OnboardingUndoToast(
                 message: 'Skipped. Add interests anytime in Settings.',
-                onUndo: onUndoSkip,
+                onUndo: widget.onUndoSkip,
               ),
             )
           : null,
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-        child: isPermanentlyDenied
+        child: widget.isPermanentlyDenied
             ? const _PermanentlyDeniedBody()
             : _denied
-            ? _DeniedBody(message: errorMessage!)
-            : const _AskBody(),
-      ),
-    );
-  }
-
-  Widget _askLine() {
-    final tie = _tieIn;
-    return Text.rich(
-      TextSpan(
-        children: [
-          const TextSpan(text: 'Allow location so we can '),
-          if (tie != null) ...[
-            const TextSpan(text: 'find '),
-            TextSpan(
-              text: tie,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+            ? _DeniedBody(message: widget.errorMessage!)
+            : _AskBody(
+                choice: _choice,
+                onChanged: (c) => setState(() => _choice = c),
               ),
-            ),
-            const TextSpan(text: ' near you, and '),
-          ],
-          const TextSpan(text: 'notice each county line you cross.'),
-        ],
       ),
     );
   }
 }
 
 class _AskBody extends StatelessWidget {
-  const _AskBody();
+  const _AskBody({required this.choice, required this.onChanged});
 
-  static const _items = [
-    (
-      Icons.location_on_outlined,
-      'Wakes only at lines',
-      'No constant GPS. Almost no battery.',
-    ),
-    (
-      Icons.shield_outlined,
-      'Entries, never traces',
-      '"Entered Turkana on Saturday". Nothing more.',
-    ),
-    (
-      Icons.cloud_outlined,
-      'Works offline',
-      'Badges confirm once you have signal.',
-    ),
-    (
-      Icons.tune_outlined,
-      "You're in control",
-      'Manual mode or delete history in Profile.',
-    ),
-  ];
+  final LocationChoice choice;
+  final ValueChanged<LocationChoice> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -175,26 +148,7 @@ class _AskBody extends StatelessWidget {
       children: [
         const PermissionHowEarned(),
         const SizedBox(height: 10),
-        for (var row = 0; row < _items.length; row += 2) ...[
-          if (row > 0) const SizedBox(height: 10),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (var i = row; i < row + 2; i++) ...[
-                  if (i > row) const SizedBox(width: 10),
-                  Expanded(
-                    child: PermissionReassurance(
-                      icon: _items[i].$1,
-                      title: _items[i].$2,
-                      body: _items[i].$3,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
+        PermissionChoiceCards(choice: choice, onChanged: onChanged),
       ],
     );
   }

@@ -103,3 +103,22 @@ extension _QueueWrites on DetectionRepository {
     });
   }
 }
+
+/// Sign-out.
+extension DetectionLocalReset on DetectionRepository {
+  /// Sign-out: drops this owner's timers, queue and binding.
+  Future<void> clearAllLocalState() async {
+    await _ready;
+    await _db.transaction(() async {
+      final owner = await _ownerId();
+      await _db.delete(_db.candidates).go();
+      if (owner != null) {
+        await (_db.delete(
+          _db.pendingSyncOps,
+        )..where((t) => t.userId.equals(owner))).go();
+      }
+      await _db.delete(_db.currentCounty).go();
+      await _db.delete(_db.detectionOwner).go();
+    });
+  }
+}

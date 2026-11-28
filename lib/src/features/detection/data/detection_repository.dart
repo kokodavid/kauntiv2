@@ -42,13 +42,13 @@ class DetectionRepository {
   final TransitFlag transitFlag;
   final DetectionOutcomeCounts outcomes;
 
-  /// The previous accepted fix, kept in memory only (a fix is never stored,
-  /// doc 05) to tell whether the phone is moving faster than a road allows.
+  /// The previous accepted fix, in memory only (never stored, doc 05), to
+  /// tell whether the phone moves faster than a road allows.
   ({double latitude, double longitude, DateTime at})? _lastFix;
 
   /// The first near-border fix of a possible crossing, waiting for a second
-  /// one in the same county. In memory only: a background isolate that sees
-  /// one fix near a border credits nothing until the app confirms it.
+  /// in the same county (memory only: a background isolate credits nothing
+  /// on one near-border fix).
   ({int county, DateTime at})? _pendingBorder;
   late final Future<void> _ready;
   String? _expectedOwner;
@@ -66,8 +66,8 @@ class DetectionRepository {
         (await _db.select(_db.detectionOwner).getSingleOrNull())?.userId;
   }
 
-  /// A different account signing in drops the previous account's dwell
-  /// timers and current county; its queued visits stay, still owned by it.
+  /// A new account drops the previous one's timers and current county; its
+  /// queued visits stay, still owned by it.
   Future<void> _bindOwner(String userId) => _db.transaction(() async {
     final owner = await _db.select(_db.detectionOwner).getSingleOrNull();
     if (owner?.userId == userId) return;
@@ -99,26 +99,9 @@ class DetectionRepository {
     return row?.countyCode;
   }
 
-  /// Sets the current county without recording a crossing (after
-  /// onboarding, from the first foreground fix).
+  /// Sets the current county without recording a crossing (first fix).
   Future<void> seedCurrentCounty(int countyCode) =>
       _setCurrentCounty(countyCode);
-
-  /// Sign-out: drops this owner's timers, queue and binding.
-  Future<void> clearAllLocalState() async {
-    await _ready;
-    await _db.transaction(() async {
-      final owner = await _ownerId();
-      await _db.delete(_db.candidates).go();
-      if (owner != null) {
-        await (_db.delete(
-          _db.pendingSyncOps,
-        )..where((t) => t.userId.equals(owner))).go();
-      }
-      await _db.delete(_db.currentCounty).go();
-      await _db.delete(_db.detectionOwner).go();
-    });
-  }
 
   /// Turns a location fix into crossings: when the fix is clearly inside
   /// a different county than the current one (500 m hysteresis), exits the
@@ -144,8 +127,8 @@ class DetectionRepository {
     if (sampled == null) return null;
     final at = now ?? DateTime.now();
     final previous = await currentCountyCode();
-    // The confidence gate guards crossings only: a fix in the county we are
-    // already in changes nothing, and the very first fix just seeds it.
+    // The gate guards crossings only: a fix in the current county changes
+    // nothing, and the very first fix just seeds it.
     if (previous != null && previous != sampled) {
       final inside =
           CountyBoundaryResolver.insideDistanceMeters(
@@ -184,9 +167,8 @@ class DetectionRepository {
     } else {
       _pendingBorder = null;
     }
-    // The fix is clearly inside `sampled`, so no other county's timer can
-    // still be running: close them now, at the fix, not when the app next
-    // wakes up (that is how a left-behind county kept collecting time).
+    // The fix is clearly inside `sampled`: close other timers now, at the
+    // fix, not when the app next wakes (a left-behind county kept counting).
     await _closeOtherCandidates(except: sampled, at: at);
     if (previous == sampled) return null;
 
@@ -206,6 +188,7 @@ class DetectionRepository {
         kind: CrossingKind.enter,
         occurredAt: at,
       ),
+      fromFix: true,
     );
     final entered =
         await currentCountyCode() == sampled && beforeEnter != sampled;
@@ -213,7 +196,13 @@ class DetectionRepository {
   }
 
   /// Applies one crossing. Returns the visit it resolved, if any.
-  Future<ResolvedVisit?> handleEvent(CountyCrossingEvent event) async {
+  /// [fromFix]: a fix inside the county proved it (gate and transit passed),
+  /// so the geofence-event speed sanity is skipped; it would compare the
+  /// county against the one that same fix just closed.
+  Future<ResolvedVisit?> handleEvent(
+    CountyCrossingEvent event, {
+    bool fromFix = false,
+  }) async {
     await _ready;
     // A location-less geofence entry under a flight path says nothing about
     // where the phone is: ignore it while transit is in force.
@@ -240,10 +229,11 @@ class DetectionRepository {
         case VisitAction.ignore:
           return null;
         case VisitAction.startCandidate:
-          if (!await _isPlausibleNewCandidate(
-            event.countyCode,
-            event.occurredAt,
-          )) {
+          if (!fromFix &&
+              !await _isPlausibleNewCandidate(
+                event.countyCode,
+                event.occurredAt,
+              )) {
             return null;
           }
           await _db

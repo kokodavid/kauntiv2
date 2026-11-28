@@ -165,16 +165,10 @@ void main() {
         // The next fix, on the ground, is the first good one: a normal visit
         // starts here and the dwell clock starts fresh.
         final landed = t0.add(const Duration(hours: 1, minutes: 10));
-        var entered = await repo.reconcileCurrentLocation(
+        final entered = await repo.reconcileCurrentLocation(
           latitude: -0.0861,
           longitude: 34.7289,
           now: landed,
-        );
-        // Close to a border the gate wants a second fix before crediting.
-        entered ??= await repo.reconcileCurrentLocation(
-          latitude: -0.0861,
-          longitude: 34.7289,
-          now: landed.add(const Duration(minutes: 1)),
         );
         expect(entered, isNotNull);
         expect(entered, isNot(47));

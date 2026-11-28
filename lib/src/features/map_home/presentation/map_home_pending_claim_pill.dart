@@ -15,7 +15,10 @@ import '../../detection/domain/visit_rules.dart';
 /// above the bottom sheet beside the location pill; nothing shows when no
 /// visit is pending.
 class MapHomePendingClaimPill extends ConsumerStatefulWidget {
-  const MapHomePendingClaimPill({super.key});
+  const MapHomePendingClaimPill({super.key, this.claimedCountyCodes = const {}});
+
+  /// Counties the user has already earned; they never show a countdown.
+  final Set<int> claimedCountyCodes;
 
   @override
   ConsumerState<MapHomePendingClaimPill> createState() => _State();
@@ -47,6 +50,7 @@ class _State extends ConsumerState<MapHomePendingClaimPill> {
     final claim = PendingClaim.soonest(
       candidates,
       VisitTimings.current.dwellThreshold,
+      claimed: widget.claimedCountyCodes,
     );
     final county = claim == null ? null : CountyPaths.byCode[claim.countyCode];
     if (claim == null || county == null) return const SizedBox.shrink();

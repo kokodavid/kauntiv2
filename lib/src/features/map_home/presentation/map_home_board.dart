@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/domain/map_place.dart';
 import '../application/map_home_view_preference_provider.dart';
 import '../domain/map_home_layout.dart';
+import '../domain/county_badge_state.dart';
 import '../domain/map_home_models.dart';
 import 'map_home_board_sheet.dart';
 import 'map_home_board_top.dart';
@@ -261,6 +262,11 @@ class _MapHomeBoardState extends ConsumerState<MapHomeBoard> {
           child: MapHomeBoardSheet(
             aboveSheet: MapHomeStatusPills(
               onOpenLocationTiers: widget.onOpenLocationTiers,
+              claimedCountyCodes: {
+                for (final badge in data.countyBadges)
+                  if (badge.state == MapHomeCountyBadgeState.earned)
+                    badge.county.code,
+              },
             ),
             data: data,
             layout: _layout,

@@ -1,6 +1,5 @@
 import '../domain/detection_status.dart';
 import '../domain/visit_models.dart';
-import 'arrival_nudge.dart';
 
 /// What the last foreground cycle saw.
 class DetectionSnapshot {

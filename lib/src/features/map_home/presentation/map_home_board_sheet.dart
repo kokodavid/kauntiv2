@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/domain/map_place.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
-import '../../../core/widgets/app_photo_parts.dart';
 import '../domain/map_home_compact.dart';
 import '../domain/map_home_layout.dart';
 import '../domain/map_home_models.dart';
@@ -14,7 +13,6 @@ import 'map_home_links.dart';
 import 'map_home_offline_note.dart';
 import 'map_home_places_carousel.dart';
 import 'map_home_sheet.dart';
-import 'map_home_suggestion_media.dart';
 
 /// Height of the collapsed "Record a Trip" card (16 + 40 + 16).
 const defaultRecordTripCardHeight = 72.0;

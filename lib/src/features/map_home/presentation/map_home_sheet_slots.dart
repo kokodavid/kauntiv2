@@ -3,8 +3,11 @@ import 'package:flutter/widgets.dart';
 
 /// Layout helpers for [MapHomeSheet]'s content.
 class MapHomeMeasureSize extends SingleChildRenderObjectWidget {
-  const MapHomeMeasureSize({required this.onChange, required Widget child})
-    : super(child: child);
+  const MapHomeMeasureSize({
+    super.key,
+    required this.onChange,
+    required Widget child,
+  }) : super(child: child);
 
   final ValueChanged<Size> onChange;
 
@@ -40,8 +43,11 @@ class RenderMeasureSize extends RenderProxyBox {
 /// itself has no height. Keeps the space between visible sections exactly
 /// one gap however many sections hide.
 class MapHomeSectionSlot extends SingleChildRenderObjectWidget {
-  const MapHomeSectionSlot({required this.gap, required Widget child})
-    : super(child: child);
+  const MapHomeSectionSlot({
+    super.key,
+    required this.gap,
+    required Widget child,
+  }) : super(child: child);
 
   final double gap;
 

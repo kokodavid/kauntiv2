@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_photo_parts.dart';
 import '../domain/map_home_compact.dart';
 import 'map_home_compact_card.dart';
 import 'map_home_links.dart';
+import 'map_home_suggestion_media.dart';
 
 /// The collapsed sheet's compact card wired to what it can do: start a Trip
 /// from the home county, route to the suggestion, or open the county.
